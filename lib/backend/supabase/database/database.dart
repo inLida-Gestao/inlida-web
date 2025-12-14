@@ -1,0 +1,34 @@
+export '../../../flutter_flow/lat_lng.dart';
+export 'package:supabase_flutter/supabase_flutter.dart';
+
+export '../supabase.dart';
+export 'row.dart';
+export 'table.dart';
+
+export 'tables/view_reproducao_detalhada.dart';
+export 'tables/cidades.dart';
+export 'tables/view_rebanho_sanidade.dart';
+export 'tables/sanidade.dart';
+export 'tables/reproducao_change_tracker.dart';
+export 'tables/rebanho.dart';
+export 'tables/lotes_change_tracker.dart';
+export 'tables/ocorrencias.dart';
+export 'tables/patrocinios.dart';
+export 'tables/administradores.dart';
+export 'tables/rebanho_change_tracker.dart';
+export 'tables/historico_pesagens_change_tracker.dart';
+export 'tables/view_lotes_com_qtd_rebanhos.dart';
+export 'tables/reproducao.dart';
+export 'tables/lotes.dart';
+export 'tables/propriedades_change_tracker.dart';
+export 'tables/pagamentos.dart';
+export 'tables/pastagem.dart';
+export 'tables/propriedades.dart';
+export 'tables/assinaturas.dart';
+export 'tables/teste.dart';
+export 'tables/anuncios.dart';
+export 'tables/users.dart';
+export 'tables/piquete.dart';
+export 'tables/users_propriedades.dart';
+export 'tables/sanidade_change_tracker.dart';
+export 'tables/historico_pesagens.dart';

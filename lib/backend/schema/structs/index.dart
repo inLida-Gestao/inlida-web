@@ -1,0 +1,20 @@
+export '/backend/schema/util/schema_util.dart';
+
+export 'propriedades_d_t_struct.dart';
+export 'acesso_struct.dart';
+export 'animais_struct.dart';
+export 'animal_selecionado_struct.dart';
+export 'anos_struct.dart';
+export 'historico_pesagens_struct.dart';
+export 'lista_rebanho_propriedade_struct.dart';
+export 'lotes_struct.dart';
+export 'lotes_d_t_struct.dart';
+export 'propriedade_struct.dart';
+export 'reb_d_t_struct.dart';
+export 'rebanho_d_t_struct.dart';
+export 'rebanho_export_struct.dart';
+export 'rebanhos_por_periodo_struct.dart';
+export 'reproducao_d_t_struct.dart';
+export 'sanidade_struct.dart';
+export 'totalitens_struct.dart';
+export 'users_d_t_struct.dart';
