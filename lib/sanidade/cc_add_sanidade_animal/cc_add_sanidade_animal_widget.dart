@@ -192,7 +192,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
                                   onTap: () => FocusScope.of(context).unfocus(),
                                   child: Padding(
                                     padding: MediaQuery.viewInsetsOf(context),
-                                    child: PopupRebanhosWidget(
+                                    child: const PopupRebanhosWidget(
                                       sexo: null,
                                       sanidade: true,
                                     ),

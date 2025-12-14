@@ -187,7 +187,7 @@ class _PgSanidadeAddAnimalWidgetState extends State<PgSanidadeAddAnimalWidget> {
                                             child: Padding(
                                               padding: MediaQuery.viewInsetsOf(
                                                   context),
-                                              child: PopupRebanhosWidget(
+                                              child: const PopupRebanhosWidget(
                                                 sexo: null,
                                               ),
                                             ),

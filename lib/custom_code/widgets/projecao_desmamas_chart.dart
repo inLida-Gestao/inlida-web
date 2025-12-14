@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 /// Modelo interno (um ponto da projeção)
@@ -63,6 +62,24 @@ class ProjecaoDesmamasChart extends StatefulWidget {
 }
 
 class _ProjecaoDesmamasChartState extends State<ProjecaoDesmamasChart> {
+  double _resolvedHeight(BoxConstraints constraints) {
+    if (widget.height != null) return widget.height!;
+    if (constraints.hasBoundedHeight && constraints.maxHeight.isFinite) {
+      final h = constraints.maxHeight;
+      if (h > 0) return h;
+    }
+    return 300.0;
+  }
+
+  double? _resolvedWidth(BoxConstraints constraints) {
+    if (widget.width != null) return widget.width!;
+    if (constraints.hasBoundedWidth && constraints.maxWidth.isFinite) {
+      final w = constraints.maxWidth;
+      if (w > 0) return w;
+    }
+    return null;
+  }
+
   List<_Ponto> _parse(dynamic raw) {
     if (raw == null) return const <_Ponto>[];
 
@@ -124,92 +141,98 @@ class _ProjecaoDesmamasChartState extends State<ProjecaoDesmamasChart> {
   @override
   Widget build(BuildContext context) {
     final data = _parse(widget.items);
-    final w = widget.width ?? double.infinity;
-    final h = widget.height ?? 300.0;
 
     final filtroSexo = widget.filtroSexo.toLowerCase().trim();
     final isTodos = filtroSexo == 'todos';
     final isMacho = filtroSexo == 'macho';
-    final isFemea = filtroSexo == 'femea' || filtroSexo == 'fêmea';
 
-    if (data.isEmpty) {
-      return SizedBox(
-        width: w,
-        height: h,
-        child: Center(
-          child: Text('Sem dados de projeção.',
-              style: FlutterFlowTheme.of(context).labelMedium),
-        ),
-      );
-    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = _resolvedWidth(constraints);
+        final h = _resolvedHeight(constraints);
 
-    Color corDaSerie = Colors.blue;
-    String seriesName = 'Projeção';
-    int Function(_Ponto) yValueMapper = (p) => 0;
+        if (data.isEmpty) {
+          return SizedBox(
+            width: w,
+            height: h,
+            child: Center(
+              child: Text(
+                'Sem dados de projeção.',
+                style: FlutterFlowTheme.of(context).labelMedium,
+              ),
+            ),
+          );
+        }
 
-    final idade = widget.filtroIdadeMeses.trim();
+        Color corDaSerie = Colors.blue;
+        String seriesName = 'Projeção';
+        int Function(_Ponto) yValueMapper = (p) => 0;
 
-    if (idade == '6') {
-      seriesName = 'Projeção 6 Meses';
-      corDaSerie = const Color(0xFF60A5FA);
-      yValueMapper = isTodos
-          ? (p) => p.proj_6m_machos + p.proj_6m_femeas
-          : isMacho
-              ? (p) => p.proj_6m_machos
-              : (p) => p.proj_6m_femeas;
-    } else if (idade == '7') {
-      seriesName = 'Projeção 7 Meses';
-      corDaSerie = const Color(0xFF34D399);
-      yValueMapper = isTodos
-          ? (p) => p.proj_7m_machos + p.proj_7m_femeas
-          : isMacho
-              ? (p) => p.proj_7m_machos
-              : (p) => p.proj_7m_femeas;
-    } else if (idade == '8') {
-      seriesName = 'Projeção 8 Meses';
-      corDaSerie = const Color(0xFF6366F1);
-      yValueMapper = isTodos
-          ? (p) => p.proj_8m_machos + p.proj_8m_femeas
-          : isMacho
-              ? (p) => p.proj_8m_machos
-              : (p) => p.proj_8m_femeas;
-    }
+        final idade = widget.filtroIdadeMeses.trim();
 
-    final rotate = MediaQuery.of(context).size.width < 380 ? -45 : -25;
+        if (idade == '6') {
+          seriesName = 'Projeção 6 Meses';
+          corDaSerie = const Color(0xFF60A5FA);
+          yValueMapper = isTodos
+              ? (p) => p.proj_6m_machos + p.proj_6m_femeas
+              : isMacho
+                  ? (p) => p.proj_6m_machos
+                  : (p) => p.proj_6m_femeas;
+        } else if (idade == '7') {
+          seriesName = 'Projeção 7 Meses';
+          corDaSerie = const Color(0xFF34D399);
+          yValueMapper = isTodos
+              ? (p) => p.proj_7m_machos + p.proj_7m_femeas
+              : isMacho
+                  ? (p) => p.proj_7m_machos
+                  : (p) => p.proj_7m_femeas;
+        } else if (idade == '8') {
+          seriesName = 'Projeção 8 Meses';
+          corDaSerie = const Color(0xFF6366F1);
+          yValueMapper = isTodos
+              ? (p) => p.proj_8m_machos + p.proj_8m_femeas
+              : isMacho
+                  ? (p) => p.proj_8m_machos
+                  : (p) => p.proj_8m_femeas;
+        }
 
-    return SizedBox(
-      width: w,
-      height: h,
-      child: SfCartesianChart(
-        plotAreaBorderWidth: 0,
-        legend: const Legend(
-          isVisible: false,
-        ),
-        tooltipBehavior:
-            TooltipBehavior(enable: true, header: 'Projeção Desmama'),
-        primaryXAxis: CategoryAxis(
-          labelRotation: rotate,
-          majorGridLines: const MajorGridLines(width: 0),
-        ),
-        primaryYAxis: NumericAxis(
-          minimum: 0,
-          numberFormat: NumberFormat.compact(),
-          majorGridLines: const MajorGridLines(width: 0),
-          minorGridLines: const MinorGridLines(width: 0),
-          axisLine: const AxisLine(width: 0),
-        ),
-        series: <CartesianSeries<_Ponto, String>>[
-          ColumnSeries<_Ponto, String>(
-            name: seriesName,
-            color: corDaSerie,
-            dataSource: data,
-            xValueMapper: (p, _) => p.label,
-            yValueMapper: (p, _) => yValueMapper(p),
-            spacing: 0.3,
-            dataLabelSettings: const DataLabelSettings(isVisible: false),
+        final rotate = MediaQuery.of(context).size.width < 380 ? -45 : -25;
+
+        return SizedBox(
+          width: w,
+          height: h,
+          child: SfCartesianChart(
+            plotAreaBorderWidth: 0,
+            legend: const Legend(
+              isVisible: false,
+            ),
+            tooltipBehavior:
+                TooltipBehavior(enable: true, header: 'Projeção Desmama'),
+            primaryXAxis: CategoryAxis(
+              labelRotation: rotate,
+              majorGridLines: const MajorGridLines(width: 0),
+            ),
+            primaryYAxis: NumericAxis(
+              minimum: 0,
+              numberFormat: NumberFormat.compact(),
+              majorGridLines: const MajorGridLines(width: 0),
+              minorGridLines: const MinorGridLines(width: 0),
+              axisLine: const AxisLine(width: 0),
+            ),
+            series: <CartesianSeries<_Ponto, String>>[
+              ColumnSeries<_Ponto, String>(
+                name: seriesName,
+                color: corDaSerie,
+                dataSource: data,
+                xValueMapper: (p, _) => p.label,
+                yValueMapper: (p, _) => yValueMapper(p),
+                spacing: 0.3,
+                dataLabelSettings: const DataLabelSettings(isVisible: false),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

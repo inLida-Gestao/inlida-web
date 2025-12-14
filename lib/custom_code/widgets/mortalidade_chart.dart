@@ -62,6 +62,24 @@ class _MortalidadeChartState extends State<MortalidadeChart> {
     return DateTime.tryParse(s) ?? DateTime.fromMillisecondsSinceEpoch(0);
   }
 
+  double _resolvedHeight(BoxConstraints constraints) {
+    if (widget.height != null) return widget.height!;
+    if (constraints.hasBoundedHeight && constraints.maxHeight.isFinite) {
+      final h = constraints.maxHeight;
+      if (h > 0) return h;
+    }
+    return 280.0;
+  }
+
+  double? _resolvedWidth(BoxConstraints constraints) {
+    if (widget.width != null) return widget.width!;
+    if (constraints.hasBoundedWidth && constraints.maxWidth.isFinite) {
+      final w = constraints.maxWidth;
+      if (w > 0) return w;
+    }
+    return null;
+  }
+
   List<_PeriodoUniversal> _parseItems(dynamic raw) {
     if (raw == null) return const <_PeriodoUniversal>[];
 
@@ -115,21 +133,6 @@ class _MortalidadeChartState extends State<MortalidadeChart> {
   @override
   Widget build(BuildContext context) {
     final data = _parseItems(widget.items);
-    final w = widget.width ?? double.infinity;
-    final h = widget.height ?? 280.0;
-
-    if (data.isEmpty) {
-      return SizedBox(
-        width: w,
-        height: h,
-        child: Center(
-          child: Text(
-            'Sem dados no período.',
-            style: FlutterFlowTheme.of(context).labelMedium,
-          ),
-        ),
-      );
-    }
 
     const machosColor = Color(0xFF3B82F6);
     const femeasColor = Color(0xFFE11D8D);
@@ -137,61 +140,81 @@ class _MortalidadeChartState extends State<MortalidadeChart> {
 
     final rotate = MediaQuery.of(context).size.width < 380 ? -55 : -30;
 
-    return Column(
-      children: [
-        if (widget.titulo != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              widget.titulo!,
-              style: FlutterFlowTheme.of(context).titleMedium,
-            ),
-          ),
-        SizedBox(
-          width: w,
-          height: h,
-          child: SfCartesianChart(
-            legend: const Legend(
-              isVisible: true,
-              position: LegendPosition.top,
-              overflowMode: LegendItemOverflowMode.wrap,
-            ),
-            tooltipBehavior: TooltipBehavior(enable: true),
-            primaryXAxis: CategoryAxis(
-              labelRotation: rotate,
-              majorGridLines: const MajorGridLines(width: 0),
-            ),
-            primaryYAxis: const NumericAxis(
-              minimum: 0,
-              majorGridLines: MajorGridLines(width: 0),
-              axisLine: AxisLine(width: 0),
-            ),
-            series: <CartesianSeries<_PeriodoUniversal, String>>[
-              StackedColumnSeries<_PeriodoUniversal, String>(
-                name: 'Machos',
-                color: machosColor,
-                dataSource: data,
-                xValueMapper: (p, _) => p.label,
-                yValueMapper: (p, _) => p.machos,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = _resolvedWidth(constraints);
+        final h = _resolvedHeight(constraints);
+
+        if (data.isEmpty) {
+          return SizedBox(
+            width: w,
+            height: h,
+            child: Center(
+              child: Text(
+                'Sem dados no período.',
+                style: FlutterFlowTheme.of(context).labelMedium,
               ),
-              StackedColumnSeries<_PeriodoUniversal, String>(
-                name: 'Fêmeas',
-                color: femeasColor,
-                dataSource: data,
-                xValueMapper: (p, _) => p.label,
-                yValueMapper: (p, _) => p.femeas,
+            ),
+          );
+        }
+
+        return Column(
+          children: [
+            if (widget.titulo != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  widget.titulo!,
+                  style: FlutterFlowTheme.of(context).titleMedium,
+                ),
               ),
-              ColumnSeries<_PeriodoUniversal, String>(
-                name: 'Total',
-                color: totalColor,
-                dataSource: data,
-                xValueMapper: (p, _) => p.label,
-                yValueMapper: (p, _) => p.total,
+            SizedBox(
+              width: w,
+              height: h,
+              child: SfCartesianChart(
+                legend: const Legend(
+                  isVisible: true,
+                  position: LegendPosition.top,
+                  overflowMode: LegendItemOverflowMode.wrap,
+                ),
+                tooltipBehavior: TooltipBehavior(enable: true),
+                primaryXAxis: CategoryAxis(
+                  labelRotation: rotate,
+                  majorGridLines: const MajorGridLines(width: 0),
+                ),
+                primaryYAxis: const NumericAxis(
+                  minimum: 0,
+                  majorGridLines: MajorGridLines(width: 0),
+                  axisLine: AxisLine(width: 0),
+                ),
+                series: <CartesianSeries<_PeriodoUniversal, String>>[
+                  StackedColumnSeries<_PeriodoUniversal, String>(
+                    name: 'Machos',
+                    color: machosColor,
+                    dataSource: data,
+                    xValueMapper: (p, _) => p.label,
+                    yValueMapper: (p, _) => p.machos,
+                  ),
+                  StackedColumnSeries<_PeriodoUniversal, String>(
+                    name: 'Fêmeas',
+                    color: femeasColor,
+                    dataSource: data,
+                    xValueMapper: (p, _) => p.label,
+                    yValueMapper: (p, _) => p.femeas,
+                  ),
+                  ColumnSeries<_PeriodoUniversal, String>(
+                    name: 'Total',
+                    color: totalColor,
+                    dataSource: data,
+                    xValueMapper: (p, _) => p.label,
+                    yValueMapper: (p, _) => p.total,
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

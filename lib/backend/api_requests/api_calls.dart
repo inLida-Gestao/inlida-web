@@ -7,6 +7,7 @@ import 'api_manager.dart';
 
 export 'api_manager.dart' show ApiCallResponse;
 
+// ignore: unused_element
 const _kPrivateApiFunctionName = 'ffPrivateApiCall';
 
 /// Start Functions Supabase Rebanho Group Code
@@ -1392,11 +1393,28 @@ class NascimentosPeriodoCall {
     );
   }
 
-  List? items(dynamic response) => getJsonField(
-        response,
-        r'''$.items''',
-        true,
-      ) as List?;
+  List? items(dynamic response) {
+    dynamic decoded = response;
+    if (decoded is String) {
+      try {
+        decoded = jsonDecode(decoded);
+      } catch (_) {}
+    }
+
+    if (decoded is List) {
+      return decoded;
+    }
+    if (decoded is Map && decoded['items'] is List) {
+      return decoded['items'] as List;
+    }
+
+    return getJsonField(
+      response,
+      r'''$.items''',
+      true,
+    ) as List?;
+  }
+
   List<String>? itemsbucketini(dynamic response) => (getJsonField(
         response,
         r'''$.items[:].bucket_ini''',
@@ -1489,11 +1507,27 @@ class MortalidadePeriodoCall {
     );
   }
 
-  List? items(dynamic response) => getJsonField(
-        response,
-        r'''$.items''',
-        true,
-      ) as List?;
+  List? items(dynamic response) {
+    dynamic decoded = response;
+    if (decoded is String) {
+      try {
+        decoded = jsonDecode(decoded);
+      } catch (_) {}
+    }
+
+    if (decoded is List) {
+      return decoded;
+    }
+    if (decoded is Map && decoded['items'] is List) {
+      return decoded['items'] as List;
+    }
+
+    return getJsonField(
+      response,
+      r'''$.items''',
+      true,
+    ) as List?;
+  }
 }
 
 class DesmamaPeriodoCall {
@@ -1528,11 +1562,27 @@ class DesmamaPeriodoCall {
     );
   }
 
-  List? items(dynamic response) => getJsonField(
-        response,
-        r'''$.items''',
-        true,
-      ) as List?;
+  List? items(dynamic response) {
+    dynamic decoded = response;
+    if (decoded is String) {
+      try {
+        decoded = jsonDecode(decoded);
+      } catch (_) {}
+    }
+
+    if (decoded is List) {
+      return decoded;
+    }
+    if (decoded is Map && decoded['items'] is List) {
+      return decoded['items'] as List;
+    }
+
+    return getJsonField(
+      response,
+      r'''$.items''',
+      true,
+    ) as List?;
+  }
 }
 
 class IdadeDesmamaCall {
@@ -1762,6 +1812,28 @@ class ProjecaoDesmamasCall {
       isStreamingApi: false,
       alwaysAllowBody: false,
     );
+  }
+
+  List? items(dynamic response) {
+    dynamic decoded = response;
+    if (decoded is String) {
+      try {
+        decoded = jsonDecode(decoded);
+      } catch (_) {}
+    }
+
+    if (decoded is List) {
+      return decoded;
+    }
+    if (decoded is Map && decoded['items'] is List) {
+      return decoded['items'] as List;
+    }
+
+    return getJsonField(
+      response,
+      r'''$.items''',
+      true,
+    ) as List?;
   }
 }
 
@@ -2277,6 +2349,7 @@ String _toEncodable(dynamic item) {
   return item;
 }
 
+// ignore: unused_element
 String _serializeList(List? list) {
   list ??= <String>[];
   try {

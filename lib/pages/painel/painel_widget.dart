@@ -5,7 +5,6 @@ import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
 import '/components/empty_widget.dart';
 import '/components/loading_widget.dart';
-import '/flutter_flow/flutter_flow_charts.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -168,8 +167,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                 mainAxisSize: MainAxisSize.max,
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsetsDirectional.fromSTEB(
-                                        24.0, 32.0, 24.0, 0.0),
+                                    padding:
+                                        const EdgeInsetsDirectional.fromSTEB(
+                                            24.0, 32.0, 24.0, 0.0),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.max,
                                       mainAxisAlignment:
@@ -208,19 +208,17 @@ class _PainelWidgetState extends State<PainelWidget>
                                                   CrossAxisAlignment.center,
                                               children: [
                                                 if (FFAppState()
-                                                            .propriedadeSelecionada
-                                                            .idPropriedade !=
-                                                        '')
+                                                        .propriedadeSelecionada
+                                                        .idPropriedade !=
+                                                    '')
                                                   Container(
-                                                    decoration: const BoxDecoration(),
+                                                    decoration:
+                                                        const BoxDecoration(),
                                                     child: Padding(
                                                       padding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  5.0,
-                                                                  0.0,
-                                                                  5.0,
-                                                                  0.0),
+                                                              .fromSTEB(5.0,
+                                                              0.0, 5.0, 0.0),
                                                       child: Row(
                                                         mainAxisSize:
                                                             MainAxisSize.min,
@@ -317,10 +315,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         8.0,
                                                                     margin: const EdgeInsetsDirectional
                                                                         .fromSTEB(
-                                                                            12.0,
-                                                                            0.0,
-                                                                            12.0,
-                                                                            0.0),
+                                                                        12.0,
+                                                                        0.0,
+                                                                        12.0,
+                                                                        0.0),
                                                                     hidesUnderline:
                                                                         true,
                                                                     isOverButton:
@@ -421,10 +419,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         8.0,
                                                                     margin: const EdgeInsetsDirectional
                                                                         .fromSTEB(
-                                                                            12.0,
-                                                                            0.0,
-                                                                            12.0,
-                                                                            0.0),
+                                                                        12.0,
+                                                                        0.0,
+                                                                        12.0,
+                                                                        0.0),
                                                                     hidesUnderline:
                                                                         true,
                                                                     isOverButton:
@@ -434,12 +432,15 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                     isMultiSelect:
                                                                         false,
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    width:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        width:
+                                                                            8.0)),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 4.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        4.0)),
                                                           ),
                                                           Text(
                                                             'Até',
@@ -552,10 +553,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         8.0,
                                                                     margin: const EdgeInsetsDirectional
                                                                         .fromSTEB(
-                                                                            12.0,
-                                                                            0.0,
-                                                                            12.0,
-                                                                            0.0),
+                                                                        12.0,
+                                                                        0.0,
+                                                                        12.0,
+                                                                        0.0),
                                                                     hidesUnderline:
                                                                         true,
                                                                     isOverButton:
@@ -656,10 +657,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         8.0,
                                                                     margin: const EdgeInsetsDirectional
                                                                         .fromSTEB(
-                                                                            12.0,
-                                                                            0.0,
-                                                                            12.0,
-                                                                            0.0),
+                                                                        12.0,
+                                                                        0.0,
+                                                                        12.0,
+                                                                        0.0),
                                                                     hidesUnderline:
                                                                         true,
                                                                     isOverButton:
@@ -669,12 +670,15 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                     isMultiSelect:
                                                                         false,
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    width:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        width:
+                                                                            8.0)),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 4.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        4.0)),
                                                           ),
                                                         ].divide(const SizedBox(
                                                             width: 8.0)),
@@ -737,20 +741,14 @@ class _PainelWidgetState extends State<PainelWidget>
                                                       height: 48.0,
                                                       padding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  16.0,
-                                                                  0.0,
-                                                                  16.0,
-                                                                  0.0),
+                                                              .fromSTEB(16.0,
+                                                              0.0, 16.0, 0.0),
                                                       iconAlignment:
                                                           IconAlignment.end,
                                                       iconPadding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0),
+                                                              .fromSTEB(0.0,
+                                                              0.0, 0.0, 0.0),
                                                       color: FlutterFlowTheme
                                                               .of(context)
                                                           .secondaryBackground,
@@ -854,20 +852,14 @@ class _PainelWidgetState extends State<PainelWidget>
                                                       height: 48.0,
                                                       padding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  16.0,
-                                                                  0.0,
-                                                                  16.0,
-                                                                  0.0),
+                                                              .fromSTEB(16.0,
+                                                              0.0, 16.0, 0.0),
                                                       iconAlignment:
                                                           IconAlignment.end,
                                                       iconPadding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0),
+                                                              .fromSTEB(0.0,
+                                                              0.0, 0.0, 0.0),
                                                       color: FlutterFlowTheme
                                                               .of(context)
                                                           .secondaryBackground,
@@ -1017,7 +1009,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                       ),
                                                     ),
                                                   ),
-                                              ].divide(const SizedBox(width: 16.0)),
+                                              ].divide(
+                                                  const SizedBox(width: 16.0)),
                                             ),
                                           ],
                                         ),
@@ -1026,8 +1019,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                   ),
                                   Expanded(
                                     child: Padding(
-                                      padding: const EdgeInsetsDirectional.fromSTEB(
-                                          24.0, 24.0, 24.0, 0.0),
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              24.0, 24.0, 24.0, 0.0),
                                       child: Column(
                                         children: [
                                           Align(
@@ -1134,10 +1128,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                             padding:
                                                                 const EdgeInsetsDirectional
                                                                     .fromSTEB(
-                                                                        4.0,
-                                                                        0.0,
-                                                                        0.0,
-                                                                        0.0),
+                                                                    4.0,
+                                                                    0.0,
+                                                                    0.0,
+                                                                    0.0),
                                                             child: Row(
                                                               mainAxisSize:
                                                                   MainAxisSize
@@ -1211,8 +1205,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       ),
                                                                       child:
                                                                           Padding(
-                                                                        padding:
-                                                                            const EdgeInsets.all(24.0),
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            24.0),
                                                                         child:
                                                                             Column(
                                                                           mainAxisSize:
@@ -1246,7 +1241,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                     ),
                                                                                     Builder(
                                                                                       builder: (context) {
-                                                                                        final lista = (listaRebanhoAnimalListaRebanhosPropriedadeResponse.jsonBody.toList().map<ListaRebanhoPropriedadeStruct?>(ListaRebanhoPropriedadeStruct.maybeFromMap).toList() as Iterable<ListaRebanhoPropriedadeStruct?>).withoutNulls.toList() ?? [];
+                                                                                        final lista = (listaRebanhoAnimalListaRebanhosPropriedadeResponse.jsonBody.toList().map<ListaRebanhoPropriedadeStruct?>(ListaRebanhoPropriedadeStruct.maybeFromMap).toList() as Iterable<ListaRebanhoPropriedadeStruct?>).withoutNulls.toList();
                                                                                         if (lista.isEmpty) {
                                                                                           return const Center(
                                                                                             child: SizedBox(
@@ -1372,10 +1367,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       Padding(
                                                                     padding: const EdgeInsetsDirectional
                                                                         .fromSTEB(
-                                                                            0.0,
-                                                                            0.0,
-                                                                            4.0,
-                                                                            0.0),
+                                                                        0.0,
+                                                                        0.0,
+                                                                        4.0,
+                                                                        0.0),
                                                                     child:
                                                                         Container(
                                                                       width: double
@@ -1404,8 +1399,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       ),
                                                                       child:
                                                                           Padding(
-                                                                        padding:
-                                                                            const EdgeInsets.all(24.0),
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            24.0),
                                                                         child:
                                                                             Column(
                                                                           mainAxisSize:
@@ -1431,7 +1427,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 ),
                                                                               ].divide(const SizedBox(width: 8.0)),
                                                                             ),
-                                                                            if (FFAppState().propriedadeSelecionada.idPropriedade != '')
+                                                                            if (FFAppState().propriedadeSelecionada.idPropriedade !=
+                                                                                '')
                                                                               FutureBuilder<ApiCallResponse>(
                                                                                 future: FunctionsSupabaseRebanhoGroup.anosComRebanhoCall.call(
                                                                                   propertyId: FFAppState().propriedadeSelecionada.idPropriedade,
@@ -1457,9 +1454,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                     decoration: const BoxDecoration(),
                                                                                     child: Visibility(
                                                                                       visible: FunctionsSupabaseRebanhoGroup.anosComRebanhoCall
-                                                                                              .ano(
-                                                                                                containerAnosComRebanhoResponse.jsonBody,
-                                                                                              )!.isNotEmpty,
+                                                                                          .ano(
+                                                                                            containerAnosComRebanhoResponse.jsonBody,
+                                                                                          )!
+                                                                                          .isNotEmpty,
                                                                                       child: Padding(
                                                                                         padding: const EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 36.0),
                                                                                         child: Wrap(
@@ -1799,161 +1797,17 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       children: [
                                                                                         if ((FFAppState().propriedadeSelecionada.idPropriedade != '') &&
                                                                                             (FunctionsSupabaseRebanhoGroup.graficoQtdRebanhoPeriodoCall
-                                                                                                    .anos(
-                                                                                                      containerChartRebGraficoQtdRebanhoPeriodoResponse.jsonBody,
-                                                                                                    )!.isNotEmpty))
+                                                                                                .anos(
+                                                                                                  containerChartRebGraficoQtdRebanhoPeriodoResponse.jsonBody,
+                                                                                                )!
+                                                                                                .isNotEmpty))
                                                                                           SizedBox(
                                                                                             width: double.infinity,
                                                                                             height: 400.0,
-                                                                                            child: FlutterFlowBarChart(
-                                                                                              barData: [
-                                                                                                FFBarChartData(
-                                                                                                  yData: FunctionsSupabaseRebanhoGroup.graficoQtdRebanhoPeriodoCall.qtdMacho(
-                                                                                                    containerChartRebGraficoQtdRebanhoPeriodoResponse.jsonBody,
-                                                                                                  )!,
-                                                                                                  color: const Color(0xFF2973CC),
-                                                                                                ),
-                                                                                                FFBarChartData(
-                                                                                                  yData: FunctionsSupabaseRebanhoGroup.graficoQtdRebanhoPeriodoCall.qtdFemea(
-                                                                                                    containerChartRebGraficoQtdRebanhoPeriodoResponse.jsonBody,
-                                                                                                  )!,
-                                                                                                  color: const Color(0xFFC429CC),
-                                                                                                ),
-                                                                                                FFBarChartData(
-                                                                                                  yData: FunctionsSupabaseRebanhoGroup.graficoQtdRebanhoPeriodoCall.qtdTotal(
-                                                                                                    containerChartRebGraficoQtdRebanhoPeriodoResponse.jsonBody,
-                                                                                                  )!,
-                                                                                                  color: FlutterFlowTheme.of(context).primary,
-                                                                                                )
-                                                                                              ],
-                                                                                              xLabels: FunctionsSupabaseRebanhoGroup.graficoQtdRebanhoPeriodoCall.mesAno(
-                                                                                                containerChartRebGraficoQtdRebanhoPeriodoResponse.jsonBody,
-                                                                                              )!,
-                                                                                              barWidth: 20.0,
-                                                                                              barBorderRadius: const BorderRadius.only(
-                                                                                                bottomLeft: Radius.circular(0.0),
-                                                                                                bottomRight: Radius.circular(0.0),
-                                                                                                topLeft: Radius.circular(8.0),
-                                                                                                topRight: Radius.circular(6.0),
-                                                                                              ),
-                                                                                              barSpace: 0.0,
-                                                                                              groupSpace: 16.0,
-                                                                                              alignment: BarChartAlignment.start,
-                                                                                              chartStylingInfo: ChartStylingInfo(
-                                                                                                enableTooltip: true,
-                                                                                                tooltipBackgroundColor: FlutterFlowTheme.of(context).customColor2,
-                                                                                                backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                                showGrid: true,
-                                                                                                showBorder: false,
-                                                                                              ),
-                                                                                              axisBounds: const AxisBounds(),
-                                                                                              xAxisLabelInfo: const AxisLabelInfo(
-                                                                                                showLabels: true,
-                                                                                                labelInterval: 10.0,
-                                                                                                reservedSize: 28.0,
-                                                                                              ),
-                                                                                              yAxisLabelInfo: AxisLabelInfo(
-                                                                                                showLabels: true,
-                                                                                                labelInterval: 1000.0,
-                                                                                                labelFormatter: LabelFormatter(
-                                                                                                  numberFormat: (val) => formatNumber(
-                                                                                                    val,
-                                                                                                    formatType: FormatType.custom,
-                                                                                                    format: '',
-                                                                                                    locale: 'pt_BR',
-                                                                                                  ),
-                                                                                                ),
-                                                                                                reservedSize: 42.0,
-                                                                                              ),
-                                                                                            ),
-                                                                                          ),
-                                                                                        if ((FFAppState().propriedadeSelecionada.idPropriedade != '') &&
-                                                                                            (FunctionsSupabaseRebanhoGroup.graficoQtdRebanhoPeriodoCall
-                                                                                                    .anos(
-                                                                                                      containerChartRebGraficoQtdRebanhoPeriodoResponse.jsonBody,
-                                                                                                    )!.isNotEmpty))
-                                                                                          Padding(
-                                                                                            padding: const EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 0.0),
-                                                                                            child: Row(
-                                                                                              mainAxisSize: MainAxisSize.max,
-                                                                                              mainAxisAlignment: MainAxisAlignment.center,
-                                                                                              children: [
-                                                                                                Row(
-                                                                                                  mainAxisSize: MainAxisSize.max,
-                                                                                                  children: [
-                                                                                                    Container(
-                                                                                                      width: 10.0,
-                                                                                                      height: 10.0,
-                                                                                                      decoration: BoxDecoration(
-                                                                                                        color: const Color(0xFF2973CC),
-                                                                                                        borderRadius: BorderRadius.circular(100.0),
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                    Text(
-                                                                                                      'Macho',
-                                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                                            font: GoogleFonts.poppins(
-                                                                                                              fontWeight: FontWeight.w500,
-                                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                            ),
-                                                                                                            letterSpacing: 0.0,
-                                                                                                            fontWeight: FontWeight.w500,
-                                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                          ),
-                                                                                                    ),
-                                                                                                  ].divide(const SizedBox(width: 6.0)),
-                                                                                                ),
-                                                                                                Row(
-                                                                                                  mainAxisSize: MainAxisSize.max,
-                                                                                                  children: [
-                                                                                                    Container(
-                                                                                                      width: 10.0,
-                                                                                                      height: 10.0,
-                                                                                                      decoration: BoxDecoration(
-                                                                                                        color: const Color(0xFFC429CC),
-                                                                                                        borderRadius: BorderRadius.circular(100.0),
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                    Text(
-                                                                                                      'Fêmea',
-                                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                                            font: GoogleFonts.poppins(
-                                                                                                              fontWeight: FontWeight.w500,
-                                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                            ),
-                                                                                                            letterSpacing: 0.0,
-                                                                                                            fontWeight: FontWeight.w500,
-                                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                          ),
-                                                                                                    ),
-                                                                                                  ].divide(const SizedBox(width: 6.0)),
-                                                                                                ),
-                                                                                                Row(
-                                                                                                  mainAxisSize: MainAxisSize.max,
-                                                                                                  children: [
-                                                                                                    Container(
-                                                                                                      width: 10.0,
-                                                                                                      height: 10.0,
-                                                                                                      decoration: BoxDecoration(
-                                                                                                        color: FlutterFlowTheme.of(context).primary,
-                                                                                                        borderRadius: BorderRadius.circular(100.0),
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                    Text(
-                                                                                                      'Total',
-                                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                                            font: GoogleFonts.poppins(
-                                                                                                              fontWeight: FontWeight.w500,
-                                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                            ),
-                                                                                                            letterSpacing: 0.0,
-                                                                                                            fontWeight: FontWeight.w500,
-                                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                          ),
-                                                                                                    ),
-                                                                                                  ].divide(const SizedBox(width: 6.0)),
-                                                                                                ),
-                                                                                              ].divide(const SizedBox(width: 8.0)),
+                                                                                            child: custom_widgets.RebanhoPeriodoChart(
+                                                                                              width: double.infinity,
+                                                                                              height: 400.0,
+                                                                                              items: containerChartRebGraficoQtdRebanhoPeriodoResponse.jsonBody,
                                                                                             ),
                                                                                           ),
                                                                                         if ((FFAppState().propriedadeSelecionada.idPropriedade == '') ||
@@ -1963,9 +1817,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                     )
                                                                                                     ?.length ==
                                                                                                 0))
-                                                                                          Expanded(
-                                                                                            child: Padding(
-                                                                                              padding: const EdgeInsetsDirectional.fromSTEB(0.0, 48.0, 0.0, 48.0),
+                                                                                          Padding(
+                                                                                            padding: const EdgeInsetsDirectional.fromSTEB(0.0, 48.0, 0.0, 48.0),
+                                                                                            child: SizedBox(
+                                                                                              height: 300.0,
                                                                                               child: wrapWithModel(
                                                                                                 model: _model.emptyModel,
                                                                                                 updateCallback: () => safeSetState(() {}),
@@ -1985,8 +1840,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                     ),
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  width: 24.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          24.0)),
                                                             ),
                                                           ),
                                                         ]
@@ -1994,15 +1851,18 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 const SizedBox(
                                                                     height:
                                                                         24.0))
-                                                            .addToEnd(const SizedBox(
-                                                                height: 24.0)),
+                                                            .addToEnd(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        24.0)),
                                                       ),
                                                     ],
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           0.0, 24.0, 0.0, 0.0),
                                                   child: SingleChildScrollView(
                                                     child: Column(
@@ -2012,33 +1872,21 @@ class _PainelWidgetState extends State<PainelWidget>
                                                           CrossAxisAlignment
                                                               .start,
                                                       children: [
-                                                        Expanded(
-                                                          child: Row(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .max,
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .spaceBetween,
-                                                            children: [
-                                                              Text(
-                                                                'Bezerros ',
-                                                                style: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .override(
-                                                                      font: GoogleFonts
-                                                                          .poppins(
-                                                                        fontWeight:
-                                                                            FontWeight.w600,
-                                                                        fontStyle: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .fontStyle,
-                                                                      ),
-                                                                      fontSize:
-                                                                          24.0,
-                                                                      letterSpacing:
-                                                                          0.0,
+                                                        Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.max,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: [
+                                                            Text(
+                                                              'Bezerros ',
+                                                              style: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .w600,
@@ -2047,18 +1895,29 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                           .bodyMedium
                                                                           .fontStyle,
                                                                     ),
-                                                              ),
-                                                            ],
-                                                          ),
+                                                                    fontSize:
+                                                                        24.0,
+                                                                    letterSpacing:
+                                                                        0.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                            ),
+                                                          ],
                                                         ),
                                                         Padding(
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      4.0,
-                                                                      0.0,
-                                                                      24.0,
-                                                                      0.0),
+                                                                  4.0,
+                                                                  0.0,
+                                                                  24.0,
+                                                                  0.0),
                                                           child: Row(
                                                             mainAxisSize:
                                                                 MainAxisSize
@@ -2326,18 +2185,20 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                     },
                                                                   ),
                                                                 ),
-                                                            ].divide(const SizedBox(
-                                                                width: 32.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        32.0)),
                                                           ),
                                                         ),
                                                         Padding(
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      4.0,
-                                                                      0.0,
-                                                                      24.0,
-                                                                      0.0),
+                                                                  4.0,
+                                                                  0.0,
+                                                                  24.0,
+                                                                  0.0),
                                                           child: Row(
                                                             mainAxisSize:
                                                                 MainAxisSize
@@ -2433,8 +2294,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(24.0),
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
                                                                           child:
                                                                               Column(
                                                                             mainAxisSize:
@@ -2617,8 +2479,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(24.0),
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
                                                                           child:
                                                                               Column(
                                                                             mainAxisSize:
@@ -2711,385 +2574,401 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   },
                                                                 ),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                width: 32.0)),
-                                                          ),
-                                                        ),
-                                                        Expanded(
-                                                          child: Padding(
-                                                            padding:
-                                                                const EdgeInsetsDirectional
-                                                                    .fromSTEB(
-                                                                        4.0,
-                                                                        0.0,
-                                                                        24.0,
-                                                                        0.0),
-                                                            child: Row(
-                                                              mainAxisSize:
-                                                                  MainAxisSize
-                                                                      .min,
-                                                              children: [
-                                                                Expanded(
-                                                                  child: FutureBuilder<
-                                                                      ApiCallResponse>(
-                                                                    future: SupabaseEdgeGroup
-                                                                        .nascimentosPeriodoCall
-                                                                        .call(
-                                                                      inicio:
-                                                                          '${valueOrDefault<String>(
-                                                                        _model
-                                                                            .dDInicioAnoValue,
-                                                                        '2025',
-                                                                      )}-${valueOrDefault<String>(
-                                                                        _model
-                                                                            .dDInicioMesValue
-                                                                            ?.toString(),
-                                                                        '01',
-                                                                      )}-01',
-                                                                      fim:
-                                                                          '${valueOrDefault<String>(
-                                                                        _model
-                                                                            .dDFimAnoValue,
-                                                                        '2025',
-                                                                      )}-${valueOrDefault<String>(
-                                                                        _model
-                                                                            .dDFimMesValue
-                                                                            ?.toString(),
-                                                                        '12',
-                                                                      )}-01',
-                                                                      idPropriedade: FFAppState()
-                                                                          .propriedadeSelecionada
-                                                                          .idPropriedade,
-                                                                    ),
-                                                                    builder:
-                                                                        (context,
-                                                                            snapshot) {
-                                                                      // Customize what your widget looks like when it's loading.
-                                                                      if (!snapshot
-                                                                          .hasData) {
-                                                                        return Center(
-                                                                          child:
-                                                                              SizedBox(
-                                                                            width:
-                                                                                50.0,
-                                                                            height:
-                                                                                50.0,
-                                                                            child:
-                                                                                CircularProgressIndicator(
-                                                                              valueColor: AlwaysStoppedAnimation<Color>(
-                                                                                FlutterFlowTheme.of(context).primary,
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        );
-                                                                      }
-                                                                      final containerNascimentosPeriodoResponse =
-                                                                          snapshot
-                                                                              .data!;
-
-                                                                      return Material(
-                                                                        color: Colors
-                                                                            .transparent,
-                                                                        elevation:
-                                                                            2.0,
-                                                                        shape:
-                                                                            RoundedRectangleBorder(
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(6.0),
-                                                                        ),
-                                                                        child:
-                                                                            Container(
-                                                                          height:
-                                                                              433.0,
-                                                                          decoration:
-                                                                              BoxDecoration(
-                                                                            color:
-                                                                                FlutterFlowTheme.of(context).secondaryBackground,
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(6.0),
-                                                                          ),
-                                                                          child:
-                                                                              Padding(
-                                                                            padding:
-                                                                                const EdgeInsets.all(24.0),
-                                                                            child:
-                                                                                Column(
-                                                                              mainAxisSize: MainAxisSize.max,
-                                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                                                              children: [
-                                                                                Text(
-                                                                                  'Nascimentos no período (cabeça)',
-                                                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                        font: GoogleFonts.poppins(
-                                                                                          fontWeight: FontWeight.w600,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                        ),
-                                                                                        fontSize: 18.0,
-                                                                                        letterSpacing: 0.0,
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                ),
-                                                                                Container(
-                                                                                  width: double.infinity,
-                                                                                  height: double.infinity,
-                                                                                  constraints: const BoxConstraints(
-                                                                                    maxHeight: 350.0,
-                                                                                  ),
-                                                                                  decoration: BoxDecoration(
-                                                                                    color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                  ),
-                                                                                  child: Padding(
-                                                                                    padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                                                                                    child: SizedBox(
-                                                                                      width: double.infinity,
-                                                                                      height: double.infinity,
-                                                                                      child: custom_widgets.NascimentosChart(
-                                                                                        width: double.infinity,
-                                                                                        height: double.infinity,
-                                                                                        items: getJsonField(
-                                                                                          containerNascimentosPeriodoResponse.jsonBody,
-                                                                                          r'''$.items''',
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      );
-                                                                    },
-                                                                  ),
-                                                                ),
-                                                                Expanded(
-                                                                  child: FutureBuilder<
-                                                                      ApiCallResponse>(
-                                                                    future: SupabaseEdgeGroup
-                                                                        .mortalidadePeriodoCall
-                                                                        .call(
-                                                                      inicio:
-                                                                          '${valueOrDefault<String>(
-                                                                        _model
-                                                                            .dDInicioAnoValue,
-                                                                        '2025',
-                                                                      )}-${valueOrDefault<String>(
-                                                                        _model
-                                                                            .dDInicioMesValue
-                                                                            ?.toString(),
-                                                                        '01',
-                                                                      )}-01',
-                                                                      fim:
-                                                                          '${valueOrDefault<String>(
-                                                                        _model
-                                                                            .dDFimAnoValue,
-                                                                        '2025',
-                                                                      )}-${valueOrDefault<String>(
-                                                                        _model
-                                                                            .dDFimMesValue
-                                                                            ?.toString(),
-                                                                        '12',
-                                                                      )}-01',
-                                                                      idPropriedade: FFAppState()
-                                                                          .propriedadeSelecionada
-                                                                          .idPropriedade,
-                                                                      causa: _model.dropDownMotivoMorteValue != null &&
-                                                                              _model.dropDownMotivoMorteValue !=
-                                                                                  ''
-                                                                          ? _model
-                                                                              .dropDownMotivoMorteValue
-                                                                          : '',
-                                                                    ),
-                                                                    builder:
-                                                                        (context,
-                                                                            snapshot) {
-                                                                      // Customize what your widget looks like when it's loading.
-                                                                      if (!snapshot
-                                                                          .hasData) {
-                                                                        return Center(
-                                                                          child:
-                                                                              SizedBox(
-                                                                            width:
-                                                                                50.0,
-                                                                            height:
-                                                                                50.0,
-                                                                            child:
-                                                                                CircularProgressIndicator(
-                                                                              valueColor: AlwaysStoppedAnimation<Color>(
-                                                                                FlutterFlowTheme.of(context).primary,
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        );
-                                                                      }
-                                                                      final containerMortalidadePeriodoResponse =
-                                                                          snapshot
-                                                                              .data!;
-
-                                                                      return Material(
-                                                                        color: Colors
-                                                                            .transparent,
-                                                                        elevation:
-                                                                            2.0,
-                                                                        shape:
-                                                                            RoundedRectangleBorder(
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(6.0),
-                                                                        ),
-                                                                        child:
-                                                                            Container(
-                                                                          height:
-                                                                              433.0,
-                                                                          decoration:
-                                                                              BoxDecoration(
-                                                                            color:
-                                                                                FlutterFlowTheme.of(context).secondaryBackground,
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(6.0),
-                                                                          ),
-                                                                          child:
-                                                                              Padding(
-                                                                            padding:
-                                                                                const EdgeInsets.all(24.0),
-                                                                            child:
-                                                                                Column(
-                                                                              mainAxisSize: MainAxisSize.max,
-                                                                              mainAxisAlignment: MainAxisAlignment.start,
-                                                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                                                              children: [
-                                                                                Row(
-                                                                                  mainAxisSize: MainAxisSize.max,
-                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                  children: [
-                                                                                    Padding(
-                                                                                      padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 16.0, 0.0),
-                                                                                      child: Text(
-                                                                                        'Mortalidade no período (cabeça)',
-                                                                                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                              font: GoogleFonts.poppins(
-                                                                                                fontWeight: FontWeight.w600,
-                                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                              ),
-                                                                                              fontSize: 18.0,
-                                                                                              letterSpacing: 0.0,
-                                                                                              fontWeight: FontWeight.w600,
-                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                            ),
-                                                                                      ),
-                                                                                    ),
-                                                                                    Row(
-                                                                                      mainAxisSize: MainAxisSize.max,
-                                                                                      children: [
-                                                                                        if (_model.dropDownMotivoMorteValue != null && _model.dropDownMotivoMorteValue != '')
-                                                                                          InkWell(
-                                                                                            splashColor: Colors.transparent,
-                                                                                            focusColor: Colors.transparent,
-                                                                                            hoverColor: Colors.transparent,
-                                                                                            highlightColor: Colors.transparent,
-                                                                                            onTap: () async {
-                                                                                              safeSetState(() {
-                                                                                                _model.dropDownMotivoMorteValueController?.reset();
-                                                                                                _model.dropDownMotivoMorteValue = null;
-                                                                                              });
-                                                                                            },
-                                                                                            child: Icon(
-                                                                                              Icons.replay,
-                                                                                              color: FlutterFlowTheme.of(context).primaryText,
-                                                                                              size: 24.0,
-                                                                                            ),
-                                                                                          ),
-                                                                                        FlutterFlowDropDown<String>(
-                                                                                          controller: _model.dropDownMotivoMorteValueController ??= FormFieldController<String>(null),
-                                                                                          options: const [
-                                                                                            'ACIDENTE',
-                                                                                            'ANIMAL PEÇONHENTO',
-                                                                                            'ATAQUE AVE',
-                                                                                            'DOENÇA',
-                                                                                            'ESTRESSE TÉRMICO',
-                                                                                            'INTOXICAÇÃO',
-                                                                                            'NEONATO',
-                                                                                            'PARTO DISTÓCICO',
-                                                                                            'PREDADOR'
-                                                                                          ],
-                                                                                          onChanged: (val) => safeSetState(() => _model.dropDownMotivoMorteValue = val),
-                                                                                          width: 140.0,
-                                                                                          height: 40.0,
-                                                                                          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                                font: GoogleFonts.poppins(
-                                                                                                  fontWeight: FontWeight.w600,
-                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                ),
-                                                                                                fontSize: 14.0,
-                                                                                                letterSpacing: 0.0,
-                                                                                                fontWeight: FontWeight.w600,
-                                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                              ),
-                                                                                          hintText: 'Causa',
-                                                                                          icon: Icon(
-                                                                                            Icons.keyboard_arrow_down_rounded,
-                                                                                            color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                            size: 24.0,
-                                                                                          ),
-                                                                                          fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                          elevation: 2.0,
-                                                                                          borderColor: FlutterFlowTheme.of(context).customColor5,
-                                                                                          borderWidth: 0.0,
-                                                                                          borderRadius: 8.0,
-                                                                                          margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                          hidesUnderline: true,
-                                                                                          isOverButton: false,
-                                                                                          isSearchable: false,
-                                                                                          isMultiSelect: false,
-                                                                                        ),
-                                                                                      ].divide(const SizedBox(width: 16.0)),
-                                                                                    ),
-                                                                                  ],
-                                                                                ),
-                                                                                Expanded(
-                                                                                  child: Padding(
-                                                                                    padding: const EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
-                                                                                    child: Container(
-                                                                                      width: double.infinity,
-                                                                                      height: double.infinity,
-                                                                                      decoration: const BoxDecoration(),
-                                                                                      child: SizedBox(
-                                                                                        width: double.infinity,
-                                                                                        height: double.infinity,
-                                                                                        child: custom_widgets.MortalidadeChart(
-                                                                                          width: double.infinity,
-                                                                                          height: double.infinity,
-                                                                                          items: getJsonField(
-                                                                                            containerMortalidadePeriodoResponse.jsonBody,
-                                                                                            r'''$.items''',
-                                                                                          ),
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      );
-                                                                    },
-                                                                  ),
-                                                                ),
-                                                              ].divide(const SizedBox(
-                                                                  width: 24.0)),
-                                                            ),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        32.0)),
                                                           ),
                                                         ),
                                                         Padding(
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      4.0,
-                                                                      0.0,
-                                                                      24.0,
-                                                                      0.0),
+                                                                  4.0,
+                                                                  0.0,
+                                                                  24.0,
+                                                                  0.0),
+                                                          child: Row(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            children: [
+                                                              Expanded(
+                                                                child: FutureBuilder<
+                                                                    ApiCallResponse>(
+                                                                  future: SupabaseEdgeGroup
+                                                                      .nascimentosPeriodoCall
+                                                                      .call(
+                                                                    inicio:
+                                                                        '${valueOrDefault<String>(
+                                                                      _model
+                                                                          .dDInicioAnoValue,
+                                                                      '2025',
+                                                                    )}-${valueOrDefault<int>(
+                                                                      _model
+                                                                          .dDInicioMesValue,
+                                                                      1,
+                                                                    ).toString().padLeft(2, '0')}-01',
+                                                                    fim:
+                                                                        '${valueOrDefault<String>(
+                                                                      _model
+                                                                          .dDFimAnoValue,
+                                                                      '2025',
+                                                                    )}-${valueOrDefault<int>(
+                                                                      _model
+                                                                          .dDFimMesValue,
+                                                                      12,
+                                                                    ).toString().padLeft(2, '0')}-01',
+                                                                    idPropriedade:
+                                                                        FFAppState()
+                                                                            .propriedadeSelecionada
+                                                                            .idPropriedade,
+                                                                  ),
+                                                                  builder: (context,
+                                                                      snapshot) {
+                                                                    // Customize what your widget looks like when it's loading.
+                                                                    if (!snapshot
+                                                                        .hasData) {
+                                                                      return Center(
+                                                                        child:
+                                                                            SizedBox(
+                                                                          width:
+                                                                              50.0,
+                                                                          height:
+                                                                              50.0,
+                                                                          child:
+                                                                              CircularProgressIndicator(
+                                                                            valueColor:
+                                                                                AlwaysStoppedAnimation<Color>(
+                                                                              FlutterFlowTheme.of(context).primary,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                    final containerNascimentosPeriodoResponse =
+                                                                        snapshot
+                                                                            .data!;
+
+                                                                    return Material(
+                                                                      color: Colors
+                                                                          .transparent,
+                                                                      elevation:
+                                                                          2.0,
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6.0),
+                                                                      ),
+                                                                      child:
+                                                                          Container(
+                                                                        height:
+                                                                            433.0,
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color:
+                                                                              FlutterFlowTheme.of(context).secondaryBackground,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(6.0),
+                                                                        ),
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
+                                                                          child:
+                                                                              Column(
+                                                                            mainAxisSize:
+                                                                                MainAxisSize.max,
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.spaceBetween,
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.center,
+                                                                            children: [
+                                                                              Text(
+                                                                                'Nascimentos no período (cabeça)',
+                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                      font: GoogleFonts.poppins(
+                                                                                        fontWeight: FontWeight.w600,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                      ),
+                                                                                      fontSize: 18.0,
+                                                                                      letterSpacing: 0.0,
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                    ),
+                                                                              ),
+                                                                              Expanded(
+                                                                                child: Padding(
+                                                                                  padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                                                  child: Container(
+                                                                                    width: double.infinity,
+                                                                                    constraints: const BoxConstraints(
+                                                                                      maxHeight: 350.0,
+                                                                                    ),
+                                                                                    decoration: BoxDecoration(
+                                                                                      color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                    ),
+                                                                                    child: containerNascimentosPeriodoResponse.succeeded
+                                                                                        ? custom_widgets.NascimentosChart(
+                                                                                            items: SupabaseEdgeGroup.nascimentosPeriodoCall.items(
+                                                                                                  containerNascimentosPeriodoResponse.jsonBody,
+                                                                                                ) ??
+                                                                                                containerNascimentosPeriodoResponse.jsonBody,
+                                                                                          )
+                                                                                        : Center(
+                                                                                            child: Text(
+                                                                                              'Falha ao carregar dados.',
+                                                                                              style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                            ),
+                                                                                          ),
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ),
+                                                              Expanded(
+                                                                child: FutureBuilder<
+                                                                    ApiCallResponse>(
+                                                                  future: SupabaseEdgeGroup
+                                                                      .mortalidadePeriodoCall
+                                                                      .call(
+                                                                    inicio:
+                                                                        '${valueOrDefault<String>(
+                                                                      _model
+                                                                          .dDInicioAnoValue,
+                                                                      '2025',
+                                                                    )}-${valueOrDefault<int>(
+                                                                      _model
+                                                                          .dDInicioMesValue,
+                                                                      1,
+                                                                    ).toString().padLeft(2, '0')}-01',
+                                                                    fim:
+                                                                        '${valueOrDefault<String>(
+                                                                      _model
+                                                                          .dDFimAnoValue,
+                                                                      '2025',
+                                                                    )}-${valueOrDefault<int>(
+                                                                      _model
+                                                                          .dDFimMesValue,
+                                                                      12,
+                                                                    ).toString().padLeft(2, '0')}-01',
+                                                                    idPropriedade:
+                                                                        FFAppState()
+                                                                            .propriedadeSelecionada
+                                                                            .idPropriedade,
+                                                                    causa: _model.dropDownMotivoMorteValue !=
+                                                                                null &&
+                                                                            _model.dropDownMotivoMorteValue !=
+                                                                                ''
+                                                                        ? _model
+                                                                            .dropDownMotivoMorteValue
+                                                                        : '',
+                                                                  ),
+                                                                  builder: (context,
+                                                                      snapshot) {
+                                                                    // Customize what your widget looks like when it's loading.
+                                                                    if (!snapshot
+                                                                        .hasData) {
+                                                                      return Center(
+                                                                        child:
+                                                                            SizedBox(
+                                                                          width:
+                                                                              50.0,
+                                                                          height:
+                                                                              50.0,
+                                                                          child:
+                                                                              CircularProgressIndicator(
+                                                                            valueColor:
+                                                                                AlwaysStoppedAnimation<Color>(
+                                                                              FlutterFlowTheme.of(context).primary,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                    final containerMortalidadePeriodoResponse =
+                                                                        snapshot
+                                                                            .data!;
+
+                                                                    return Material(
+                                                                      color: Colors
+                                                                          .transparent,
+                                                                      elevation:
+                                                                          2.0,
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6.0),
+                                                                      ),
+                                                                      child:
+                                                                          Container(
+                                                                        height:
+                                                                            433.0,
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color:
+                                                                              FlutterFlowTheme.of(context).secondaryBackground,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(6.0),
+                                                                        ),
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
+                                                                          child:
+                                                                              Column(
+                                                                            mainAxisSize:
+                                                                                MainAxisSize.max,
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.start,
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.center,
+                                                                            children: [
+                                                                              Row(
+                                                                                mainAxisSize: MainAxisSize.max,
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                children: [
+                                                                                  Padding(
+                                                                                    padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 16.0, 0.0),
+                                                                                    child: Text(
+                                                                                      'Mortalidade no período (cabeça)',
+                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                            fontSize: 18.0,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                    ),
+                                                                                  ),
+                                                                                  Row(
+                                                                                    mainAxisSize: MainAxisSize.max,
+                                                                                    children: [
+                                                                                      if (_model.dropDownMotivoMorteValue != null && _model.dropDownMotivoMorteValue != '')
+                                                                                        InkWell(
+                                                                                          splashColor: Colors.transparent,
+                                                                                          focusColor: Colors.transparent,
+                                                                                          hoverColor: Colors.transparent,
+                                                                                          highlightColor: Colors.transparent,
+                                                                                          onTap: () async {
+                                                                                            safeSetState(() {
+                                                                                              _model.dropDownMotivoMorteValueController?.reset();
+                                                                                              _model.dropDownMotivoMorteValue = null;
+                                                                                            });
+                                                                                          },
+                                                                                          child: Icon(
+                                                                                            Icons.replay,
+                                                                                            color: FlutterFlowTheme.of(context).primaryText,
+                                                                                            size: 24.0,
+                                                                                          ),
+                                                                                        ),
+                                                                                      FlutterFlowDropDown<String>(
+                                                                                        controller: _model.dropDownMotivoMorteValueController ??= FormFieldController<String>(null),
+                                                                                        options: const [
+                                                                                          'ACIDENTE',
+                                                                                          'ANIMAL PEÇONHENTO',
+                                                                                          'ATAQUE AVE',
+                                                                                          'DOENÇA',
+                                                                                          'ESTRESSE TÉRMICO',
+                                                                                          'INTOXICAÇÃO',
+                                                                                          'NEONATO',
+                                                                                          'PARTO DISTÓCICO',
+                                                                                          'PREDADOR'
+                                                                                        ],
+                                                                                        onChanged: (val) => safeSetState(() => _model.dropDownMotivoMorteValue = val),
+                                                                                        width: 140.0,
+                                                                                        height: 40.0,
+                                                                                        textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                              font: GoogleFonts.poppins(
+                                                                                                fontWeight: FontWeight.w600,
+                                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                              ),
+                                                                                              fontSize: 14.0,
+                                                                                              letterSpacing: 0.0,
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                        hintText: 'Causa',
+                                                                                        icon: Icon(
+                                                                                          Icons.keyboard_arrow_down_rounded,
+                                                                                          color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                          size: 24.0,
+                                                                                        ),
+                                                                                        fillColor: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                        elevation: 2.0,
+                                                                                        borderColor: FlutterFlowTheme.of(context).customColor5,
+                                                                                        borderWidth: 0.0,
+                                                                                        borderRadius: 8.0,
+                                                                                        margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                        hidesUnderline: true,
+                                                                                        isOverButton: false,
+                                                                                        isSearchable: false,
+                                                                                        isMultiSelect: false,
+                                                                                      ),
+                                                                                    ].divide(const SizedBox(width: 16.0)),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                              Expanded(
+                                                                                child: Padding(
+                                                                                  padding: const EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
+                                                                                  child: Container(
+                                                                                    width: double.infinity,
+                                                                                    height: double.infinity,
+                                                                                    decoration: const BoxDecoration(),
+                                                                                    child: SizedBox(
+                                                                                      width: double.infinity,
+                                                                                      height: double.infinity,
+                                                                                      child: containerMortalidadePeriodoResponse.succeeded
+                                                                                          ? custom_widgets.MortalidadeChart(
+                                                                                              items: SupabaseEdgeGroup.mortalidadePeriodoCall.items(
+                                                                                                    containerMortalidadePeriodoResponse.jsonBody,
+                                                                                                  ) ??
+                                                                                                  containerMortalidadePeriodoResponse.jsonBody,
+                                                                                            )
+                                                                                          : Center(
+                                                                                              child: Text(
+                                                                                                'Falha ao carregar dados.',
+                                                                                                style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                              ),
+                                                                                            ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        24.0)),
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                  4.0,
+                                                                  0.0,
+                                                                  24.0,
+                                                                  0.0),
                                                           child: Row(
                                                             mainAxisSize:
                                                                 MainAxisSize
@@ -3106,23 +2985,21 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       _model
                                                                           .dDInicioAnoValue,
                                                                       '2025',
-                                                                    )}-${valueOrDefault<String>(
+                                                                    )}-${valueOrDefault<int>(
                                                                       _model
-                                                                          .dDInicioMesValue
-                                                                          ?.toString(),
-                                                                      '01',
-                                                                    )}-01',
+                                                                          .dDInicioMesValue,
+                                                                      1,
+                                                                    ).toString().padLeft(2, '0')}-01',
                                                                     fim:
                                                                         '${valueOrDefault<String>(
                                                                       _model
                                                                           .dDFimAnoValue,
                                                                       '2025',
-                                                                    )}-${valueOrDefault<String>(
+                                                                    )}-${valueOrDefault<int>(
                                                                       _model
-                                                                          .dDFimMesValue
-                                                                          ?.toString(),
-                                                                      '12',
-                                                                    )}-01',
+                                                                          .dDFimMesValue,
+                                                                      12,
+                                                                    ).toString().padLeft(2, '0')}-01',
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -3186,8 +3063,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(24.0),
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
                                                                           child:
                                                                               Column(
                                                                             mainAxisSize:
@@ -3210,28 +3088,30 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                     ),
                                                                               ),
-                                                                              Container(
-                                                                                width: double.infinity,
-                                                                                height: double.infinity,
-                                                                                constraints: const BoxConstraints(
-                                                                                  maxHeight: 350.0,
-                                                                                ),
-                                                                                decoration: BoxDecoration(
-                                                                                  color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                ),
+                                                                              Expanded(
                                                                                 child: Padding(
                                                                                   padding: const EdgeInsets.all(16.0),
-                                                                                  child: SizedBox(
+                                                                                  child: Container(
                                                                                     width: double.infinity,
-                                                                                    height: double.infinity,
-                                                                                    child: custom_widgets.NascimentosChart(
-                                                                                      width: double.infinity,
-                                                                                      height: double.infinity,
-                                                                                      items: getJsonField(
-                                                                                        containerDesmamaPeriodoResponse.jsonBody,
-                                                                                        r'''$.items''',
-                                                                                      ),
+                                                                                    constraints: const BoxConstraints(
+                                                                                      maxHeight: 350.0,
                                                                                     ),
+                                                                                    decoration: BoxDecoration(
+                                                                                      color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                    ),
+                                                                                    child: containerDesmamaPeriodoResponse.succeeded
+                                                                                        ? custom_widgets.NascimentosChart(
+                                                                                            items: SupabaseEdgeGroup.desmamaPeriodoCall.items(
+                                                                                                  containerDesmamaPeriodoResponse.jsonBody,
+                                                                                                ) ??
+                                                                                                containerDesmamaPeriodoResponse.jsonBody,
+                                                                                          )
+                                                                                        : Center(
+                                                                                            child: Text(
+                                                                                              'Falha ao carregar dados.',
+                                                                                              style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                            ),
+                                                                                          ),
                                                                                   ),
                                                                                 ),
                                                                               ),
@@ -3254,23 +3134,21 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       _model
                                                                           .dDInicioAnoValue,
                                                                       '2025',
-                                                                    )}-${valueOrDefault<String>(
+                                                                    )}-${valueOrDefault<int>(
                                                                       _model
-                                                                          .dDInicioMesValue
-                                                                          ?.toString(),
-                                                                      '01',
-                                                                    )}-01',
+                                                                          .dDInicioMesValue,
+                                                                      1,
+                                                                    ).toString().padLeft(2, '0')}-01',
                                                                     fim:
                                                                         '${valueOrDefault<String>(
                                                                       _model
                                                                           .dDFimAnoValue,
                                                                       '2025',
-                                                                    )}-${valueOrDefault<String>(
+                                                                    )}-${valueOrDefault<int>(
                                                                       _model
-                                                                          .dDFimMesValue
-                                                                          ?.toString(),
-                                                                      '12',
-                                                                    )}-01',
+                                                                          .dDFimMesValue,
+                                                                      12,
+                                                                    ).toString().padLeft(2, '0')}-01',
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -3329,8 +3207,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(24.0),
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
                                                                           child:
                                                                               Column(
                                                                             mainAxisSize:
@@ -3447,28 +3326,30 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                   ),
                                                                                 ].divide(const SizedBox(width: 12.0)),
                                                                               ),
-                                                                              Container(
-                                                                                width: double.infinity,
-                                                                                height: double.infinity,
-                                                                                constraints: const BoxConstraints(
-                                                                                  maxHeight: 350.0,
-                                                                                ),
-                                                                                decoration: BoxDecoration(
-                                                                                  color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                ),
-                                                                                child: SizedBox(
+                                                                              Expanded(
+                                                                                child: Container(
                                                                                   width: double.infinity,
-                                                                                  height: double.infinity,
-                                                                                  child: custom_widgets.ProjecaoDesmamasChart(
-                                                                                    width: double.infinity,
-                                                                                    height: double.infinity,
-                                                                                    items: getJsonField(
-                                                                                      containerProjecaoDesmamasResponse.jsonBody,
-                                                                                      r'''$.items''',
-                                                                                    ),
-                                                                                    filtroSexo: _model.ddProjDesmamaValue!,
-                                                                                    filtroIdadeMeses: _model.ddMesesValue!,
+                                                                                  constraints: const BoxConstraints(
+                                                                                    maxHeight: 350.0,
                                                                                   ),
+                                                                                  decoration: BoxDecoration(
+                                                                                    color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                  ),
+                                                                                  child: containerProjecaoDesmamasResponse.succeeded
+                                                                                      ? custom_widgets.ProjecaoDesmamasChart(
+                                                                                          items: SupabaseEdgeGroup.projecaoDesmamasCall.items(
+                                                                                                containerProjecaoDesmamasResponse.jsonBody,
+                                                                                              ) ??
+                                                                                              containerProjecaoDesmamasResponse.jsonBody,
+                                                                                          filtroSexo: _model.ddProjDesmamaValue!,
+                                                                                          filtroIdadeMeses: _model.ddMesesValue!,
+                                                                                        )
+                                                                                      : Center(
+                                                                                          child: Text(
+                                                                                            'Falha ao carregar dados.',
+                                                                                            style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                          ),
+                                                                                        ),
                                                                                 ),
                                                                               ),
                                                                             ],
@@ -3479,21 +3360,27 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   },
                                                                 ),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                width: 24.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        24.0)),
                                                           ),
                                                         ),
                                                       ]
-                                                          .divide(const SizedBox(
-                                                              height: 32.0))
-                                                          .addToEnd(const SizedBox(
-                                                              height: 24.0)),
+                                                          .divide(
+                                                              const SizedBox(
+                                                                  height: 32.0))
+                                                          .addToEnd(
+                                                              const SizedBox(
+                                                                  height:
+                                                                      24.0)),
                                                     ),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           0.0, 24.0, 0.0, 0.0),
                                                   child: SingleChildScrollView(
                                                     child: Column(
@@ -3541,419 +3428,61 @@ class _PainelWidgetState extends State<PainelWidget>
                                                             ),
                                                           ],
                                                         ),
-                                                        Expanded(
-                                                          child: Padding(
-                                                            padding:
-                                                                const EdgeInsetsDirectional
-                                                                    .fromSTEB(
-                                                                        4.0,
-                                                                        0.0,
-                                                                        0.0,
-                                                                        0.0),
-                                                            child: Row(
-                                                              mainAxisSize:
-                                                                  MainAxisSize
-                                                                      .max,
-                                                              children: [
-                                                                Expanded(
-                                                                  child: FutureBuilder<
-                                                                      ApiCallResponse>(
-                                                                    future: SupaEdgeGroup
-                                                                        .reproducaoIdadeMediaPrimeraCriaCall
-                                                                        .call(
-                                                                      idPropriedade: FFAppState()
-                                                                          .propriedadeSelecionada
-                                                                          .idPropriedade,
-                                                                      dataInicio:
-                                                                          '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
-                                                                      dataFim:
-                                                                          '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
-                                                                    ),
-                                                                    builder:
-                                                                        (context,
-                                                                            snapshot) {
-                                                                      // Customize what your widget looks like when it's loading.
-                                                                      if (!snapshot
-                                                                          .hasData) {
-                                                                        return Center(
-                                                                          child:
-                                                                              SizedBox(
-                                                                            width:
-                                                                                50.0,
-                                                                            height:
-                                                                                50.0,
-                                                                            child:
-                                                                                CircularProgressIndicator(
-                                                                              valueColor: AlwaysStoppedAnimation<Color>(
-                                                                                FlutterFlowTheme.of(context).primary,
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        );
-                                                                      }
-                                                                      final containerReproducaoIdadeMediaPrimeraCriaResponse =
-                                                                          snapshot
-                                                                              .data!;
-
-                                                                      return Material(
-                                                                        color: Colors
-                                                                            .transparent,
-                                                                        elevation:
-                                                                            2.0,
-                                                                        shape:
-                                                                            RoundedRectangleBorder(
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(6.0),
-                                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                  4.0,
+                                                                  0.0,
+                                                                  0.0,
+                                                                  0.0),
+                                                          child: Row(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .max,
+                                                            children: [
+                                                              Expanded(
+                                                                child: FutureBuilder<
+                                                                    ApiCallResponse>(
+                                                                  future: SupaEdgeGroup
+                                                                      .reproducaoIdadeMediaPrimeraCriaCall
+                                                                      .call(
+                                                                    idPropriedade:
+                                                                        FFAppState()
+                                                                            .propriedadeSelecionada
+                                                                            .idPropriedade,
+                                                                    dataInicio:
+                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                    dataFim:
+                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
+                                                                  ),
+                                                                  builder: (context,
+                                                                      snapshot) {
+                                                                    // Customize what your widget looks like when it's loading.
+                                                                    if (!snapshot
+                                                                        .hasData) {
+                                                                      return Center(
                                                                         child:
-                                                                            Container(
+                                                                            SizedBox(
                                                                           width:
-                                                                              550.0,
+                                                                              50.0,
                                                                           height:
-                                                                              200.0,
-                                                                          constraints:
-                                                                              const BoxConstraints(
-                                                                            maxWidth:
-                                                                                550.0,
-                                                                          ),
-                                                                          decoration:
-                                                                              BoxDecoration(
-                                                                            color:
-                                                                                FlutterFlowTheme.of(context).secondaryBackground,
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(6.0),
-                                                                          ),
+                                                                              50.0,
                                                                           child:
-                                                                              Padding(
-                                                                            padding:
-                                                                                const EdgeInsets.all(24.0),
-                                                                            child:
-                                                                                Column(
-                                                                              mainAxisSize: MainAxisSize.max,
-                                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                                              children: [
-                                                                                Row(
-                                                                                  mainAxisSize: MainAxisSize.max,
-                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                  children: [
-                                                                                    Text(
-                                                                                      'Idade média da primeira cria (meses)',
-                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                            font: GoogleFonts.poppins(
-                                                                                              fontWeight: FontWeight.w600,
-                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                            ),
-                                                                                            fontSize: 18.0,
-                                                                                            letterSpacing: 0.0,
-                                                                                            fontWeight: FontWeight.w600,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                          ),
-                                                                                    ),
-                                                                                  ],
-                                                                                ),
-                                                                                SizedBox(
-                                                                                  width: double.infinity,
-                                                                                  height: 100.0,
-                                                                                  child: custom_widgets.MetricReadOnlySlider(
-                                                                                    width: double.infinity,
-                                                                                    height: 100.0,
-                                                                                    items: getJsonField(
-                                                                                      containerReproducaoIdadeMediaPrimeraCriaResponse.jsonBody,
-                                                                                      r'''$.items''',
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ],
+                                                                              CircularProgressIndicator(
+                                                                            valueColor:
+                                                                                AlwaysStoppedAnimation<Color>(
+                                                                              FlutterFlowTheme.of(context).primary,
                                                                             ),
                                                                           ),
                                                                         ),
                                                                       );
-                                                                    },
-                                                                  ),
-                                                                ),
-                                                                Expanded(
-                                                                  child: FutureBuilder<
-                                                                      ApiCallResponse>(
-                                                                    future: SupaEdgeGroup
-                                                                        .intervaloEntrePartosMesesCall
-                                                                        .call(
-                                                                      idPropriedade: FFAppState()
-                                                                          .propriedadeSelecionada
-                                                                          .idPropriedade,
-                                                                      dataInicio:
-                                                                          '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
-                                                                      dataFim:
-                                                                          '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
-                                                                    ),
-                                                                    builder:
-                                                                        (context,
-                                                                            snapshot) {
-                                                                      // Customize what your widget looks like when it's loading.
-                                                                      if (!snapshot
-                                                                          .hasData) {
-                                                                        return Center(
-                                                                          child:
-                                                                              SizedBox(
-                                                                            width:
-                                                                                50.0,
-                                                                            height:
-                                                                                50.0,
-                                                                            child:
-                                                                                CircularProgressIndicator(
-                                                                              valueColor: AlwaysStoppedAnimation<Color>(
-                                                                                FlutterFlowTheme.of(context).primary,
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        );
-                                                                      }
-                                                                      final containerIntervaloEntrePartosMesesResponse =
-                                                                          snapshot
-                                                                              .data!;
+                                                                    }
+                                                                    final containerReproducaoIdadeMediaPrimeraCriaResponse =
+                                                                        snapshot
+                                                                            .data!;
 
-                                                                      return Material(
-                                                                        color: Colors
-                                                                            .transparent,
-                                                                        elevation:
-                                                                            2.0,
-                                                                        shape:
-                                                                            RoundedRectangleBorder(
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(6.0),
-                                                                        ),
-                                                                        child:
-                                                                            Container(
-                                                                          width:
-                                                                              550.0,
-                                                                          height:
-                                                                              200.0,
-                                                                          constraints:
-                                                                              const BoxConstraints(
-                                                                            maxWidth:
-                                                                                550.0,
-                                                                          ),
-                                                                          decoration:
-                                                                              BoxDecoration(
-                                                                            color:
-                                                                                FlutterFlowTheme.of(context).secondaryBackground,
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(6.0),
-                                                                          ),
-                                                                          child:
-                                                                              Padding(
-                                                                            padding:
-                                                                                const EdgeInsets.all(24.0),
-                                                                            child:
-                                                                                Column(
-                                                                              mainAxisSize: MainAxisSize.max,
-                                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                                              children: [
-                                                                                Row(
-                                                                                  mainAxisSize: MainAxisSize.max,
-                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                  children: [
-                                                                                    Text(
-                                                                                      'Intervalo entre partos (meses)',
-                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                            font: GoogleFonts.poppins(
-                                                                                              fontWeight: FontWeight.w600,
-                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                            ),
-                                                                                            fontSize: 18.0,
-                                                                                            letterSpacing: 0.0,
-                                                                                            fontWeight: FontWeight.w600,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                          ),
-                                                                                    ),
-                                                                                  ],
-                                                                                ),
-                                                                                SizedBox(
-                                                                                  width: double.infinity,
-                                                                                  height: 100.0,
-                                                                                  child: custom_widgets.MetricReadOnlySlider(
-                                                                                    width: double.infinity,
-                                                                                    height: 100.0,
-                                                                                    items: getJsonField(
-                                                                                      containerIntervaloEntrePartosMesesResponse.jsonBody,
-                                                                                      r'''$.items''',
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      );
-                                                                    },
-                                                                  ),
-                                                                ),
-                                                              ].divide(const SizedBox(
-                                                                  width: 32.0)),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        Expanded(
-                                                          child: Padding(
-                                                            padding:
-                                                                const EdgeInsetsDirectional
-                                                                    .fromSTEB(
-                                                                        4.0,
-                                                                        0.0,
-                                                                        24.0,
-                                                                        0.0),
-                                                            child: Row(
-                                                              mainAxisSize:
-                                                                  MainAxisSize
-                                                                      .max,
-                                                              children: [
-                                                                Expanded(
-                                                                  child: FutureBuilder<
-                                                                      ApiCallResponse>(
-                                                                    future: SupabaseEdgeGroup
-                                                                        .taxaPrenhezGetCall
-                                                                        .call(
-                                                                      idPropriedade: FFAppState()
-                                                                          .propriedadeSelecionada
-                                                                          .idPropriedade,
-                                                                      dataInicio:
-                                                                          '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
-                                                                      dataFim:
-                                                                          '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
-                                                                    ),
-                                                                    builder:
-                                                                        (context,
-                                                                            snapshot) {
-                                                                      // Customize what your widget looks like when it's loading.
-                                                                      if (!snapshot
-                                                                          .hasData) {
-                                                                        return Center(
-                                                                          child:
-                                                                              SizedBox(
-                                                                            width:
-                                                                                50.0,
-                                                                            height:
-                                                                                50.0,
-                                                                            child:
-                                                                                CircularProgressIndicator(
-                                                                              valueColor: AlwaysStoppedAnimation<Color>(
-                                                                                FlutterFlowTheme.of(context).primary,
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        );
-                                                                      }
-                                                                      final containerTaxaPrenhezGetResponse =
-                                                                          snapshot
-                                                                              .data!;
-
-                                                                      return Material(
-                                                                        color: Colors
-                                                                            .transparent,
-                                                                        elevation:
-                                                                            2.0,
-                                                                        shape:
-                                                                            RoundedRectangleBorder(
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(6.0),
-                                                                        ),
-                                                                        child:
-                                                                            Container(
-                                                                          width:
-                                                                              double.infinity,
-                                                                          constraints:
-                                                                              const BoxConstraints(
-                                                                            minHeight:
-                                                                                433.0,
-                                                                          ),
-                                                                          decoration:
-                                                                              BoxDecoration(
-                                                                            color:
-                                                                                FlutterFlowTheme.of(context).secondaryBackground,
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(6.0),
-                                                                          ),
-                                                                          child:
-                                                                              Padding(
-                                                                            padding:
-                                                                                const EdgeInsets.all(24.0),
-                                                                            child:
-                                                                                Column(
-                                                                              mainAxisSize: MainAxisSize.max,
-                                                                              mainAxisAlignment: MainAxisAlignment.start,
-                                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                                              children: [
-                                                                                Text(
-                                                                                  'Taxa de prenhez',
-                                                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                        font: GoogleFonts.poppins(
-                                                                                          fontWeight: FontWeight.w600,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                        ),
-                                                                                        fontSize: 18.0,
-                                                                                        letterSpacing: 0.0,
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                ),
-                                                                                Expanded(
-                                                                                  child: Container(
-                                                                                    constraints: const BoxConstraints(
-                                                                                      maxHeight: 350.0,
-                                                                                    ),
-                                                                                    decoration: const BoxDecoration(),
-                                                                                    child: Column(
-                                                                                      mainAxisSize: MainAxisSize.max,
-                                                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                                                      children: [
-                                                                                        if (containerTaxaPrenhezGetResponse.succeeded)
-                                                                                          Expanded(
-                                                                                            child: Container(
-                                                                                              width: double.infinity,
-                                                                                              height: double.infinity,
-                                                                                              constraints: const BoxConstraints(
-                                                                                                maxHeight: 350.0,
-                                                                                              ),
-                                                                                              decoration: BoxDecoration(
-                                                                                                color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                              ),
-                                                                                              child: SizedBox(
-                                                                                                width: double.infinity,
-                                                                                                height: double.infinity,
-                                                                                                child: custom_widgets.TaxaPrenhezChart(
-                                                                                                  width: double.infinity,
-                                                                                                  height: double.infinity,
-                                                                                                  prenhezData: containerTaxaPrenhezGetResponse.jsonBody,
-                                                                                                ),
-                                                                                              ),
-                                                                                            ),
-                                                                                          ),
-                                                                                      ],
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      );
-                                                                    },
-                                                                  ),
-                                                                ),
-                                                                if (responsiveVisibility(
-                                                                  context:
-                                                                      context,
-                                                                  phone: false,
-                                                                  tablet: false,
-                                                                  tabletLandscape:
-                                                                      false,
-                                                                  desktop:
-                                                                      false,
-                                                                ))
-                                                                  Expanded(
-                                                                    child:
-                                                                        Material(
+                                                                    return Material(
                                                                       color: Colors
                                                                           .transparent,
                                                                       elevation:
@@ -3965,8 +3494,15 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       ),
                                                                       child:
                                                                           Container(
+                                                                        width:
+                                                                            550.0,
                                                                         height:
-                                                                            433.0,
+                                                                            200.0,
+                                                                        constraints:
+                                                                            const BoxConstraints(
+                                                                          maxWidth:
+                                                                              550.0,
+                                                                        ),
                                                                         decoration:
                                                                             BoxDecoration(
                                                                           color:
@@ -3976,8 +3512,272 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(24.0),
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
+                                                                          child:
+                                                                              Column(
+                                                                            mainAxisSize:
+                                                                                MainAxisSize.max,
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.spaceBetween,
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.start,
+                                                                            children: [
+                                                                              Row(
+                                                                                mainAxisSize: MainAxisSize.max,
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                children: [
+                                                                                  Text(
+                                                                                    'Idade média da primeira cria (meses)',
+                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                          fontSize: 18.0,
+                                                                                          letterSpacing: 0.0,
+                                                                                          fontWeight: FontWeight.w600,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                        ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                              SizedBox(
+                                                                                width: double.infinity,
+                                                                                height: 100.0,
+                                                                                child: custom_widgets.MetricReadOnlySlider(
+                                                                                  width: double.infinity,
+                                                                                  height: 100.0,
+                                                                                  items: getJsonField(
+                                                                                    containerReproducaoIdadeMediaPrimeraCriaResponse.jsonBody,
+                                                                                    r'''$.items''',
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ),
+                                                              Expanded(
+                                                                child: FutureBuilder<
+                                                                    ApiCallResponse>(
+                                                                  future: SupaEdgeGroup
+                                                                      .intervaloEntrePartosMesesCall
+                                                                      .call(
+                                                                    idPropriedade:
+                                                                        FFAppState()
+                                                                            .propriedadeSelecionada
+                                                                            .idPropriedade,
+                                                                    dataInicio:
+                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                    dataFim:
+                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
+                                                                  ),
+                                                                  builder: (context,
+                                                                      snapshot) {
+                                                                    // Customize what your widget looks like when it's loading.
+                                                                    if (!snapshot
+                                                                        .hasData) {
+                                                                      return Center(
+                                                                        child:
+                                                                            SizedBox(
+                                                                          width:
+                                                                              50.0,
+                                                                          height:
+                                                                              50.0,
+                                                                          child:
+                                                                              CircularProgressIndicator(
+                                                                            valueColor:
+                                                                                AlwaysStoppedAnimation<Color>(
+                                                                              FlutterFlowTheme.of(context).primary,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                    final containerIntervaloEntrePartosMesesResponse =
+                                                                        snapshot
+                                                                            .data!;
+
+                                                                    return Material(
+                                                                      color: Colors
+                                                                          .transparent,
+                                                                      elevation:
+                                                                          2.0,
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6.0),
+                                                                      ),
+                                                                      child:
+                                                                          Container(
+                                                                        width:
+                                                                            550.0,
+                                                                        height:
+                                                                            200.0,
+                                                                        constraints:
+                                                                            const BoxConstraints(
+                                                                          maxWidth:
+                                                                              550.0,
+                                                                        ),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color:
+                                                                              FlutterFlowTheme.of(context).secondaryBackground,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(6.0),
+                                                                        ),
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
+                                                                          child:
+                                                                              Column(
+                                                                            mainAxisSize:
+                                                                                MainAxisSize.max,
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.spaceBetween,
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.start,
+                                                                            children: [
+                                                                              Row(
+                                                                                mainAxisSize: MainAxisSize.max,
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                children: [
+                                                                                  Text(
+                                                                                    'Intervalo entre partos (meses)',
+                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                          fontSize: 18.0,
+                                                                                          letterSpacing: 0.0,
+                                                                                          fontWeight: FontWeight.w600,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                        ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                              SizedBox(
+                                                                                width: double.infinity,
+                                                                                height: 100.0,
+                                                                                child: custom_widgets.MetricReadOnlySlider(
+                                                                                  width: double.infinity,
+                                                                                  height: 100.0,
+                                                                                  items: getJsonField(
+                                                                                    containerIntervaloEntrePartosMesesResponse.jsonBody,
+                                                                                    r'''$.items''',
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        32.0)),
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                  4.0,
+                                                                  0.0,
+                                                                  24.0,
+                                                                  0.0),
+                                                          child: Row(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .max,
+                                                            children: [
+                                                              Expanded(
+                                                                child: FutureBuilder<
+                                                                    ApiCallResponse>(
+                                                                  future: SupabaseEdgeGroup
+                                                                      .taxaPrenhezGetCall
+                                                                      .call(
+                                                                    idPropriedade:
+                                                                        FFAppState()
+                                                                            .propriedadeSelecionada
+                                                                            .idPropriedade,
+                                                                    dataInicio:
+                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                    dataFim:
+                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
+                                                                  ),
+                                                                  builder: (context,
+                                                                      snapshot) {
+                                                                    // Customize what your widget looks like when it's loading.
+                                                                    if (!snapshot
+                                                                        .hasData) {
+                                                                      return Center(
+                                                                        child:
+                                                                            SizedBox(
+                                                                          width:
+                                                                              50.0,
+                                                                          height:
+                                                                              50.0,
+                                                                          child:
+                                                                              CircularProgressIndicator(
+                                                                            valueColor:
+                                                                                AlwaysStoppedAnimation<Color>(
+                                                                              FlutterFlowTheme.of(context).primary,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                    final containerTaxaPrenhezGetResponse =
+                                                                        snapshot
+                                                                            .data!;
+
+                                                                    return Material(
+                                                                      color: Colors
+                                                                          .transparent,
+                                                                      elevation:
+                                                                          2.0,
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6.0),
+                                                                      ),
+                                                                      child:
+                                                                          Container(
+                                                                        width: double
+                                                                            .infinity,
+                                                                        height:
+                                                                            433.0,
+                                                                        constraints:
+                                                                            const BoxConstraints(
+                                                                          maxHeight:
+                                                                              433.0,
+                                                                        ),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color:
+                                                                              FlutterFlowTheme.of(context).secondaryBackground,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(6.0),
+                                                                        ),
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
                                                                           child:
                                                                               Column(
                                                                             mainAxisSize:
@@ -3988,7 +3788,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 CrossAxisAlignment.start,
                                                                             children: [
                                                                               Text(
-                                                                                'Taxa de natalidade',
+                                                                                'Taxa de prenhez',
                                                                                 style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                       font: GoogleFonts.poppins(
                                                                                         fontWeight: FontWeight.w600,
@@ -4000,55 +3800,147 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                     ),
                                                                               ),
-                                                                              Container(
-                                                                                width: double.infinity,
-                                                                                height: double.infinity,
-                                                                                constraints: const BoxConstraints(
-                                                                                  maxHeight: 350.0,
-                                                                                ),
-                                                                                decoration: BoxDecoration(
-                                                                                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                              Expanded(
+                                                                                child: Container(
+                                                                                  width: double.infinity,
+                                                                                  height: double.infinity,
+                                                                                  constraints: const BoxConstraints(
+                                                                                    maxHeight: 350.0,
+                                                                                  ),
+                                                                                  decoration: BoxDecoration(
+                                                                                    color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                  ),
+                                                                                  child: containerTaxaPrenhezGetResponse.succeeded
+                                                                                      ? SizedBox(
+                                                                                          width: double.infinity,
+                                                                                          height: double.infinity,
+                                                                                          child: custom_widgets.TaxaPrenhezChart(
+                                                                                            width: double.infinity,
+                                                                                            height: double.infinity,
+                                                                                            prenhezData: containerTaxaPrenhezGetResponse.jsonBody,
+                                                                                          ),
+                                                                                        )
+                                                                                      : const EmptyWidget(),
                                                                                 ),
                                                                               ),
                                                                             ],
                                                                           ),
                                                                         ),
                                                                       ),
-                                                                    ),
-                                                                  ),
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ),
+                                                              if (responsiveVisibility(
+                                                                context:
+                                                                    context,
+                                                                phone: false,
+                                                                tablet: false,
+                                                                tabletLandscape:
+                                                                    false,
+                                                                desktop: false,
+                                                              ))
                                                                 Expanded(
                                                                   child:
-                                                                      Container(
-                                                                    width: double
-                                                                        .infinity,
-                                                                    constraints:
-                                                                        const BoxConstraints(
-                                                                      minHeight:
-                                                                          433.0,
-                                                                      maxWidth:
-                                                                          550.0,
+                                                                      Material(
+                                                                    color: Colors
+                                                                        .transparent,
+                                                                    elevation:
+                                                                        2.0,
+                                                                    shape:
+                                                                        RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              6.0),
                                                                     ),
-                                                                    decoration:
-                                                                        BoxDecoration(
-                                                                      color: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .secondaryBackground,
+                                                                    child:
+                                                                        Container(
+                                                                      height:
+                                                                          433.0,
+                                                                      decoration:
+                                                                          BoxDecoration(
+                                                                        color: FlutterFlowTheme.of(context)
+                                                                            .secondaryBackground,
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6.0),
+                                                                      ),
+                                                                      child:
+                                                                          Padding(
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            24.0),
+                                                                        child:
+                                                                            Column(
+                                                                          mainAxisSize:
+                                                                              MainAxisSize.max,
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.start,
+                                                                          crossAxisAlignment:
+                                                                              CrossAxisAlignment.start,
+                                                                          children: [
+                                                                            Text(
+                                                                              'Taxa de natalidade',
+                                                                              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                    font: GoogleFonts.poppins(
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                    ),
+                                                                                    fontSize: 18.0,
+                                                                                    letterSpacing: 0.0,
+                                                                                    fontWeight: FontWeight.w600,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                  ),
+                                                                            ),
+                                                                            Container(
+                                                                              width: double.infinity,
+                                                                              height: double.infinity,
+                                                                              constraints: const BoxConstraints(
+                                                                                maxHeight: 350.0,
+                                                                              ),
+                                                                              decoration: BoxDecoration(
+                                                                                color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                      ),
                                                                     ),
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  width: 32.0)),
-                                                            ),
+                                                              Expanded(
+                                                                child:
+                                                                    Container(
+                                                                  width: double
+                                                                      .infinity,
+                                                                  constraints:
+                                                                      const BoxConstraints(
+                                                                    minHeight:
+                                                                        433.0,
+                                                                    maxWidth:
+                                                                        550.0,
+                                                                  ),
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .secondaryBackground,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        24.0)),
                                                           ),
                                                         ),
                                                         Padding(
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      4.0,
-                                                                      0.0,
-                                                                      0.0,
-                                                                      0.0),
+                                                                  4.0,
+                                                                  0.0,
+                                                                  0.0,
+                                                                  0.0),
                                                           child: Row(
                                                             mainAxisSize:
                                                                 MainAxisSize
@@ -4123,8 +4015,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(24.0),
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
                                                                           child:
                                                                               Column(
                                                                             mainAxisSize:
@@ -4230,8 +4123,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(24.0),
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
                                                                           child:
                                                                               Column(
                                                                             mainAxisSize:
@@ -4287,8 +4181,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   },
                                                                 ),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                width: 24.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        24.0)),
                                                           ),
                                                         ),
                                                         if (responsiveVisibility(
@@ -4303,10 +4199,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                             padding:
                                                                 const EdgeInsetsDirectional
                                                                     .fromSTEB(
-                                                                        0.0,
-                                                                        24.0,
-                                                                        0.0,
-                                                                        0.0),
+                                                                    0.0,
+                                                                    24.0,
+                                                                    0.0,
+                                                                    0.0),
                                                             child: Row(
                                                               mainAxisSize:
                                                                   MainAxisSize
@@ -4338,8 +4234,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       ),
                                                                       child:
                                                                           Padding(
-                                                                        padding:
-                                                                            const EdgeInsets.all(24.0),
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            24.0),
                                                                         child:
                                                                             Column(
                                                                           mainAxisSize:
@@ -4404,8 +4301,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       ),
                                                                       child:
                                                                           Padding(
-                                                                        padding:
-                                                                            const EdgeInsets.all(24.0),
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            24.0),
                                                                         child:
                                                                             Column(
                                                                           mainAxisSize:
@@ -4444,21 +4342,27 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                     ),
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  width: 24.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          24.0)),
                                                             ),
                                                           ),
                                                       ]
-                                                          .divide(const SizedBox(
-                                                              height: 24.0))
-                                                          .addToEnd(const SizedBox(
-                                                              height: 24.0)),
+                                                          .divide(
+                                                              const SizedBox(
+                                                                  height: 24.0))
+                                                          .addToEnd(
+                                                              const SizedBox(
+                                                                  height:
+                                                                      24.0)),
                                                     ),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           0.0, 24.0, 0.0, 0.0),
                                                   child: SingleChildScrollView(
                                                     child: Column(
@@ -4510,10 +4414,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      4.0,
-                                                                      24.0,
-                                                                      0.0,
-                                                                      0.0),
+                                                                  4.0,
+                                                                  24.0,
+                                                                  0.0,
+                                                                  0.0),
                                                           child: Row(
                                                             mainAxisSize:
                                                                 MainAxisSize
@@ -4583,8 +4487,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(24.0),
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
                                                                           child:
                                                                               Column(
                                                                             mainAxisSize:
@@ -4706,8 +4611,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(24.0),
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
                                                                           child:
                                                                               Column(
                                                                             mainAxisSize:
@@ -4759,15 +4665,20 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   },
                                                                 ),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                width: 24.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        24.0)),
                                                           ),
                                                         ),
                                                       ]
-                                                          .divide(const SizedBox(
-                                                              height: 12.0))
-                                                          .addToEnd(const SizedBox(
-                                                              height: 24.0)),
+                                                          .divide(
+                                                              const SizedBox(
+                                                                  height: 12.0))
+                                                          .addToEnd(
+                                                              const SizedBox(
+                                                                  height:
+                                                                      24.0)),
                                                     ),
                                                   ),
                                                 ),

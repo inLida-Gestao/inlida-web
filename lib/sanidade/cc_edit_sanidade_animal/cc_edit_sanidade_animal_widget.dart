@@ -1,4 +1,3 @@
-import '/app_state.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/popup_rebanhos_widget.dart';

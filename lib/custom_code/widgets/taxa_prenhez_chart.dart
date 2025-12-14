@@ -68,11 +68,17 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
         _parseData(widget.prenhezData ?? []);
     final orderedData = chartData.reversed.toList();
 
+    final double? w =
+      (widget.width != null && widget.width!.isFinite) ? widget.width : null;
+    final double? h = (widget.height != null && widget.height!.isFinite)
+      ? widget.height
+      : null;
+
     // Estado vazio
     if (orderedData.isEmpty) {
       return SizedBox(
-        width: widget.width,
-        height: widget.height,
+        width: w,
+        height: h,
         child: Center(
           child: Text(
             'Sem dados de reprodução no período.',
@@ -83,73 +89,53 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
       );
     }
 
-    // ✅ Container com width E height
     return SizedBox(
-      width: widget.width,
-      height: widget.height,
-      // ✅ SingleChildScrollView para evitar overflow
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Título do gráfico
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0, bottom: 16.0),
-              child: Text(
-                '',
-                style: FlutterFlowTheme.of(context).headlineMedium.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-            // Lista de barras de progresso
-            ...orderedData.map((dataPoint) {
-              return Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      width: w,
+      height: h,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+        itemCount: orderedData.length,
+        itemBuilder: (context, index) {
+          final dataPoint = orderedData[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  dataPoint.titulo,
+                  style: FlutterFlowTheme.of(context).bodyLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Row(
                   children: [
-                    // Título da categoria
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: LinearProgressIndicator(
+                          value: dataPoint.porcentagem,
+                          minHeight: 12,
+                          backgroundColor:
+                              FlutterFlowTheme.of(context).alternate,
+                          color: FlutterFlowTheme.of(context).primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     Text(
-                      dataPoint.titulo,
-                      style: FlutterFlowTheme.of(context).bodyLarge.copyWith(
+                      dataPoint.porcentagemFormatada,
+                      style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        // Barra de progresso
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: LinearProgressIndicator(
-                              value: dataPoint.porcentagem,
-                              minHeight: 12,
-                              backgroundColor:
-                                  FlutterFlowTheme.of(context).alternate,
-                              color: FlutterFlowTheme.of(context).primary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Porcentagem
-                        Text(
-                          dataPoint.porcentagemFormatada,
-                          style:
-                              FlutterFlowTheme.of(context).bodyMedium.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
-              );
-            }),
-          ],
-        ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

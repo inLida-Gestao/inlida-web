@@ -3,6 +3,7 @@ export 'mortalidade_chart.dart' show MortalidadeChart;
 export 'currency_input_b_r.dart' show CurrencyInputBR;
 export 'currency_input_b_r2.dart' show CurrencyInputBR2;
 export 'nascimentos_chart.dart' show NascimentosChart;
+export 'rebanho_periodo_chart.dart' show RebanhoPeriodoChart;
 export 'projecao_desmamas_chart.dart' show ProjecaoDesmamasChart;
 export 'metric_read_only_slider.dart' show MetricReadOnlySlider;
 export 'vendidos_categoria_chart.dart' show VendidosCategoriaChart;
