@@ -8,6 +8,401 @@ import '/backend/supabase/supabase.dart';
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+class _RebanhoParentLookup {
+  final Map<String, String> byNumero;
+  final Map<String, String> byNumeroData;
+  final Map<String, String> byComposite;
+
+  const _RebanhoParentLookup({
+    required this.byNumero,
+    required this.byNumeroData,
+    required this.byComposite,
+  });
+}
+
+bool _isMissingValue(dynamic value) {
+  if (value == null) return true;
+  final s = value.toString();
+  return s.trim().isEmpty || s == 'null' || s == 'undefined';
+}
+
+String? _asNonEmptyString(dynamic value) {
+  if (_isMissingValue(value)) return null;
+  return value.toString();
+}
+
+String _normalizeNumeroKey(String value) {
+  return value.trim();
+}
+
+String? _normalizeDateKey(dynamic value) {
+  final raw = _asNonEmptyString(value);
+  if (raw == null) return null;
+
+  final fixed = _fixEncoding(raw);
+  final converted = _convertDateFormat(fixed);
+  if (converted != null) return converted;
+
+  // Último fallback: tenta cortar ISO com horário.
+  if (fixed.contains('T')) {
+    final part = fixed.split('T').first;
+    if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(part)) return part;
+  }
+  if (fixed.contains(' ')) {
+    final part = fixed.split(' ').first;
+    if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(part)) return part;
+  }
+  return null;
+}
+
+String _composeParentKey({
+  required String numero,
+  required String nome,
+  required String dataNascimento,
+  required String raca,
+}) {
+  return '${_normalizeNumeroKey(numero)}|${_normalizeLoteNome(nome)}|$dataNascimento|${_normalizeLoteNome(raca)}';
+}
+
+String _composeNumeroDataKey({
+  required String numero,
+  required String dataNascimento,
+}) {
+  return '${_normalizeNumeroKey(numero)}|$dataNascimento';
+}
+
+void _ensureIdRebanhoForRecords(List<dynamic> records) {
+  for (var i = 0; i < records.length; i++) {
+    final record = records[i];
+    if (record is! Map) continue;
+    final map = Map<String, dynamic>.from(record);
+
+    if (_isMissingValue(map['idRebanho'])) {
+      map['idRebanho'] = _generateIdReproducao();
+    }
+
+    records[i] = map;
+  }
+}
+
+_RebanhoParentLookup _buildLookupFromImportedRecords(List<dynamic> records) {
+  final byNumero = <String, String>{};
+  final byNumeroData = <String, String>{};
+  final byComposite = <String, String>{};
+
+  for (final record in records) {
+    if (record is! Map) continue;
+    final map = Map<String, dynamic>.from(record);
+
+    final id = _asNonEmptyString(map['idRebanho']);
+    if (id == null) continue;
+
+    final numero = _asNonEmptyString(map['numeroAnimal']);
+    if (numero == null) continue;
+
+    final numeroKey = _normalizeNumeroKey(_fixEncoding(numero));
+    byNumero.putIfAbsent(numeroKey, () => id);
+
+    final nome = _asNonEmptyString(map['nome']);
+    final raca = _asNonEmptyString(map['raca']);
+    final dataNasc = _normalizeDateKey(map['dataNascimento']);
+
+    if (dataNasc != null) {
+      final key = _composeNumeroDataKey(
+        numero: _fixEncoding(numero),
+        dataNascimento: dataNasc,
+      );
+      byNumeroData.putIfAbsent(key, () => id);
+    }
+
+    if (nome != null && raca != null && dataNasc != null) {
+      final key = _composeParentKey(
+        numero: _fixEncoding(numero),
+        nome: _fixEncoding(nome),
+        dataNascimento: dataNasc,
+        raca: _fixEncoding(raca),
+      );
+      byComposite.putIfAbsent(key, () => id);
+    }
+  }
+
+  return _RebanhoParentLookup(
+    byNumero: byNumero,
+    byNumeroData: byNumeroData,
+    byComposite: byComposite,
+  );
+}
+
+Future<_RebanhoParentLookup> _fetchLookupFromDb(String idPropriedade) async {
+  const pageSize = 1000;
+  var from = 0;
+
+  final byNumero = <String, String>{};
+  final byNumeroData = <String, String>{};
+  final byComposite = <String, String>{};
+
+  while (true) {
+    final res = await Supabase.instance.client
+        .from('rebanho')
+        .select('idRebanho,numeroAnimal,nome,dataNascimento,raca,deletado')
+        .eq('idPropriedade', idPropriedade)
+        .range(from, from + pageSize - 1);
+
+    final rows = (res as List).cast<dynamic>();
+    if (rows.isEmpty) break;
+
+    for (final rowAny in rows) {
+      final row = Map<String, dynamic>.from(rowAny as Map);
+      final deletado = row['deletado']?.toString();
+      if (deletado != null && deletado.trim().toUpperCase() == 'SIM') continue;
+
+      final id = _asNonEmptyString(row['idRebanho']);
+      final numero = _asNonEmptyString(row['numeroAnimal']);
+      if (id == null || numero == null) continue;
+
+      final numeroKey = _normalizeNumeroKey(numero);
+      byNumero.putIfAbsent(numeroKey, () => id);
+
+      final nome = _asNonEmptyString(row['nome']);
+      final raca = _asNonEmptyString(row['raca']);
+      final dataNasc = _normalizeDateKey(row['dataNascimento']);
+
+      if (dataNasc != null) {
+        final key = _composeNumeroDataKey(
+          numero: numero,
+          dataNascimento: dataNasc,
+        );
+        byNumeroData.putIfAbsent(key, () => id);
+      }
+
+      if (nome != null && raca != null && dataNasc != null) {
+        final key = _composeParentKey(
+          numero: numero,
+          nome: nome,
+          dataNascimento: dataNasc,
+          raca: raca,
+        );
+        byComposite.putIfAbsent(key, () => id);
+      }
+    }
+
+    if (rows.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return _RebanhoParentLookup(
+    byNumero: byNumero,
+    byNumeroData: byNumeroData,
+    byComposite: byComposite,
+  );
+}
+
+Future<_RebanhoParentLookup> _buildParentLookup(
+  List<dynamic> records,
+  String idPropriedade,
+) async {
+  final db = await _fetchLookupFromDb(idPropriedade);
+  final imported = _buildLookupFromImportedRecords(records);
+
+  final mergedByNumero = Map<String, String>.from(db.byNumero);
+  imported.byNumero.forEach((k, v) {
+    mergedByNumero.putIfAbsent(k, () => v);
+  });
+
+  final mergedByNumeroData = Map<String, String>.from(db.byNumeroData);
+  imported.byNumeroData.forEach((k, v) {
+    mergedByNumeroData.putIfAbsent(k, () => v);
+  });
+
+  final mergedByComposite = Map<String, String>.from(db.byComposite);
+  imported.byComposite.forEach((k, v) {
+    mergedByComposite.putIfAbsent(k, () => v);
+  });
+
+  return _RebanhoParentLookup(
+    byNumero: mergedByNumero,
+    byNumeroData: mergedByNumeroData,
+    byComposite: mergedByComposite,
+  );
+}
+
+void _fillParentIdsFromKeys(
+  Map<String, dynamic> data,
+  _RebanhoParentLookup lookup,
+) {
+  // Matriz
+  if (_isMissingValue(data['rebanhoIdMatriz'])) {
+    final num = _asNonEmptyString(data['numeroMatriz']);
+    final nome = _asNonEmptyString(data['nomeMatriz']);
+    final raca = _asNonEmptyString(data['racaMatriz']);
+    final dataNasc = _normalizeDateKey(data['dataNascMatriz']);
+
+    if (num != null) {
+      final onlyNumero = nome == null && raca == null && dataNasc == null;
+      String? resolved;
+      if (!onlyNumero && nome != null && raca != null && dataNasc != null) {
+        final key = _composeParentKey(
+          numero: _fixEncoding(num),
+          nome: _fixEncoding(nome),
+          dataNascimento: dataNasc,
+          raca: _fixEncoding(raca),
+        );
+        resolved = lookup.byComposite[key];
+      }
+
+      if (resolved == null && dataNasc != null) {
+        final key = _composeNumeroDataKey(
+          numero: _fixEncoding(num),
+          dataNascimento: dataNasc,
+        );
+        resolved = lookup.byNumeroData[key];
+      }
+
+      resolved ??= lookup.byNumero[_normalizeNumeroKey(_fixEncoding(num))];
+      if (resolved != null && resolved.isNotEmpty) {
+        data['rebanhoIdMatriz'] = resolved;
+      }
+    }
+  }
+
+  // Reprodutor
+  if (_isMissingValue(data['rebanhoIdReprodutor'])) {
+    final num = _asNonEmptyString(data['numeroReprodutor']);
+    final nome = _asNonEmptyString(data['nomeReprodutor']);
+    final raca = _asNonEmptyString(data['racaReprodutor']);
+    final dataNasc = _normalizeDateKey(data['dataNascReprodutor']);
+
+    if (num != null) {
+      final onlyNumero = nome == null && raca == null && dataNasc == null;
+      String? resolved;
+      if (!onlyNumero && nome != null && raca != null && dataNasc != null) {
+        final key = _composeParentKey(
+          numero: _fixEncoding(num),
+          nome: _fixEncoding(nome),
+          dataNascimento: dataNasc,
+          raca: _fixEncoding(raca),
+        );
+        resolved = lookup.byComposite[key];
+      }
+
+      if (resolved == null && dataNasc != null) {
+        final key = _composeNumeroDataKey(
+          numero: _fixEncoding(num),
+          dataNascimento: dataNasc,
+        );
+        resolved = lookup.byNumeroData[key];
+      }
+
+      resolved ??= lookup.byNumero[_normalizeNumeroKey(_fixEncoding(num))];
+      if (resolved != null && resolved.isNotEmpty) {
+        data['rebanhoIdReprodutor'] = resolved;
+      }
+    }
+  }
+}
+
+Future<Map<String, String>> _fetchLoteNomeToIdLoteMap(
+  String idPropriedade,
+) async {
+  try {
+    final res = await Supabase.instance.client
+        .from('lotes')
+        .select('id_lote,nome,deletado')
+        .eq('id_propriedade', idPropriedade);
+
+    final map = <String, String>{};
+    for (final row in (res as List)) {
+      final nome = row['nome']?.toString();
+      final idLote = row['id_lote']?.toString();
+      final deletado = row['deletado']?.toString();
+
+      if (deletado != null && deletado.trim().toUpperCase() == 'SIM') continue;
+      if (nome == null || nome.trim().isEmpty) continue;
+      if (idLote == null || idLote.trim().isEmpty) continue;
+      map[_normalizeLoteNome(nome)] = idLote;
+    }
+    return map;
+  } catch (e) {
+    print('Falha ao carregar lotes para vincular por nome: $e');
+    return <String, String>{};
+  }
+}
+
+String _normalizeLoteNome(String value) {
+  return value
+      .trim()
+      .toLowerCase()
+      .replaceAllMapped(
+        RegExp(r'[\u00C0-\u017F]'),
+        (m) => _stripDiacritics(m[0]!),
+      )
+      .replaceAll(RegExp(r'\s+'), ' ');
+}
+
+String _stripDiacritics(String ch) {
+  switch (ch) {
+    case 'á':
+    case 'à':
+    case 'â':
+    case 'ã':
+    case 'ä':
+    case 'å':
+    case 'Á':
+    case 'À':
+    case 'Â':
+    case 'Ã':
+    case 'Ä':
+    case 'Å':
+      return 'a';
+    case 'é':
+    case 'è':
+    case 'ê':
+    case 'ë':
+    case 'É':
+    case 'È':
+    case 'Ê':
+    case 'Ë':
+      return 'e';
+    case 'í':
+    case 'ì':
+    case 'î':
+    case 'ï':
+    case 'Í':
+    case 'Ì':
+    case 'Î':
+    case 'Ï':
+      return 'i';
+    case 'ó':
+    case 'ò':
+    case 'ô':
+    case 'õ':
+    case 'ö':
+    case 'Ó':
+    case 'Ò':
+    case 'Ô':
+    case 'Õ':
+    case 'Ö':
+      return 'o';
+    case 'ú':
+    case 'ù':
+    case 'û':
+    case 'ü':
+    case 'Ú':
+    case 'Ù':
+    case 'Û':
+    case 'Ü':
+      return 'u';
+    case 'ç':
+    case 'Ç':
+      return 'c';
+    case 'ñ':
+    case 'Ñ':
+      return 'n';
+    default:
+      return ch;
+  }
+}
+
 Future<bool> batchInsertSupabaseRebanho(
   List<dynamic> records,
   String idPropriedade,
@@ -17,6 +412,19 @@ Future<bool> batchInsertSupabaseRebanho(
   try {
     // Configurações de performance
     const int chunkSize = 500; // Tamanho do lote (ajuste conforme necessário)
+
+    // Garante que todos os registros tenham idRebanho antes do processamento,
+    // para permitir referenciar matriz/reprodutor dentro do mesmo CSV.
+    _ensureIdRebanhoForRecords(records);
+
+    // Cache de lotes para resolver loteNome -> loteID (id_lote)
+    // O usuário geralmente só tem o nome do lote no CSV.
+    final Map<String, String> loteNomeToIdLote =
+        await _fetchLoteNomeToIdLoteMap(idPropriedade);
+
+    // Cache de animais para resolver matriz/reprodutor -> idRebanho
+    final _RebanhoParentLookup parentLookup =
+        await _buildParentLookup(records, idPropriedade);
 
     // Campos de data que precisam de conversão DD/MM/YYYY -> YYYY-MM-DD
     // (created_at e updated_at são gerados pelo Supabase automaticamente)
@@ -68,13 +476,34 @@ Future<bool> batchInsertSupabaseRebanho(
           // Garantir que id_propriedade está presente
           data['idPropriedade'] = idPropriedade;
 
+          // Resolver loteID pelo nome do lote (quando loteID não vier na planilha)
+          final dynamic loteIdRaw = data['loteID'];
+          final dynamic loteNomeRaw = data['loteNome'];
+
+          final bool missingLoteId = loteIdRaw == null ||
+              loteIdRaw.toString().trim().isEmpty ||
+              loteIdRaw == 'null';
+          final bool hasLoteNome = loteNomeRaw != null &&
+              loteNomeRaw.toString().trim().isNotEmpty &&
+              loteNomeRaw != 'null';
+
+          if (missingLoteId && hasLoteNome) {
+            final normalizedLoteNome = _normalizeLoteNome(
+              _fixEncoding(loteNomeRaw.toString()),
+            );
+            final resolvedIdLote = loteNomeToIdLote[normalizedLoteNome];
+            if (resolvedIdLote != null && resolvedIdLote.isNotEmpty) {
+              data['loteID'] = resolvedIdLote;
+            }
+          }
+
+          // Resolver rebanhoIdMatriz/rebanhoIdReprodutor a partir dos campos-chave
+          _fillParentIdsFromKeys(data, parentLookup);
+
           // Capturar valores de peso ANTES de limpar
           final pesoAtual = data['pesoAtual'];
           final pesoNascimento = data['pesoNascimento'];
           final pesoDesmama = data['pesoDesmama'];
-          final dataNascimento = data['dataNascimento'];
-          final dataDesmama = data['dataDesmama'];
-          final dataUltimaPesagem = data['dataUltimaPesagem'];
 
           // Limpar valores "null" string e vazios para null real
           final Map<String, dynamic> cleanData = {};
@@ -161,13 +590,34 @@ Future<bool> batchInsertSupabaseRebanho(
             final String idRebanho = data['idRebanho'];
             data['idPropriedade'] = idPropriedade;
 
+            // Resolver loteID pelo nome do lote (quando loteID não vier na planilha)
+            final dynamic loteIdRaw = data['loteID'];
+            final dynamic loteNomeRaw = data['loteNome'];
+
+            final bool missingLoteId = loteIdRaw == null ||
+                loteIdRaw.toString().trim().isEmpty ||
+                loteIdRaw == 'null';
+            final bool hasLoteNome = loteNomeRaw != null &&
+                loteNomeRaw.toString().trim().isNotEmpty &&
+                loteNomeRaw != 'null';
+
+            if (missingLoteId && hasLoteNome) {
+              final normalizedLoteNome = _normalizeLoteNome(
+                _fixEncoding(loteNomeRaw.toString()),
+              );
+              final resolvedIdLote = loteNomeToIdLote[normalizedLoteNome];
+              if (resolvedIdLote != null && resolvedIdLote.isNotEmpty) {
+                data['loteID'] = resolvedIdLote;
+              }
+            }
+
+            // Resolver rebanhoIdMatriz/rebanhoIdReprodutor a partir dos campos-chave
+            _fillParentIdsFromKeys(data, parentLookup);
+
             // Capturar valores de peso
             final pesoAtual = data['pesoAtual'];
             final pesoNascimento = data['pesoNascimento'];
             final pesoDesmama = data['pesoDesmama'];
-            final dataNascimento = data['dataNascimento'];
-            final dataDesmama = data['dataDesmama'];
-            final dataUltimaPesagem = data['dataUltimaPesagem'];
 
             final Map<String, dynamic> cleanData = {};
             data.forEach((key, value) {
@@ -350,17 +800,14 @@ String _fixEncoding(String text) {
       'Ã¢': 'â',
       'Ãª': 'ê',
       'Ã´': 'ô',
-      'Ã': 'à',
       'Ãµ': 'õ',
       'Ã¼': 'ü',
-      'Ã': 'Á',
       'Ã‰': 'É',
-      'Ã': 'Í',
-      'Ã"': 'Ó',
+      'Ã“': 'Ó',
       'Ãš': 'Ú',
       'Ã‚': 'Â',
       'ÃŠ': 'Ê',
-      'Ã"': 'Ô',
+      'Ã”': 'Ô',
       'Ã€': 'À',
       'Ã•': 'Õ',
       'Ãœ': 'Ü',

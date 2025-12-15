@@ -520,8 +520,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -715,8 +717,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -910,8 +914,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -1110,8 +1116,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -1207,8 +1215,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       .secondaryText,
                                                                   size: 24.0,
                                                                 ),
-                                                                fillColor: const Color(
-                                                                    0xFFF1F1F1),
+                                                                fillColor:
+                                                                    const Color(
+                                                                        0xFFF1F1F1),
                                                                 elevation: 2.0,
                                                                 borderColor: Colors
                                                                     .transparent,
@@ -1216,8 +1225,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     0.0,
                                                                 borderRadius:
                                                                     8.0,
-                                                                margin: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
+                                                                margin:
+                                                                    const EdgeInsetsDirectional
+                                                                        .fromSTEB(
                                                                         12.0,
                                                                         0.0,
                                                                         12.0,
@@ -1231,8 +1241,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                 isMultiSelect:
                                                                     false,
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -1526,8 +1538,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                   ),
                                                                 ],
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -1731,8 +1745,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -1822,8 +1838,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       .secondaryText,
                                                                   size: 24.0,
                                                                 ),
-                                                                fillColor: const Color(
-                                                                    0xFFF1F1F1),
+                                                                fillColor:
+                                                                    const Color(
+                                                                        0xFFF1F1F1),
                                                                 elevation: 2.0,
                                                                 borderColor: Colors
                                                                     .transparent,
@@ -1831,8 +1848,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     0.0,
                                                                 borderRadius:
                                                                     8.0,
-                                                                margin: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
+                                                                margin:
+                                                                    const EdgeInsetsDirectional
+                                                                        .fromSTEB(
                                                                         12.0,
                                                                         0.0,
                                                                         12.0,
@@ -1846,8 +1864,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                 isMultiSelect:
                                                                     false,
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -1946,8 +1966,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                         .secondaryText,
                                                                     size: 24.0,
                                                                   ),
-                                                                  fillColor: const Color(
-                                                                      0xFFF1F1F1),
+                                                                  fillColor:
+                                                                      const Color(
+                                                                          0xFFF1F1F1),
                                                                   elevation:
                                                                       2.0,
                                                                   borderColor:
@@ -1959,10 +1980,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       8.0,
                                                                   margin: const EdgeInsetsDirectional
                                                                       .fromSTEB(
-                                                                          12.0,
-                                                                          0.0,
-                                                                          12.0,
-                                                                          0.0),
+                                                                      12.0,
+                                                                      0.0,
+                                                                      12.0,
+                                                                      0.0),
                                                                   hidesUnderline:
                                                                       true,
                                                                   isOverButton:
@@ -2027,8 +2048,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                         .secondaryText,
                                                                     size: 24.0,
                                                                   ),
-                                                                  fillColor: const Color(
-                                                                      0xFFF1F1F1),
+                                                                  fillColor:
+                                                                      const Color(
+                                                                          0xFFF1F1F1),
                                                                   elevation:
                                                                       2.0,
                                                                   borderColor:
@@ -2040,10 +2062,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       8.0,
                                                                   margin: const EdgeInsetsDirectional
                                                                       .fromSTEB(
-                                                                          12.0,
-                                                                          0.0,
-                                                                          12.0,
-                                                                          0.0),
+                                                                      12.0,
+                                                                      0.0,
+                                                                      12.0,
+                                                                      0.0),
                                                                   hidesUnderline:
                                                                       true,
                                                                   isOverButton:
@@ -2084,8 +2106,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                             .fontStyle,
                                                                       ),
                                                                 ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -2173,8 +2197,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       .secondaryText,
                                                                   size: 24.0,
                                                                 ),
-                                                                fillColor: const Color(
-                                                                    0xFFF1F1F1),
+                                                                fillColor:
+                                                                    const Color(
+                                                                        0xFFF1F1F1),
                                                                 elevation: 2.0,
                                                                 borderColor: Colors
                                                                     .transparent,
@@ -2182,8 +2207,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     0.0,
                                                                 borderRadius:
                                                                     8.0,
-                                                                margin: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
+                                                                margin:
+                                                                    const EdgeInsetsDirectional
+                                                                        .fromSTEB(
                                                                         12.0,
                                                                         0.0,
                                                                         12.0,
@@ -2197,8 +2223,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                 isMultiSelect:
                                                                     false,
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -2304,8 +2332,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       .secondaryText,
                                                                   size: 24.0,
                                                                 ),
-                                                                fillColor: const Color(
-                                                                    0xFFF1F1F1),
+                                                                fillColor:
+                                                                    const Color(
+                                                                        0xFFF1F1F1),
                                                                 elevation: 2.0,
                                                                 borderColor: Colors
                                                                     .transparent,
@@ -2313,8 +2342,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     0.0,
                                                                 borderRadius:
                                                                     8.0,
-                                                                margin: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
+                                                                margin:
+                                                                    const EdgeInsetsDirectional
+                                                                        .fromSTEB(
                                                                         12.0,
                                                                         0.0,
                                                                         12.0,
@@ -2328,8 +2358,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                 isMultiSelect:
                                                                     false,
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         if (responsiveVisibility(
@@ -2601,8 +2633,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     ),
                                                                   ],
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  height: 8.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          8.0)),
                                                             ),
                                                           ),
                                                       ].divide(const SizedBox(
@@ -2611,8 +2645,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                   ]
                                                       .divide(const SizedBox(
                                                           height: 24.0))
-                                                      .addToStart(const SizedBox(
-                                                          height: 24.0)),
+                                                      .addToStart(
+                                                          const SizedBox(
+                                                              height: 24.0)),
                                                 ),
                                               ),
                                               Column(
@@ -2731,7 +2766,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       ),
                                                                       child:
                                                                           Padding(
-                                                                        padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        padding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             12.0,
                                                                             0.0,
                                                                             12.0,
@@ -2805,12 +2841,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                   splashColor:
                                                                       Colors
                                                                           .transparent,
-                                                                  focusColor:
-                                                                      Colors
-                                                                          .transparent,
-                                                                  hoverColor:
-                                                                      Colors
-                                                                          .transparent,
+                                                                  focusColor: Colors
+                                                                      .transparent,
+                                                                  hoverColor: Colors
+                                                                      .transparent,
                                                                   highlightColor:
                                                                       Colors
                                                                           .transparent,
@@ -2823,20 +2857,21 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                         () {});
                                                                   },
                                                                   child: Icon(
-                                                                    Icons
-                                                                        .close,
+                                                                    Icons.close,
                                                                     color: FlutterFlowTheme.of(
                                                                             context)
                                                                         .accent3,
-                                                                    size:
-                                                                        24.0,
+                                                                    size: 24.0,
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  width: 16.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          16.0)),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              height: 8.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  height: 8.0)),
                                                         ),
                                                       ),
                                                       Expanded(
@@ -2948,7 +2983,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       ),
                                                                       child:
                                                                           Padding(
-                                                                        padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        padding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             12.0,
                                                                             0.0,
                                                                             12.0,
@@ -3022,12 +3058,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                   splashColor:
                                                                       Colors
                                                                           .transparent,
-                                                                  focusColor:
-                                                                      Colors
-                                                                          .transparent,
-                                                                  hoverColor:
-                                                                      Colors
-                                                                          .transparent,
+                                                                  focusColor: Colors
+                                                                      .transparent,
+                                                                  hoverColor: Colors
+                                                                      .transparent,
                                                                   highlightColor:
                                                                       Colors
                                                                           .transparent,
@@ -3040,30 +3074,31 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                         () {});
                                                                   },
                                                                   child: Icon(
-                                                                    Icons
-                                                                        .close,
+                                                                    Icons.close,
                                                                     color: FlutterFlowTheme.of(
                                                                             context)
                                                                         .accent3,
-                                                                    size:
-                                                                        24.0,
+                                                                    size: 24.0,
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  width: 16.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          16.0)),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              height: 8.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  height: 8.0)),
                                                         ),
                                                       ),
-                                                    ].divide(
-                                                        const SizedBox(width: 24.0)),
+                                                    ].divide(const SizedBox(
+                                                        width: 24.0)),
                                                   ),
                                                 ]
-                                                    .divide(
-                                                        const SizedBox(height: 24.0))
-                                                    .addToStart(
-                                                        const SizedBox(height: 24.0)),
+                                                    .divide(const SizedBox(
+                                                        height: 24.0))
+                                                    .addToStart(const SizedBox(
+                                                        height: 24.0)),
                                               ),
                                               SingleChildScrollView(
                                                 child: Column(
@@ -3365,8 +3400,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                   ),
                                                                 ],
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -3563,8 +3600,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -3865,8 +3904,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                   ),
                                                                 ],
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -4063,8 +4104,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -4159,8 +4202,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       .secondaryText,
                                                                   size: 24.0,
                                                                 ),
-                                                                fillColor: const Color(
-                                                                    0xFFF1F1F1),
+                                                                fillColor:
+                                                                    const Color(
+                                                                        0xFFF1F1F1),
                                                                 elevation: 2.0,
                                                                 borderColor: Colors
                                                                     .transparent,
@@ -4168,8 +4212,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     0.0,
                                                                 borderRadius:
                                                                     8.0,
-                                                                margin: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
+                                                                margin:
+                                                                    const EdgeInsetsDirectional
+                                                                        .fromSTEB(
                                                                         12.0,
                                                                         0.0,
                                                                         12.0,
@@ -4183,8 +4228,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                 isMultiSelect:
                                                                     false,
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ],
@@ -4278,8 +4325,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       .secondaryText,
                                                                   size: 24.0,
                                                                 ),
-                                                                fillColor: const Color(
-                                                                    0xFFF1F1F1),
+                                                                fillColor:
+                                                                    const Color(
+                                                                        0xFFF1F1F1),
                                                                 elevation: 2.0,
                                                                 borderColor: Colors
                                                                     .transparent,
@@ -4287,8 +4335,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     0.0,
                                                                 borderRadius:
                                                                     8.0,
-                                                                margin: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
+                                                                margin:
+                                                                    const EdgeInsetsDirectional
+                                                                        .fromSTEB(
                                                                         12.0,
                                                                         0.0,
                                                                         12.0,
@@ -4302,8 +4351,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                 isMultiSelect:
                                                                     false,
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -5359,8 +5410,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                         .secondaryText,
                                                                     size: 24.0,
                                                                   ),
-                                                                  fillColor: const Color(
-                                                                      0xFFF1F1F1),
+                                                                  fillColor:
+                                                                      const Color(
+                                                                          0xFFF1F1F1),
                                                                   elevation:
                                                                       2.0,
                                                                   borderColor:
@@ -5372,10 +5424,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       8.0,
                                                                   margin: const EdgeInsetsDirectional
                                                                       .fromSTEB(
-                                                                          12.0,
-                                                                          0.0,
-                                                                          12.0,
-                                                                          0.0),
+                                                                      12.0,
+                                                                      0.0,
+                                                                      12.0,
+                                                                      0.0),
                                                                   hidesUnderline:
                                                                       true,
                                                                   isOverButton:
@@ -5385,8 +5437,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                   isMultiSelect:
                                                                       false,
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  height: 8.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          8.0)),
                                                             ),
                                                           ),
                                                         ].divide(const SizedBox(
@@ -5394,15 +5448,20 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                       ),
                                                     if ((_model.dropDownStatusValue ==
                                                             'Vendido') ||
-                                                        (_model.dropDownMotivoMorteValue ==
-                                                            'Compra'))
+                                                        ((_model.dropDownOrigemValue ??
+                                                                    '')
+                                                                .trim()
+                                                                .toLowerCase() ==
+                                                            'compra'))
                                                       Row(
                                                         mainAxisSize:
                                                             MainAxisSize.max,
                                                         children: [
-                                                          if (_model
-                                                                  .dropDownMotivoMorteValue ==
-                                                              'Compra')
+                                                          if (((_model.dropDownOrigemValue ??
+                                                                      '')
+                                                                  .trim()
+                                                                  .toLowerCase() ==
+                                                              'compra'))
                                                             Expanded(
                                                               child: Column(
                                                                 mainAxisSize:
@@ -5634,9 +5693,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       ),
                                                                     ],
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
                                                           if (_model
@@ -5873,9 +5933,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       ),
                                                                     ],
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
                                                         ].divide(const SizedBox(
@@ -5883,15 +5944,20 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                       ),
                                                     if ((_model.dropDownStatusValue ==
                                                             'Vendido') ||
-                                                        (_model.dropDownMotivoMorteValue ==
-                                                            'Compra'))
+                                                        ((_model.dropDownOrigemValue ??
+                                                                    '')
+                                                                .trim()
+                                                                .toLowerCase() ==
+                                                            'compra'))
                                                       Row(
                                                         mainAxisSize:
                                                             MainAxisSize.max,
                                                         children: [
-                                                          if (_model
-                                                                  .dropDownMotivoMorteValue ==
-                                                              'Compra')
+                                                          if (((_model.dropDownOrigemValue ??
+                                                                      '')
+                                                                  .trim()
+                                                                  .toLowerCase() ==
+                                                              'compra'))
                                                             Flexible(
                                                               child: Column(
                                                                 mainAxisSize:
@@ -5956,9 +6022,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                           8.0,
                                                                     ),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
                                                           if (_model
@@ -6025,9 +6092,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                           8.0,
                                                                     ),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
                                                         ].divide(const SizedBox(
@@ -6237,8 +6305,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                           context),
                                                                 ),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ],
@@ -6246,8 +6316,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                   ]
                                                       .divide(const SizedBox(
                                                           height: 24.0))
-                                                      .addToStart(const SizedBox(
-                                                          height: 24.0)),
+                                                      .addToStart(
+                                                          const SizedBox(
+                                                              height: 24.0)),
                                                 ),
                                               ),
                                             ],
@@ -6288,6 +6359,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             _model.dropDownStatusValueController
                                                 ?.reset();
                                             _model.dropDownStatusValue = null;
+                                            _model.dropDownOrigemValueController
+                                                ?.reset();
+                                            _model.dropDownOrigemValue = null;
                                             _model
                                                 .dropDownMotivoMorteValueController
                                                 ?.reset();
@@ -6365,12 +6439,11 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                         options: FFButtonOptions(
                                           width: 160.0,
                                           height: 56.0,
-                                          padding:
-                                              const EdgeInsetsDirectional.fromSTEB(
-                                                  16.0, 0.0, 16.0, 0.0),
+                                          padding: const EdgeInsetsDirectional
+                                              .fromSTEB(16.0, 0.0, 16.0, 0.0),
                                           iconPadding:
-                                              const EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 0.0, 0.0),
+                                              const EdgeInsetsDirectional
+                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
                                           color: Colors.white,
                                           textStyle: FlutterFlowTheme.of(
                                                   context)
@@ -6463,7 +6536,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             'status':
                                                 _model.dropDownStatusValue,
                                             'origem':
-                                                _model.dropDownMotivoMorteValue,
+                                                _model.dropDownOrigemValue,
                                             'anotacoes': _model
                                                 .anotacoesTextController.text,
                                             'idRebanho': _model.idRebanho,
@@ -6548,9 +6621,10 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                 .reprodutorSelecionado
                                                 .idAnimal,
                                           });
-                                          if (_model.pesoNascimentoTextController
-                                                      .text !=
-                                                  '') {
+                                          if (_model
+                                                  .pesoNascimentoTextController
+                                                  .text !=
+                                              '') {
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
@@ -6565,8 +6639,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             });
                                           }
                                           if (_model.pesoDesmamaTextController
-                                                      .text !=
-                                                  '') {
+                                                  .text !=
+                                              '') {
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
@@ -6581,8 +6655,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             });
                                           }
                                           if (_model.pesoAtualTextController
-                                                      .text !=
-                                                  '') {
+                                                  .text !=
+                                              '') {
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
@@ -6660,6 +6734,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             _model.dropDownStatusValueController
                                                 ?.reset();
                                             _model.dropDownStatusValue = null;
+                                            _model.dropDownOrigemValueController
+                                                ?.reset();
+                                            _model.dropDownOrigemValue = null;
                                             _model
                                                 .dropDownMotivoMorteValueController
                                                 ?.reset();
@@ -6741,12 +6818,11 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                         options: FFButtonOptions(
                                           width: 160.0,
                                           height: 56.0,
-                                          padding:
-                                              const EdgeInsetsDirectional.fromSTEB(
-                                                  16.0, 0.0, 16.0, 0.0),
+                                          padding: const EdgeInsetsDirectional
+                                              .fromSTEB(16.0, 0.0, 16.0, 0.0),
                                           iconPadding:
-                                              const EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 0.0, 0.0),
+                                              const EdgeInsetsDirectional
+                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
                                           color: FlutterFlowTheme.of(context)
                                               .primary,
                                           textStyle: FlutterFlowTheme.of(

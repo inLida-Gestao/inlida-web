@@ -3,7 +3,6 @@ export 'upload_csv_file.dart' show uploadCsvFile;
 export 'import_books.dart' show importBooks;
 export 'parse_csv_to_json_machines.dart' show parseCsvToJsonMachines;
 export 'csv_to_json.dart' show csvToJson;
-export 'parse_csv_to_json_rebanho.dart' show parseCsvToJsonRebanho;
 export 'parse_csv_to_json_rebanho2.dart' show parseCsvToJsonRebanho2;
 export 'parse_csv_to_json_lotes.dart' show parseCsvToJsonLotes;
 export 'batch_insert_supabase_reproducao.dart'

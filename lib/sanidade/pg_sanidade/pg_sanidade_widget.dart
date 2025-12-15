@@ -40,6 +40,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     with TickerProviderStateMixin {
   late PgSanidadeModel _model;
 
+  bool _sanidadeRefreshScheduled = false;
+
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -155,6 +157,64 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     final v = (value ?? '').trim();
     if (v.isEmpty) return false;
     if (v.toLowerCase() == 'null') return false;
+    return true;
+  }
+
+  List<String> _parseCsvFilter(String? raw) {
+    final v = (raw ?? '').trim();
+    if (v.isEmpty) return <String>[];
+    return v
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty && e.toLowerCase() != 'null')
+        .toList();
+  }
+
+  Set<String> _toNormSet(Iterable<String> values) => values
+      .map((e) => e.trim().toLowerCase())
+      .where((e) => e.isNotEmpty && e != 'null' && e != '[]')
+      .toSet();
+
+  Set<String> _extractJsonListValues(String? raw) {
+    final parsed = functions.converterJSONparaLista(raw);
+    if (parsed != null) {
+      return _toNormSet(parsed.cast<String>());
+    }
+    if (_hasValue(raw) && raw!.trim() != '[]') {
+      return _toNormSet([raw]);
+    }
+    return <String>{};
+  }
+
+  bool _matchesMulti(String selectedCsv, Set<String> candidateValues) {
+    final selected = _toNormSet(_parseCsvFilter(selectedCsv));
+    if (selected.isEmpty) return true;
+    return candidateValues.intersection(selected).isNotEmpty;
+  }
+
+  bool _passesMultiSelectFilters(SanidadeStruct s) {
+    final vacValues = <String>{}
+      ..addAll(_extractJsonListValues(s.vacinacao))
+      ..addAll(_extractJsonListValues(s.vacinacaoOutros));
+    if (!_matchesMulti(FFAppState().filtroVacinacao, vacValues)) return false;
+
+    final tratValues = <String>{}
+      ..addAll(_extractJsonListValues(s.tratamento))
+      ..addAll(_extractJsonListValues(s.tratamentoOutros));
+    if (!_matchesMulti(FFAppState().filtroTratamentoSanidade, tratValues))
+      return false;
+
+    final antiValues = <String>{}
+      ..addAll(_extractJsonListValues(s.antiparasitario))
+      ..addAll(_extractJsonListValues(s.antiparasitarioOutros));
+    if (!_matchesMulti(FFAppState().filtroAntiparasitario, antiValues))
+      return false;
+
+    final protoValues = <String>{}
+      ..addAll(_extractJsonListValues(s.protocoloReprodutivo))
+      ..addAll(_extractJsonListValues(s.protocoloReprodutivoOutros));
+    if (!_matchesMulti(FFAppState().filtroProtocolo, protoValues)) return false;
+
     return true;
   }
 
@@ -727,6 +787,23 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+
+    if (FFAppState().refreshSanidade && !_sanidadeRefreshScheduled) {
+      _sanidadeRefreshScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (!FFAppState().refreshSanidade) {
+          _sanidadeRefreshScheduled = false;
+          return;
+        }
+        FFAppState().refreshSanidade = false;
+        safeSetState(() {
+          _model.apiRequestCompleter2 = null;
+          _model.apiRequestCompleter1 = null;
+        });
+        _sanidadeRefreshScheduled = false;
+      });
+    }
 
     final bool isCompact = MediaQuery.sizeOf(context).width < 1200.0;
     final double pagePadH = isCompact ? 16.0 : 32.0;
@@ -1991,6 +2068,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     as Iterable<
                                                                         SanidadeStruct?>)
                                                                 .withoutNulls
+                                                                .where(
+                                                                    _passesMultiSelectFilters)
                                                                 .sortedList(
                                                                     keyOf: (e) =>
                                                                         e.createdAt,
@@ -3018,6 +3097,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     as Iterable<
                                                                         SanidadeStruct?>)
                                                                 .withoutNulls
+                                                                .where(
+                                                                    _passesMultiSelectFilters)
                                                                 .where((e) =>
                                                                     (e.vacinacao.trim().isNotEmpty &&
                                                                         e.vacinacao !=
@@ -3974,6 +4055,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     as Iterable<
                                                                         SanidadeStruct?>)
                                                                 .withoutNulls
+                                                                .where(
+                                                                    _passesMultiSelectFilters)
                                                                 .where((e) =>
                                                                     (e.antiparasitario.trim().isNotEmpty &&
                                                                         e.antiparasitario !=
@@ -4930,6 +5013,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     as Iterable<
                                                                         SanidadeStruct?>)
                                                                 .withoutNulls
+                                                                .where(
+                                                                    _passesMultiSelectFilters)
                                                                 .where((e) =>
                                                                     (e.tratamento.trim().isNotEmpty &&
                                                                         e.tratamento !=
@@ -5886,6 +5971,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     as Iterable<
                                                                         SanidadeStruct?>)
                                                                 .withoutNulls
+                                                                .where(
+                                                                    _passesMultiSelectFilters)
                                                                 .where((e) =>
                                                                     (e.protocoloReprodutivo.trim().isNotEmpty &&
                                                                         e.protocoloReprodutivo !=

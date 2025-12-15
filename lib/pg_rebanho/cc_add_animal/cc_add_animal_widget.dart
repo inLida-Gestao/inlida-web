@@ -399,7 +399,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color: const Color(0xFFBEBEBE),
+                                                      color: const Color(
+                                                          0xFFBEBEBE),
                                                       fontSize: 16.0,
                                                       letterSpacing: 0.0,
                                                       fontWeight:
@@ -572,7 +573,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color: const Color(0xFFBEBEBE),
+                                                      color: const Color(
+                                                          0xFFBEBEBE),
                                                       fontSize: 16.0,
                                                       letterSpacing: 0.0,
                                                       fontWeight:
@@ -746,7 +748,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color: const Color(0xFFBEBEBE),
+                                                      color: const Color(
+                                                          0xFFBEBEBE),
                                                       fontSize: 16.0,
                                                       letterSpacing: 0.0,
                                                       fontWeight:
@@ -919,7 +922,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color: const Color(0xFFBEBEBE),
+                                                      color: const Color(
+                                                          0xFFBEBEBE),
                                                       fontSize: 16.0,
                                                       letterSpacing: 0.0,
                                                       fontWeight:
@@ -1087,13 +1091,15 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .secondaryText,
                                                 size: 24.0,
                                               ),
-                                              fillColor: const Color(0xFFF1F1F1),
+                                              fillColor:
+                                                  const Color(0xFFF1F1F1),
                                               elevation: 2.0,
                                               borderColor: Colors.transparent,
                                               borderWidth: 0.0,
                                               borderRadius: 8.0,
-                                              margin: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              margin:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       12.0, 0.0, 12.0, 0.0),
                                               hidesUnderline: true,
                                               isOverButton: false,
@@ -1191,8 +1197,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                     .labelMedium
                                                                     .fontStyle,
                                                           ),
-                                                          color:
-                                                              const Color(0xFFBEBEBE),
+                                                          color: const Color(
+                                                              0xFFBEBEBE),
                                                           fontSize: 16.0,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
@@ -1205,7 +1211,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         ),
                                                     enabledBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -1216,7 +1223,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                     ),
                                                     focusedBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -1384,8 +1392,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         _model.datePicked1 =
                                                             DateTime(
                                                           datePicked1Date.year,
-                                                          datePicked1Date
-                                                              .month,
+                                                          datePicked1Date.month,
                                                           datePicked1Date.day,
                                                         );
                                                       });
@@ -1413,7 +1420,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   child: Container(
                                                     width: double.infinity,
                                                     height: 56.0,
-                                                    decoration: const BoxDecoration(),
+                                                    decoration:
+                                                        const BoxDecoration(),
                                                   ),
                                                 ),
                                               ],
@@ -1509,7 +1517,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color: const Color(0xFFBEBEBE),
+                                                      color: const Color(
+                                                          0xFFBEBEBE),
                                                       fontSize: 16.0,
                                                       letterSpacing: 0.0,
                                                       fontWeight:
@@ -1675,13 +1684,15 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .secondaryText,
                                                 size: 24.0,
                                               ),
-                                              fillColor: const Color(0xFFF1F1F1),
+                                              fillColor:
+                                                  const Color(0xFFF1F1F1),
                                               elevation: 2.0,
                                               borderColor: Colors.transparent,
                                               borderWidth: 0.0,
                                               borderRadius: 8.0,
-                                              margin: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              margin:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       12.0, 0.0, 12.0, 0.0),
                                               hidesUnderline: true,
                                               isOverButton: false,
@@ -1782,13 +1793,15 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                       .secondaryText,
                                                   size: 24.0,
                                                 ),
-                                                fillColor: const Color(0xFFF1F1F1),
+                                                fillColor:
+                                                    const Color(0xFFF1F1F1),
                                                 elevation: 2.0,
                                                 borderColor: Colors.transparent,
                                                 borderWidth: 0.0,
                                                 borderRadius: 8.0,
-                                                margin: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                margin:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 12.0, 0.0),
                                                 hidesUnderline: true,
                                                 isOverButton: false,
@@ -1852,13 +1865,15 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                       .secondaryText,
                                                   size: 24.0,
                                                 ),
-                                                fillColor: const Color(0xFFF1F1F1),
+                                                fillColor:
+                                                    const Color(0xFFF1F1F1),
                                                 elevation: 2.0,
                                                 borderColor: Colors.transparent,
                                                 borderWidth: 0.0,
                                                 borderRadius: 8.0,
-                                                margin: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                margin:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 12.0, 0.0),
                                                 hidesUnderline: true,
                                                 isOverButton: false,
@@ -1978,13 +1993,15 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .secondaryText,
                                                 size: 24.0,
                                               ),
-                                              fillColor: const Color(0xFFF1F1F1),
+                                              fillColor:
+                                                  const Color(0xFFF1F1F1),
                                               elevation: 2.0,
                                               borderColor: Colors.transparent,
                                               borderWidth: 0.0,
                                               borderRadius: 8.0,
-                                              margin: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              margin:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       12.0, 0.0, 12.0, 0.0),
                                               hidesUnderline: true,
                                               isOverButton: false,
@@ -2082,13 +2099,15 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .secondaryText,
                                                 size: 24.0,
                                               ),
-                                              fillColor: const Color(0xFFF1F1F1),
+                                              fillColor:
+                                                  const Color(0xFFF1F1F1),
                                               elevation: 2.0,
                                               borderColor: Colors.transparent,
                                               borderWidth: 0.0,
                                               borderRadius: 8.0,
-                                              margin: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              margin:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       12.0, 0.0, 12.0, 0.0),
                                               hidesUnderline: true,
                                               isOverButton: false,
@@ -2186,8 +2205,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                     .labelMedium
                                                                     .fontStyle,
                                                           ),
-                                                          color:
-                                                              const Color(0xFFBEBEBE),
+                                                          color: const Color(
+                                                              0xFFBEBEBE),
                                                           fontSize: 16.0,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
@@ -2200,7 +2219,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         ),
                                                     enabledBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -2211,7 +2231,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                     ),
                                                     focusedBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -2379,8 +2400,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         _model.datePicked2 =
                                                             DateTime(
                                                           datePicked2Date.year,
-                                                          datePicked2Date
-                                                              .month,
+                                                          datePicked2Date.month,
                                                           datePicked2Date.day,
                                                         );
                                                       });
@@ -2408,7 +2428,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   child: Container(
                                                     width: double.infinity,
                                                     height: 56.0,
-                                                    decoration: const BoxDecoration(),
+                                                    decoration:
+                                                        const BoxDecoration(),
                                                   ),
                                                 ),
                                               ],
@@ -2532,13 +2553,15 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .secondaryText,
                                                 size: 24.0,
                                               ),
-                                              fillColor: const Color(0xFFF1F1F1),
+                                              fillColor:
+                                                  const Color(0xFFF1F1F1),
                                               elevation: 2.0,
                                               borderColor: Colors.transparent,
                                               borderWidth: 0.0,
                                               borderRadius: 8.0,
-                                              margin: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              margin:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       12.0, 0.0, 12.0, 0.0),
                                               hidesUnderline: true,
                                               isOverButton: false,
@@ -2689,13 +2712,15 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .secondaryText,
                                                 size: 24.0,
                                               ),
-                                              fillColor: const Color(0xFFF1F1F1),
+                                              fillColor:
+                                                  const Color(0xFFF1F1F1),
                                               elevation: 2.0,
                                               borderColor: Colors.transparent,
                                               borderWidth: 0.0,
                                               borderRadius: 8.0,
-                                              margin: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              margin:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       12.0, 0.0, 12.0, 0.0),
                                               hidesUnderline: true,
                                               isOverButton: false,
@@ -2844,8 +2869,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                     .labelMedium
                                                                     .fontStyle,
                                                           ),
-                                                          color:
-                                                              const Color(0xFFBEBEBE),
+                                                          color: const Color(
+                                                              0xFFBEBEBE),
                                                           fontSize: 16.0,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
@@ -2858,7 +2883,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         ),
                                                     enabledBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -2869,7 +2895,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                     ),
                                                     focusedBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -3037,8 +3064,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         _model.datePicked3 =
                                                             DateTime(
                                                           datePicked3Date.year,
-                                                          datePicked3Date
-                                                              .month,
+                                                          datePicked3Date.month,
                                                           datePicked3Date.day,
                                                         );
                                                       });
@@ -3066,7 +3092,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   child: Container(
                                                     width: double.infinity,
                                                     height: 56.0,
-                                                    decoration: const BoxDecoration(),
+                                                    decoration:
+                                                        const BoxDecoration(),
                                                   ),
                                                 ),
                                               ],
@@ -3157,7 +3184,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color: const Color(0xFFBEBEBE),
+                                                      color: const Color(
+                                                          0xFFBEBEBE),
                                                       fontSize: 16.0,
                                                       letterSpacing: 0.0,
                                                       fontWeight:
@@ -3343,8 +3371,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                     .labelMedium
                                                                     .fontStyle,
                                                           ),
-                                                          color:
-                                                              const Color(0xFFBEBEBE),
+                                                          color: const Color(
+                                                              0xFFBEBEBE),
                                                           fontSize: 16.0,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
@@ -3357,7 +3385,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         ),
                                                     enabledBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -3368,7 +3397,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                     ),
                                                     focusedBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -3536,8 +3566,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         _model.datePicked4 =
                                                             DateTime(
                                                           datePicked4Date.year,
-                                                          datePicked4Date
-                                                              .month,
+                                                          datePicked4Date.month,
                                                           datePicked4Date.day,
                                                         );
                                                       });
@@ -3565,7 +3594,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   child: Container(
                                                     width: double.infinity,
                                                     height: 56.0,
-                                                    decoration: const BoxDecoration(),
+                                                    decoration:
+                                                        const BoxDecoration(),
                                                   ),
                                                 ),
                                               ],
@@ -3656,7 +3686,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                 .labelMedium
                                                                 .fontStyle,
                                                       ),
-                                                      color: const Color(0xFFBEBEBE),
+                                                      color: const Color(
+                                                          0xFFBEBEBE),
                                                       fontSize: 16.0,
                                                       letterSpacing: 0.0,
                                                       fontWeight:
@@ -3828,13 +3859,15 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .secondaryText,
                                                 size: 24.0,
                                               ),
-                                              fillColor: const Color(0xFFF1F1F1),
+                                              fillColor:
+                                                  const Color(0xFFF1F1F1),
                                               elevation: 2.0,
                                               borderColor: Colors.transparent,
                                               borderWidth: 0.0,
                                               borderRadius: 8.0,
-                                              margin: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              margin:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       12.0, 0.0, 12.0, 0.0),
                                               hidesUnderline: true,
                                               isOverButton: false,
@@ -3923,13 +3956,15 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .secondaryText,
                                                 size: 24.0,
                                               ),
-                                              fillColor: const Color(0xFFF1F1F1),
+                                              fillColor:
+                                                  const Color(0xFFF1F1F1),
                                               elevation: 2.0,
                                               borderColor: Colors.transparent,
                                               borderWidth: 0.0,
                                               borderRadius: 8.0,
-                                              margin: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              margin:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       12.0, 0.0, 12.0, 0.0),
                                               hidesUnderline: true,
                                               isOverButton: false,
@@ -3941,9 +3976,10 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                       ),
                                     ].divide(const SizedBox(width: 24.0)),
                                   ),
-                                  if ((_model.dropDownOrigemValue ==
-                                          'Compra') ||
-                                      (_model.dropDownStatusValue == 'Venda'))
+                                  if ((_model.dropDownOrigemValue ?? '')
+                                          .trim()
+                                          .toLowerCase() ==
+                                      'compra')
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
                                       children: [
@@ -4050,7 +4086,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -4061,7 +4098,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -4230,8 +4268,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                 .year,
                                                             datePicked5Date
                                                                 .month,
-                                                            datePicked5Date
-                                                                .day,
+                                                            datePicked5Date.day,
                                                           );
                                                         });
                                                       } else if (_model
@@ -4264,14 +4301,16 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   ),
                                                 ],
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ],
                                     ),
-                                  if ((_model.dropDownOrigemValue ==
-                                          'Compra') ||
-                                      (_model.dropDownStatusValue == 'Venda'))
+                                  if ((_model.dropDownOrigemValue ?? '')
+                                          .trim()
+                                          .toLowerCase() ==
+                                      'compra')
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
                                       children: [
@@ -4333,7 +4372,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   callback: () async {},
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ].divide(const SizedBox(width: 24.0)),
@@ -4427,8 +4467,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         fontSize: 16.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
@@ -4441,7 +4481,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -4451,7 +4492,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -4623,8 +4665,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                         height: 56.0,
                         padding: const EdgeInsetsDirectional.fromSTEB(
                             16.0, 0.0, 16.0, 0.0),
-                        iconPadding:
-                            const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                        iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 0.0, 0.0, 0.0),
                         color: Colors.white,
                         textStyle:
                             FlutterFlowTheme.of(context).titleSmall.override(
@@ -4858,8 +4900,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                         height: 56.0,
                         padding: const EdgeInsetsDirectional.fromSTEB(
                             16.0, 0.0, 16.0, 0.0),
-                        iconPadding:
-                            const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                        iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 0.0, 0.0, 0.0),
                         color: FlutterFlowTheme.of(context).primary,
                         textStyle:
                             FlutterFlowTheme.of(context).titleSmall.override(

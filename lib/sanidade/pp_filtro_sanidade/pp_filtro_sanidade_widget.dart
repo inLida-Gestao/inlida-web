@@ -1772,14 +1772,30 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                               _model.dDCatRebanhoMachoValue = null;
                               _model.dropDownRacaValueController?.reset();
                               _model.dropDownRacaValue = null;
-                              _model.dropDownTratamentoValueController?.reset();
-                              _model.dropDownTratamentoValue = null;
-                              _model.dropDownOrigemValueController1?.reset();
-                              _model.dropDownOrigemValue1 = null;
-                              _model.dropDownOrigemValueController2?.reset();
-                              _model.dropDownOrigemValue2 = null;
-                              _model.dropDownOrigemValueController3?.reset();
-                              _model.dropDownOrigemValue3 = null;
+
+                              // Multi-selects: precisamos limpar a lista atual,
+                              // pois `reset()` volta para o initialValue (que pode
+                              // ser a seleção anterior) e `null` quebra a UI.
+                              _model.dropDownTratamentoValueController?.value =
+                                <String>[];
+                              _model.dropDownTratamentoValueController
+                                ?.update();
+                              _model.dropDownTratamentoValue = <String>[];
+
+                              _model.dropDownOrigemValueController1?.value =
+                                <String>[];
+                              _model.dropDownOrigemValueController1?.update();
+                              _model.dropDownOrigemValue1 = <String>[];
+
+                              _model.dropDownOrigemValueController2?.value =
+                                <String>[];
+                              _model.dropDownOrigemValueController2?.update();
+                              _model.dropDownOrigemValue2 = <String>[];
+
+                              _model.dropDownOrigemValueController3?.value =
+                                <String>[];
+                              _model.dropDownOrigemValueController3?.update();
+                              _model.dropDownOrigemValue3 = <String>[];
                             });
                             safeSetState(() {
                               _model.dataSanidadeTextController?.text =

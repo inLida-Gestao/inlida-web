@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import 'dart:convert';
 import 'package:csv/csv.dart';
 
 Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
@@ -45,8 +46,8 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
 
     if (rows.isEmpty) return [];
 
-    // 6. Colunas fixas conforme tabela
-    const columns = [
+    // 6. Colunas do banco (para fallback por posição quando CSV já vem exportado)
+    const dbColumnsInOrder = [
       'id',
       'created_at',
       'idPropriedade',
@@ -96,6 +97,56 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
       'categoria_matriz',
     ];
 
+    const dbColumnSet = {
+      'id',
+      'created_at',
+      'idPropriedade',
+      'numeroAnimal',
+      'chip',
+      'codRegistro',
+      'nome',
+      'sexo',
+      'categoria',
+      'dataNascimento',
+      'pesoNascimento',
+      'porte',
+      'raca',
+      'loteID',
+      'dataEntradaLote',
+      'rebanhoIdMatriz',
+      'rebanhoIdReprodutor',
+      'dataDesmama',
+      'pesoDesmama',
+      'pesoAtual',
+      'status',
+      'origem',
+      'anotacoes',
+      'idRebanho',
+      'deletado',
+      'updated_at',
+      'loteNome',
+      'tipo',
+      'dataAcao',
+      'valorCompra',
+      'dataUltimaPesagem',
+      'nomeConcat',
+      'dataVenda',
+      'valorVenda',
+      'movimentacao_entrada',
+      'numeroMatriz',
+      'nomeMatriz',
+      'dataNascMatriz',
+      'racaMatriz',
+      'numeroReprodutor',
+      'nomeReprodutor',
+      'dataNascReprodutor',
+      'racaReprodutor',
+      'movimentacao_saida',
+      'data_morte',
+      'motivo_morte',
+      'categoria_matriz',
+    };
+
     const dateColumns = [
       'created_at',
       'dataNascimento',
@@ -120,41 +171,82 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
       'valorVenda',
     ];
 
-    // 7. Mapear linhas para JSON
+    // 7. Detectar layout do CSV
+    // - Se a primeira linha contém headers, mapear por nome.
+    // - Caso contrário (ou se parecer export do banco sem header do usuário), usar fallback por posição.
+    final headerRow = rows.first;
+    final headerStrings = headerRow
+        .map((e) => e == null ? '' : e.toString())
+        .map(_cleanText)
+        .toList();
+    final normalizedHeaders = headerStrings.map(_normalizeHeader).toList();
+
+    final bool looksLikeUserTemplate = normalizedHeaders.contains('numero') ||
+        normalizedHeaders.contains('numero_animal') ||
+        normalizedHeaders.contains('data_compra') ||
+        normalizedHeaders.contains('valor_compra');
+
+    final bool looksLikeDbExport = headerStrings.any(dbColumnSet.contains);
+
+    final bool useHeaderMapping =
+        (looksLikeUserTemplate || looksLikeDbExport) &&
+            normalizedHeaders.any((h) => h.isNotEmpty);
+
+    if (useHeaderMapping) {
+      final mapping = _buildHeaderToDbMapping(headerStrings, dbColumnSet);
+
+      return rows.skip(1).map((row) {
+        final map = <String, dynamic>{};
+
+        mapping.forEach((dbColumn, index) {
+          final raw = (index < row.length && row[index] != null)
+              ? row[index].toString()
+              : '';
+          final value = _cleanText(raw);
+          final cleaned = _cleanCellToNull(value, dbColumn, numericColumns);
+          if (cleaned == null) {
+            map[dbColumn] = null;
+            return;
+          }
+
+          if (dateColumns.contains(dbColumn)) {
+            map[dbColumn] = cleaned;
+          } else if (numericColumns.contains(dbColumn)) {
+            map[dbColumn] = _parseNumberPtBr(cleaned);
+          } else {
+            map[dbColumn] = cleaned;
+          }
+        });
+
+        // Campos que o usuário normalmente não tem: deixam null para o batch_insert gerar/limpar.
+        map.putIfAbsent('idRebanho', () => null);
+        map.putIfAbsent('idPropriedade', () => null);
+
+        return map;
+      }).toList();
+    }
+
+    // Fallback: CSV sem header (ou inesperado), por posição com a ordem do banco.
     return rows.skip(1).map((row) {
       final map = <String, dynamic>{};
 
-      for (var i = 0; i < columns.length; i++) {
-        var raw = (i < row.length && row[i] != null) ? row[i].toString() : '';
+      for (var i = 0; i < dbColumnsInOrder.length; i++) {
+        final dbColumn = dbColumnsInOrder[i];
+        final raw = (i < row.length && row[i] != null) ? row[i].toString() : '';
+        final value = _cleanText(raw);
+        final cleaned = _cleanCellToNull(value, dbColumn, numericColumns);
 
-        // Melhor tratamento de texto preservando acentos
-        String value = _cleanText(raw);
-
-        final column = columns[i];
-
-        // Verificar se valor está vazio ou é null ANTES de qualquer processamento
-        if (value.isEmpty ||
-            value.toLowerCase() == 'null' ||
-            value.toLowerCase() == 'undefined' ||
-            value == '0' && !numericColumns.contains(column)) {
-          map[column] = null;
+        if (cleaned == null) {
+          map[dbColumn] = null;
           continue;
         }
 
-        if (dateColumns.contains(column)) {
-          // Para colunas de data, apenas mantém como string (sem parsing)
-          map[column] = value;
-        } else if (numericColumns.contains(column)) {
-          final numericValue = value.replaceAll(',', '.');
-          // Para colunas numéricas, só converte se não estiver vazio
-          if (numericValue.trim().isEmpty) {
-            map[column] = null;
-          } else {
-            final parsed = double.tryParse(numericValue);
-            map[column] = parsed; // Se não conseguir converter, fica null
-          }
+        if (dateColumns.contains(dbColumn)) {
+          map[dbColumn] = cleaned;
+        } else if (numericColumns.contains(dbColumn)) {
+          map[dbColumn] = _parseNumberPtBr(cleaned);
         } else {
-          map[column] = value;
+          map[dbColumn] = cleaned;
         }
       }
 
@@ -169,6 +261,17 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
 
 // Função auxiliar para decodificação customizada (fallback)
 String _decodeWithBestEncoding(List<int> bytes) {
+  // 1) Tentar UTF-8 (principal caminho)
+  try {
+    return utf8.decode(bytes, allowMalformed: true);
+  } catch (_) {}
+
+  // 2) Tentar Latin-1 (arquivos antigos)
+  try {
+    return latin1.decode(bytes);
+  } catch (_) {}
+
+  // 3) Fallback customizado (mantido para casos específicos)
   print('Usando decodificação customizada como fallback');
 
   // Criar string resultado para casos de encoding customizado
@@ -225,6 +328,132 @@ String _cleanText(String text) {
       .replaceAll(RegExp(r'\s+'), ' ') // Múltiplos espaços viram um só
       .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'),
           ''); // Remove caracteres de controle
+}
+
+String? _cleanCellToNull(
+  String value,
+  String column,
+  List<String> numericColumns,
+) {
+  final lower = value.toLowerCase();
+  if (value.isEmpty || lower == 'null' || lower == 'undefined') return null;
+  if (value == '0' && !numericColumns.contains(column)) return null;
+  return value;
+}
+
+double? _parseNumberPtBr(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) return null;
+
+  // Ex.: "1.234,56" -> "1234.56" | "1234,56" -> "1234.56"
+  if (trimmed.contains(',')) {
+    final normalized = trimmed.replaceAll('.', '').replaceAll(',', '.');
+    return double.tryParse(normalized);
+  }
+  return double.tryParse(trimmed);
+}
+
+String _normalizeHeader(String header) {
+  var h = _cleanText(header).toLowerCase();
+  h = h
+      .replaceAll('á', 'a')
+      .replaceAll('à', 'a')
+      .replaceAll('ã', 'a')
+      .replaceAll('â', 'a')
+      .replaceAll('ä', 'a')
+      .replaceAll('é', 'e')
+      .replaceAll('ê', 'e')
+      .replaceAll('è', 'e')
+      .replaceAll('ë', 'e')
+      .replaceAll('í', 'i')
+      .replaceAll('î', 'i')
+      .replaceAll('ì', 'i')
+      .replaceAll('ï', 'i')
+      .replaceAll('ó', 'o')
+      .replaceAll('ô', 'o')
+      .replaceAll('ò', 'o')
+      .replaceAll('õ', 'o')
+      .replaceAll('ö', 'o')
+      .replaceAll('ú', 'u')
+      .replaceAll('û', 'u')
+      .replaceAll('ù', 'u')
+      .replaceAll('ü', 'u')
+      .replaceAll('ç', 'c');
+
+  // Padroniza separadores
+  h = h.replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+  h = h.replaceAll(RegExp(r'_+'), '_');
+  h = h.replaceAll(RegExp(r'^_|_$'), '');
+  return h;
+}
+
+Map<String, int> _buildHeaderToDbMapping(
+  List<String> headerStrings,
+  Set<String> dbColumnSet,
+) {
+  // Mapeamento do modelo do usuário (Excel) -> coluna do banco
+  const templateMap = <String, String>{
+    'numero': 'numeroAnimal',
+    'numero_animal': 'numeroAnimal',
+    'chip': 'chip',
+    'codigo_registro': 'codRegistro',
+    'codigo_registro_': 'codRegistro',
+    'codigo': 'codRegistro',
+    'nome': 'nome',
+    'sexo': 'sexo',
+    'data_nascimento': 'dataNascimento',
+    'peso_nascimento': 'pesoNascimento',
+    'porte': 'porte',
+    'categoria': 'categoria',
+    'raca': 'raca',
+    'lote': 'loteNome',
+    'data_desmama': 'dataDesmama',
+    'peso_desmama': 'pesoDesmama',
+    'data_ultima_pesagem': 'dataUltimaPesagem',
+    'peso_atual': 'pesoAtual',
+    'status': 'status',
+    'data_venda': 'dataVenda',
+    'valor_venda': 'valorVenda',
+    'data_morte': 'data_morte',
+    'motivo_morte': 'motivo_morte',
+    'movimentacao_saida': 'movimentacao_saida',
+    'origem': 'origem',
+    'data_compra': 'dataAcao',
+    'valor_compra': 'valorCompra',
+    'movimentacao_entrada': 'movimentacao_entrada',
+    'anotacoes': 'anotacoes',
+    'numero_matriz': 'numeroMatriz',
+    'nome_matriz': 'nomeMatriz',
+    'data_nascimento_matriz': 'dataNascMatriz',
+    'categoria_matriz': 'categoria_matriz',
+    'raca_matriz': 'racaMatriz',
+    'numero_reprodutor': 'numeroReprodutor',
+    'nome_reprodutor': 'nomeReprodutor',
+    'data_nascimento_reprodutor': 'dataNascReprodutor',
+    'raca_reprodutor': 'racaReprodutor',
+  };
+
+  final out = <String, int>{};
+
+  for (var i = 0; i < headerStrings.length; i++) {
+    final rawHeader = headerStrings[i];
+    if (rawHeader.trim().isEmpty) continue;
+
+    // Se já vier com nomes do banco, usa direto.
+    if (dbColumnSet.contains(rawHeader)) {
+      out.putIfAbsent(rawHeader, () => i);
+      continue;
+    }
+
+    final normalized = _normalizeHeader(rawHeader);
+    final mappedDb = templateMap[normalized];
+    if (mappedDb != null) {
+      out.putIfAbsent(mappedDb, () => i);
+      continue;
+    }
+  }
+
+  return out;
 }
 
 // Set your action name, define your arguments and return parameter,
