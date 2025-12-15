@@ -36,17 +36,17 @@ class PpFiltroSanidadeModel extends FlutterFlowModel<PpFiltroSanidadeWidget> {
   String? dDCatRebanhoMachoValue;
   FormFieldController<String>? dDCatRebanhoMachoValueController;
   // State field(s) for DropDownTratamento widget.
-  String? dropDownTratamentoValue;
-  FormFieldController<String>? dropDownTratamentoValueController;
-  // State field(s) for DropDownOrigem widget.
-  String? dropDownOrigemValue1;
-  FormFieldController<String>? dropDownOrigemValueController1;
-  // State field(s) for DropDownOrigem widget.
-  String? dropDownOrigemValue2;
-  FormFieldController<String>? dropDownOrigemValueController2;
-  // State field(s) for DropDownOrigem widget.
-  String? dropDownOrigemValue3;
-  FormFieldController<String>? dropDownOrigemValueController3;
+  List<String>? dropDownTratamentoValue;
+  FormFieldController<List<String>>? dropDownTratamentoValueController;
+  // State field(s) for DropDownProtocolo widget.
+  List<String>? dropDownOrigemValue1;
+  FormFieldController<List<String>>? dropDownOrigemValueController1;
+  // State field(s) for DropDownAntiparasitario widget.
+  List<String>? dropDownOrigemValue2;
+  FormFieldController<List<String>>? dropDownOrigemValueController2;
+  // State field(s) for DropDownVacinacao widget.
+  List<String>? dropDownOrigemValue3;
+  FormFieldController<List<String>>? dropDownOrigemValueController3;
 
   @override
   void initState(BuildContext context) {}

@@ -26,7 +26,8 @@ class CcEditSanidadeAnimalWidget extends StatefulWidget {
       _CcEditSanidadeAnimalWidgetState();
 }
 
-class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget> {
+class _CcEditSanidadeAnimalWidgetState
+    extends State<CcEditSanidadeAnimalWidget> {
   late CcEditSanidadeAnimalModel _model;
 
   @override
@@ -147,11 +148,13 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
         widget.sanidade.antiparasitarioOutros;
     _model.antiparasitarioObsTextController?.text =
         widget.sanidade.antiparasitarioObs;
-    _model.tratamentoOutrosTextController?.text = widget.sanidade.tratamentoOutros;
+    _model.tratamentoOutrosTextController?.text =
+        widget.sanidade.tratamentoOutros;
     _model.tratamentoObsTextController?.text = widget.sanidade.tratamentoObs;
     _model.protocoloOutrosTextController?.text =
         widget.sanidade.protocoloReprodutivoOutros;
-    _model.protocoloObsTextController?.text = widget.sanidade.protocoloReprodutivoObs;
+    _model.protocoloObsTextController?.text =
+        widget.sanidade.protocoloReprodutivoObs;
   }
 
   @override
@@ -241,7 +244,8 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                               .bodyMedium
                               .override(
                                 fontFamily: 'Poppins',
-                                color: FlutterFlowTheme.of(context).secondaryText,
+                                color:
+                                    FlutterFlowTheme.of(context).secondaryText,
                                 fontSize: 16,
                                 letterSpacing: 0.0,
                                 fontWeight: FontWeight.w600,
@@ -272,7 +276,10 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                                 );
                               },
                             ).then((_) {
-                              if (FFAppState().matrizSelecionada.idAnimal.isNotEmpty) {
+                              if (FFAppState()
+                                  .matrizSelecionada
+                                  .idAnimal
+                                  .isNotEmpty) {
                                 setState(() {
                                   _model.animalSelecionadoId =
                                       FFAppState().matrizSelecionada.idAnimal;
@@ -297,7 +304,8 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                           child: Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context).secondaryBackground,
+                              color: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Padding(
@@ -305,10 +313,12 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                                   16, 16, 10, 16),
                               child: Row(
                                 mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    _model.animalSelecionadoNome ?? 'Selecionar',
+                                    _model.animalSelecionadoNome ??
+                                        'Selecionar',
                                     style: FlutterFlowTheme.of(context)
                                         .bodyMedium
                                         .override(
@@ -320,7 +330,8 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                                   ),
                                   Icon(
                                     Icons.expand_more,
-                                    color: FlutterFlowTheme.of(context).secondaryText,
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryText,
                                     size: 24,
                                   ),
                                 ],
@@ -344,7 +355,8 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                               .bodyMedium
                               .override(
                                 fontFamily: 'Poppins',
-                                color: FlutterFlowTheme.of(context).secondaryText,
+                                color:
+                                    FlutterFlowTheme.of(context).secondaryText,
                                 fontSize: 16,
                                 letterSpacing: 0.0,
                                 fontWeight: FontWeight.w600,
@@ -359,7 +371,8 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                           onTap: () async {
                             final datePickedDate = await showDatePicker(
                               context: context,
-                              initialDate: _model.dataSanidade ?? DateTime.now(),
+                              initialDate:
+                                  _model.dataSanidade ?? DateTime.now(),
                               firstDate: DateTime(1900),
                               lastDate: DateTime(2050),
                               builder: (context, child) {
@@ -378,7 +391,8 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                           child: Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context).secondaryBackground,
+                              color: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Padding(
@@ -386,7 +400,8 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                                   16, 16, 10, 16),
                               child: Row(
                                 mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     _model.dataSanidade != null
@@ -412,7 +427,8 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                                   ),
                                   Icon(
                                     Icons.calendar_today,
-                                    color: FlutterFlowTheme.of(context).secondaryText,
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryText,
                                     size: 24,
                                   ),
                                 ],
@@ -750,12 +766,7 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
             FlutterFlowDropDown<String>(
               multiSelectController: _model.vacinaDropdownValueController ??=
                   FormListFieldController<String>(_model.vacinaDropdownValue),
-              options: const [
-                'Diarréia (BVD)',
-                'Leptospirose',
-                'Raiva',
-                'Antitetânica',
-              ],
+              options: FFAppState().vacinacao,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.vacinaDropdownValue = val),
@@ -842,10 +853,7 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                   _model.antiparasitarioDropdownValueController ??=
                       FormListFieldController<String>(
                           _model.antiparasitarioDropdownValue),
-              options: const [
-                'Vermífugo',
-                'Carrapaticida',
-              ],
+              options: FFAppState().antiparasitario,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.antiparasitarioDropdownValue = val),
@@ -928,12 +936,11 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
             ),
             const SizedBox(height: 8),
             FlutterFlowDropDown<String>(
-              multiSelectController: _model.tratamentoDropdownValueController ??=
-                  FormListFieldController<String>(_model.tratamentoDropdownValue),
-              options: const [
-                'Antibiótico',
-                'Anti-inflamatório',
-              ],
+              multiSelectController:
+                  _model.tratamentoDropdownValueController ??=
+                      FormListFieldController<String>(
+                          _model.tratamentoDropdownValue),
+              options: FFAppState().tratamento,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.tratamentoDropdownValue = val),
@@ -1017,11 +1024,9 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
             const SizedBox(height: 8),
             FlutterFlowDropDown<String>(
               multiSelectController: _model.protocoloDropdownValueController ??=
-                  FormListFieldController<String>(_model.protocoloDropdownValue),
-              options: const [
-                'IATF',
-                'FIV',
-              ],
+                  FormListFieldController<String>(
+                      _model.protocoloDropdownValue),
+              options: FFAppState().protocoloReprodutivo,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.protocoloDropdownValue = val),
@@ -1181,7 +1186,8 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
           _model.antiparasitarioOutrosTextController.text.trim();
       final antiparasitarioObs =
           _model.antiparasitarioObsTextController.text.trim();
-      final tratamentoOutros = _model.tratamentoOutrosTextController.text.trim();
+      final tratamentoOutros =
+          _model.tratamentoOutrosTextController.text.trim();
       final tratamentoObs = _model.tratamentoObsTextController.text.trim();
       final protocoloOutros = _model.protocoloOutrosTextController.text.trim();
       final protocoloObs = _model.protocoloObsTextController.text.trim();
@@ -1211,12 +1217,10 @@ class _CcEditSanidadeAnimalWidgetState extends State<CcEditSanidadeAnimalWidget>
                 ? _model.antiparasitarioDropdownValue!.join(', ')
                 : null
             : null,
-        'antiparasitario_outros':
-            _model.tiposSelecionados.contains('Antiparasitário')
-                ? (antiparasitarioOutros.isNotEmpty
-                    ? antiparasitarioOutros
-                    : null)
-                : null,
+        'antiparasitario_outros': _model.tiposSelecionados
+                .contains('Antiparasitário')
+            ? (antiparasitarioOutros.isNotEmpty ? antiparasitarioOutros : null)
+            : null,
         'antiparasitario_obs':
             _model.tiposSelecionados.contains('Antiparasitário')
                 ? (antiparasitarioObs.isNotEmpty ? antiparasitarioObs : null)

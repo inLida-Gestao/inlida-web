@@ -96,9 +96,11 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
       _model.instantTimer = InstantTimer.periodic(
         duration: const Duration(milliseconds: 250),
         callback: (timer) async {
-          if (FFAppState().refreshReproducao == true) {
+          if (FFAppState().refreshSanidade == true ||
+              FFAppState().refreshReproducao == true) {
             safeSetState(() => _model.apiRequestCompleter2 = null);
             safeSetState(() => _model.apiRequestCompleter1 = null);
+            FFAppState().refreshSanidade = false;
             FFAppState().refreshReproducao = false;
             safeSetState(() {});
           }
@@ -126,9 +128,622 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     super.dispose();
   }
 
+  Future<void> _openEditSanidadeDialog(SanidadeStruct sanidade) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: const Color(0x99000000),
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(24),
+          child: CcEditSanidadeAnimalWidget(
+            sanidade: sanidade,
+            action: (page) async {
+              safeSetState(() {
+                _model.apiRequestCompleter2 = null;
+                _model.apiRequestCompleter1 = null;
+              });
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  bool _hasValue(String? value) {
+    final v = (value ?? '').trim();
+    if (v.isEmpty) return false;
+    if (v.toLowerCase() == 'null') return false;
+    return true;
+  }
+
+  String _displayOrNA(String? value) {
+    return _hasValue(value) ? value!.trim() : 'N/A';
+  }
+
+  Future<void> _openViewSanidadeDialog(SanidadeStruct sanidade) async {
+    final rawDate = _hasValue(sanidade.dataSanidade)
+        ? sanidade.dataSanidade
+        : sanidade.createdAt;
+    final parsedDate = functions.converterParaData(rawDate);
+    final dateText = parsedDate != null
+        ? dateTimeFormat(
+            'dd/MM/yyyy',
+            parsedDate,
+            locale: 'pt_BR',
+          )
+        : _displayOrNA(rawDate);
+
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: const Color(0x99000000),
+      builder: (context) {
+        final theme = FlutterFlowTheme.of(context);
+
+        Widget section(
+            {required String title, required List<Widget> children}) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: theme.bodyMedium.override(
+                  font: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontStyle: theme.bodyMedium.fontStyle,
+                  ),
+                  color: theme.secondaryText,
+                  fontSize: 14.0,
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w600,
+                  fontStyle: theme.bodyMedium.fontStyle,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...children,
+            ],
+          );
+        }
+
+        Widget kv(String k, String v) {
+          return Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 150,
+                  child: Text(
+                    k,
+                    style: theme.bodyMedium.override(
+                      font: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontStyle: theme.bodyMedium.fontStyle,
+                      ),
+                      color: theme.primaryText,
+                      fontSize: 14.0,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w600,
+                      fontStyle: theme.bodyMedium.fontStyle,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    v,
+                    style: theme.bodyMedium.override(
+                      font: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w500,
+                        fontStyle: theme.bodyMedium.fontStyle,
+                      ),
+                      color: theme.primaryText,
+                      fontSize: 14.0,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w500,
+                      fontStyle: theme.bodyMedium.fontStyle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        Widget sanidadeTipo(
+            String label, String? value, String? outros, String? obs) {
+          if (!_hasValue(value) && !_hasValue(outros) && !_hasValue(obs)) {
+            return const SizedBox.shrink();
+          }
+
+          final main = _displayOrNA(value);
+          final out = _hasValue(outros) ? outros!.trim() : null;
+          final ob = _hasValue(obs) ? obs!.trim() : null;
+          final details = [
+            if (main != 'N/A') main,
+            if (out != null) 'Outros: $out',
+            if (ob != null) 'Obs: $ob',
+          ].join(' • ');
+
+          return kv(label, details.isEmpty ? 'N/A' : details);
+        }
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(24),
+          child: Container(
+            width: 640.0,
+            constraints: const BoxConstraints(maxHeight: 760.0),
+            decoration: BoxDecoration(
+              color: theme.secondaryBackground,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Detalhes da sanidade',
+                        style: theme.bodyMedium.override(
+                          font: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontStyle: theme.bodyMedium.fontStyle,
+                          ),
+                          color: theme.primaryText,
+                          fontSize: 20.0,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w600,
+                          fontStyle: theme.bodyMedium.fontStyle,
+                        ),
+                      ),
+                      InkWell(
+                        splashColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                        hoverColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            color: theme.primaryText,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          section(
+                            title: 'Informações',
+                            children: [
+                              kv(
+                                'Animal',
+                                '${_displayOrNA(sanidade.numeroAnimal)} - ${_displayOrNA(sanidade.nome)}',
+                              ),
+                              kv('Lote', _displayOrNA(sanidade.loteNome)),
+                              kv('Data', dateText),
+                              kv('Chip', _displayOrNA(sanidade.chip)),
+                              kv('Categoria', _displayOrNA(sanidade.categoria)),
+                              kv('Raça', _displayOrNA(sanidade.raca)),
+                              kv('Sexo', _displayOrNA(sanidade.sexo)),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          section(
+                            title: 'Tipos',
+                            children: [
+                              sanidadeTipo(
+                                'Vacinação',
+                                sanidade.vacinacao,
+                                sanidade.vacinacaoOutros,
+                                sanidade.vacinacaoObs,
+                              ),
+                              sanidadeTipo(
+                                'Antiparasitário',
+                                sanidade.antiparasitario,
+                                sanidade.antiparasitarioOutros,
+                                sanidade.antiparasitarioObs,
+                              ),
+                              sanidadeTipo(
+                                'Tratamento',
+                                sanidade.tratamento,
+                                sanidade.tratamentoOutros,
+                                sanidade.tratamentoObs,
+                              ),
+                              sanidadeTipo(
+                                'Protocolo reprodutivo',
+                                sanidade.protocoloReprodutivo,
+                                sanidade.protocoloReprodutivoOutros,
+                                sanidade.protocoloReprodutivoObs,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmAndDeleteSanidade(SanidadeStruct sanidade) async {
+    final theme = FlutterFlowTheme.of(context);
+
+    final rawDate = _hasValue(sanidade.dataSanidade)
+        ? sanidade.dataSanidade
+        : sanidade.createdAt;
+    final parsedDate = functions.converterParaData(rawDate);
+    final dateText = parsedDate != null
+        ? dateTimeFormat(
+            'dd/MM/yyyy',
+            parsedDate,
+            locale: 'pt_BR',
+          )
+        : 'N/A';
+    final animalName = _hasValue(sanidade.nome) ? sanidade.nome.trim() : 'N/A';
+    final confirmText =
+        'Tem certeza que deseja excluir a sanidade de $animalName aplicada em $dateText? Essa ação é irreversível.';
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: const Color(0x99000000),
+      builder: (context) {
+        final t = FlutterFlowTheme.of(context);
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(24),
+          child: Container(
+            width: 534.0,
+            decoration: BoxDecoration(
+              color: t.secondaryBackground,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: t.customColor5,
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 4.0,
+                  color: t.secondaryText.withOpacity(0.25),
+                  offset: const Offset(2.0, 2.0),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(48.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Align(
+                    alignment: AlignmentDirectional.centerStart
+                        .resolve(Directionality.of(context)),
+                    child: SizedBox(
+                      width: 438.0,
+                      child: Text(
+                        'Excluir sanidade',
+                        style: t.bodyMedium.override(
+                          font: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontStyle: t.bodyMedium.fontStyle,
+                          ),
+                          color: t.secondaryText,
+                          fontSize: 24.0,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w600,
+                          fontStyle: t.bodyMedium.fontStyle,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart
+                        .resolve(Directionality.of(context)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 48.0,
+                          height: 48.0,
+                          decoration: BoxDecoration(
+                            color: t.error,
+                            borderRadius: BorderRadius.circular(6.0),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.white,
+                              size: 28.0,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          child: Text(
+                            confirmText,
+                            style: t.bodyMedium.override(
+                              font: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500,
+                                fontStyle: t.bodyMedium.fontStyle,
+                              ),
+                              color: t.primaryText,
+                              fontSize: 16.0,
+                              letterSpacing: 0.0,
+                              fontWeight: FontWeight.w500,
+                              fontStyle: t.bodyMedium.fontStyle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      FFButtonWidget(
+                        onPressed: () => Navigator.pop(context, false),
+                        text: 'Cancelar',
+                        options: FFButtonOptions(
+                          height: 56.0,
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                              24, 12, 24, 12),
+                          color: t.secondaryBackground,
+                          textStyle: t.titleSmall.override(
+                            fontFamily: 'Poppins',
+                            color: t.error,
+                            fontSize: 18.0,
+                            letterSpacing: 0.0,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          elevation: 0.0,
+                          borderSide: BorderSide(
+                            color: t.error,
+                            width: 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(6.0),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      FFButtonWidget(
+                        onPressed: () => Navigator.pop(context, true),
+                        text: 'Excluir',
+                        options: FFButtonOptions(
+                          height: 56.0,
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                              24, 12, 24, 12),
+                          color: t.error,
+                          textStyle: t.titleSmall.override(
+                            fontFamily: 'Poppins',
+                            color: Colors.white,
+                            fontSize: 18.0,
+                            letterSpacing: 0.0,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          elevation: 0.0,
+                          borderRadius: BorderRadius.circular(6.0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    if (shouldDelete != true) return;
+
+    final sanidadeId = sanidade.id;
+    final idSanidade = sanidade.idSanidade.trim();
+    if (sanidadeId == 0 && idSanidade.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Não foi possível identificar o registro'),
+          backgroundColor: theme.warning,
+        ),
+      );
+      return;
+    }
+
+    try {
+      await SanidadeTable().update(
+        data: {
+          'deletado': 'SIM',
+          'updated_at': supaSerialize<DateTime>(DateTime.now()),
+        },
+        matchingRows: (rows) {
+          if (sanidadeId != 0) {
+            return rows.eq('id', sanidadeId);
+          }
+          return rows.eq('id_sanidade', idSanidade);
+        },
+      );
+
+      safeSetState(() {
+        _model.apiRequestCompleter2 = null;
+        _model.apiRequestCompleter1 = null;
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Sanidade excluída com sucesso!'),
+          backgroundColor: theme.success,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao excluir sanidade: $e'),
+          backgroundColor: theme.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _openSanidadeRowMenu({
+    required BuildContext anchorContext,
+    required SanidadeStruct sanidade,
+  }) async {
+    await showAlignedDialog(
+      barrierColor: Colors.transparent,
+      context: anchorContext,
+      isGlobal: false,
+      avoidOverflow: true,
+      targetAnchor: const AlignmentDirectional(1.0, 1.0)
+          .resolve(Directionality.of(anchorContext)),
+      followerAnchor: const AlignmentDirectional(1.0, -1.0)
+          .resolve(Directionality.of(anchorContext)),
+      builder: (dialogContext) {
+        final theme = FlutterFlowTheme.of(dialogContext);
+
+        Widget buildItem({
+          required IconData icon,
+          required String label,
+          required Future<void> Function() onTap,
+          Color? color,
+        }) {
+          final itemColor = color ?? theme.primaryText;
+          return InkWell(
+            splashColor: Colors.transparent,
+            focusColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            onTap: () async {
+              await onTap();
+            },
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    color: itemColor,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    label,
+                    style: theme.bodyMedium.override(
+                      font: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontStyle: theme.bodyMedium.fontStyle,
+                      ),
+                      color: itemColor,
+                      fontSize: 14.0,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w600,
+                      fontStyle: theme.bodyMedium.fontStyle,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Material(
+          color: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.secondaryBackground,
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 4,
+                  color: theme.secondaryText.withOpacity(0.25),
+                  offset: const Offset(2, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                buildItem(
+                  icon: Icons.visibility_outlined,
+                  label: 'Visualizar',
+                  onTap: () async {
+                    Navigator.pop(dialogContext);
+                    await _openViewSanidadeDialog(sanidade);
+                  },
+                ),
+                buildItem(
+                  icon: Icons.edit_outlined,
+                  label: 'Editar',
+                  onTap: () async {
+                    Navigator.pop(dialogContext);
+                    await _openEditSanidadeDialog(sanidade);
+                  },
+                ),
+                buildItem(
+                  icon: Icons.delete_outline,
+                  label: 'Excluir',
+                  color: theme.error,
+                  onTap: () async {
+                    Navigator.pop(dialogContext);
+                    await _confirmAndDeleteSanidade(sanidade);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+
+    final bool isCompact = MediaQuery.sizeOf(context).width < 1200.0;
+    final double pagePadH = isCompact ? 16.0 : 32.0;
+    final double pagePadV = isCompact ? 24.0 : 34.0;
+    final double titleFontSize = isCompact ? 32.0 : 40.0;
+    final double headerControlHeight = isCompact ? 48.0 : 56.0;
+    final double headerButtonFontSize = isCompact ? 16.0 : 18.0;
+    final double headerButtonPadH = isCompact ? 16.0 : 24.0;
+    final double searchWidth = isCompact ? 240.0 : 327.0;
+
+    final double kpiCardPadding = isCompact ? 16.0 : 24.0;
+    final double kpiTitleSize = isCompact ? 14.0 : 16.0;
+    final double kpiValueSize = isCompact ? 20.0 : 24.0;
+    final double kpiIconSize = isCompact ? 32.0 : 36.0;
+    final double kpiInnerGapH = isCompact ? 10.0 : 12.0;
+    final double kpiInnerGapV = isCompact ? 12.0 : 16.0;
+    final double kpiCardsGap = isCompact ? 16.0 : 24.0;
 
     return FutureBuilder<ApiCallResponse>(
       future: (_model.apiRequestCompleter2 ??= Completer<ApiCallResponse>()
@@ -219,8 +834,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                     .secondaryBackground,
                               ),
                               child: Padding(
-                                padding: const EdgeInsetsDirectional.fromSTEB(
-                                    32.0, 34.0, 32.0, 34.0),
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    pagePadH, pagePadV, pagePadH, pagePadV),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.max,
                                   children: [
@@ -245,7 +860,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                 color:
                                                     FlutterFlowTheme.of(context)
                                                         .secondaryText,
-                                                fontSize: 40.0,
+                                                fontSize: titleFontSize,
                                                 letterSpacing: 0.0,
                                                 fontWeight: FontWeight.w600,
                                                 fontStyle:
@@ -398,11 +1013,13 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                   size: 24.0,
                                                 ),
                                                 options: FFButtonOptions(
-                                                  height: 56.0,
-                                                  padding:
-                                                      const EdgeInsetsDirectional
-                                                          .fromSTEB(
-                                                          24.0, 0.0, 24.0, 0.0),
+                                                  height: headerControlHeight,
+                                                  padding: EdgeInsetsDirectional
+                                                      .fromSTEB(
+                                                          headerButtonPadH,
+                                                          0.0,
+                                                          headerButtonPadH,
+                                                          0.0),
                                                   iconAlignment:
                                                       IconAlignment.end,
                                                   iconPadding:
@@ -430,7 +1047,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                   .fontStyle,
                                                         ),
                                                         color: Colors.white,
-                                                        fontSize: 18.0,
+                                                        fontSize:
+                                                            headerButtonFontSize,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
@@ -455,7 +1073,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                               ),
                                             ),
                                             Container(
-                                              height: 56.0,
+                                              height: headerControlHeight,
                                               decoration: BoxDecoration(
                                                 color:
                                                     FlutterFlowTheme.of(context)
@@ -468,7 +1086,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                     const AlignmentDirectional(
                                                         0.0, 0.0),
                                                 child: SizedBox(
-                                                  width: 327.0,
+                                                  width: searchWidth,
                                                   child: TextFormField(
                                                     controller:
                                                         _model.textController,
@@ -510,7 +1128,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 color: FlutterFlowTheme.of(
                                                                         context)
                                                                     .accent3,
-                                                                fontSize: 16.0,
+                                                                fontSize:
+                                                                    isCompact
+                                                                        ? 14.0
+                                                                        : 16.0,
                                                                 letterSpacing:
                                                                     0.0,
                                                                 fontWeight:
@@ -774,9 +1395,11 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                 ),
                                               ),
                                             ),
-                                          ].divide(const SizedBox(width: 24.0)),
+                                          ].divide(SizedBox(
+                                              width: isCompact ? 16.0 : 24.0)),
                                         ),
-                                      ].divide(const SizedBox(width: 24.0)),
+                                      ].divide(SizedBox(
+                                          width: isCompact ? 16.0 : 24.0)),
                                     ),
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
@@ -804,8 +1427,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                               ),
                                             ),
                                             child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(24.0),
+                                              padding: EdgeInsets.all(
+                                                  kpiCardPadding),
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:
@@ -827,7 +1450,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     .bodyMedium
                                                                     .fontStyle,
                                                           ),
-                                                          fontSize: 16.0,
+                                                          fontSize:
+                                                              kpiTitleSize,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
                                                               FontWeight.w600,
@@ -848,46 +1472,47 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 .circular(8.0),
                                                         child: SvgPicture.asset(
                                                           'assets/images/Group_196.svg',
-                                                          width: 36.0,
-                                                          height: 36.0,
+                                                          width: kpiIconSize,
+                                                          height: kpiIconSize,
                                                           fit: BoxFit.contain,
                                                         ),
                                                       ),
                                                       Text(
                                                         _model.countVacinas
                                                             .toString(),
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                              fontSize: 24.0,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
+                                                        style:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  fontSize:
+                                                                      kpiValueSize,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
                                                                           context)
                                                                       .bodyMedium
                                                                       .fontStyle,
-                                                            ),
+                                                                ),
                                                       ),
-                                                    ].divide(const SizedBox(
-                                                        width: 12.0)),
+                                                    ].divide(SizedBox(
+                                                        width: kpiInnerGapH)),
                                                   ),
-                                                ].divide(const SizedBox(
-                                                    height: 16.0)),
+                                                ].divide(SizedBox(
+                                                    height: kpiInnerGapV)),
                                               ),
                                             ),
                                           ),
@@ -915,8 +1540,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                               ),
                                             ),
                                             child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(24.0),
+                                              padding: EdgeInsets.all(
+                                                  kpiCardPadding),
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:
@@ -938,7 +1563,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     .bodyMedium
                                                                     .fontStyle,
                                                           ),
-                                                          fontSize: 16.0,
+                                                          fontSize:
+                                                              kpiTitleSize,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
                                                               FontWeight.w600,
@@ -959,8 +1585,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 .circular(8.0),
                                                         child: SvgPicture.asset(
                                                           'assets/images/Group_196.svg',
-                                                          width: 36.0,
-                                                          height: 36.0,
+                                                          width: kpiIconSize,
+                                                          height: kpiIconSize,
                                                           fit: BoxFit.contain,
                                                         ),
                                                       ),
@@ -968,38 +1594,39 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                         _model
                                                             .countAntiparasitarios
                                                             .toString(),
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                              fontSize: 24.0,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
+                                                        style:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  fontSize:
+                                                                      kpiValueSize,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
                                                                           context)
                                                                       .bodyMedium
                                                                       .fontStyle,
-                                                            ),
+                                                                ),
                                                       ),
-                                                    ].divide(const SizedBox(
-                                                        width: 12.0)),
+                                                    ].divide(SizedBox(
+                                                        width: kpiInnerGapH)),
                                                   ),
-                                                ].divide(const SizedBox(
-                                                    height: 16.0)),
+                                                ].divide(SizedBox(
+                                                    height: kpiInnerGapV)),
                                               ),
                                             ),
                                           ),
@@ -1027,8 +1654,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                               ),
                                             ),
                                             child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(24.0),
+                                              padding: EdgeInsets.all(
+                                                  kpiCardPadding),
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:
@@ -1050,7 +1677,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     .bodyMedium
                                                                     .fontStyle,
                                                           ),
-                                                          fontSize: 16.0,
+                                                          fontSize:
+                                                              kpiTitleSize,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
                                                               FontWeight.w600,
@@ -1071,46 +1699,47 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 .circular(8.0),
                                                         child: SvgPicture.asset(
                                                           'assets/images/Group_196.svg',
-                                                          width: 36.0,
-                                                          height: 36.0,
+                                                          width: kpiIconSize,
+                                                          height: kpiIconSize,
                                                           fit: BoxFit.contain,
                                                         ),
                                                       ),
                                                       Text(
                                                         _model.countTratamentos
                                                             .toString(),
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                              fontSize: 24.0,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
+                                                        style:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  fontSize:
+                                                                      kpiValueSize,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
                                                                           context)
                                                                       .bodyMedium
                                                                       .fontStyle,
-                                                            ),
+                                                                ),
                                                       ),
-                                                    ].divide(const SizedBox(
-                                                        width: 12.0)),
+                                                    ].divide(SizedBox(
+                                                        width: kpiInnerGapH)),
                                                   ),
-                                                ].divide(const SizedBox(
-                                                    height: 16.0)),
+                                                ].divide(SizedBox(
+                                                    height: kpiInnerGapV)),
                                               ),
                                             ),
                                           ),
@@ -1138,8 +1767,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                               ),
                                             ),
                                             child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(24.0),
+                                              padding: EdgeInsets.all(
+                                                  kpiCardPadding),
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:
@@ -1161,7 +1790,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     .bodyMedium
                                                                     .fontStyle,
                                                           ),
-                                                          fontSize: 16.0,
+                                                          fontSize:
+                                                              kpiTitleSize,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
                                                               FontWeight.w600,
@@ -1182,51 +1812,52 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 .circular(8.0),
                                                         child: SvgPicture.asset(
                                                           'assets/images/Group_196.svg',
-                                                          width: 36.0,
-                                                          height: 36.0,
+                                                          width: kpiIconSize,
+                                                          height: kpiIconSize,
                                                           fit: BoxFit.contain,
                                                         ),
                                                       ),
                                                       Text(
                                                         _model.countProtocolos
                                                             .toString(),
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                              fontSize: 24.0,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
+                                                        style:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  fontSize:
+                                                                      kpiValueSize,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
                                                                           context)
                                                                       .bodyMedium
                                                                       .fontStyle,
-                                                            ),
+                                                                ),
                                                       ),
-                                                    ].divide(const SizedBox(
-                                                        width: 12.0)),
+                                                    ].divide(SizedBox(
+                                                        width: kpiInnerGapH)),
                                                   ),
-                                                ].divide(const SizedBox(
-                                                    height: 16.0)),
+                                                ].divide(SizedBox(
+                                                    height: kpiInnerGapV)),
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ].divide(const SizedBox(width: 24.0)),
+                                      ].divide(SizedBox(width: kpiCardsGap)),
                                     ),
                                     Divider(
                                       height: 24.0,
@@ -1591,22 +2222,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     children: [
                                                                       Text(
                                                                         () {
-                                                                          final rawDate = sanidadeItem
-                                                                                  .dataSanidade
-                                                                                  .trim()
-                                                                                  .isNotEmpty
+                                                                          final rawDate = sanidadeItem.dataSanidade.trim().isNotEmpty
                                                                               ? sanidadeItem.dataSanidade
                                                                               : sanidadeItem.createdAt;
-                                                                          final parsed = functions
-                                                                              .converterParaData(rawDate);
-                                                                          if (parsed == null) {
+                                                                          final parsed =
+                                                                              functions.converterParaData(rawDate);
+                                                                          if (parsed ==
+                                                                              null) {
                                                                             return '—';
                                                                           }
                                                                           return dateTimeFormat(
                                                                             "d/M/y",
                                                                             parsed,
-                                                                            locale: FFLocalizations.of(context)
-                                                                                .languageCode,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
                                                                           );
                                                                         }(),
                                                                         style: FlutterFlowTheme.of(context)
@@ -1864,51 +2493,32 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         MainAxisAlignment
                                                                             .end,
                                                                     children: [
-                                                                      FlutterFlowIconButton(
-                                                                        borderRadius:
-                                                                            8.0,
-                                                                        buttonSize:
-                                                                            40.0,
-                                                                        fillColor:
-                                                                            const Color(0x0028A365),
-                                                                        icon:
-                                                                            Icon(
-                                                                          Icons
-                                                                              .keyboard_control,
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).accent3,
-                                                                          size:
-                                                                              24.0,
+                                                                      Builder(
+                                                                        builder:
+                                                                            (iconButtonContext) =>
+                                                                                FlutterFlowIconButton(
+                                                                          borderRadius:
+                                                                              8.0,
+                                                                          buttonSize:
+                                                                              32.0,
+                                                                          fillColor:
+                                                                              const Color(0x0028A365),
+                                                                          icon:
+                                                                              Icon(
+                                                                            Icons.keyboard_control,
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).accent3,
+                                                                            size:
+                                                                                18.0,
+                                                                          ),
+                                                                          onPressed:
+                                                                              () async {
+                                                                            await _openSanidadeRowMenu(
+                                                                              anchorContext: iconButtonContext,
+                                                                              sanidade: sanidadeItem,
+                                                                            );
+                                                                          },
                                                                         ),
-                                                                        onPressed:
-                                                                            () async {
-                                                                          await showDialog(
-                                                                            context:
-                                                                                context,
-                                                                            barrierDismissible:
-                                                                                false,
-                                                                            barrierColor:
-                                                                                const Color(0x99000000),
-                                                                            builder:
-                                                                                (context) {
-                                                                              return Dialog(
-                                                                                backgroundColor:
-                                                                                    Colors.transparent,
-                                                                                insetPadding:
-                                                                                    const EdgeInsets.all(24),
-                                                                                child: CcEditSanidadeAnimalWidget(
-                                                                                  sanidade: sanidadeItem,
-                                                                                  action: (page) async {
-                                                                                    safeSetState(() {
-                                                                                      _model.apiRequestCompleter2 = null;
-                                                                                      _model.apiRequestCompleter1 = null;
-                                                                                    });
-                                                                                  },
-                                                                                ),
-                                                                              );
-                                                                            },
-                                                                          );
-                                                                        },
                                                                       ),
                                                                     ],
                                                                   ),
@@ -1926,9 +2536,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               paginated: false,
                                                               selectable: false,
                                                               headingRowHeight:
-                                                                  56.0,
+                                                                  40.0,
                                                               dataRowHeight:
-                                                                  76.0,
+                                                                  32.0,
                                                               columnSpacing:
                                                                   20.0,
                                                               headingRowColor:
@@ -2382,8 +2992,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                           ],
                                                         ),
                                                       ),
-                                                    ].divide(const SizedBox(
-                                                        height: 32.0)),
+                                                    ].divide(SizedBox(
+                                                        height: isCompact
+                                                            ? 16.0
+                                                            : 32.0)),
                                                   ),
                                                 ),
                                                 Padding(
@@ -2648,22 +3260,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     children: [
                                                                       Text(
                                                                         () {
-                                                                          final rawDate = sanidadeItem
-                                                                                  .dataSanidade
-                                                                                  .trim()
-                                                                                  .isNotEmpty
+                                                                          final rawDate = sanidadeItem.dataSanidade.trim().isNotEmpty
                                                                               ? sanidadeItem.dataSanidade
                                                                               : sanidadeItem.createdAt;
-                                                                          final parsed = functions
-                                                                              .converterParaData(rawDate);
-                                                                          if (parsed == null) {
+                                                                          final parsed =
+                                                                              functions.converterParaData(rawDate);
+                                                                          if (parsed ==
+                                                                              null) {
                                                                             return '—';
                                                                           }
                                                                           return dateTimeFormat(
                                                                             "d/M/y",
                                                                             parsed,
-                                                                            locale: FFLocalizations.of(context)
-                                                                                .languageCode,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
                                                                           );
                                                                         }(),
                                                                         style: FlutterFlowTheme.of(context)
@@ -2836,51 +3446,32 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         MainAxisAlignment
                                                                             .end,
                                                                     children: [
-                                                                      FlutterFlowIconButton(
-                                                                        borderRadius:
-                                                                            8.0,
-                                                                        buttonSize:
-                                                                            40.0,
-                                                                        fillColor:
-                                                                            const Color(0x0028A365),
-                                                                        icon:
-                                                                            Icon(
-                                                                          Icons
-                                                                              .keyboard_control,
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).accent3,
-                                                                          size:
-                                                                              24.0,
+                                                                      Builder(
+                                                                        builder:
+                                                                            (iconButtonContext) =>
+                                                                                FlutterFlowIconButton(
+                                                                          borderRadius:
+                                                                              8.0,
+                                                                          buttonSize:
+                                                                              32.0,
+                                                                          fillColor:
+                                                                              const Color(0x0028A365),
+                                                                          icon:
+                                                                              Icon(
+                                                                            Icons.keyboard_control,
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).accent3,
+                                                                            size:
+                                                                                18.0,
+                                                                          ),
+                                                                          onPressed:
+                                                                              () async {
+                                                                            await _openSanidadeRowMenu(
+                                                                              anchorContext: iconButtonContext,
+                                                                              sanidade: sanidadeItem,
+                                                                            );
+                                                                          },
                                                                         ),
-                                                                        onPressed:
-                                                                            () async {
-                                                                          await showDialog(
-                                                                            context:
-                                                                                context,
-                                                                            barrierDismissible:
-                                                                                false,
-                                                                            barrierColor:
-                                                                                const Color(0x99000000),
-                                                                            builder:
-                                                                                (context) {
-                                                                              return Dialog(
-                                                                                backgroundColor:
-                                                                                    Colors.transparent,
-                                                                                insetPadding:
-                                                                                    const EdgeInsets.all(24),
-                                                                                child: CcEditSanidadeAnimalWidget(
-                                                                                  sanidade: sanidadeItem,
-                                                                                  action: (page) async {
-                                                                                    safeSetState(() {
-                                                                                      _model.apiRequestCompleter2 = null;
-                                                                                      _model.apiRequestCompleter1 = null;
-                                                                                    });
-                                                                                  },
-                                                                                ),
-                                                                              );
-                                                                            },
-                                                                          );
-                                                                        },
                                                                       ),
                                                                     ],
                                                                   ),
@@ -2902,9 +3493,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               showFirstLastButtons:
                                                                   true,
                                                               headingRowHeight:
-                                                                  56.0,
+                                                                  40.0,
                                                               dataRowHeight:
-                                                                  76.0,
+                                                                  32.0,
                                                               columnSpacing:
                                                                   20.0,
                                                               headingRowColor:
@@ -2980,13 +3571,22 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroDataNacimento,
+                                                                      .filtroNascimentoSanidade,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
                                                                 ),
                                                                 pRaca: FFAppState()
                                                                     .filtroRacaSanidade,
+                                                                pTratamento:
+                                                                    FFAppState()
+                                                                        .filtroTratamentoSanidade,
+                                                                pProtocolo:
+                                                                    FFAppState()
+                                                                        .filtroProtocolo,
+                                                                pAntiparasitarios:
+                                                                    FFAppState()
+                                                                        .filtroAntiparasitario,
                                                                 pVacinacao:
                                                                     FFAppState()
                                                                         .filtroVacinacao,
@@ -3348,8 +3948,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                           ],
                                                         ),
                                                       ),
-                                                    ].divide(const SizedBox(
-                                                        height: 32.0)),
+                                                    ].divide(SizedBox(
+                                                        height: isCompact
+                                                            ? 16.0
+                                                            : 32.0)),
                                                   ),
                                                 ),
                                                 Padding(
@@ -3614,22 +4216,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     children: [
                                                                       Text(
                                                                         () {
-                                                                          final rawDate = sanidadeItem
-                                                                                  .dataSanidade
-                                                                                  .trim()
-                                                                                  .isNotEmpty
+                                                                          final rawDate = sanidadeItem.dataSanidade.trim().isNotEmpty
                                                                               ? sanidadeItem.dataSanidade
                                                                               : sanidadeItem.createdAt;
-                                                                          final parsed = functions
-                                                                              .converterParaData(rawDate);
-                                                                          if (parsed == null) {
+                                                                          final parsed =
+                                                                              functions.converterParaData(rawDate);
+                                                                          if (parsed ==
+                                                                              null) {
                                                                             return '—';
                                                                           }
                                                                           return dateTimeFormat(
                                                                             "d/M/y",
                                                                             parsed,
-                                                                            locale: FFLocalizations.of(context)
-                                                                                .languageCode,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
                                                                           );
                                                                         }(),
                                                                         style: FlutterFlowTheme.of(context)
@@ -3802,51 +4402,32 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         MainAxisAlignment
                                                                             .end,
                                                                     children: [
-                                                                      FlutterFlowIconButton(
-                                                                        borderRadius:
-                                                                            8.0,
-                                                                        buttonSize:
-                                                                            40.0,
-                                                                        fillColor:
-                                                                            const Color(0x0028A365),
-                                                                        icon:
-                                                                            Icon(
-                                                                          Icons
-                                                                              .keyboard_control,
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).accent3,
-                                                                          size:
-                                                                              24.0,
+                                                                      Builder(
+                                                                        builder:
+                                                                            (iconButtonContext) =>
+                                                                                FlutterFlowIconButton(
+                                                                          borderRadius:
+                                                                              8.0,
+                                                                          buttonSize:
+                                                                              32.0,
+                                                                          fillColor:
+                                                                              const Color(0x0028A365),
+                                                                          icon:
+                                                                              Icon(
+                                                                            Icons.keyboard_control,
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).accent3,
+                                                                            size:
+                                                                                18.0,
+                                                                          ),
+                                                                          onPressed:
+                                                                              () async {
+                                                                            await _openSanidadeRowMenu(
+                                                                              anchorContext: iconButtonContext,
+                                                                              sanidade: sanidadeItem,
+                                                                            );
+                                                                          },
                                                                         ),
-                                                                        onPressed:
-                                                                            () async {
-                                                                          await showDialog(
-                                                                            context:
-                                                                                context,
-                                                                            barrierDismissible:
-                                                                                false,
-                                                                            barrierColor:
-                                                                                const Color(0x99000000),
-                                                                            builder:
-                                                                                (context) {
-                                                                              return Dialog(
-                                                                                backgroundColor:
-                                                                                    Colors.transparent,
-                                                                                insetPadding:
-                                                                                    const EdgeInsets.all(24),
-                                                                                child: CcEditSanidadeAnimalWidget(
-                                                                                  sanidade: sanidadeItem,
-                                                                                  action: (page) async {
-                                                                                    safeSetState(() {
-                                                                                      _model.apiRequestCompleter2 = null;
-                                                                                      _model.apiRequestCompleter1 = null;
-                                                                                    });
-                                                                                  },
-                                                                                ),
-                                                                              );
-                                                                            },
-                                                                          );
-                                                                        },
                                                                       ),
                                                                     ],
                                                                   ),
@@ -3868,9 +4449,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               showFirstLastButtons:
                                                                   true,
                                                               headingRowHeight:
-                                                                  56.0,
+                                                                  40.0,
                                                               dataRowHeight:
-                                                                  76.0,
+                                                                  32.0,
                                                               columnSpacing:
                                                                   20.0,
                                                               headingRowColor:
@@ -3946,16 +4527,25 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroDataNacimento,
+                                                                      .filtroNascimentoSanidade,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
                                                                 ),
                                                                 pRaca: FFAppState()
                                                                     .filtroRacaSanidade,
+                                                                pTratamento:
+                                                                    FFAppState()
+                                                                        .filtroTratamentoSanidade,
+                                                                pProtocolo:
+                                                                    FFAppState()
+                                                                        .filtroProtocolo,
                                                                 pAntiparasitarios:
                                                                     FFAppState()
                                                                         .filtroAntiparasitario,
+                                                                pVacinacao:
+                                                                    FFAppState()
+                                                                        .filtroVacinacao,
                                                               ),
                                                               builder: (context,
                                                                   snapshot) {
@@ -4314,8 +4904,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                           ],
                                                         ),
                                                       ),
-                                                    ].divide(const SizedBox(
-                                                        height: 32.0)),
+                                                    ].divide(SizedBox(
+                                                        height: isCompact
+                                                            ? 16.0
+                                                            : 32.0)),
                                                   ),
                                                 ),
                                                 Padding(
@@ -4580,22 +5172,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     children: [
                                                                       Text(
                                                                         () {
-                                                                          final rawDate = sanidadeItem
-                                                                                  .dataSanidade
-                                                                                  .trim()
-                                                                                  .isNotEmpty
+                                                                          final rawDate = sanidadeItem.dataSanidade.trim().isNotEmpty
                                                                               ? sanidadeItem.dataSanidade
                                                                               : sanidadeItem.createdAt;
-                                                                          final parsed = functions
-                                                                              .converterParaData(rawDate);
-                                                                          if (parsed == null) {
+                                                                          final parsed =
+                                                                              functions.converterParaData(rawDate);
+                                                                          if (parsed ==
+                                                                              null) {
                                                                             return '—';
                                                                           }
                                                                           return dateTimeFormat(
                                                                             "d/M/y",
                                                                             parsed,
-                                                                            locale: FFLocalizations.of(context)
-                                                                                .languageCode,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
                                                                           );
                                                                         }(),
                                                                         style: FlutterFlowTheme.of(context)
@@ -4768,51 +5358,32 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         MainAxisAlignment
                                                                             .end,
                                                                     children: [
-                                                                      FlutterFlowIconButton(
-                                                                        borderRadius:
-                                                                            8.0,
-                                                                        buttonSize:
-                                                                            40.0,
-                                                                        fillColor:
-                                                                            const Color(0x0028A365),
-                                                                        icon:
-                                                                            Icon(
-                                                                          Icons
-                                                                              .keyboard_control,
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).accent3,
-                                                                          size:
-                                                                              24.0,
+                                                                      Builder(
+                                                                        builder:
+                                                                            (iconButtonContext) =>
+                                                                                FlutterFlowIconButton(
+                                                                          borderRadius:
+                                                                              8.0,
+                                                                          buttonSize:
+                                                                              32.0,
+                                                                          fillColor:
+                                                                              const Color(0x0028A365),
+                                                                          icon:
+                                                                              Icon(
+                                                                            Icons.keyboard_control,
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).accent3,
+                                                                            size:
+                                                                                18.0,
+                                                                          ),
+                                                                          onPressed:
+                                                                              () async {
+                                                                            await _openSanidadeRowMenu(
+                                                                              anchorContext: iconButtonContext,
+                                                                              sanidade: sanidadeItem,
+                                                                            );
+                                                                          },
                                                                         ),
-                                                                        onPressed:
-                                                                            () async {
-                                                                          await showDialog(
-                                                                            context:
-                                                                                context,
-                                                                            barrierDismissible:
-                                                                                false,
-                                                                            barrierColor:
-                                                                                const Color(0x99000000),
-                                                                            builder:
-                                                                                (context) {
-                                                                              return Dialog(
-                                                                                backgroundColor:
-                                                                                    Colors.transparent,
-                                                                                insetPadding:
-                                                                                    const EdgeInsets.all(24),
-                                                                                child: CcEditSanidadeAnimalWidget(
-                                                                                  sanidade: sanidadeItem,
-                                                                                  action: (page) async {
-                                                                                    safeSetState(() {
-                                                                                      _model.apiRequestCompleter2 = null;
-                                                                                      _model.apiRequestCompleter1 = null;
-                                                                                    });
-                                                                                  },
-                                                                                ),
-                                                                              );
-                                                                            },
-                                                                          );
-                                                                        },
                                                                       ),
                                                                     ],
                                                                   ),
@@ -4834,9 +5405,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               showFirstLastButtons:
                                                                   true,
                                                               headingRowHeight:
-                                                                  56.0,
+                                                                  40.0,
                                                               dataRowHeight:
-                                                                  76.0,
+                                                                  32.0,
                                                               columnSpacing:
                                                                   20.0,
                                                               headingRowColor:
@@ -4882,7 +5453,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                             FutureBuilder<
                                                                 ApiCallResponse>(
                                                               future: FunctionsSupabaseRebanhoGroup
-                                                                  .countSanidadeAntiparasitarioCall
+                                                                  .countSanidadeTratamentoCall
                                                                   .call(
                                                                 pIdPropriedade:
                                                                     FFAppState()
@@ -4912,7 +5483,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroDataNacimento,
+                                                                      .filtroNascimentoSanidade,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
@@ -4922,6 +5493,15 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 pTratamento:
                                                                     FFAppState()
                                                                         .filtroTratamentoSanidade,
+                                                                pProtocolo:
+                                                                    FFAppState()
+                                                                        .filtroProtocolo,
+                                                                pAntiparasitarios:
+                                                                    FFAppState()
+                                                                        .filtroAntiparasitario,
+                                                                pVacinacao:
+                                                                    FFAppState()
+                                                                        .filtroVacinacao,
                                                               ),
                                                               builder: (context,
                                                                   snapshot) {
@@ -5280,8 +5860,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                           ],
                                                         ),
                                                       ),
-                                                    ].divide(const SizedBox(
-                                                        height: 32.0)),
+                                                    ].divide(SizedBox(
+                                                        height: isCompact
+                                                            ? 16.0
+                                                            : 32.0)),
                                                   ),
                                                 ),
                                                 Padding(
@@ -5546,22 +6128,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     children: [
                                                                       Text(
                                                                         () {
-                                                                          final rawDate = sanidadeItem
-                                                                                  .dataSanidade
-                                                                                  .trim()
-                                                                                  .isNotEmpty
+                                                                          final rawDate = sanidadeItem.dataSanidade.trim().isNotEmpty
                                                                               ? sanidadeItem.dataSanidade
                                                                               : sanidadeItem.createdAt;
-                                                                          final parsed = functions
-                                                                              .converterParaData(rawDate);
-                                                                          if (parsed == null) {
+                                                                          final parsed =
+                                                                              functions.converterParaData(rawDate);
+                                                                          if (parsed ==
+                                                                              null) {
                                                                             return '—';
                                                                           }
                                                                           return dateTimeFormat(
                                                                             "d/M/y",
                                                                             parsed,
-                                                                            locale: FFLocalizations.of(context)
-                                                                                .languageCode,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
                                                                           );
                                                                         }(),
                                                                         style: FlutterFlowTheme.of(context)
@@ -5734,51 +6314,32 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         MainAxisAlignment
                                                                             .end,
                                                                     children: [
-                                                                      FlutterFlowIconButton(
-                                                                        borderRadius:
-                                                                            8.0,
-                                                                        buttonSize:
-                                                                            40.0,
-                                                                        fillColor:
-                                                                            const Color(0x0028A365),
-                                                                        icon:
-                                                                            Icon(
-                                                                          Icons
-                                                                              .keyboard_control,
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).accent3,
-                                                                          size:
-                                                                              24.0,
+                                                                      Builder(
+                                                                        builder:
+                                                                            (iconButtonContext) =>
+                                                                                FlutterFlowIconButton(
+                                                                          borderRadius:
+                                                                              8.0,
+                                                                          buttonSize:
+                                                                              32.0,
+                                                                          fillColor:
+                                                                              const Color(0x0028A365),
+                                                                          icon:
+                                                                              Icon(
+                                                                            Icons.keyboard_control,
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).accent3,
+                                                                            size:
+                                                                                18.0,
+                                                                          ),
+                                                                          onPressed:
+                                                                              () async {
+                                                                            await _openSanidadeRowMenu(
+                                                                              anchorContext: iconButtonContext,
+                                                                              sanidade: sanidadeItem,
+                                                                            );
+                                                                          },
                                                                         ),
-                                                                        onPressed:
-                                                                            () async {
-                                                                          await showDialog(
-                                                                            context:
-                                                                                context,
-                                                                            barrierDismissible:
-                                                                                false,
-                                                                            barrierColor:
-                                                                                const Color(0x99000000),
-                                                                            builder:
-                                                                                (context) {
-                                                                              return Dialog(
-                                                                                backgroundColor:
-                                                                                    Colors.transparent,
-                                                                                insetPadding:
-                                                                                    const EdgeInsets.all(24),
-                                                                                child: CcEditSanidadeAnimalWidget(
-                                                                                  sanidade: sanidadeItem,
-                                                                                  action: (page) async {
-                                                                                    safeSetState(() {
-                                                                                      _model.apiRequestCompleter2 = null;
-                                                                                      _model.apiRequestCompleter1 = null;
-                                                                                    });
-                                                                                  },
-                                                                                ),
-                                                                              );
-                                                                            },
-                                                                          );
-                                                                        },
                                                                       ),
                                                                     ],
                                                                   ),
@@ -5800,9 +6361,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               showFirstLastButtons:
                                                                   true,
                                                               headingRowHeight:
-                                                                  56.0,
+                                                                  40.0,
                                                               dataRowHeight:
-                                                                  76.0,
+                                                                  32.0,
                                                               columnSpacing:
                                                                   20.0,
                                                               headingRowColor:
@@ -5848,7 +6409,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                             FutureBuilder<
                                                                 ApiCallResponse>(
                                                               future: FunctionsSupabaseRebanhoGroup
-                                                                  .countSanidadeAntiparasitarioCall
+                                                                  .countSanidadeProtocoloReprodutivoCall
                                                                   .call(
                                                                 pIdPropriedade:
                                                                     FFAppState()
@@ -5878,16 +6439,25 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroDataNacimento,
+                                                                      .filtroNascimentoSanidade,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
                                                                 ),
                                                                 pRaca: FFAppState()
                                                                     .filtroRacaSanidade,
+                                                                pTratamento:
+                                                                    FFAppState()
+                                                                        .filtroTratamentoSanidade,
+                                                                pProtocolo:
+                                                                    FFAppState()
+                                                                        .filtroProtocolo,
                                                                 pAntiparasitarios:
                                                                     FFAppState()
                                                                         .filtroAntiparasitario,
+                                                                pVacinacao:
+                                                                    FFAppState()
+                                                                        .filtroVacinacao,
                                                               ),
                                                               builder: (context,
                                                                   snapshot) {
@@ -6246,8 +6816,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                           ],
                                                         ),
                                                       ),
-                                                    ].divide(const SizedBox(
-                                                        height: 32.0)),
+                                                    ].divide(SizedBox(
+                                                        height: isCompact
+                                                            ? 16.0
+                                                            : 32.0)),
                                                   ),
                                                 ),
                                               ],
@@ -6256,7 +6828,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                         ],
                                       ),
                                     ),
-                                  ].divide(const SizedBox(height: 24.0)),
+                                  ].divide(SizedBox(
+                                      height: isCompact ? 16.0 : 24.0)),
                                 ),
                               ),
                             ),

@@ -207,7 +207,8 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
                               controller: _model.loteDropdownValueController ??=
                                   FormFieldController<String>(null),
                               options: lotes
-                                  .map((lote) => lote.idLote ?? lote.id.toString())
+                                  .map((lote) =>
+                                      lote.idLote ?? lote.id.toString())
                                   .toList(),
                               optionLabels:
                                   lotes.map((lote) => lote.nome ?? '').toList(),
@@ -215,7 +216,8 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
                               onChanged: (val) {
                                 setState(() {
                                   final selected = lotes.where((lote) {
-                                    final value = lote.idLote ?? lote.id.toString();
+                                    final value =
+                                        lote.idLote ?? lote.id.toString();
                                     return value == (val ?? '');
                                   }).toList();
 
@@ -224,8 +226,10 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
                                     _loteSelecionadoDbId = null;
                                   } else if (selected.isNotEmpty) {
                                     _loteSelecionadoId =
-                                        selected.first.idLote ?? selected.first.id.toString();
-                                    _loteSelecionadoDbId = selected.first.id.toString();
+                                        selected.first.idLote ??
+                                            selected.first.id.toString();
+                                    _loteSelecionadoDbId =
+                                        selected.first.id.toString();
                                   } else {
                                     _loteSelecionadoId = val;
                                     _loteSelecionadoDbId = null;
@@ -767,12 +771,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
             FlutterFlowDropDown<String>(
               multiSelectController: _model.vacinaDropdownValueController ??=
                   FormListFieldController<String>(null),
-              options: const [
-                'Diarréia (BVD)',
-                'Leptospirose',
-                'Raiva',
-                'Antitetânica',
-              ],
+              options: FFAppState().vacinacao,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.vacinaDropdownValue = val),
@@ -961,12 +960,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
               multiSelectController:
                   _model.antiparasitarioDropdownValueController ??=
                       FormListFieldController<String>(null),
-              options: const [
-                'Abamectina',
-                'Albendazol',
-                'Deltrametrina',
-                'Ivermectina',
-              ],
+              options: FFAppState().antiparasitario,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.antiparasitarioDropdownValue = val),
@@ -1155,11 +1149,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
               multiSelectController:
                   _model.tratamentoDropdownValueController ??=
                       FormListFieldController<String>(null),
-              options: const [
-                'Antibiótico',
-                'Anti-inflamatório',
-                'Cicatrizante',
-              ],
+              options: FFAppState().tratamento,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.tratamentoDropdownValue = val),
@@ -1347,11 +1337,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
             FlutterFlowDropDown<String>(
               multiSelectController: _model.protocoloDropdownValueController ??=
                   FormListFieldController<String>(null),
-              options: const [
-                'IATF',
-                'Sincronização de cio',
-                'Transferência de embrião',
-              ],
+              options: FFAppState().protocoloReprodutivo,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.protocoloDropdownValue = val),

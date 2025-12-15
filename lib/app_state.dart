@@ -6,6 +6,53 @@ import 'flutter_flow/flutter_flow_util.dart';
 class FFAppState extends ChangeNotifier {
   static FFAppState _instance = FFAppState._internal();
 
+  static const List<String> _kVacinacaoOptions = <String>[
+    'Aftosa',
+    'Antitetânica',
+    'Botulismo',
+    'Brucelose',
+    'Clostridiose',
+    'Diarréia (BVD)',
+    'Doença Respiratória (DBR)',
+    'Leptospirose',
+    'Parainfluenza e herpes',
+    'Raiva',
+    'Rinotraqueíte (IBR)',
+  ];
+
+  static const List<String> _kTratamentoOptions = <String>[
+    'Anestésico, Sedativo & Similares',
+    'Analgésico',
+    'Anti-inflamatório',
+    'Anti-séptico',
+    'Antibiótico',
+    'Castração Química',
+    'Complexo Vitamínico & Mineral',
+    'Homeopático',
+    'Hormônio',
+  ];
+
+  static const List<String> _kAntiparasitarioOptions = <String>[
+    'Abamectina',
+    'Abendazol',
+    'Babesiose (Tristeza Bovina) & Tripanossoma',
+    'Brinco mosquicida',
+    'Carrapaticida & Mosquicida (PourON)',
+    'Carrapaticida & Mosquicida (Pulverização)',
+    'Deltrametrina, Imidocarp, Nitroxinil & Triclofon',
+    'Doramectina',
+    'Eprinomectina',
+    'Ivermectina',
+  ];
+
+  static const List<String> _kProtocoloReprodutivoOptions = <String>[
+    'Benzoato de estradiol',
+    'Progesterona',
+    'Gonadotrofina',
+    'Prostaglandina',
+    'Cipionato de estradiol',
+  ];
+
   factory FFAppState() {
     return _instance;
   }
@@ -50,17 +97,37 @@ class FFAppState extends ChangeNotifier {
     });
     _safeInit(() {
       _vacinacao = prefs.getStringList('ff_vacinacao') ?? _vacinacao;
+      // Normalize persisted values to the canonical list used by the UI.
+      if (!_listEquals(_vacinacao, _kVacinacaoOptions)) {
+        _vacinacao = _kVacinacaoOptions.toList();
+        prefs.setStringList('ff_vacinacao', _vacinacao);
+      }
     });
     _safeInit(() {
       _tratamento = prefs.getStringList('ff_tratamento') ?? _tratamento;
+      // Normalize persisted values to the canonical list used by the UI.
+      if (!_listEquals(_tratamento, _kTratamentoOptions)) {
+        _tratamento = _kTratamentoOptions.toList();
+        prefs.setStringList('ff_tratamento', _tratamento);
+      }
     });
     _safeInit(() {
       _antiparasitario =
           prefs.getStringList('ff_antiparasitario') ?? _antiparasitario;
+      // Normalize persisted values to the canonical list used by the UI.
+      if (!_listEquals(_antiparasitario, _kAntiparasitarioOptions)) {
+        _antiparasitario = _kAntiparasitarioOptions.toList();
+        prefs.setStringList('ff_antiparasitario', _antiparasitario);
+      }
     });
     _safeInit(() {
       _protocoloReprodutivo = prefs.getStringList('ff_protocoloReprodutivo') ??
           _protocoloReprodutivo;
+      // Normalize persisted values to the canonical list used by the UI.
+      if (!_listEquals(_protocoloReprodutivo, _kProtocoloReprodutivoOptions)) {
+        _protocoloReprodutivo = _kProtocoloReprodutivoOptions.toList();
+        prefs.setStringList('ff_protocoloReprodutivo', _protocoloReprodutivo);
+      }
     });
     _safeInit(() {
       _anos = prefs
@@ -85,6 +152,14 @@ class FFAppState extends ChangeNotifier {
   }
 
   late SharedPreferences prefs;
+
+  bool _listEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 
   String _navegacao = '';
   String get navegacao => _navegacao;
@@ -713,19 +788,7 @@ class FFAppState extends ChangeNotifier {
     _filtroNascimentoSanidade = value;
   }
 
-  List<String> _vacinacao = [
-    'Aftosa',
-    'Antitetânica',
-    'Botulismo',
-    'Brucelose',
-    'Clostridiose',
-    'Diarréia (BVD)',
-    'Doença Respiratóa (DBR)',
-    'Leptospirose',
-    'Parainfluenza e herpes',
-    'Raiva',
-    'Rinotraqueíte (IBR)'
-  ];
+  List<String> _vacinacao = _kVacinacaoOptions.toList();
   List<String> get vacinacao => _vacinacao;
   set vacinacao(List<String> value) {
     _vacinacao = value;
@@ -760,17 +823,7 @@ class FFAppState extends ChangeNotifier {
     prefs.setStringList('ff_vacinacao', _vacinacao);
   }
 
-  List<String> _tratamento = [
-    'Anestésico, Sedativo & Similares',
-    'Analgésico',
-    'Anti-inflamatório',
-    'Anti-séptico',
-    'Antibiótico',
-    'Castração Química',
-    'Complexo Vitamínico & Mineral',
-    'Homeopático',
-    'Hormônio'
-  ];
+  List<String> _tratamento = _kTratamentoOptions.toList();
   List<String> get tratamento => _tratamento;
   set tratamento(List<String> value) {
     _tratamento = value;
@@ -805,18 +858,7 @@ class FFAppState extends ChangeNotifier {
     prefs.setStringList('ff_tratamento', _tratamento);
   }
 
-  List<String> _antiparasitario = [
-    'Abamectina',
-    'Albendazol',
-    'Babesiose (Tristeza Bovina) & Tripanossoma',
-    'Brinco mosquicida',
-    'Carrapaticida & Mosquicida (PourON)',
-    'Carrapaticida & Mosquicida (Pulverização)',
-    'Deltrametrina, Imidocarp, Nitroxinil & Triclorfon',
-    'Doramectina',
-    'Eprinomectina',
-    'Ivermectina'
-  ];
+  List<String> _antiparasitario = _kAntiparasitarioOptions.toList();
   List<String> get antiparasitario => _antiparasitario;
   set antiparasitario(List<String> value) {
     _antiparasitario = value;
@@ -851,13 +893,7 @@ class FFAppState extends ChangeNotifier {
     prefs.setStringList('ff_antiparasitario', _antiparasitario);
   }
 
-  List<String> _protocoloReprodutivo = [
-    'Benzoato de estradiol',
-    'Progesterona',
-    'Gonadotrofina',
-    'Prostaglandina',
-    'Cipionato de estradiol'
-  ];
+  List<String> _protocoloReprodutivo = _kProtocoloReprodutivoOptions.toList();
   List<String> get protocoloReprodutivo => _protocoloReprodutivo;
   set protocoloReprodutivo(List<String> value) {
     _protocoloReprodutivo = value;
@@ -1101,11 +1137,5 @@ class FFAppState extends ChangeNotifier {
 void _safeInit(Function() initializeField) {
   try {
     initializeField();
-  } catch (_) {}
-}
-
-Future _safeInitAsync(Function() initializeField) async {
-  try {
-    await initializeField();
   } catch (_) {}
 }

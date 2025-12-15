@@ -776,12 +776,7 @@ class _PgSanidadeAddLoteWidgetState extends State<PgSanidadeAddLoteWidget> {
             FlutterFlowDropDown<String>(
               controller: _model.vacinaDropdownValueController ??=
                   FormFieldController<String>(null),
-              options: const [
-                'Diarréia (BVD)',
-                'Leptospirose',
-                'Raiva',
-                'Antitetânica',
-              ],
+              options: FFAppState().vacinacao,
               onChanged: (val) =>
                   setState(() => _model.vacinaDropdownValue = val),
               width: double.infinity,
@@ -967,12 +962,7 @@ class _PgSanidadeAddLoteWidgetState extends State<PgSanidadeAddLoteWidget> {
             FlutterFlowDropDown<String>(
               controller: _model.antiparasitarioDropdownValueController ??=
                   FormFieldController<String>(null),
-              options: const [
-                'Abamectina',
-                'Albendazol',
-                'Deltrametrina',
-                'Ivermectina',
-              ],
+              options: FFAppState().antiparasitario,
               onChanged: (val) =>
                   setState(() => _model.antiparasitarioDropdownValue = val),
               width: double.infinity,
@@ -1158,11 +1148,7 @@ class _PgSanidadeAddLoteWidgetState extends State<PgSanidadeAddLoteWidget> {
             FlutterFlowDropDown<String>(
               controller: _model.tratamentoDropdownValueController ??=
                   FormFieldController<String>(null),
-              options: const [
-                'Antibiótico',
-                'Anti-inflamatório',
-                'Cicatrizante',
-              ],
+              options: FFAppState().tratamento,
               onChanged: (val) =>
                   setState(() => _model.tratamentoDropdownValue = val),
               width: double.infinity,
@@ -1348,11 +1334,7 @@ class _PgSanidadeAddLoteWidgetState extends State<PgSanidadeAddLoteWidget> {
             FlutterFlowDropDown<String>(
               controller: _model.protocoloDropdownValueController ??=
                   FormFieldController<String>(null),
-              options: const [
-                'IATF',
-                'Sincronização de cio',
-                'Transferência de embrião',
-              ],
+              options: FFAppState().protocoloReprodutivo,
               onChanged: (val) =>
                   setState(() => _model.protocoloDropdownValue = val),
               width: double.infinity,

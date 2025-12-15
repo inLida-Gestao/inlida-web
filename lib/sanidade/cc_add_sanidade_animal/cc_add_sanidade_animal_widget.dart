@@ -1,4 +1,3 @@
-import '/app_state.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/popup_rebanhos_widget.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
@@ -708,12 +707,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
             FlutterFlowDropDown<String>(
               multiSelectController: _model.vacinaDropdownValueController ??=
                   FormListFieldController<String>(null),
-              options: const [
-                'Diarréia (BVD)',
-                'Leptospirose',
-                'Raiva',
-                'Antitetânica',
-              ],
+              options: FFAppState().vacinacao,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.vacinaDropdownValue = val),
@@ -902,12 +896,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
               multiSelectController:
                   _model.antiparasitarioDropdownValueController ??=
                       FormListFieldController<String>(null),
-              options: const [
-                'Abamectina',
-                'Albendazol',
-                'Deltrametrina',
-                'Ivermectina',
-              ],
+              options: FFAppState().antiparasitario,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.antiparasitarioDropdownValue = val),
@@ -1096,11 +1085,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
               multiSelectController:
                   _model.tratamentoDropdownValueController ??=
                       FormListFieldController<String>(null),
-              options: const [
-                'Antibiótico',
-                'Anti-inflamatório',
-                'Cicatrizante',
-              ],
+              options: FFAppState().tratamento,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.tratamentoDropdownValue = val),
@@ -1288,11 +1273,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
             FlutterFlowDropDown<String>(
               multiSelectController: _model.protocoloDropdownValueController ??=
                   FormListFieldController<String>(null),
-              options: const [
-                'IATF',
-                'Sincronização de cio',
-                'Transferência de embrião',
-              ],
+              options: FFAppState().protocoloReprodutivo,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.protocoloDropdownValue = val),

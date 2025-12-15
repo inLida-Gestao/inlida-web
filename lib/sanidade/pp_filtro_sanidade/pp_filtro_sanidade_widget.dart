@@ -1,4 +1,5 @@
 import '/backend/supabase/supabase.dart';
+import '/components/popup_rebanhos_widget.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -20,6 +21,35 @@ class PpFiltroSanidadeWidget extends StatefulWidget {
 
 class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
   late PpFiltroSanidadeModel _model;
+
+  List<String> _parseCsvList(String? raw) {
+    final v = (raw ?? '').trim();
+    if (v.isEmpty) return <String>[];
+    final out = <String>[];
+    for (final part in v.split(',')) {
+      final item = part.trim();
+      if (item.isEmpty) continue;
+      if (item.toLowerCase() == 'null') continue;
+      out.add(item);
+    }
+    return out;
+  }
+
+  String _toCsv(List<String>? values) {
+    if (values == null || values.isEmpty) return '';
+    return values
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList()
+        .join(',');
+  }
+
+  bool _hasValue(String? value) {
+    final v = (value ?? '').trim();
+    if (v.isEmpty) return false;
+    if (v.toLowerCase() == 'null') return false;
+    return true;
+  }
 
   @override
   void setState(VoidCallback callback) {
@@ -554,111 +584,220 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                                     .fontStyle,
                                           ),
                                     ),
-                                    FlutterFlowDropDown<String>(
-                                      controller: _model
-                                              .dropDownStatusValueController ??=
-                                          FormFieldController<String>(
-                                        _model.dropDownStatusValue ??=
-                                            FFAppState().filtroAnimalSanidade,
-                                      ),
-                                      options: containerRebanhoRowList
-                                          .map((e) => e.idRebanho)
-                                          .withoutNulls
-                                          .toList(),
-                                      onChanged: (val) async {
-                                        safeSetState(() =>
-                                            _model.dropDownStatusValue = val);
-                                        FFAppState().filtroStatusRebanho =
-                                            _model.dropDownStatusValue!;
-                                        safeSetState(() {});
-                                      },
+                                    SizedBox(
+                                      width: double.infinity,
                                       height: 56.0,
-                                      searchHintTextStyle: FlutterFlowTheme.of(
-                                              context)
-                                          .labelMedium
-                                          .override(
-                                            font: GoogleFonts.poppins(
-                                              fontWeight:
-                                                  FlutterFlowTheme.of(context)
-                                                      .labelMedium
-                                                      .fontWeight,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .labelMedium
-                                                      .fontStyle,
-                                            ),
-                                            letterSpacing: 0.0,
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .labelMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .labelMedium
-                                                    .fontStyle,
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          border: Border.all(
+                                            color: Colors.transparent,
+                                            width: 0.0,
                                           ),
-                                      searchTextStyle: FlutterFlowTheme.of(
-                                              context)
-                                          .bodyMedium
-                                          .override(
-                                            font: GoogleFonts.poppins(
-                                              fontWeight:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontWeight,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontStyle,
+                                          color: const Color(0xFFF1F1F1),
+                                        ),
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            splashColor: Colors.transparent,
+                                            focusColor: Colors.transparent,
+                                            hoverColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            borderRadius:
+                                                BorderRadius.circular(8.0),
+                                            onTap: () async {
+                                              final beforeMatrizId =
+                                                  FFAppState()
+                                                      .matrizSelecionada
+                                                      .idAnimal;
+                                              final beforeReprodutorId =
+                                                  FFAppState()
+                                                      .reprodutorSelecionado
+                                                      .idAnimal;
+
+                                              await showModalBottomSheet(
+                                                isScrollControlled: true,
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                enableDrag: false,
+                                                isDismissible: false,
+                                                context: context,
+                                                builder: (context) {
+                                                  return GestureDetector(
+                                                    onTap: () =>
+                                                        FocusScope.of(context)
+                                                            .unfocus(),
+                                                    child: Center(
+                                                      child: ConstrainedBox(
+                                                        constraints:
+                                                            const BoxConstraints(
+                                                          maxWidth: 550.0,
+                                                        ),
+                                                        child: Padding(
+                                                          padding: MediaQuery
+                                                                  .viewInsetsOf(
+                                                                      context)
+                                                              .add(
+                                                                  const EdgeInsets
+                                                                      .all(
+                                                                      16.0)),
+                                                          child:
+                                                              const PopupRebanhosWidget(
+                                                            sexo: null,
+                                                            sanidade: true,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              );
+
+                                              final afterMatrizId = FFAppState()
+                                                  .matrizSelecionada
+                                                  .idAnimal;
+                                              final afterReprodutorId =
+                                                  FFAppState()
+                                                      .reprodutorSelecionado
+                                                      .idAnimal;
+
+                                              String selectedId = '';
+                                              if (_hasValue(afterMatrizId) &&
+                                                  afterMatrizId !=
+                                                      beforeMatrizId) {
+                                                selectedId = afterMatrizId;
+                                              } else if (_hasValue(
+                                                      afterReprodutorId) &&
+                                                  afterReprodutorId !=
+                                                      beforeReprodutorId) {
+                                                selectedId = afterReprodutorId;
+                                              } else if (_hasValue(
+                                                  afterMatrizId)) {
+                                                selectedId = afterMatrizId;
+                                              } else if (_hasValue(
+                                                  afterReprodutorId)) {
+                                                selectedId = afterReprodutorId;
+                                              }
+
+                                              if (selectedId.isNotEmpty) {
+                                                FFAppState()
+                                                        .filtroAnimalSanidade =
+                                                    selectedId;
+                                                safeSetState(() {});
+                                              }
+                                            },
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(12, 0, 12, 0),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.max,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                                children: [
+                                                  Expanded(
+                                                    child: Builder(
+                                                      builder: (context) {
+                                                        RebanhoRow? selected;
+                                                        final selectedId =
+                                                            FFAppState()
+                                                                .filtroAnimalSanidade;
+                                                        if (selectedId
+                                                            .isNotEmpty) {
+                                                          for (final r
+                                                              in containerRebanhoRowList) {
+                                                            if ((r.idRebanho ??
+                                                                    '') ==
+                                                                selectedId) {
+                                                              selected = r;
+                                                              break;
+                                                            }
+                                                          }
+                                                        }
+
+                                                        final numero = (selected
+                                                                    ?.numeroAnimal ??
+                                                                '')
+                                                            .trim();
+                                                        final nome =
+                                                            (selected?.nome ??
+                                                                    '')
+                                                                .trim();
+
+                                                        final label = selected ==
+                                                                null
+                                                            ? 'Selecionar'
+                                                            : (numero.isNotEmpty &&
+                                                                    nome
+                                                                        .isNotEmpty)
+                                                                ? '$numero - $nome'
+                                                                : (nome.isNotEmpty
+                                                                    ? nome
+                                                                    : (numero
+                                                                            .isNotEmpty
+                                                                        ? numero
+                                                                        : selectedId));
+
+                                                        return Text(
+                                                          label,
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                color: selected ==
+                                                                        null
+                                                                    ? FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .secondaryText
+                                                                    : FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .primaryText,
+                                                                fontSize: 16.0,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
+                                                        );
+                                                      },
+                                                    ),
+                                                  ),
+                                                  Icon(
+                                                    Icons
+                                                        .keyboard_arrow_down_rounded,
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .secondaryText,
+                                                    size: 24.0,
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                            letterSpacing: 0.0,
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
                                           ),
-                                      textStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            font: GoogleFonts.poppins(
-                                              fontWeight: FontWeight.w600,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontStyle,
-                                            ),
-                                            fontSize: 16.0,
-                                            letterSpacing: 0.0,
-                                            fontWeight: FontWeight.w600,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                      hintText: 'Selecionar',
-                                      searchHintText: 'Pesquisar...',
-                                      icon: Icon(
-                                        Icons.keyboard_arrow_down_rounded,
-                                        color: FlutterFlowTheme.of(context)
-                                            .secondaryText,
-                                        size: 24.0,
+                                        ),
                                       ),
-                                      fillColor: const Color(0xFFF1F1F1),
-                                      elevation: 2.0,
-                                      borderColor: Colors.transparent,
-                                      borderWidth: 0.0,
-                                      borderRadius: 8.0,
-                                      margin:
-                                          const EdgeInsetsDirectional.fromSTEB(
-                                              12.0, 0.0, 12.0, 0.0),
-                                      hidesUnderline: true,
-                                      isOverButton: false,
-                                      isSearchable: true,
-                                      isMultiSelect: false,
                                     ),
                                   ].divide(const SizedBox(height: 8.0)),
                                 ),
@@ -669,7 +808,7 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Sexo ',
+                                      'Sexo',
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium
                                           .override(
@@ -700,7 +839,7 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                       onChanged: (val) async {
                                         safeSetState(() =>
                                             _model.dropDownSexoValue = val);
-                                        FFAppState().filtroSexo =
+                                        FFAppState().filtroSexoSanidade =
                                             _model.dropDownSexoValue!;
                                         safeSetState(() {});
                                       },
@@ -1297,20 +1436,14 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                     ),
                               ),
                               FlutterFlowDropDown<String>(
-                                controller:
+                                multiSelectController:
                                     _model.dropDownTratamentoValueController ??=
-                                        FormFieldController<String>(
+                                        FormListFieldController<String>(
                                   _model.dropDownTratamentoValue ??=
-                                      FFAppState().filtroTratamentoSanidade,
+                                      _parseCsvList(FFAppState()
+                                          .filtroTratamentoSanidade),
                                 ),
                                 options: FFAppState().tratamento,
-                                onChanged: (val) async {
-                                  safeSetState(() =>
-                                      _model.dropDownTratamentoValue = val);
-                                  FFAppState().filtroOrigem =
-                                      _model.dropDownTratamentoValue!;
-                                  safeSetState(() {});
-                                },
                                 height: 56.0,
                                 textStyle: FlutterFlowTheme.of(context)
                                     .bodyMedium
@@ -1345,7 +1478,14 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                 hidesUnderline: true,
                                 isOverButton: false,
                                 isSearchable: false,
-                                isMultiSelect: false,
+                                isMultiSelect: true,
+                                onMultiSelectChanged: (val) async {
+                                  safeSetState(() =>
+                                      _model.dropDownTratamentoValue = val);
+                                  FFAppState().filtroTratamentoSanidade =
+                                      _toCsv(_model.dropDownTratamentoValue);
+                                  safeSetState(() {});
+                                },
                               ),
                             ].divide(const SizedBox(height: 8.0)),
                           ),
@@ -1380,20 +1520,13 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                     ),
                               ),
                               FlutterFlowDropDown<String>(
-                                controller:
+                                multiSelectController:
                                     _model.dropDownOrigemValueController1 ??=
-                                        FormFieldController<String>(
-                                  _model.dropDownOrigemValue1 ??=
-                                      FFAppState().filtroProtocolo,
+                                        FormListFieldController<String>(
+                                  _model.dropDownOrigemValue1 ??= _parseCsvList(
+                                      FFAppState().filtroProtocolo),
                                 ),
                                 options: FFAppState().protocoloReprodutivo,
-                                onChanged: (val) async {
-                                  safeSetState(
-                                      () => _model.dropDownOrigemValue1 = val);
-                                  FFAppState().filtroOrigem =
-                                      _model.dropDownOrigemValue1!;
-                                  safeSetState(() {});
-                                },
                                 height: 56.0,
                                 textStyle: FlutterFlowTheme.of(context)
                                     .bodyMedium
@@ -1428,7 +1561,14 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                 hidesUnderline: true,
                                 isOverButton: false,
                                 isSearchable: false,
-                                isMultiSelect: false,
+                                isMultiSelect: true,
+                                onMultiSelectChanged: (val) async {
+                                  safeSetState(
+                                      () => _model.dropDownOrigemValue1 = val);
+                                  FFAppState().filtroProtocolo =
+                                      _toCsv(_model.dropDownOrigemValue1);
+                                  safeSetState(() {});
+                                },
                               ),
                             ].divide(const SizedBox(height: 8.0)),
                           ),
@@ -1458,20 +1598,13 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                     ),
                               ),
                               FlutterFlowDropDown<String>(
-                                controller:
+                                multiSelectController:
                                     _model.dropDownOrigemValueController2 ??=
-                                        FormFieldController<String>(
-                                  _model.dropDownOrigemValue2 ??=
-                                      FFAppState().filtroAntiparasitario,
+                                        FormListFieldController<String>(
+                                  _model.dropDownOrigemValue2 ??= _parseCsvList(
+                                      FFAppState().filtroAntiparasitario),
                                 ),
                                 options: FFAppState().antiparasitario,
-                                onChanged: (val) async {
-                                  safeSetState(
-                                      () => _model.dropDownOrigemValue2 = val);
-                                  FFAppState().filtroOrigem =
-                                      _model.dropDownOrigemValue2!;
-                                  safeSetState(() {});
-                                },
                                 height: 56.0,
                                 textStyle: FlutterFlowTheme.of(context)
                                     .bodyMedium
@@ -1506,7 +1639,14 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                 hidesUnderline: true,
                                 isOverButton: false,
                                 isSearchable: false,
-                                isMultiSelect: false,
+                                isMultiSelect: true,
+                                onMultiSelectChanged: (val) async {
+                                  safeSetState(
+                                      () => _model.dropDownOrigemValue2 = val);
+                                  FFAppState().filtroAntiparasitario =
+                                      _toCsv(_model.dropDownOrigemValue2);
+                                  safeSetState(() {});
+                                },
                               ),
                             ].divide(const SizedBox(height: 8.0)),
                           ),
@@ -1545,20 +1685,14 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                       ),
                                 ),
                                 FlutterFlowDropDown<String>(
-                                  controller:
+                                  multiSelectController:
                                       _model.dropDownOrigemValueController3 ??=
-                                          FormFieldController<String>(
+                                          FormListFieldController<String>(
                                     _model.dropDownOrigemValue3 ??=
-                                        FFAppState().filtroVacinacao,
+                                        _parseCsvList(
+                                            FFAppState().filtroVacinacao),
                                   ),
                                   options: FFAppState().vacinacao,
-                                  onChanged: (val) async {
-                                    safeSetState(() =>
-                                        _model.dropDownOrigemValue3 = val);
-                                    FFAppState().filtroOrigem =
-                                        _model.dropDownOrigemValue3!;
-                                    safeSetState(() {});
-                                  },
                                   height: 56.0,
                                   textStyle: FlutterFlowTheme.of(context)
                                       .bodyMedium
@@ -1594,7 +1728,14 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                   hidesUnderline: true,
                                   isOverButton: false,
                                   isSearchable: false,
-                                  isMultiSelect: false,
+                                  isMultiSelect: true,
+                                  onMultiSelectChanged: (val) async {
+                                    safeSetState(() =>
+                                        _model.dropDownOrigemValue3 = val);
+                                    FFAppState().filtroVacinacao =
+                                        _toCsv(_model.dropDownOrigemValue3);
+                                    safeSetState(() {});
+                                  },
                                 ),
                               ].divide(const SizedBox(height: 8.0)),
                             ),
@@ -1623,8 +1764,6 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                             safeSetState(() {
                               _model.dropDownSexoValueController?.reset();
                               _model.dropDownSexoValue = null;
-                              _model.dropDownStatusValueController?.reset();
-                              _model.dropDownStatusValue = null;
                               _model.dropDownLoteValueController?.reset();
                               _model.dropDownLoteValue = null;
                               _model.dDCatRebanhoFemeaValueController?.reset();
