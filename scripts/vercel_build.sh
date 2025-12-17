@@ -37,6 +37,6 @@ flutter --version
 flutter config --no-analytics
 
 flutter pub get
-flutter build web --release
+flutter build web --release --pwa-strategy=none --base-href /
 
 echo "Built Flutter web into build/web"
