@@ -1,0 +1,8 @@
+{
+  "name": "inlida-web-vercel",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "vercel-build": "bash scripts/vercel_build.sh"
+  }
+}
