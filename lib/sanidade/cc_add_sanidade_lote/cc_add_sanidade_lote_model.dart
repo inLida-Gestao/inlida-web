@@ -3,8 +3,7 @@ import '/flutter_flow/form_field_controller.dart';
 import 'cc_add_sanidade_lote_widget.dart' show CcAddSanidadeLoteWidget;
 import 'package:flutter/material.dart';
 
-class CcAddSanidadeLoteModel
-    extends FlutterFlowModel<CcAddSanidadeLoteWidget> {
+class CcAddSanidadeLoteModel extends FlutterFlowModel<CcAddSanidadeLoteWidget> {
   ///  Local state fields for this component.
 
   DateTime? dataSanidade;
@@ -46,8 +45,17 @@ class CcAddSanidadeLoteModel
   FocusNode? tratamentoObsFocusNode;
   TextEditingController? tratamentoObsTextController;
   // State field(s) for protocoloDropdown widget.
-  List<String>? protocoloDropdownValue;
-  FormListFieldController<String>? protocoloDropdownValueController;
+  String? protocoloDropdownValue;
+  FormFieldController<String>? protocoloDropdownValueController;
+  // State field(s) for protocoloD0Dropdown widget.
+  String? protocoloD0DropdownValue;
+  FormFieldController<String>? protocoloD0DropdownValueController;
+  // State field(s) for protocoloRetiradaDropdown widget.
+  String? protocoloRetiradaDropdownValue;
+  FormFieldController<String>? protocoloRetiradaDropdownValueController;
+  // State field(s) for protocoloIatfDropdown widget.
+  String? protocoloIatfDropdownValue;
+  FormFieldController<String>? protocoloIatfDropdownValueController;
   // State field(s) for protocoloOutros widget.
   FocusNode? protocoloOutrosFocusNode;
   TextEditingController? protocoloOutrosTextController;

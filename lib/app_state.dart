@@ -46,11 +46,10 @@ class FFAppState extends ChangeNotifier {
   ];
 
   static const List<String> _kProtocoloReprodutivoOptions = <String>[
-    'Benzoato de estradiol',
-    'Progesterona',
-    'Gonadotrofina',
-    'Prostaglandina',
-    'Cipionato de estradiol',
+    'D0-D7-D9',
+    'D0-D8-D10',
+    'D0-D9-D11',
+    'D0-D7-D9-D11',
   ];
 
   factory FFAppState() {

@@ -1,5 +1,6 @@
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
+import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -24,6 +25,25 @@ class CcAddSanidadeLoteWidget extends StatefulWidget {
 
 class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
   late CcAddSanidadeLoteModel _model;
+
+  static const List<String> _kProtocoloD0Options = <String>[
+    'BE + Implante novo',
+    'BE + Implante novo + PGF',
+    'BE + Implante reuso',
+    'BE + Implante reuso + PGF',
+  ];
+
+  static const List<String> _kProtocoloRetiradaOptions = <String>[
+    'eCG + PGF + CE',
+    'PGF + eCG',
+    'CE + eCG',
+    'PGF + CE',
+  ];
+
+  static const List<String> _kProtocoloIatfOptions = <String>[
+    'Com GnRH',
+    'Sem GnRH',
+  ];
 
   String? _loteSelecionadoId;
   String? _loteSelecionadoDbId;
@@ -182,10 +202,14 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
                         const SizedBox(height: 8),
                         FutureBuilder<List<LotesRow>>(
                           future: LotesTable().queryRows(
-                            queryFn: (q) => q.eqOrNull(
-                              'id_propriedade',
-                              FFAppState().propriedadeSelecionada.idPropriedade,
-                            ),
+                            queryFn: (q) => q
+                                .eqOrNull(
+                                  'id_propriedade',
+                                  FFAppState()
+                                      .propriedadeSelecionada
+                                      .idPropriedade,
+                                )
+                                .eqOrNull('deletado', 'NAO'),
                           ),
                           builder: (context, snapshot) {
                             if (!snapshot.hasData) {
@@ -1334,36 +1358,360 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
                   ),
             ),
             const SizedBox(height: 8),
-            FlutterFlowDropDown<String>(
-              multiSelectController: _model.protocoloDropdownValueController ??=
-                  FormListFieldController<String>(null),
-              options: FFAppState().protocoloReprodutivo,
-              isMultiSelect: true,
-              onMultiSelectChanged: (val) =>
-                  setState(() => _model.protocoloDropdownValue = val),
-              hidesUnderline: true,
-              width: double.infinity,
-              height: 56,
-              textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+            Row(
+              children: [
+                Expanded(
+                  child: FlutterFlowDropDown<String>(
+                    controller: _model.protocoloDropdownValueController ??=
+                        FormFieldController<String>(null),
+                    options: FFAppState().protocoloReprodutivo,
+                    onChanged: (val) =>
+                        setState(() => _model.protocoloDropdownValue = val),
+                    hidesUnderline: true,
+                    width: double.infinity,
+                    height: 56,
+                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w600,
+                        ),
+                    hintText: 'Selecionar',
+                    icon: Icon(
+                      Icons.expand_more,
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      size: 24,
+                    ),
+                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
+                    elevation: 0,
+                    borderColor: Colors.transparent,
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    margin:
+                        const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
+                  ),
+                ),
+                if ((_model.protocoloDropdownValue ?? '')
+                    .trim()
+                    .isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  FlutterFlowIconButton(
+                    borderColor: Colors.transparent,
+                    borderRadius: 6,
+                    buttonSize: 44,
+                    icon: Icon(
+                      Icons.close,
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      size: 24,
+                    ),
+                    onPressed: () {
+                      _model.protocoloDropdownValueController?.reset();
+                      setState(() => _model.protocoloDropdownValue = null);
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'D0',
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
                     fontFamily: 'Poppins',
+                    color: FlutterFlowTheme.of(context).secondaryText,
                     fontSize: 16,
                     letterSpacing: 0.0,
                     fontWeight: FontWeight.w600,
                   ),
-              hintText: 'Selecionar',
-              icon: Icon(
-                Icons.expand_more,
-                color: FlutterFlowTheme.of(context).secondaryText,
-                size: 24,
-              ),
-              fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-              elevation: 0,
-              borderColor: Colors.transparent,
-              borderWidth: 0,
-              borderRadius: 6,
-              margin: const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: FlutterFlowDropDown<String>(
+                    controller: _model.protocoloD0DropdownValueController ??=
+                        FormFieldController<String>(null),
+                    options: _kProtocoloD0Options,
+                    onChanged: (val) =>
+                        setState(() => _model.protocoloD0DropdownValue = val),
+                    width: double.infinity,
+                    height: 56,
+                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w600,
+                        ),
+                    hintText: 'Selecionar',
+                    icon: Icon(
+                      Icons.expand_more,
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      size: 24,
+                    ),
+                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
+                    elevation: 0,
+                    borderColor: Colors.transparent,
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    margin:
+                        const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
+                    hidesUnderline: true,
+                  ),
+                ),
+                if ((_model.protocoloD0DropdownValue ?? '')
+                    .trim()
+                    .isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  FlutterFlowIconButton(
+                    borderColor: Colors.transparent,
+                    borderRadius: 6,
+                    buttonSize: 44,
+                    icon: Icon(
+                      Icons.close,
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      size: 24,
+                    ),
+                    onPressed: () {
+                      _model.protocoloD0DropdownValueController?.reset();
+                      setState(() => _model.protocoloD0DropdownValue = null);
+                    },
+                  ),
+                ],
+              ],
             ),
           ],
+        ),
+        const SizedBox(height: 32),
+        Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Retirada',
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'Poppins',
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                    fontSize: 16,
+                    letterSpacing: 0.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: FlutterFlowDropDown<String>(
+                    controller:
+                        _model.protocoloRetiradaDropdownValueController ??=
+                            FormFieldController<String>(null),
+                    options: _kProtocoloRetiradaOptions,
+                    onChanged: (val) => setState(
+                        () => _model.protocoloRetiradaDropdownValue = val),
+                    width: double.infinity,
+                    height: 56,
+                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w600,
+                        ),
+                    hintText: 'Selecionar',
+                    icon: Icon(
+                      Icons.expand_more,
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      size: 24,
+                    ),
+                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
+                    elevation: 0,
+                    borderColor: Colors.transparent,
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    margin:
+                        const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
+                    hidesUnderline: true,
+                  ),
+                ),
+                if ((_model.protocoloRetiradaDropdownValue ?? '')
+                    .trim()
+                    .isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  FlutterFlowIconButton(
+                    borderColor: Colors.transparent,
+                    borderRadius: 6,
+                    buttonSize: 44,
+                    icon: Icon(
+                      Icons.close,
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      size: 24,
+                    ),
+                    onPressed: () {
+                      _model.protocoloRetiradaDropdownValueController?.reset();
+                      setState(
+                          () => _model.protocoloRetiradaDropdownValue = null);
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'IATF',
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'Poppins',
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                    fontSize: 16,
+                    letterSpacing: 0.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: FlutterFlowDropDown<String>(
+                    controller: _model.protocoloIatfDropdownValueController ??=
+                        FormFieldController<String>(null),
+                    options: _kProtocoloIatfOptions,
+                    onChanged: (val) =>
+                        setState(() => _model.protocoloIatfDropdownValue = val),
+                    width: double.infinity,
+                    height: 56,
+                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w600,
+                        ),
+                    hintText: 'Selecionar',
+                    icon: Icon(
+                      Icons.expand_more,
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      size: 24,
+                    ),
+                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
+                    elevation: 0,
+                    borderColor: Colors.transparent,
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    margin:
+                        const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
+                    hidesUnderline: true,
+                  ),
+                ),
+                if ((_model.protocoloIatfDropdownValue ?? '')
+                    .trim()
+                    .isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  FlutterFlowIconButton(
+                    borderColor: Colors.transparent,
+                    borderRadius: 6,
+                    buttonSize: 44,
+                    icon: Icon(
+                      Icons.close,
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      size: 24,
+                    ),
+                    onPressed: () {
+                      _model.protocoloIatfDropdownValueController?.reset();
+                      setState(() => _model.protocoloIatfDropdownValue = null);
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Legenda',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'Poppins',
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      fontSize: 18,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'BE - Benzoato de estradiol',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'Poppins',
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      fontSize: 16,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+              Text(
+                'Implante - Implante de progesterona',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'Poppins',
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      fontSize: 16,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+              Text(
+                'PGF - Prostaglandina',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'Poppins',
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      fontSize: 16,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+              Text(
+                'eCG - Gonadotrofina coriônica',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'Poppins',
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      fontSize: 16,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+              Text(
+                'CE - Cipionato de estradiol',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'Poppins',
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      fontSize: 16,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+              Text(
+                'GnRH - Gonadotrofina',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'Poppins',
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      fontSize: 16,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 32),
         Column(
@@ -1590,6 +1938,9 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
         final protocoloOutros =
             _model.protocoloOutrosTextController.text.trim();
         final protocoloObs = _model.protocoloObsTextController.text.trim();
+        final d0 = (_model.protocoloD0DropdownValue ?? '').trim();
+        final retirada = (_model.protocoloRetiradaDropdownValue ?? '').trim();
+        final iatf = (_model.protocoloIatfDropdownValue ?? '').trim();
 
         // Preparar dados do registro
         final dados = <String, dynamic>{
@@ -1637,13 +1988,17 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
 
         if (_model.tiposSelecionados.contains('Protocolo reprodutivo')) {
           dados['protocolo_reprodutivo'] =
-              (_model.protocoloDropdownValue?.isNotEmpty ?? false)
-                  ? _model.protocoloDropdownValue!.join(', ')
+              ((_model.protocoloDropdownValue ?? '').trim().isNotEmpty)
+                  ? _model.protocoloDropdownValue
                   : null;
           dados['protocolo_reprodutivo_outros'] =
               protocoloOutros.isNotEmpty ? protocoloOutros : null;
           dados['protocolo_reprodutivo_obs'] =
               protocoloObs.isNotEmpty ? protocoloObs : null;
+
+          dados['protocolo_d0'] = d0.isNotEmpty ? d0 : null;
+          dados['protocolo_retirada'] = retirada.isNotEmpty ? retirada : null;
+          dados['protocolo_iatf'] = iatf.isNotEmpty ? iatf : null;
         }
 
         // Inserir na tabela de sanidade

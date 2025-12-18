@@ -18,8 +18,8 @@ class PopupRebanhosWidget extends StatefulWidget {
     bool? reproducao,
     this.tipoReproducao,
     bool? sanidade,
-  }) : reproducao = reproducao ?? false,
-       sanidade = sanidade ?? false;
+  })  : reproducao = reproducao ?? false,
+        sanidade = sanidade ?? false;
 
   final String? sexo;
   final bool reproducao;
@@ -145,7 +145,8 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                     ],
                   ),
                   Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 8.0, 0.0),
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                        8.0, 8.0, 8.0, 0.0),
                     child: SizedBox(
                       width: double.infinity,
                       child: TextFormField(
@@ -281,8 +282,8 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                       .withoutNulls
                       .isNotEmpty))
                     Padding(
-                      padding:
-                          const EdgeInsetsDirectional.fromSTEB(24.0, 24.0, 24.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          24.0, 24.0, 24.0, 0.0),
                       child: Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
@@ -385,8 +386,8 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                       (widget.sanidade == true))
                     Flexible(
                       child: Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(0.0, 14.0, 0.0, 8.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 14.0, 0.0, 8.0),
                         child: Container(
                           width: double.infinity,
                           constraints: const BoxConstraints(
@@ -409,21 +410,18 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                               builder: (context) {
                                 final animais =
                                     ((containerBuscarRebanhoFiltrosResponse
-                                                        .jsonBody
-                                                        .toList()
-                                                        .map<RebanhoDTStruct?>(
-                                                            RebanhoDTStruct
-                                                                .maybeFromMap)
-                                                        .toList()
-                                                    as Iterable<
-                                                        RebanhoDTStruct?>)
-                                                .withoutNulls
-                                                .where((e) =>
-                                                    e.status ==
-                                                    'Na propriedade')
-                                                .toList()
-                                                .toList() ??
-                                            [])
+                                                    .jsonBody
+                                                    .toList()
+                                                    .map<RebanhoDTStruct?>(
+                                                        RebanhoDTStruct
+                                                            .maybeFromMap)
+                                                    .toList()
+                                                as Iterable<RebanhoDTStruct?>)
+                                            .withoutNulls
+                                            .where((e) =>
+                                                e.status == 'Na propriedade')
+                                            .toList()
+                                            .toList())
                                         .take(20)
                                         .toList();
 
@@ -443,9 +441,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                         mainAxisSize: MainAxisSize.max,
                                         children: [
                                           Padding(
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    24.0, 12.0, 24.0, 12.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(
+                                                24.0, 12.0, 24.0, 12.0),
                                             child: InkWell(
                                               splashColor: Colors.transparent,
                                               focusColor: Colors.transparent,
@@ -471,6 +469,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
+                                                  FFAppState()
+                                                          .reprodutorSelecionado =
+                                                      AnimalSelecionadoStruct();
                                                   safeSetState(() {});
                                                 } else {
                                                   FFAppState()
@@ -489,6 +490,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
+                                                  FFAppState()
+                                                          .matrizSelecionada =
+                                                      AnimalSelecionadoStruct();
                                                   safeSetState(() {});
                                                 }
 
@@ -511,32 +515,43 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                       children: [
                                                         Text(
                                                           '${valueOrDefault<String>(
-                                                            animaisItem.numeroAnimal,
+                                                            animaisItem
+                                                                .numeroAnimal,
                                                             'S/N',
                                                           )} • ${animaisItem.nome == 'null' ? 'S/N' : valueOrDefault<String>(
                                                               animaisItem.nome,
                                                               'S/N',
                                                             )} • ${valueOrDefault<String>(
                                                             () {
-                                                              if (valueOrDefault<String>(
-                                                                    animaisItem.dataNascimento,
+                                                              if (valueOrDefault<
+                                                                      String>(
+                                                                    animaisItem
+                                                                        .dataNascimento,
                                                                     'xx/xx/xxxx',
-                                                                  ) == 'null') {
+                                                                  ) ==
+                                                                  'null') {
                                                                 return 'N/A';
-                                                              } else if (valueOrDefault<String>(
-                                                                        animaisItem.dataNascimento,
-                                                                        'xx/xx/xxxx',
-                                                                      ) == '') {
+                                                              } else if (valueOrDefault<
+                                                                      String>(
+                                                                    animaisItem
+                                                                        .dataNascimento,
+                                                                    'xx/xx/xxxx',
+                                                                  ) ==
+                                                                  '') {
                                                                 return 'N/A';
                                                               } else {
                                                                 return dateTimeFormat(
                                                                   "d/M/y",
                                                                   functions.converterParaData(
-                                                                      valueOrDefault<String>(
-                                                                    animaisItem.dataNascimento,
+                                                                      valueOrDefault<
+                                                                          String>(
+                                                                    animaisItem
+                                                                        .dataNascimento,
                                                                     'xx/xx/xxxx',
                                                                   )),
-                                                                  locale: FFLocalizations.of(context).languageCode,
+                                                                  locale: FFLocalizations.of(
+                                                                          context)
+                                                                      .languageCode,
                                                                 );
                                                               }
                                                             }(),
@@ -605,8 +620,8 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                       (widget.sanidade == false))
                     Flexible(
                       child: Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(0.0, 14.0, 0.0, 8.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 14.0, 0.0, 8.0),
                         child: Container(
                           width: double.infinity,
                           constraints: const BoxConstraints(
@@ -629,22 +644,20 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                               builder: (context) {
                                 final animais =
                                     ((containerBuscarRebanhoFiltrosResponse
-                                                        .jsonBody
-                                                        .toList()
-                                                        .map<RebanhoDTStruct?>(
-                                                            RebanhoDTStruct
-                                                                .maybeFromMap)
-                                                        .toList()
-                                                    as Iterable<
-                                                        RebanhoDTStruct?>)
-                                                .withoutNulls
-                                                .where((e) =>
-                                                    (e.status ==
-                                                        'Na propriedade') &&
-                                                    (e.categoria != 'Bezerra'))
-                                                .toList()
-                                                .toList() ??
-                                            [])
+                                                    .jsonBody
+                                                    .toList()
+                                                    .map<RebanhoDTStruct?>(
+                                                        RebanhoDTStruct
+                                                            .maybeFromMap)
+                                                    .toList()
+                                                as Iterable<RebanhoDTStruct?>)
+                                            .withoutNulls
+                                            .where((e) =>
+                                                (e.status ==
+                                                    'Na propriedade') &&
+                                                (e.categoria != 'Bezerra'))
+                                            .toList()
+                                            .toList())
                                         .take(20)
                                         .toList();
 
@@ -664,9 +677,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                         mainAxisSize: MainAxisSize.max,
                                         children: [
                                           Padding(
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    24.0, 12.0, 24.0, 12.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(
+                                                24.0, 12.0, 24.0, 12.0),
                                             child: InkWell(
                                               splashColor: Colors.transparent,
                                               focusColor: Colors.transparent,
@@ -692,6 +705,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
+                                                  FFAppState()
+                                                          .reprodutorSelecionado =
+                                                      AnimalSelecionadoStruct();
                                                   safeSetState(() {});
                                                 } else {
                                                   FFAppState()
@@ -710,6 +726,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
+                                                  FFAppState()
+                                                          .matrizSelecionada =
+                                                      AnimalSelecionadoStruct();
                                                   safeSetState(() {});
                                                 }
 
@@ -761,12 +780,12 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                                   'null') {
                                                                 return 'N/A';
                                                               } else if (valueOrDefault<
-                                                                          String>(
-                                                                        animaisItem
-                                                                            .dataNascimento,
-                                                                        'xx/xx/xxxx',
-                                                                      ) ==
-                                                                      '') {
+                                                                      String>(
+                                                                    animaisItem
+                                                                        .dataNascimento,
+                                                                    'xx/xx/xxxx',
+                                                                  ) ==
+                                                                  '') {
                                                                 return 'N/A';
                                                               } else {
                                                                 return dateTimeFormat(
@@ -858,8 +877,8 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                       (widget.sanidade == false))
                     Flexible(
                       child: Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(0.0, 14.0, 0.0, 8.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 14.0, 0.0, 8.0),
                         child: Container(
                           width: double.infinity,
                           constraints: const BoxConstraints(
@@ -882,21 +901,18 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                               builder: (context) {
                                 final animais =
                                     ((containerBuscarRebanhoFiltrosResponse
-                                                        .jsonBody
-                                                        .toList()
-                                                        .map<RebanhoDTStruct?>(
-                                                            RebanhoDTStruct
-                                                                .maybeFromMap)
-                                                        .toList()
-                                                    as Iterable<
-                                                        RebanhoDTStruct?>)
-                                                .withoutNulls
-                                                .where((e) =>
-                                                    e.status ==
-                                                    'Na propriedade')
-                                                .toList()
-                                                .toList() ??
-                                            [])
+                                                    .jsonBody
+                                                    .toList()
+                                                    .map<RebanhoDTStruct?>(
+                                                        RebanhoDTStruct
+                                                            .maybeFromMap)
+                                                    .toList()
+                                                as Iterable<RebanhoDTStruct?>)
+                                            .withoutNulls
+                                            .where((e) =>
+                                                e.status == 'Na propriedade')
+                                            .toList()
+                                            .toList())
                                         .take(20)
                                         .toList();
 
@@ -916,9 +932,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                         mainAxisSize: MainAxisSize.max,
                                         children: [
                                           Padding(
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    24.0, 12.0, 24.0, 12.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(
+                                                24.0, 12.0, 24.0, 12.0),
                                             child: InkWell(
                                               splashColor: Colors.transparent,
                                               focusColor: Colors.transparent,
@@ -944,6 +960,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
+                                                  FFAppState()
+                                                          .reprodutorSelecionado =
+                                                      AnimalSelecionadoStruct();
                                                   safeSetState(() {});
                                                 } else {
                                                   FFAppState()
@@ -962,6 +981,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
+                                                  FFAppState()
+                                                          .matrizSelecionada =
+                                                      AnimalSelecionadoStruct();
                                                   safeSetState(() {});
                                                 }
 
@@ -1013,12 +1035,12 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                                   'null') {
                                                                 return 'N/A';
                                                               } else if (valueOrDefault<
-                                                                          String>(
-                                                                        animaisItem
-                                                                            .dataNascimento,
-                                                                        'xx/xx/xxxx',
-                                                                      ) ==
-                                                                      '') {
+                                                                      String>(
+                                                                    animaisItem
+                                                                        .dataNascimento,
+                                                                    'xx/xx/xxxx',
+                                                                  ) ==
+                                                                  '') {
                                                                 return 'N/A';
                                                               } else {
                                                                 return dateTimeFormat(
@@ -1111,8 +1133,8 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                       (widget.sanidade == false))
                     Flexible(
                       child: Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(0.0, 14.0, 0.0, 8.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 14.0, 0.0, 8.0),
                         child: Container(
                           width: double.infinity,
                           constraints: const BoxConstraints(
@@ -1135,22 +1157,20 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                               builder: (context) {
                                 final animais =
                                     ((containerBuscarRebanhoFiltrosResponse
-                                                        .jsonBody
-                                                        .toList()
-                                                        .map<RebanhoDTStruct?>(
-                                                            RebanhoDTStruct
-                                                                .maybeFromMap)
-                                                        .toList()
-                                                    as Iterable<
-                                                        RebanhoDTStruct?>)
-                                                .withoutNulls
-                                                .where((e) =>
-                                                    (e.status ==
-                                                        'Na propriedade') &&
-                                                    (e.categoria == 'Touro'))
-                                                .toList()
-                                                .toList() ??
-                                            [])
+                                                    .jsonBody
+                                                    .toList()
+                                                    .map<RebanhoDTStruct?>(
+                                                        RebanhoDTStruct
+                                                            .maybeFromMap)
+                                                    .toList()
+                                                as Iterable<RebanhoDTStruct?>)
+                                            .withoutNulls
+                                            .where((e) =>
+                                                (e.status ==
+                                                    'Na propriedade') &&
+                                                (e.categoria == 'Touro'))
+                                            .toList()
+                                            .toList())
                                         .take(20)
                                         .toList();
 
@@ -1170,9 +1190,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                         mainAxisSize: MainAxisSize.max,
                                         children: [
                                           Padding(
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    24.0, 12.0, 24.0, 12.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(
+                                                24.0, 12.0, 24.0, 12.0),
                                             child: InkWell(
                                               splashColor: Colors.transparent,
                                               focusColor: Colors.transparent,
@@ -1198,6 +1218,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
+                                                  FFAppState()
+                                                          .reprodutorSelecionado =
+                                                      AnimalSelecionadoStruct();
                                                   safeSetState(() {});
                                                 } else {
                                                   FFAppState()
@@ -1216,6 +1239,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
+                                                  FFAppState()
+                                                          .matrizSelecionada =
+                                                      AnimalSelecionadoStruct();
                                                   safeSetState(() {});
                                                 }
 
@@ -1267,12 +1293,12 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                                   'null') {
                                                                 return 'N/A';
                                                               } else if (valueOrDefault<
-                                                                          String>(
-                                                                        animaisItem
-                                                                            .dataNascimento,
-                                                                        'xx/xx/xxxx',
-                                                                      ) ==
-                                                                      '') {
+                                                                      String>(
+                                                                    animaisItem
+                                                                        .dataNascimento,
+                                                                    'xx/xx/xxxx',
+                                                                  ) ==
+                                                                  '') {
                                                                 return 'N/A';
                                                               } else {
                                                                 return dateTimeFormat(
@@ -1365,8 +1391,8 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                       (widget.sanidade == false))
                     Flexible(
                       child: Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(0.0, 14.0, 0.0, 8.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 14.0, 0.0, 8.0),
                         child: Container(
                           width: double.infinity,
                           constraints: const BoxConstraints(
@@ -1389,20 +1415,17 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                               builder: (context) {
                                 final animais =
                                     ((containerBuscarRebanhoFiltrosResponse
-                                                        .jsonBody
-                                                        .toList()
-                                                        .map<RebanhoDTStruct?>(
-                                                            RebanhoDTStruct
-                                                                .maybeFromMap)
-                                                        .toList()
-                                                    as Iterable<
-                                                        RebanhoDTStruct?>)
-                                                .withoutNulls
-                                                .where(
-                                                    (e) => e.status == 'Sêmen')
-                                                .toList()
-                                                .toList() ??
-                                            [])
+                                                    .jsonBody
+                                                    .toList()
+                                                    .map<RebanhoDTStruct?>(
+                                                        RebanhoDTStruct
+                                                            .maybeFromMap)
+                                                    .toList()
+                                                as Iterable<RebanhoDTStruct?>)
+                                            .withoutNulls
+                                            .where((e) => e.status == 'Sêmen')
+                                            .toList()
+                                            .toList())
                                         .take(20)
                                         .toList();
 
@@ -1422,9 +1445,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                         mainAxisSize: MainAxisSize.max,
                                         children: [
                                           Padding(
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    24.0, 12.0, 24.0, 12.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(
+                                                24.0, 12.0, 24.0, 12.0),
                                             child: InkWell(
                                               splashColor: Colors.transparent,
                                               focusColor: Colors.transparent,
@@ -1450,6 +1473,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
+                                                  FFAppState()
+                                                          .reprodutorSelecionado =
+                                                      AnimalSelecionadoStruct();
                                                   safeSetState(() {});
                                                 } else {
                                                   FFAppState()
@@ -1468,6 +1494,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
+                                                  FFAppState()
+                                                          .matrizSelecionada =
+                                                      AnimalSelecionadoStruct();
                                                   safeSetState(() {});
                                                 }
 
@@ -1519,12 +1548,12 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                                   'null') {
                                                                 return 'N/A';
                                                               } else if (valueOrDefault<
-                                                                          String>(
-                                                                        animaisItem
-                                                                            .dataNascimento,
-                                                                        'xx/xx/xxxx',
-                                                                      ) ==
-                                                                      '') {
+                                                                      String>(
+                                                                    animaisItem
+                                                                        .dataNascimento,
+                                                                    'xx/xx/xxxx',
+                                                                  ) ==
+                                                                  '') {
                                                                 return 'N/A';
                                                               } else {
                                                                 return dateTimeFormat(

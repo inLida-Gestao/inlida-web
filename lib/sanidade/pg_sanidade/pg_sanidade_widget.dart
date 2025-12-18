@@ -201,14 +201,16 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     final tratValues = <String>{}
       ..addAll(_extractJsonListValues(s.tratamento))
       ..addAll(_extractJsonListValues(s.tratamentoOutros));
-    if (!_matchesMulti(FFAppState().filtroTratamentoSanidade, tratValues))
+    if (!_matchesMulti(FFAppState().filtroTratamentoSanidade, tratValues)) {
       return false;
+    }
 
     final antiValues = <String>{}
       ..addAll(_extractJsonListValues(s.antiparasitario))
       ..addAll(_extractJsonListValues(s.antiparasitarioOutros));
-    if (!_matchesMulti(FFAppState().filtroAntiparasitario, antiValues))
+    if (!_matchesMulti(FFAppState().filtroAntiparasitario, antiValues)) {
       return false;
+    }
 
     final protoValues = <String>{}
       ..addAll(_extractJsonListValues(s.protocoloReprodutivo))

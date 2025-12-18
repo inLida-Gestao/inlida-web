@@ -450,7 +450,16 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                     FFAppState().navegacao = 'reproducao';
                     safeSetState(() {});
 
-                    context.pushNamed(PgReproducaoWidget.routeName);
+                    context.pushNamed(
+                      PgReproducaoWidget.routeName,
+                      extra: <String, dynamic>{
+                        kTransitionInfoKey: const TransitionInfo(
+                          hasTransition: true,
+                          transitionType: PageTransitionType.fade,
+                          duration: Duration(milliseconds: 0),
+                        ),
+                      },
+                    );
                   },
                   child: Container(
                     width: double.infinity,
@@ -539,7 +548,16 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                     FFAppState().navegacao = 'sanidade';
                     safeSetState(() {});
 
-                    context.pushNamed(PgSanidadeWidget.routeName);
+                    context.pushNamed(
+                      PgSanidadeWidget.routeName,
+                      extra: <String, dynamic>{
+                        kTransitionInfoKey: const TransitionInfo(
+                          hasTransition: true,
+                          transitionType: PageTransitionType.fade,
+                          duration: Duration(milliseconds: 0),
+                        ),
+                      },
+                    );
                   },
                   child: Container(
                     width: double.infinity,
