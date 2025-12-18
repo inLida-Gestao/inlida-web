@@ -419,7 +419,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                 as Iterable<RebanhoDTStruct?>)
                                             .withoutNulls
                                             .where((e) =>
-                                                e.status == 'Na propriedade')
+                                                (e.status ==
+                                                    'Na propriedade') &&
+                                                (e.categoria == 'Touro'))
                                             .toList()
                                             .toList())
                                         .take(20)
@@ -469,9 +471,11 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
-                                                  FFAppState()
-                                                          .reprodutorSelecionado =
-                                                      AnimalSelecionadoStruct();
+                                                  if (widget.sanidade == true) {
+                                                    FFAppState()
+                                                            .reprodutorSelecionado =
+                                                        AnimalSelecionadoStruct();
+                                                  }
                                                   safeSetState(() {});
                                                 } else {
                                                   FFAppState()
@@ -490,9 +494,11 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
-                                                  FFAppState()
-                                                          .matrizSelecionada =
-                                                      AnimalSelecionadoStruct();
+                                                  if (widget.sanidade == true) {
+                                                    FFAppState()
+                                                            .matrizSelecionada =
+                                                        AnimalSelecionadoStruct();
+                                                  }
                                                   safeSetState(() {});
                                                 }
 
@@ -655,7 +661,8 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                             .where((e) =>
                                                 (e.status ==
                                                     'Na propriedade') &&
-                                                (e.categoria != 'Bezerra'))
+                                                (e.categoria != 'Bezerra') &&
+                                                (e.categoria != 'Bezerro'))
                                             .toList()
                                             .toList())
                                         .take(20)
@@ -705,9 +712,11 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
-                                                  FFAppState()
-                                                          .reprodutorSelecionado =
-                                                      AnimalSelecionadoStruct();
+                                                  if (widget.sanidade == true) {
+                                                    FFAppState()
+                                                            .reprodutorSelecionado =
+                                                        AnimalSelecionadoStruct();
+                                                  }
                                                   safeSetState(() {});
                                                 } else {
                                                   FFAppState()
@@ -726,9 +735,11 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
-                                                  FFAppState()
-                                                          .matrizSelecionada =
-                                                      AnimalSelecionadoStruct();
+                                                  if (widget.sanidade == true) {
+                                                    FFAppState()
+                                                            .matrizSelecionada =
+                                                        AnimalSelecionadoStruct();
+                                                  }
                                                   safeSetState(() {});
                                                 }
 
@@ -910,7 +921,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                 as Iterable<RebanhoDTStruct?>)
                                             .withoutNulls
                                             .where((e) =>
-                                                e.status == 'Na propriedade')
+                                                (e.status ==
+                                                    'Na propriedade') &&
+                                                (e.categoria == 'Touro'))
                                             .toList()
                                             .toList())
                                         .take(20)
@@ -960,9 +973,11 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
-                                                  FFAppState()
-                                                          .reprodutorSelecionado =
-                                                      AnimalSelecionadoStruct();
+                                                  if (widget.sanidade == true) {
+                                                    FFAppState()
+                                                            .reprodutorSelecionado =
+                                                        AnimalSelecionadoStruct();
+                                                  }
                                                   safeSetState(() {});
                                                 } else {
                                                   FFAppState()
@@ -981,9 +996,11 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
-                                                  FFAppState()
-                                                          .matrizSelecionada =
-                                                      AnimalSelecionadoStruct();
+                                                  if (widget.sanidade == true) {
+                                                    FFAppState()
+                                                            .matrizSelecionada =
+                                                        AnimalSelecionadoStruct();
+                                                  }
                                                   safeSetState(() {});
                                                 }
 
@@ -1218,9 +1235,11 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
-                                                  FFAppState()
-                                                          .reprodutorSelecionado =
-                                                      AnimalSelecionadoStruct();
+                                                  if (widget.sanidade == true) {
+                                                    FFAppState()
+                                                            .reprodutorSelecionado =
+                                                        AnimalSelecionadoStruct();
+                                                  }
                                                   safeSetState(() {});
                                                 } else {
                                                   FFAppState()
@@ -1239,9 +1258,11 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
-                                                  FFAppState()
-                                                          .matrizSelecionada =
-                                                      AnimalSelecionadoStruct();
+                                                  if (widget.sanidade == true) {
+                                                    FFAppState()
+                                                            .matrizSelecionada =
+                                                        AnimalSelecionadoStruct();
+                                                  }
                                                   safeSetState(() {});
                                                 }
 
@@ -1473,9 +1494,11 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
-                                                  FFAppState()
-                                                          .reprodutorSelecionado =
-                                                      AnimalSelecionadoStruct();
+                                                  if (widget.sanidade == true) {
+                                                    FFAppState()
+                                                            .reprodutorSelecionado =
+                                                        AnimalSelecionadoStruct();
+                                                  }
                                                   safeSetState(() {});
                                                 } else {
                                                   FFAppState()
@@ -1494,9 +1517,11 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                     idAnimal:
                                                         animaisItem.idRebanho,
                                                   );
-                                                  FFAppState()
-                                                          .matrizSelecionada =
-                                                      AnimalSelecionadoStruct();
+                                                  if (widget.sanidade == true) {
+                                                    FFAppState()
+                                                            .matrizSelecionada =
+                                                        AnimalSelecionadoStruct();
+                                                  }
                                                   safeSetState(() {});
                                                 }
 

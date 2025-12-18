@@ -2750,6 +2750,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                           );
                                                                         },
                                                                       );
+                                                                      safeSetState(
+                                                                          () {});
                                                                     },
                                                                     child:
                                                                         Container(
@@ -2967,6 +2969,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                           );
                                                                         },
                                                                       );
+                                                                      safeSetState(
+                                                                          () {});
                                                                     },
                                                                     child:
                                                                         Container(

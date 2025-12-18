@@ -40,6 +40,11 @@ class _PgRebanhoAddNascimentoWidgetState
     super.initState();
     _model = createModel(context, () => PgRebanhoAddNascimentoModel());
 
+    // Evita carregar seleção anterior (FFAppState) ao abrir um novo nascimento.
+    FFAppState().matrizSelecionada = AnimalSelecionadoStruct();
+    FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct();
+    FFAppState().refreshAnimalSelecionado = false;
+
     _model.tabBarController = TabController(
       vsync: this,
       length: 3,
@@ -475,8 +480,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -670,8 +677,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -865,8 +874,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -1065,8 +1076,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -1162,8 +1175,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       .secondaryText,
                                                                   size: 24.0,
                                                                 ),
-                                                                fillColor: const Color(
-                                                                    0xFFF1F1F1),
+                                                                fillColor:
+                                                                    const Color(
+                                                                        0xFFF1F1F1),
                                                                 elevation: 2.0,
                                                                 borderColor: Colors
                                                                     .transparent,
@@ -1171,8 +1185,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     0.0,
                                                                 borderRadius:
                                                                     8.0,
-                                                                margin: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
+                                                                margin:
+                                                                    const EdgeInsetsDirectional
+                                                                        .fromSTEB(
                                                                         12.0,
                                                                         0.0,
                                                                         12.0,
@@ -1186,8 +1201,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                 isMultiSelect:
                                                                     false,
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -1481,8 +1498,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                   ),
                                                                 ],
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -1686,8 +1705,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     .asValidator(
                                                                         context),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -1777,8 +1798,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       .secondaryText,
                                                                   size: 24.0,
                                                                 ),
-                                                                fillColor: const Color(
-                                                                    0xFFF1F1F1),
+                                                                fillColor:
+                                                                    const Color(
+                                                                        0xFFF1F1F1),
                                                                 elevation: 2.0,
                                                                 borderColor: Colors
                                                                     .transparent,
@@ -1786,8 +1808,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     0.0,
                                                                 borderRadius:
                                                                     8.0,
-                                                                margin: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
+                                                                margin:
+                                                                    const EdgeInsetsDirectional
+                                                                        .fromSTEB(
                                                                         12.0,
                                                                         0.0,
                                                                         12.0,
@@ -1801,8 +1824,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                 isMultiSelect:
                                                                     false,
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -1899,8 +1924,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                         .secondaryText,
                                                                     size: 24.0,
                                                                   ),
-                                                                  fillColor: const Color(
-                                                                      0xFFF1F1F1),
+                                                                  fillColor:
+                                                                      const Color(
+                                                                          0xFFF1F1F1),
                                                                   elevation:
                                                                       2.0,
                                                                   borderColor:
@@ -1912,10 +1938,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       8.0,
                                                                   margin: const EdgeInsetsDirectional
                                                                       .fromSTEB(
-                                                                          12.0,
-                                                                          0.0,
-                                                                          12.0,
-                                                                          0.0),
+                                                                      12.0,
+                                                                      0.0,
+                                                                      12.0,
+                                                                      0.0),
                                                                   hidesUnderline:
                                                                       true,
                                                                   isOverButton:
@@ -1978,8 +2004,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                         .secondaryText,
                                                                     size: 24.0,
                                                                   ),
-                                                                  fillColor: const Color(
-                                                                      0xFFF1F1F1),
+                                                                  fillColor:
+                                                                      const Color(
+                                                                          0xFFF1F1F1),
                                                                   elevation:
                                                                       2.0,
                                                                   borderColor:
@@ -1991,10 +2018,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       8.0,
                                                                   margin: const EdgeInsetsDirectional
                                                                       .fromSTEB(
-                                                                          12.0,
-                                                                          0.0,
-                                                                          12.0,
-                                                                          0.0),
+                                                                      12.0,
+                                                                      0.0,
+                                                                      12.0,
+                                                                      0.0),
                                                                   hidesUnderline:
                                                                       true,
                                                                   isOverButton:
@@ -2035,8 +2062,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                             .fontStyle,
                                                                       ),
                                                                 ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -2124,8 +2153,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       .secondaryText,
                                                                   size: 24.0,
                                                                 ),
-                                                                fillColor: const Color(
-                                                                    0xFFF1F1F1),
+                                                                fillColor:
+                                                                    const Color(
+                                                                        0xFFF1F1F1),
                                                                 elevation: 2.0,
                                                                 borderColor: Colors
                                                                     .transparent,
@@ -2133,8 +2163,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     0.0,
                                                                 borderRadius:
                                                                     8.0,
-                                                                margin: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
+                                                                margin:
+                                                                    const EdgeInsetsDirectional
+                                                                        .fromSTEB(
                                                                         12.0,
                                                                         0.0,
                                                                         12.0,
@@ -2148,8 +2179,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                 isMultiSelect:
                                                                     false,
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ].divide(const SizedBox(
@@ -2255,8 +2288,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       .secondaryText,
                                                                   size: 24.0,
                                                                 ),
-                                                                fillColor: const Color(
-                                                                    0xFFF1F1F1),
+                                                                fillColor:
+                                                                    const Color(
+                                                                        0xFFF1F1F1),
                                                                 elevation: 2.0,
                                                                 borderColor: Colors
                                                                     .transparent,
@@ -2264,8 +2298,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     0.0,
                                                                 borderRadius:
                                                                     8.0,
-                                                                margin: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
+                                                                margin:
+                                                                    const EdgeInsetsDirectional
+                                                                        .fromSTEB(
                                                                         12.0,
                                                                         0.0,
                                                                         12.0,
@@ -2279,8 +2314,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                 isMultiSelect:
                                                                     false,
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                         if (responsiveVisibility(
@@ -2552,8 +2589,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     ),
                                                                   ],
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  height: 8.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          8.0)),
                                                             ),
                                                           ),
                                                       ].divide(const SizedBox(
@@ -2562,8 +2601,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                   ]
                                                       .divide(const SizedBox(
                                                           height: 24.0))
-                                                      .addToStart(const SizedBox(
-                                                          height: 24.0)),
+                                                      .addToStart(
+                                                          const SizedBox(
+                                                              height: 24.0)),
                                                 ),
                                               ),
                                               Column(
@@ -2666,6 +2706,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                           );
                                                                         },
                                                                       );
+                                                                      safeSetState(
+                                                                          () {});
                                                                     },
                                                                     child:
                                                                         Container(
@@ -2682,7 +2724,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       ),
                                                                       child:
                                                                           Padding(
-                                                                        padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        padding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             12.0,
                                                                             0.0,
                                                                             12.0,
@@ -2695,41 +2738,27 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                               MainAxisAlignment.spaceBetween,
                                                                           children: [
                                                                             Text(
-                                                                              '${valueOrDefault<String>(
-                                                                                FFAppState().matrizSelecionada.numAnimal == 'null'
-                                                                                    ? 'S/N'
+                                                                              () {
+                                                                                final matriz = FFAppState().matrizSelecionada;
+                                                                                final hasMatriz = matriz.idAnimal.isNotEmpty && matriz.idAnimal != 'null';
+                                                                                if (!hasMatriz) {
+                                                                                  return 'Selecionar';
+                                                                                }
+                                                                                final num = (matriz.numAnimal.isEmpty || matriz.numAnimal == 'null') ? 'S/N' : matriz.numAnimal;
+                                                                                final nome = (matriz.nomeAnimal.isEmpty || matriz.nomeAnimal == 'null') ? 'S/N' : matriz.nomeAnimal;
+                                                                                final dataRaw = matriz.dataNascAnimal;
+                                                                                final data = (dataRaw.isEmpty || dataRaw == 'null')
+                                                                                    ? 'N/A'
                                                                                     : valueOrDefault<String>(
-                                                                                        FFAppState().matrizSelecionada.numAnimal,
-                                                                                        'S/N',
-                                                                                      ),
-                                                                                'S/N',
-                                                                              )} • ${valueOrDefault<String>(
-                                                                                FFAppState().matrizSelecionada.nomeAnimal == 'null'
-                                                                                    ? 'S/N'
-                                                                                    : valueOrDefault<String>(
-                                                                                        FFAppState().matrizSelecionada.nomeAnimal,
-                                                                                        'S/N',
-                                                                                      ),
-                                                                                'S/N',
-                                                                              )} • ${valueOrDefault<String>(
-                                                                                () {
-                                                                                  if (FFAppState().matrizSelecionada.dataNascAnimal == 'null') {
-                                                                                    return 'N/A';
-                                                                                  } else if (FFAppState().matrizSelecionada.dataNascAnimal == '') {
-                                                                                    return 'N/A';
-                                                                                  } else {
-                                                                                    return valueOrDefault<String>(
-                                                                                      dateTimeFormat(
-                                                                                        "d/M/y",
-                                                                                        functions.converterParaData(FFAppState().matrizSelecionada.dataNascAnimal),
-                                                                                        locale: FFLocalizations.of(context).languageCode,
-                                                                                      ),
-                                                                                      'N/A',
-                                                                                    );
-                                                                                  }
-                                                                                }(),
-                                                                                'N/A',
-                                                                              )}',
+                                                                                        dateTimeFormat(
+                                                                                          "d/M/y",
+                                                                                          functions.converterParaData(dataRaw),
+                                                                                          locale: FFLocalizations.of(context).languageCode,
+                                                                                        ),
+                                                                                        'N/A',
+                                                                                      );
+                                                                                return '$num • $nome • $data';
+                                                                              }(),
                                                                               style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                     font: GoogleFonts.poppins(
                                                                                       fontWeight: FontWeight.w600,
@@ -2756,12 +2785,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                   splashColor:
                                                                       Colors
                                                                           .transparent,
-                                                                  focusColor:
-                                                                      Colors
-                                                                          .transparent,
-                                                                  hoverColor:
-                                                                      Colors
-                                                                          .transparent,
+                                                                  focusColor: Colors
+                                                                      .transparent,
+                                                                  hoverColor: Colors
+                                                                      .transparent,
                                                                   highlightColor:
                                                                       Colors
                                                                           .transparent,
@@ -2774,20 +2801,21 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                         () {});
                                                                   },
                                                                   child: Icon(
-                                                                    Icons
-                                                                        .close,
+                                                                    Icons.close,
                                                                     color: FlutterFlowTheme.of(
                                                                             context)
                                                                         .accent3,
-                                                                    size:
-                                                                        24.0,
+                                                                    size: 24.0,
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  width: 16.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          16.0)),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              height: 8.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  height: 8.0)),
                                                         ),
                                                       ),
                                                       Expanded(
@@ -2883,6 +2911,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                           );
                                                                         },
                                                                       );
+                                                                      safeSetState(
+                                                                          () {});
                                                                     },
                                                                     child:
                                                                         Container(
@@ -2899,7 +2929,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       ),
                                                                       child:
                                                                           Padding(
-                                                                        padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        padding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             12.0,
                                                                             0.0,
                                                                             12.0,
@@ -2912,41 +2943,27 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                               MainAxisAlignment.spaceBetween,
                                                                           children: [
                                                                             Text(
-                                                                              '${valueOrDefault<String>(
-                                                                                FFAppState().reprodutorSelecionado.numAnimal == 'null'
-                                                                                    ? 'S/N'
+                                                                              () {
+                                                                                final reprodutor = FFAppState().reprodutorSelecionado;
+                                                                                final hasReprodutor = reprodutor.idAnimal.isNotEmpty && reprodutor.idAnimal != 'null';
+                                                                                if (!hasReprodutor) {
+                                                                                  return 'Selecionar';
+                                                                                }
+                                                                                final num = (reprodutor.numAnimal.isEmpty || reprodutor.numAnimal == 'null') ? 'S/N' : reprodutor.numAnimal;
+                                                                                final nome = (reprodutor.nomeAnimal.isEmpty || reprodutor.nomeAnimal == 'null') ? 'S/N' : reprodutor.nomeAnimal;
+                                                                                final dataRaw = reprodutor.dataNascAnimal;
+                                                                                final data = (dataRaw.isEmpty || dataRaw == 'null')
+                                                                                    ? 'N/A'
                                                                                     : valueOrDefault<String>(
-                                                                                        FFAppState().reprodutorSelecionado.numAnimal,
-                                                                                        'S/N',
-                                                                                      ),
-                                                                                'S/N',
-                                                                              )} • ${valueOrDefault<String>(
-                                                                                FFAppState().reprodutorSelecionado.nomeAnimal == 'null'
-                                                                                    ? 'S/N'
-                                                                                    : valueOrDefault<String>(
-                                                                                        FFAppState().reprodutorSelecionado.nomeAnimal,
-                                                                                        'S/N',
-                                                                                      ),
-                                                                                'S/N',
-                                                                              )} • ${valueOrDefault<String>(
-                                                                                () {
-                                                                                  if (FFAppState().reprodutorSelecionado.dataNascAnimal == 'null') {
-                                                                                    return 'N/A';
-                                                                                  } else if (FFAppState().reprodutorSelecionado.dataNascAnimal == '') {
-                                                                                    return 'N/A';
-                                                                                  } else {
-                                                                                    return valueOrDefault<String>(
-                                                                                      dateTimeFormat(
-                                                                                        "d/M/y",
-                                                                                        functions.converterParaData(FFAppState().reprodutorSelecionado.dataNascAnimal),
-                                                                                        locale: FFLocalizations.of(context).languageCode,
-                                                                                      ),
-                                                                                      'N/A',
-                                                                                    );
-                                                                                  }
-                                                                                }(),
-                                                                                'N/A',
-                                                                              )}',
+                                                                                        dateTimeFormat(
+                                                                                          "d/M/y",
+                                                                                          functions.converterParaData(dataRaw),
+                                                                                          locale: FFLocalizations.of(context).languageCode,
+                                                                                        ),
+                                                                                        'N/A',
+                                                                                      );
+                                                                                return '$num • $nome • $data';
+                                                                              }(),
                                                                               style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                     font: GoogleFonts.poppins(
                                                                                       fontWeight: FontWeight.w600,
@@ -2973,12 +2990,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                   splashColor:
                                                                       Colors
                                                                           .transparent,
-                                                                  focusColor:
-                                                                      Colors
-                                                                          .transparent,
-                                                                  hoverColor:
-                                                                      Colors
-                                                                          .transparent,
+                                                                  focusColor: Colors
+                                                                      .transparent,
+                                                                  hoverColor: Colors
+                                                                      .transparent,
                                                                   highlightColor:
                                                                       Colors
                                                                           .transparent,
@@ -2991,30 +3006,31 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                         () {});
                                                                   },
                                                                   child: Icon(
-                                                                    Icons
-                                                                        .close,
+                                                                    Icons.close,
                                                                     color: FlutterFlowTheme.of(
                                                                             context)
                                                                         .accent3,
-                                                                    size:
-                                                                        24.0,
+                                                                    size: 24.0,
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  width: 16.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          16.0)),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              height: 8.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  height: 8.0)),
                                                         ),
                                                       ),
-                                                    ].divide(
-                                                        const SizedBox(width: 24.0)),
+                                                    ].divide(const SizedBox(
+                                                        width: 24.0)),
                                                   ),
                                                 ]
-                                                    .divide(
-                                                        const SizedBox(height: 24.0))
-                                                    .addToStart(
-                                                        const SizedBox(height: 24.0)),
+                                                    .divide(const SizedBox(
+                                                        height: 24.0))
+                                                    .addToStart(const SizedBox(
+                                                        height: 24.0)),
                                               ),
                                               SingleChildScrollView(
                                                 child: Column(
@@ -3110,8 +3126,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       .secondaryText,
                                                                   size: 24.0,
                                                                 ),
-                                                                fillColor: const Color(
-                                                                    0xFFF1F1F1),
+                                                                fillColor:
+                                                                    const Color(
+                                                                        0xFFF1F1F1),
                                                                 elevation: 2.0,
                                                                 borderColor: Colors
                                                                     .transparent,
@@ -3119,8 +3136,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     0.0,
                                                                 borderRadius:
                                                                     8.0,
-                                                                margin: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
+                                                                margin:
+                                                                    const EdgeInsetsDirectional
+                                                                        .fromSTEB(
                                                                         12.0,
                                                                         0.0,
                                                                         12.0,
@@ -3134,8 +3152,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                 isMultiSelect:
                                                                     false,
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ],
@@ -3872,8 +3892,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                         .secondaryText,
                                                                     size: 24.0,
                                                                   ),
-                                                                  fillColor: const Color(
-                                                                      0xFFF1F1F1),
+                                                                  fillColor:
+                                                                      const Color(
+                                                                          0xFFF1F1F1),
                                                                   elevation:
                                                                       2.0,
                                                                   borderColor:
@@ -3885,10 +3906,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       8.0,
                                                                   margin: const EdgeInsetsDirectional
                                                                       .fromSTEB(
-                                                                          12.0,
-                                                                          0.0,
-                                                                          12.0,
-                                                                          0.0),
+                                                                      12.0,
+                                                                      0.0,
+                                                                      12.0,
+                                                                      0.0),
                                                                   hidesUnderline:
                                                                       true,
                                                                   isOverButton:
@@ -3898,8 +3919,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                   isMultiSelect:
                                                                       false,
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  height: 8.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          8.0)),
                                                             ),
                                                           ),
                                                         ].divide(const SizedBox(
@@ -4174,8 +4197,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                           context),
                                                                 ),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 8.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        8.0)),
                                                           ),
                                                         ),
                                                       ],
@@ -4183,8 +4208,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                   ]
                                                       .divide(const SizedBox(
                                                           height: 24.0))
-                                                      .addToStart(const SizedBox(
-                                                          height: 24.0)),
+                                                      .addToStart(
+                                                          const SizedBox(
+                                                              height: 24.0)),
                                                 ),
                                               ),
                                             ],
@@ -4273,12 +4299,11 @@ class _PgRebanhoAddNascimentoWidgetState
                                         options: FFButtonOptions(
                                           width: 160.0,
                                           height: 56.0,
-                                          padding:
-                                              const EdgeInsetsDirectional.fromSTEB(
-                                                  16.0, 0.0, 16.0, 0.0),
+                                          padding: const EdgeInsetsDirectional
+                                              .fromSTEB(16.0, 0.0, 16.0, 0.0),
                                           iconPadding:
-                                              const EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 0.0, 0.0),
+                                              const EdgeInsetsDirectional
+                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
                                           color: Colors.white,
                                           textStyle: FlutterFlowTheme.of(
                                                   context)
@@ -4433,9 +4458,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                 .reprodutorSelecionado
                                                 .idAnimal,
                                           });
-                                          if (_model.pesoNascimentoTextController
-                                                      .text !=
-                                                  '') {
+                                          if (_model
+                                                  .pesoNascimentoTextController
+                                                  .text !=
+                                              '') {
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
@@ -4557,12 +4583,11 @@ class _PgRebanhoAddNascimentoWidgetState
                                         options: FFButtonOptions(
                                           width: 160.0,
                                           height: 56.0,
-                                          padding:
-                                              const EdgeInsetsDirectional.fromSTEB(
-                                                  16.0, 0.0, 16.0, 0.0),
+                                          padding: const EdgeInsetsDirectional
+                                              .fromSTEB(16.0, 0.0, 16.0, 0.0),
                                           iconPadding:
-                                              const EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 0.0, 0.0),
+                                              const EdgeInsetsDirectional
+                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
                                           color: FlutterFlowTheme.of(context)
                                               .primary,
                                           textStyle: FlutterFlowTheme.of(

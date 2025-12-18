@@ -230,7 +230,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                             .bodyMedium
                                                             .fontStyle,
                                                   ),
-                                                  color: const Color(0xFF8E8E8E),
+                                                  color:
+                                                      const Color(0xFF8E8E8E),
                                                   fontSize: 18.0,
                                                   letterSpacing: 0.0,
                                                   fontWeight: FontWeight.w600,
@@ -303,11 +304,13 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                       fit: BoxFit.cover,
                                                     ),
                                                   ),
-                                                ].divide(const SizedBox(width: 8.0)),
+                                                ].divide(
+                                                    const SizedBox(width: 8.0)),
                                               ),
                                               Align(
-                                                alignment: const AlignmentDirectional(
-                                                    1.0, 0.0),
+                                                alignment:
+                                                    const AlignmentDirectional(
+                                                        1.0, 0.0),
                                                 child: Builder(
                                                   builder: (context) =>
                                                       FFButtonWidget(
@@ -359,18 +362,12 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                       height: 56.0,
                                                       padding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  16.0,
-                                                                  0.0,
-                                                                  16.0,
-                                                                  0.0),
+                                                              .fromSTEB(16.0,
+                                                              0.0, 16.0, 0.0),
                                                       iconPadding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0),
+                                                              .fromSTEB(0.0,
+                                                              0.0, 0.0, 0.0),
                                                       color:
                                                           FlutterFlowTheme.of(
                                                                   context)
@@ -413,7 +410,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                   ),
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(width: 8.0)),
+                                            ].divide(
+                                                const SizedBox(width: 8.0)),
                                           ),
                                         ],
                                       ),
@@ -421,7 +419,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                         child: Column(
                                           children: [
                                             Align(
-                                              alignment: const Alignment(0.0, 0),
+                                              alignment:
+                                                  const Alignment(0.0, 0),
                                               child: TabBar(
                                                 labelColor:
                                                     FlutterFlowTheme.of(context)
@@ -706,9 +705,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
                                                             Expanded(
@@ -903,9 +903,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
                                                             Expanded(
@@ -1100,13 +1101,15 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              width: 24.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 24.0)),
                                                         ),
                                                         Row(
                                                           mainAxisSize:
@@ -1304,9 +1307,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
                                                             Expanded(
@@ -1493,13 +1497,15 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              width: 24.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 24.0)),
                                                         ),
                                                         Row(
                                                           mainAxisSize:
@@ -1695,9 +1701,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
                                                             Expanded(
@@ -1898,9 +1905,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
                                                             Expanded(
@@ -2098,13 +2106,15 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              width: 24.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 24.0)),
                                                         ),
                                                         Row(
                                                           mainAxisSize:
@@ -2298,9 +2308,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
                                                             Expanded(
@@ -2491,13 +2502,15 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              width: 24.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 24.0)),
                                                         ),
                                                         Row(
                                                           mainAxisSize:
@@ -2698,9 +2711,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
                                                             Expanded(
@@ -2901,13 +2915,15 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              width: 24.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 24.0)),
                                                         ),
                                                         Row(
                                                           mainAxisSize:
@@ -2946,147 +2962,167 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                 FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
                                                                     ),
-                                                                    if (pgRebanhoViewRebanhoRow?.numeroMatriz !=
-                                                                            null &&
-                                                                        pgRebanhoViewRebanhoRow?.numeroMatriz !=
-                                                                            '')
-                                                                      TextFormField(
-                                                                        controller:
-                                                                            _model.matrizTextController ??=
-                                                                                TextEditingController(
-                                                                          text:
-                                                                              '${valueOrDefault<String>(
-                                                                            pgRebanhoViewRebanhoRow?.numeroMatriz,
-                                                                            'S/N',
-                                                                          )} • ${valueOrDefault<String>(
-                                                                            pgRebanhoViewRebanhoRow?.nomeMatriz,
-                                                                            'S/N',
-                                                                          )} • ${valueOrDefault<String>(
-                                                                            dateTimeFormat(
-                                                                              "d/M/y",
-                                                                              pgRebanhoViewRebanhoRow?.dataNascMatriz,
-                                                                              locale: FFLocalizations.of(context).languageCode,
-                                                                            ),
-                                                                            'N/A',
-                                                                          )}',
-                                                                        ),
-                                                                        focusNode:
-                                                                            _model.matrizFocusNode,
-                                                                        autofocus:
+                                                                    TextFormField(
+                                                                      controller:
+                                                                          _model.matrizTextController ??=
+                                                                              TextEditingController(
+                                                                        text:
+                                                                            '${valueOrDefault<String>(
+                                                                          pgRebanhoViewRebanhoRow
+                                                                              ?.numeroMatriz,
+                                                                          'S/N',
+                                                                        )} • ${valueOrDefault<String>(
+                                                                          pgRebanhoViewRebanhoRow
+                                                                              ?.nomeMatriz,
+                                                                          'S/N',
+                                                                        )} • ${valueOrDefault<String>(
+                                                                          dateTimeFormat(
+                                                                            "d/M/y",
+                                                                            pgRebanhoViewRebanhoRow?.dataNascMatriz,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
+                                                                          ),
+                                                                          'N/A',
+                                                                        )}',
+                                                                      ),
+                                                                      focusNode:
+                                                                          _model
+                                                                              .matrizFocusNode,
+                                                                      autofocus:
+                                                                          false,
+                                                                      readOnly:
+                                                                          true,
+                                                                      obscureText:
+                                                                          false,
+                                                                      decoration:
+                                                                          InputDecoration(
+                                                                        isDense:
                                                                             false,
-                                                                        readOnly:
-                                                                            true,
-                                                                        obscureText:
-                                                                            false,
-                                                                        decoration:
-                                                                            InputDecoration(
-                                                                          isDense:
-                                                                              false,
-                                                                          labelStyle: FlutterFlowTheme.of(context)
-                                                                              .labelMedium
-                                                                              .override(
-                                                                                font: GoogleFonts.poppins(
-                                                                                  fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                ),
-                                                                                fontSize: 16.0,
-                                                                                letterSpacing: 0.0,
+                                                                        labelStyle: FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
                                                                                 fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
                                                                                 fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
                                                                               ),
-                                                                          hintText:
-                                                                              '${valueOrDefault<String>(
-                                                                            pgRebanhoViewRebanhoRow?.numeroMatriz,
-                                                                            'S/N',
-                                                                          )} • ${valueOrDefault<String>(
-                                                                            pgRebanhoViewRebanhoRow?.nomeMatriz,
-                                                                            'S/N',
-                                                                          )} • ${valueOrDefault<String>(
-                                                                            dateTimeFormat(
-                                                                              "d/M/y",
-                                                                              pgRebanhoViewRebanhoRow?.dataNascMatriz,
-                                                                              locale: FFLocalizations.of(context).languageCode,
+                                                                              fontSize: 16.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
                                                                             ),
-                                                                            'N/A',
-                                                                          )}',
-                                                                          hintStyle: FlutterFlowTheme.of(context)
-                                                                              .labelMedium
-                                                                              .override(
-                                                                                font: GoogleFonts.poppins(
-                                                                                  fontWeight: FontWeight.w600,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                ),
-                                                                                color: const Color(0xFFBEBEBE),
-                                                                                fontSize: 16.0,
-                                                                                letterSpacing: 0.0,
-                                                                                fontWeight: FontWeight.w600,
-                                                                                fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                              ),
-                                                                          enabledBorder:
-                                                                              OutlineInputBorder(
-                                                                            borderSide:
-                                                                                const BorderSide(
-                                                                              color: Color(0x00000000),
-                                                                              width: 1.0,
-                                                                            ),
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(8.0),
+                                                                        hintText:
+                                                                            '${valueOrDefault<String>(
+                                                                          pgRebanhoViewRebanhoRow
+                                                                              ?.numeroMatriz,
+                                                                          'S/N',
+                                                                        )} • ${valueOrDefault<String>(
+                                                                          pgRebanhoViewRebanhoRow
+                                                                              ?.nomeMatriz,
+                                                                          'S/N',
+                                                                        )} • ${valueOrDefault<String>(
+                                                                          dateTimeFormat(
+                                                                            "d/M/y",
+                                                                            pgRebanhoViewRebanhoRow?.dataNascMatriz,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
                                                                           ),
-                                                                          focusedBorder:
-                                                                              OutlineInputBorder(
-                                                                            borderSide:
-                                                                                const BorderSide(
-                                                                              color: Color(0x00000000),
-                                                                              width: 1.0,
-                                                                            ),
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(8.0),
-                                                                          ),
-                                                                          errorBorder:
-                                                                              OutlineInputBorder(
-                                                                            borderSide:
-                                                                                BorderSide(
-                                                                              color: FlutterFlowTheme.of(context).error,
-                                                                              width: 1.0,
-                                                                            ),
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(8.0),
-                                                                          ),
-                                                                          focusedErrorBorder:
-                                                                              OutlineInputBorder(
-                                                                            borderSide:
-                                                                                BorderSide(
-                                                                              color: FlutterFlowTheme.of(context).error,
-                                                                              width: 1.0,
-                                                                            ),
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(8.0),
-                                                                          ),
-                                                                          filled:
-                                                                              true,
-                                                                          fillColor:
-                                                                              FlutterFlowTheme.of(context).customColor2,
-                                                                        ),
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
+                                                                          'N/A',
+                                                                        )}',
+                                                                        hintStyle: FlutterFlowTheme.of(context)
+                                                                            .labelMedium
                                                                             .override(
                                                                               font: GoogleFonts.poppins(
                                                                                 fontWeight: FontWeight.w600,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
                                                                               ),
+                                                                              color: const Color(0xFFBEBEBE),
                                                                               fontSize: 16.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FontWeight.w600,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                            ),
+                                                                        enabledBorder:
+                                                                            OutlineInputBorder(
+                                                                          borderSide:
+                                                                              const BorderSide(
+                                                                            color:
+                                                                                Color(0x00000000),
+                                                                            width:
+                                                                                1.0,
+                                                                          ),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(8.0),
+                                                                        ),
+                                                                        focusedBorder:
+                                                                            OutlineInputBorder(
+                                                                          borderSide:
+                                                                              const BorderSide(
+                                                                            color:
+                                                                                Color(0x00000000),
+                                                                            width:
+                                                                                1.0,
+                                                                          ),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(8.0),
+                                                                        ),
+                                                                        errorBorder:
+                                                                            OutlineInputBorder(
+                                                                          borderSide:
+                                                                              BorderSide(
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).error,
+                                                                            width:
+                                                                                1.0,
+                                                                          ),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(8.0),
+                                                                        ),
+                                                                        focusedErrorBorder:
+                                                                            OutlineInputBorder(
+                                                                          borderSide:
+                                                                              BorderSide(
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).error,
+                                                                            width:
+                                                                                1.0,
+                                                                          ),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(8.0),
+                                                                        ),
+                                                                        filled:
+                                                                            true,
+                                                                        fillColor:
+                                                                            FlutterFlowTheme.of(context).customColor2,
+                                                                      ),
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
+                                                                              fontWeight: FontWeight.w600,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
-                                                                        keyboardType:
-                                                                            TextInputType.number,
-                                                                        cursorColor:
-                                                                            FlutterFlowTheme.of(context).primaryText,
-                                                                        validator: _model
-                                                                            .matrizTextControllerValidator
-                                                                            .asValidator(context),
-                                                                      ),
+                                                                            fontSize:
+                                                                                16.0,
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                            fontWeight:
+                                                                                FontWeight.w600,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          ),
+                                                                      keyboardType:
+                                                                          TextInputType
+                                                                              .number,
+                                                                      cursorColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primaryText,
+                                                                      validator: _model
+                                                                          .matrizTextControllerValidator
+                                                                          .asValidator(
+                                                                              context),
+                                                                    ),
                                                                   ].divide(const SizedBox(
                                                                       height:
                                                                           8.0)),
@@ -3293,8 +3329,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                 ),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              width: 24.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 24.0)),
                                                         ),
                                                         Row(
                                                           mainAxisSize:
@@ -3662,8 +3699,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                 ),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              width: 24.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 24.0)),
                                                         ),
                                                         Row(
                                                           mainAxisSize:
@@ -4031,8 +4069,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                 ),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              width: 24.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 24.0)),
                                                         ),
                                                         Row(
                                                           mainAxisSize:
@@ -4403,8 +4442,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                 ),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              width: 24.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 24.0)),
                                                         ),
                                                         if (valueOrDefault<
                                                                 String>(
@@ -4728,8 +4768,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                   ),
                                                                 ),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                width: 24.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        24.0)),
                                                           ),
                                                         Column(
                                                           mainAxisSize:
@@ -4942,14 +4984,18 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         context),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              height: 8.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  height: 8.0)),
                                                         ),
                                                       ]
-                                                          .divide(const SizedBox(
-                                                              height: 24.0))
-                                                          .addToStart(const SizedBox(
-                                                              height: 24.0)),
+                                                          .divide(
+                                                              const SizedBox(
+                                                                  height: 24.0))
+                                                          .addToStart(
+                                                              const SizedBox(
+                                                                  height:
+                                                                      24.0)),
                                                     ),
                                                   ),
                                                   Column(
@@ -5406,7 +5452,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     ),
                                                                     child:
                                                                         Padding(
-                                                                      padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                      padding: const EdgeInsetsDirectional
+                                                                          .fromSTEB(
                                                                           8.0,
                                                                           2.0,
                                                                           8.0,
@@ -5563,8 +5610,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                             c))
                                                                     .toList(),
                                                               ),
-                                                              emptyBuilder:
-                                                                  () => const Center(
+                                                              emptyBuilder: () =>
+                                                                  const Center(
                                                                 child:
                                                                     EmptyWidget(),
                                                               ),
@@ -5613,8 +5660,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                     ]
                                                         .divide(const SizedBox(
                                                             height: 24.0))
-                                                        .addToStart(const SizedBox(
-                                                            height: 24.0)),
+                                                        .addToStart(
+                                                            const SizedBox(
+                                                                height: 24.0)),
                                                   ),
                                                   Column(
                                                     mainAxisSize:
@@ -5985,8 +6033,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                     ]
                                                         .divide(const SizedBox(
                                                             height: 24.0))
-                                                        .addToStart(const SizedBox(
-                                                            height: 24.0)),
+                                                        .addToStart(
+                                                            const SizedBox(
+                                                                height: 24.0)),
                                                   ),
                                                   Stack(
                                                     children: [
@@ -5997,10 +6046,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      0.0,
-                                                                      32.0,
-                                                                      0.0,
-                                                                      0.0),
+                                                                  0.0,
+                                                                  32.0,
+                                                                  0.0,
+                                                                  0.0),
                                                           child: FutureBuilder<
                                                               List<
                                                                   ReproducaoRow>>(
@@ -6681,10 +6730,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      0.0,
-                                                                      32.0,
-                                                                      0.0,
-                                                                      0.0),
+                                                                  0.0,
+                                                                  32.0,
+                                                                  0.0,
+                                                                  0.0),
                                                           child: FutureBuilder<
                                                               List<
                                                                   ReproducaoRow>>(
@@ -7385,11 +7434,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                             options: FFButtonOptions(
                                               width: 218.0,
                                               height: 56.0,
-                                              padding: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              padding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       16.0, 0.0, 16.0, 0.0),
-                                              iconPadding: const EdgeInsetsDirectional
-                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                              iconPadding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
+                                                      0.0, 0.0, 0.0, 0.0),
                                               color: Colors.white,
                                               textStyle: FlutterFlowTheme.of(
                                                       context)
@@ -7407,7 +7459,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                               .titleSmall
                                                               .fontStyle,
                                                     ),
-                                                    color: const Color(0xFF28A365),
+                                                    color:
+                                                        const Color(0xFF28A365),
                                                     letterSpacing: 0.0,
                                                     fontWeight:
                                                         FlutterFlowTheme.of(
@@ -7542,11 +7595,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                             options: FFButtonOptions(
                                               width: 218.0,
                                               height: 56.0,
-                                              padding: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              padding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       16.0, 0.0, 16.0, 0.0),
-                                              iconPadding: const EdgeInsetsDirectional
-                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                              iconPadding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
+                                                      0.0, 0.0, 0.0, 0.0),
                                               color:
                                                   FlutterFlowTheme.of(context)
                                                       .primary,

@@ -78,6 +78,11 @@ class _ModalAdicionarWidgetState extends State<ModalAdicionarWidget> {
             FFButtonWidget(
               onPressed: () async {
                 if (FFAppState().propriedadeSelecionada.idPropriedade != '') {
+                  FFAppState().matrizSelecionada = AnimalSelecionadoStruct();
+                  FFAppState().reprodutorSelecionado =
+                      AnimalSelecionadoStruct();
+                  FFAppState().refreshAnimalSelecionado = false;
+
                   _model.lotes2 = await LotesTable().queryRows(
                     queryFn: (q) => q
                         .eqOrNull(
@@ -130,8 +135,10 @@ class _ModalAdicionarWidgetState extends State<ModalAdicionarWidget> {
               ),
               options: FFButtonOptions(
                 height: 56.0,
-                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                iconPadding:
+                    const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
                 color: Colors.white,
                 textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                       font: GoogleFonts.poppins(
@@ -154,6 +161,11 @@ class _ModalAdicionarWidgetState extends State<ModalAdicionarWidget> {
             FFButtonWidget(
               onPressed: () async {
                 if (FFAppState().propriedadeSelecionada.idPropriedade != '') {
+                  FFAppState().matrizSelecionada = AnimalSelecionadoStruct();
+                  FFAppState().reprodutorSelecionado =
+                      AnimalSelecionadoStruct();
+                  FFAppState().refreshAnimalSelecionado = false;
+
                   _model.lotes = await LotesTable().queryRows(
                     queryFn: (q) => q
                         .eqOrNull(
@@ -206,8 +218,10 @@ class _ModalAdicionarWidgetState extends State<ModalAdicionarWidget> {
               ),
               options: FFButtonOptions(
                 height: 56.0,
-                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                iconPadding:
+                    const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
                 color: Colors.white,
                 textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                       font: GoogleFonts.poppins(
@@ -257,8 +271,10 @@ class _ModalAdicionarWidgetState extends State<ModalAdicionarWidget> {
               ),
               options: FFButtonOptions(
                 height: 56.0,
-                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                iconPadding:
+                    const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
                 color: Colors.white,
                 textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                       font: GoogleFonts.poppins(
