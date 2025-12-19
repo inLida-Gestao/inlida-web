@@ -68,13 +68,44 @@ Future exportReproducaoExcel(String nameExcel, String idPropriedade) async {
     var excel = Excel.createExcel();
     Sheet sheet = excel['Sheet1'];
 
-    // Remover colunas técnicas
-    Set<String> columnsToRemove = {};
+    // Exportar no formato do MODELO de importação (não exportar todas as colunas da tabela).
+    // Headers aqui são os nomes amigáveis do Excel; os valores são obtidos do map retornado pelo Supabase.
+    const template = <String, String>{
+      'Tipo_reproducao': 'tipo_reproducao',
+      'Score_corporal': 'score_corporal',
+      'Data_inseminacao': 'data_inseminacao',
+      'Data_partida_semen': 'data_partida_semen',
+      'Partida_semen': 'partida_semen',
+      'Previsao_parto': 'previsao_parto',
+      'Status_reproducao': 'status_reproducao',
+      'Inseminador': 'inseminador',
+      'Anotacoes': 'anotacoes',
+      'Categoria': 'categoria',
+      'Lote': 'loteNome',
 
-    // Pegar as chaves do primeiro registro
-    List<String> allKeys = allData[0].keys.toList();
-    List<String> headers =
-        allKeys.where((key) => !columnsToRemove.contains(key)).toList();
+      // OBS: importa como data_inicial/data_final, mas no modelo é "monta"
+      'Data_inicial_monta': 'data_inicial',
+      'Data_final_monta': 'data_final',
+
+      'Numero_matriz': 'numMatriz',
+      'Nome_matriz': 'nomeMatriz',
+      'Data_nascimento_matriz': 'nascimentoMatriz',
+      'Raca_matriz': 'racaMatriz',
+      'Chip_matriz': 'chipMatriz',
+
+      'Numero_reprodutor': 'numReprodutor',
+      'Nome_reprodutor': 'nomeReprodutor',
+      'Data_nascimento_reprodutor': 'nascimentoReprodutor',
+      'Raca_reprodutor': 'racaReprodutor',
+      'Chip_reprodutor': 'chipReprodutor',
+
+      'Data_status': 'data_status',
+      'Ressinc': 'ressinc',
+      'Parida': 'parida',
+      'Data_parto': 'data_parto',
+    };
+
+    final headers = template.keys.toList(growable: false);
 
     print('Colunas a exportar (${headers.length}): $headers');
 
@@ -86,20 +117,20 @@ Future exportReproducaoExcel(String nameExcel, String idPropriedade) async {
     }
     print('Headers adicionados!');
 
-    // Colunas numéricas da tabela reproducao
-    Set<String> numericColumns = {'score_corporal', 'partida_semen'};
+    // Colunas numéricas do TEMPLATE
+    Set<String> numericColumns = {'Score_corporal', 'Partida_semen'};
 
-    // Colunas de data da tabela reproducao
+    // Colunas de data do TEMPLATE
     Set<String> dateColumns = {
-      'data_inseminacao',
-      'data_partida_semen',
-      'previsao_parto',
-      'data_inicial',
-      'data_final',
-      'nascimentoMatriz',
-      'nascimentoReprodutor',
-      'data_status',
-      'data_parto'
+      'Data_inseminacao',
+      'Data_partida_semen',
+      'Previsao_parto',
+      'Data_inicial_monta',
+      'Data_final_monta',
+      'Data_nascimento_matriz',
+      'Data_nascimento_reprodutor',
+      'Data_status',
+      'Data_parto',
     };
 
     // Preencher dados
@@ -110,8 +141,10 @@ Future exportReproducaoExcel(String nameExcel, String idPropriedade) async {
       }
 
       for (var colIndex = 0; colIndex < headers.length; colIndex++) {
-        var value = allData[rowIndex][headers[colIndex]];
-        String columnName = headers[colIndex];
+        final header = headers[colIndex];
+        final sourceKey = template[header]!;
+        var value = allData[rowIndex][sourceKey];
+        String columnName = header;
 
         try {
           if (numericColumns.contains(columnName)) {
