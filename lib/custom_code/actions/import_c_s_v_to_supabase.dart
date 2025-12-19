@@ -10,6 +10,17 @@ import 'package:csv/csv.dart';
 import 'dart:convert';
 import 'dart:math';
 
+
+String _decodeWithBestEncoding(List<int> bytes) {
+  try {
+    return utf8.decode(bytes);
+  } catch (_) {}
+  try {
+    return latin1.decode(bytes);
+  } catch (_) {}
+  return utf8.decode(bytes, allowMalformed: true);
+}
+
 Future<bool> importCSVToSupabase(
   FFUploadedFile csvFile,
   String idPropriedade,
@@ -31,7 +42,7 @@ Future<bool> importCSVToSupabase(
     // Decode CSV content
     String csvContent;
     try {
-      csvContent = utf8.decode(csvFile.bytes!, allowMalformed: true);
+      csvContent = _decodeWithBestEncoding(csvFile.bytes!);
     } catch (e) {
       return false;
     }

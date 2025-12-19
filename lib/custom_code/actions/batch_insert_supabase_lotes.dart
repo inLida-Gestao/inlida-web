@@ -5,6 +5,7 @@ import '/backend/supabase/supabase.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import 'dart:convert';
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -170,41 +171,14 @@ Future<bool> batchInsertSupabaseLotes(
 // Função auxiliar para corrigir problemas de encoding (acentuação)
 String _fixEncoding(String text) {
   try {
-    // Mapa de correções comuns de encoding UTF-8 mal interpretado
-    final Map<String, String> corrections = {
-      'Ã§': 'ç',
-      'Ã£': 'ã',
-      'Ã¡': 'á',
-      'Ã©': 'é',
-      'Ã­': 'í',
-      'Ã³': 'ó',
-      'Ãº': 'ú',
-      'Ã¢': 'â',
-      'Ãª': 'ê',
-      'Ã´': 'ô',
-      'Ã': 'à',
-      'Ãµ': 'õ',
-      'Ã¼': 'ü',
-      'Ã': 'Á',
-      'Ã‰': 'É',
-      'Ã': 'Í',
-      'Ã"': 'Ó',
-      'Ãš': 'Ú',
-      'Ã‚': 'Â',
-      'ÃŠ': 'Ê',
-      'Ã"': 'Ô',
-      'Ã€': 'À',
-      'Ã•': 'Õ',
-      'Ãœ': 'Ü',
-      'Ã‡': 'Ç',
-    };
+    // Heurística: corrige strings UTF-8 interpretadas como Latin-1.
+    // Ex.: "FÃªmea" -> "Fêmea".
+    if (!(text.contains('Ã') || text.contains('Â') || text.contains('�'))) {
+      return text;
+    }
 
-    String fixed = text;
-    corrections.forEach((wrong, correct) {
-      fixed = fixed.replaceAll(wrong, correct);
-    });
-
-    return fixed;
+    final bytes = latin1.encode(text);
+    return utf8.decode(bytes, allowMalformed: true);
   } catch (e) {
     print('Erro ao corrigir encoding: $e');
     return text;

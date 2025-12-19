@@ -244,12 +244,14 @@ Future<List<dynamic>> parseCsvToJsonReproducao(FFUploadedFile? csvFile) async {
 
 // Função auxiliar para decodificação customizada (fallback)
 String _decodeWithBestEncoding(List<int> bytes) {
-  // 1) Tentar UTF-8 (principal caminho)
+  // 1) Tentar UTF-8 estrito (principal caminho).
+  // Importante: NÃO usar allowMalformed aqui, senão perde caracteres (vira "�")
+  // e depois não dá pra recuperar.
   try {
-    return utf8.decode(bytes, allowMalformed: true);
+    return utf8.decode(bytes);
   } catch (_) {}
 
-  // 2) Tentar Latin-1 (arquivos antigos)
+  // 2) Tentar Latin-1 (muito comum em CSVs antigos / Excel).
   try {
     return latin1.decode(bytes);
   } catch (_) {}

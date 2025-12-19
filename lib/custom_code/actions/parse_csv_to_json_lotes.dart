@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import 'dart:convert';
 import 'package:csv/csv.dart';
 
 Future<List<dynamic>> parseCsvToJsonLotes(FFUploadedFile? csvFile) async {
@@ -125,33 +126,36 @@ Future<List<dynamic>> parseCsvToJsonLotes(FFUploadedFile? csvFile) async {
 
 // Função auxiliar para decodificação customizada (fallback)
 String _decodeWithBestEncoding(List<int> bytes) {
+  // 1) Tentar UTF-8 estrito.
+  try {
+    return utf8.decode(bytes);
+  } catch (_) {}
+
+  // 2) Tentar Latin-1.
+  try {
+    return latin1.decode(bytes);
+  } catch (_) {}
+
+  // 3) Último fallback: byte-loop com mapeamento específico (mantido).
   print('Usando decodificação customizada como fallback');
-
-  // Criar string resultado para casos de encoding customizado
-  String result = '';
-
-  // Processar byte por byte com mapeamento específico para arquivos antigos
-  for (int i = 0; i < bytes.length; i++) {
-    final byte = bytes[i];
-
-    // Mapeamento apenas dos bytes problemáticos identificados em arquivos não-UTF8
+  final sb = StringBuffer();
+  for (final byte in bytes) {
     switch (byte) {
       case 0x90:
-        result += 'ê'; // Fêmea
+        sb.write('ê'); // Fêmea
         break;
       case 0x8D:
-        result += 'ç'; // Mestiço
+        sb.write('ç'); // Mestiço
         break;
       case 0xCC:
-        result += 'Ã'; // SÃO
+        sb.write('Ã'); // SÃO
         break;
       default:
-        result += String.fromCharCode(byte);
+        sb.writeCharCode(byte);
         break;
     }
   }
-
-  return result;
+  return sb.toString();
 }
 
 // Função auxiliar para detectar delimitador

@@ -8,6 +8,17 @@ import '/flutter_flow/flutter_flow_util.dart';
 import 'package:csv/csv.dart';
 import 'dart:convert';
 
+
+String _decodeWithBestEncoding(List<int> bytes) {
+  try {
+    return utf8.decode(bytes);
+  } catch (_) {}
+  try {
+    return latin1.decode(bytes);
+  } catch (_) {}
+  return utf8.decode(bytes, allowMalformed: true);
+}
+
 Future<List<dynamic>> parseCsvToJsonMachines(FFUploadedFile? csvFile) async {
   if (csvFile == null || csvFile.bytes == null) return [];
 
@@ -22,8 +33,7 @@ Future<List<dynamic>> parseCsvToJsonMachines(FFUploadedFile? csvFile) async {
     }
 
     // 2. Decodificação com tratamento de erros
-    final csvData = utf8
-        .decode(bytes, allowMalformed: true)
+    final csvData = _decodeWithBestEncoding(bytes)
         .replaceAll('\r\n', '\n')
         .replaceAll('\r', '\n');
 

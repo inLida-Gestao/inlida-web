@@ -8,6 +8,16 @@ import '/flutter_flow/flutter_flow_util.dart';
 // gere uma action que faz o upload de um arquivo csv e converte para uma lista do tipo json
 import 'dart:convert';
 
+String _decodeWithBestEncoding(List<int> bytes) {
+  try {
+    return utf8.decode(bytes);
+  } catch (_) {}
+  try {
+    return latin1.decode(bytes);
+  } catch (_) {}
+  return utf8.decode(bytes, allowMalformed: true);
+}
+
 Future<List<dynamic>> csvToJson(FFUploadedFile? csvFile) async {
   if (csvFile == null || csvFile.bytes == null || csvFile.bytes!.isEmpty) {
     return [];
@@ -15,7 +25,7 @@ Future<List<dynamic>> csvToJson(FFUploadedFile? csvFile) async {
 
   try {
     // Convert bytes to string
-    String csvContent = utf8.decode(csvFile.bytes!);
+    String csvContent = _decodeWithBestEncoding(csvFile.bytes!);
 
     // Split into lines and remove empty lines
     List<String> lines =
