@@ -5005,10 +5005,49 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                       Expanded(
                                                         child: Builder(
                                                           builder: (context) {
+                                                            final selectedIdRebanho =
+                                                                pgRebanhoViewRebanhoRow
+                                                                        ?.idRebanho ??
+                                                                    '';
+                                                            final selectedRowId =
+                                                                pgRebanhoViewRebanhoRow
+                                                                    ?.id;
+                                                            final selectedNumeroAnimal =
+                                                                pgRebanhoViewRebanhoRow
+                                                                    ?.numeroAnimal;
+
                                                             final crias =
                                                                 FFAppState()
                                                                     .crias
-                                                                    .toList();
+                                                                    .where((e) {
+                                                              if (selectedIdRebanho
+                                                                  .isEmpty) {
+                                                                return false;
+                                                              }
+
+                                                              final isSelf = (selectedRowId !=
+                                                                          null &&
+                                                                      e.id ==
+                                                                          selectedRowId) ||
+                                                                  (e.idRebanho ==
+                                                                      selectedIdRebanho) ||
+                                                                  (selectedNumeroAnimal !=
+                                                                          null &&
+                                                                      e.numeroAnimal ==
+                                                                          selectedNumeroAnimal);
+                                                              if (isSelf) {
+                                                                return false;
+                                                              }
+
+                                                              if (pgRebanhoViewRebanhoRow
+                                                                      ?.sexo ==
+                                                                  'Macho') {
+                                                                return e.rebanhoIdReprodutor ==
+                                                                    selectedIdRebanho;
+                                                              }
+                                                              return e.rebanhoIdMatriz ==
+                                                                  selectedIdRebanho;
+                                                            }).toList();
                                                             if (crias.isEmpty) {
                                                               return const Center(
                                                                 child:

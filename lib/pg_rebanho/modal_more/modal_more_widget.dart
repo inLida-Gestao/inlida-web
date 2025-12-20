@@ -91,11 +91,15 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                     queryFn: (q) => q
                         .eqOrNull(
                           'rebanhoIdMatriz',
-                          _model.matriz?.firstOrNull?.idRebanho,
+                          _model.rebanho?.firstOrNull?.idRebanho,
                         )
                         .eqOrNull(
                           'idPropriedade',
                           FFAppState().propriedadeSelecionada.idPropriedade,
+                        )
+                        .eqOrNull(
+                          'deletado',
+                          'NAO',
                         ),
                   );
                   if (_model.criasMatriz != null &&
@@ -105,6 +109,14 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                     _model.indexCrias = 0;
                     safeSetState(() {});
                     while (_model.indexCrias < _model.criasMatriz!.length) {
+                      final criasMatrizRow = _model.criasMatriz?.elementAtOrNull(_model.indexCrias);
+                      if ((criasMatrizRow?.id == widget.rebanhoId) ||
+                          (criasMatrizRow?.idRebanho == _model.rebanho?.firstOrNull?.idRebanho) ||
+                          (criasMatrizRow?.numeroAnimal == _model.rebanho?.firstOrNull?.numeroAnimal)) {
+                        _model.indexCrias = _model.indexCrias + 1;
+                        safeSetState(() {});
+                        continue;
+                      }
                       FFAppState().addToCrias(AnimaisStruct(
                         idRebanho: _model.criasMatriz
                             ?.elementAtOrNull(_model.indexCrias)
@@ -154,14 +166,33 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                 }
                 if (_model.rebanho?.firstOrNull?.sexo == 'Macho') {
                   _model.criasReprodutor = await RebanhoTable().queryRows(
-                    queryFn: (q) => q.eqOrNull(
-                      'rebanhoIdReprodutor',
-                      _model.rebanho?.firstOrNull?.idRebanho,
-                    ),
+                    queryFn: (q) => q
+                        .eqOrNull(
+                          'rebanhoIdReprodutor',
+                          _model.rebanho?.firstOrNull?.idRebanho,
+                        )
+                        .eqOrNull(
+                          'idPropriedade',
+                          FFAppState().propriedadeSelecionada.idPropriedade,
+                        )
+                        .eqOrNull(
+                          'deletado',
+                          'NAO',
+                        ),
                   );
                   if (_model.criasReprodutor != null &&
                       (_model.criasReprodutor)!.isNotEmpty) {
+                    _model.indexCrias = 0;
+                    safeSetState(() {});
                     while (_model.indexCrias < _model.criasReprodutor!.length) {
+                      final criasReprodutorRow = _model.criasReprodutor?.elementAtOrNull(_model.indexCrias);
+                      if ((criasReprodutorRow?.id == widget.rebanhoId) ||
+                          (criasReprodutorRow?.idRebanho == _model.rebanho?.firstOrNull?.idRebanho) ||
+                          (criasReprodutorRow?.numeroAnimal == _model.rebanho?.firstOrNull?.numeroAnimal)) {
+                        _model.indexCrias = _model.indexCrias + 1;
+                        safeSetState(() {});
+                        continue;
+                      }
                       FFAppState().addToCrias(AnimaisStruct(
                         idRebanho: _model.criasReprodutor
                             ?.elementAtOrNull(_model.indexCrias)
@@ -279,8 +310,10 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
               ),
               options: FFButtonOptions(
                 height: 56.0,
-                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                iconPadding:
+                    const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
                 color: Colors.white,
                 textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                       font: GoogleFonts.poppins(
@@ -329,7 +362,8 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                 ),
                 options: FFButtonOptions(
                   height: 56.0,
-                  padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                      16.0, 0.0, 16.0, 0.0),
                   iconPadding:
                       const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
                   color: Colors.white,
@@ -455,8 +489,10 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
               ),
               options: FFButtonOptions(
                 height: 56.0,
-                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                iconPadding:
+                    const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
                 color: Colors.white,
                 textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                       font: GoogleFonts.poppins(
@@ -504,7 +540,8 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                 ),
                 options: FFButtonOptions(
                   height: 56.0,
-                  padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                      16.0, 0.0, 16.0, 0.0),
                   iconPadding:
                       const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
                   color: Colors.white,
