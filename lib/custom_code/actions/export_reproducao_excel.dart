@@ -42,7 +42,7 @@ Future exportReproducaoExcel(String nameExcel, String idPropriedade) async {
         // Adicionar os dados à lista principal
         for (var item in response) {
           allData.add(Map<String, dynamic>.from(item));
-                  }
+        }
 
         // Verificar se há mais dados
         if (response.length < batchSize) {
@@ -51,7 +51,7 @@ Future exportReproducaoExcel(String nameExcel, String idPropriedade) async {
         } else {
           offset += batchSize;
         }
-            } catch (e) {
+      } catch (e) {
         print('Erro ao buscar batch: $e');
         hasMoreData = false;
       }
@@ -69,40 +69,33 @@ Future exportReproducaoExcel(String nameExcel, String idPropriedade) async {
     Sheet sheet = excel['Sheet1'];
 
     // Exportar no formato do MODELO de importação (não exportar todas as colunas da tabela).
-    // Headers aqui são os nomes amigáveis do Excel; os valores são obtidos do map retornado pelo Supabase.
+    // IMPORTANTE: headers e ordem devem ser IGUAIS ao modelo usado na importação.
     const template = <String, String>{
       'Tipo_reproducao': 'tipo_reproducao',
-      'Score_corporal': 'score_corporal',
       'Data_inseminacao': 'data_inseminacao',
-      'Data_partida_semen': 'data_partida_semen',
-      'Partida_semen': 'partida_semen',
-      'Previsao_parto': 'previsao_parto',
-      'Status_reproducao': 'status_reproducao',
-      'Inseminador': 'inseminador',
-      'Anotacoes': 'anotacoes',
-      'Categoria': 'categoria',
-      'Lote': 'loteNome',
-
-      // OBS: importa como data_inicial/data_final, mas no modelo é "monta"
       'Data_inicial_monta': 'data_inicial',
       'Data_final_monta': 'data_final',
-
-      'Numero_matriz': 'numMatriz',
+      'Número_matriz': 'numMatriz',
       'Nome_matriz': 'nomeMatriz',
       'Data_nascimento_matriz': 'nascimentoMatriz',
-      'Raca_matriz': 'racaMatriz',
-      'Chip_matriz': 'chipMatriz',
-
-      'Numero_reprodutor': 'numReprodutor',
+      'Categoria_matriz': 'categoria',
+      'Raça_matriz': 'racaMatriz',
+      'Lote': 'loteNome',
+      'Score_corporal': 'score_corporal',
+      'Número_reprodutor': 'numReprodutor',
       'Nome_reprodutor': 'nomeReprodutor',
       'Data_nascimento_reprodutor': 'nascimentoReprodutor',
-      'Raca_reprodutor': 'racaReprodutor',
-      'Chip_reprodutor': 'chipReprodutor',
-
+      'Raça_reprodutor': 'racaReprodutor',
+      'Data_partida_sêmen': 'data_partida_semen',
+      'Partida_sêmen': 'partida_semen',
+      'Inseminador': 'inseminador',
+      'Previsão_parto': 'previsao_parto',
+      'Status_reprodução': 'status_reproducao',
       'Data_status': 'data_status',
       'Ressinc': 'ressinc',
       'Parida': 'parida',
       'Data_parto': 'data_parto',
+      'Anotações': 'anotacoes',
     };
 
     final headers = template.keys.toList(growable: false);
@@ -118,17 +111,17 @@ Future exportReproducaoExcel(String nameExcel, String idPropriedade) async {
     print('Headers adicionados!');
 
     // Colunas numéricas do TEMPLATE
-    Set<String> numericColumns = {'Score_corporal', 'Partida_semen'};
+    Set<String> numericColumns = {'Score_corporal', 'Partida_sêmen'};
 
     // Colunas de data do TEMPLATE
     Set<String> dateColumns = {
       'Data_inseminacao',
-      'Data_partida_semen',
-      'Previsao_parto',
       'Data_inicial_monta',
       'Data_final_monta',
       'Data_nascimento_matriz',
       'Data_nascimento_reprodutor',
+      'Data_partida_sêmen',
+      'Previsão_parto',
       'Data_status',
       'Data_parto',
     };
@@ -172,6 +165,11 @@ Future exportReproducaoExcel(String nameExcel, String idPropriedade) async {
                         columnIndex: colIndex, rowIndex: rowIndex + 1))
                     .value = TextCellValue(value);
               }
+            } else {
+              sheet
+                  .cell(CellIndex.indexByColumnRow(
+                      columnIndex: colIndex, rowIndex: rowIndex + 1))
+                  .value = TextCellValue(value.toString());
             }
           } else if (dateColumns.contains(columnName)) {
             // Tratamento de data
