@@ -50,6 +50,13 @@ class _PainelWidgetState extends State<PainelWidget>
     super.initState();
     _model = createModel(context, () => PainelModel());
 
+    // Defaults do gráfico "Rebanho por período": sempre iniciar no ano atual.
+    final currentYear = DateTime.now().year;
+    _model.dropDownValue1 ??= currentYear;
+    _model.dropDownValue2 ??= 1;
+    _model.dropDownValue3 ??= currentYear;
+    _model.dropDownValue4 ??= 12;
+
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       Function() navigate = () {};
@@ -1757,7 +1764,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                         propertyId: FFAppState().propriedadeSelecionada.idPropriedade,
                                                                                         startYear: valueOrDefault<int>(
                                                                                           _model.dropDownValue1,
-                                                                                          2025,
+                                                                                          DateTime.now().year,
                                                                                         ),
                                                                                         startMonth: valueOrDefault<int>(
                                                                                           _model.dropDownValue2,
@@ -1765,7 +1772,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                         ),
                                                                                         endYear: valueOrDefault<int>(
                                                                                           _model.dropDownValue3,
-                                                                                          2025,
+                                                                                          DateTime.now().year,
                                                                                         ),
                                                                                         endMonth: valueOrDefault<int>(
                                                                                           _model.dropDownValue4,
