@@ -14,3 +14,5 @@ export 'unlimited_data_table.dart' show UnlimitedDataTable;
 export 'taxa_prenhez_chart.dart' show TaxaPrenhezChart;
 export 'year_month_range_picker.dart' show YearMonthRangePicker;
 export 'super_nascimentos_chart.dart' show SuperNascimentosChart;
+export 'diagnosticos_categoria_chart.dart' show DiagnosticosCategoriaChart;
+export 'diagnosticos_periodo_table.dart' show DiagnosticosPeriodoTable;

@@ -4194,6 +4194,287 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         24.0)),
                                                           ),
                                                         ),
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                  4.0,
+                                                                  0.0,
+                                                                  0.0,
+                                                                  0.0),
+                                                          child: Row(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .max,
+                                                            children: [
+                                                              Expanded(
+                                                                child: FutureBuilder<
+                                                                    ApiCallResponse>(
+                                                                  future: SupaEdgeGroup
+                                                                      .reproducaoDiagnosticosCategoriaCall
+                                                                      .call(
+                                                                    dataInicial:
+                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                    dataFinal:
+                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
+                                                                    idPropriedade:
+                                                                        FFAppState()
+                                                                            .propriedadeSelecionada
+                                                                            .idPropriedade,
+                                                                  ),
+                                                                  builder: (context,
+                                                                      snapshot) {
+                                                                    // Customize what your widget looks like when it's loading.
+                                                                    if (!snapshot
+                                                                        .hasData) {
+                                                                      return Center(
+                                                                        child:
+                                                                            SizedBox(
+                                                                          width:
+                                                                              50.0,
+                                                                          height:
+                                                                              50.0,
+                                                                          child:
+                                                                              CircularProgressIndicator(
+                                                                            valueColor:
+                                                                                AlwaysStoppedAnimation<Color>(
+                                                                              FlutterFlowTheme.of(context).primary,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                    final containerReproducaoDiagnosticosCategoriaResponse =
+                                                                        snapshot
+                                                                            .data!;
+
+                                                                    return Material(
+                                                                      color: Colors
+                                                                          .transparent,
+                                                                      elevation:
+                                                                          2.0,
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6.0),
+                                                                      ),
+                                                                      child:
+                                                                          Container(
+                                                                        height:
+                                                                            433.0,
+                                                                        constraints:
+                                                                            const BoxConstraints(
+                                                                          maxHeight:
+                                                                              433.0,
+                                                                        ),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color:
+                                                                              FlutterFlowTheme.of(context).secondaryBackground,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(6.0),
+                                                                        ),
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
+                                                                          child:
+                                                                              Column(
+                                                                            mainAxisSize:
+                                                                                MainAxisSize.max,
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.start,
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.start,
+                                                                            children: [
+                                                                              Text(
+                                                                                'Diagnósticos reprodutivos por categoria',
+                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                      font: GoogleFonts.poppins(
+                                                                                        fontWeight: FontWeight.w600,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                      ),
+                                                                                      fontSize: 18.0,
+                                                                                      letterSpacing: 0.0,
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                    ),
+                                                                              ),
+                                                                              Expanded(
+                                                                                child: Container(
+                                                                                  width: double.infinity,
+                                                                                  height: double.infinity,
+                                                                                  constraints: const BoxConstraints(
+                                                                                    maxHeight: 350.0,
+                                                                                  ),
+                                                                                  decoration: BoxDecoration(
+                                                                                    color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                  ),
+                                                                                  child: SizedBox(
+                                                                                    width: double.infinity,
+                                                                                    height: double.infinity,
+                                                                                    child: custom_widgets.DiagnosticosCategoriaChart(
+                                                                                      width: double.infinity,
+                                                                                      height: double.infinity,
+                                                                                      items: getJsonField(
+                                                                                        containerReproducaoDiagnosticosCategoriaResponse.jsonBody,
+                                                                                        r'''$.items''',
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ),
+                                                              Expanded(
+                                                                child: FutureBuilder<
+                                                                    ApiCallResponse>(
+                                                                  future: SupaEdgeGroup
+                                                                      .reproducaoDiagnosticosPeriodoCall
+                                                                      .call(
+                                                                    idPropriedade:
+                                                                        FFAppState()
+                                                                            .propriedadeSelecionada
+                                                                            .idPropriedade,
+                                                                    mes:
+                                                                        _model.dDInicioMesValue,
+                                                                    ano:
+                                                                        functions
+                                                                            .converterTextoEmNumero(
+                                                                          _model
+                                                                              .dDInicioAnoValue,
+                                                                        ),
+                                                                  ),
+                                                                  builder: (context,
+                                                                      snapshot) {
+                                                                    // Customize what your widget looks like when it's loading.
+                                                                    if (!snapshot
+                                                                        .hasData) {
+                                                                      return Center(
+                                                                        child:
+                                                                            SizedBox(
+                                                                          width:
+                                                                              50.0,
+                                                                          height:
+                                                                              50.0,
+                                                                          child:
+                                                                              CircularProgressIndicator(
+                                                                            valueColor:
+                                                                                AlwaysStoppedAnimation<Color>(
+                                                                              FlutterFlowTheme.of(context).primary,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                    final containerReproducaoDiagnosticosPeriodoResponse =
+                                                                        snapshot
+                                                                            .data!;
+
+                                                                    return Material(
+                                                                      color: Colors
+                                                                          .transparent,
+                                                                      elevation:
+                                                                          2.0,
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6.0),
+                                                                      ),
+                                                                      child:
+                                                                          Container(
+                                                                        height:
+                                                                            433.0,
+                                                                        constraints:
+                                                                            const BoxConstraints(
+                                                                          maxHeight:
+                                                                              433.0,
+                                                                        ),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color:
+                                                                              FlutterFlowTheme.of(context).secondaryBackground,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(6.0),
+                                                                        ),
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
+                                                                          child:
+                                                                              Column(
+                                                                            mainAxisSize:
+                                                                                MainAxisSize.max,
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.start,
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.start,
+                                                                            children: [
+                                                                              Row(
+                                                                                mainAxisSize: MainAxisSize.max,
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                children: [
+                                                                                  Text(
+                                                                                    'Diagnósticos realizados no período',
+                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                          fontSize: 18.0,
+                                                                                          letterSpacing: 0.0,
+                                                                                          fontWeight: FontWeight.w600,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                        ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                              Expanded(
+                                                                                child: Container(
+                                                                                  width: double.infinity,
+                                                                                  height: double.infinity,
+                                                                                  constraints: const BoxConstraints(
+                                                                                    maxHeight: 350.0,
+                                                                                  ),
+                                                                                  decoration: BoxDecoration(
+                                                                                    color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                  ),
+                                                                                  child: SizedBox(
+                                                                                    width: double.infinity,
+                                                                                    height: double.infinity,
+                                                                                    child: custom_widgets.DiagnosticosPeriodoTable(
+                                                                                      width: double.infinity,
+                                                                                      height: double.infinity,
+                                                                                      items: getJsonField(
+                                                                                        containerReproducaoDiagnosticosPeriodoResponse.jsonBody,
+                                                                                        r'''$.items''',
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        24.0)),
+                                                          ),
+                                                        ),
                                                         if (responsiveVisibility(
                                                           context: context,
                                                           phone: false,

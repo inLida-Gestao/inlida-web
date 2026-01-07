@@ -1861,6 +1861,11 @@ class SupaEdgeGroup {
       ReproducaoIdadeMediaPrimeraCriaCall();
   static IntervaloEntrePartosMesesCall intervaloEntrePartosMesesCall =
       IntervaloEntrePartosMesesCall();
+  static ReproducaoDiagnosticosCategoriaCall
+      reproducaoDiagnosticosCategoriaCall =
+      ReproducaoDiagnosticosCategoriaCall();
+  static ReproducaoDiagnosticosPeriodoCall reproducaoDiagnosticosPeriodoCall =
+      ReproducaoDiagnosticosPeriodoCall();
 }
 
 class ReproducaoPartosCategoriaCall {
@@ -2372,6 +2377,126 @@ String _serializeJson(dynamic jsonVar, [bool isList = false]) {
     }
     return isList ? '[]' : '{}';
   }
+}
+
+class ReproducaoDiagnosticosCategoriaCall {
+  Future<ApiCallResponse> call({
+    String? idPropriedade = '',
+    String? dataInicial = '',
+    String? dataFinal = '',
+  }) async {
+    final baseUrl = SupaEdgeGroup.getBaseUrl();
+
+    return ApiManager.instance.makeApiCall(
+      callName: 'Reproducao Diagnosticos Categoria',
+      apiUrl: '${baseUrl}reproducao-diagnosticos-categoria',
+      callType: ApiCallType.GET,
+      headers: {
+        'Authorization':
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Content-Type': 'application/json',
+        'apikey':
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+      },
+      params: {
+        'idPropriedade': idPropriedade,
+        'inicio': dataInicial,
+        'fim': dataFinal,
+      },
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  List? items(dynamic response) => getJsonField(
+        response,
+        r'''$.items''',
+        true,
+      ) as List?;
+  bool? ok(dynamic response) => castToType<bool>(getJsonField(
+        response,
+        r'''$.ok''',
+      ));
+  String? itemsperiodo(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.items[:].periodo''',
+      ));
+  String? itemslabel(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.items[:].label''',
+      ));
+  int? itemsNovilha(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.items[:].Novilha''',
+      ));
+  int? itemsPrimpara(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.items[:].Primípara''',
+      ));
+  int? itemsMultpara(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.items[:].Multípara''',
+      ));
+}
+
+class ReproducaoDiagnosticosPeriodoCall {
+  Future<ApiCallResponse> call({
+    String? idPropriedade = '',
+    int? mes = 1,
+    int? ano = 2023,
+  }) async {
+    final baseUrl = SupaEdgeGroup.getBaseUrl();
+
+    return ApiManager.instance.makeApiCall(
+      callName: 'Reproducao Diagnosticos Periodo',
+      apiUrl: '${baseUrl}reproducao-diagnosticos-periodo',
+      callType: ApiCallType.GET,
+      headers: {
+        'Authorization':
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Content-Type': 'application/json',
+        'apikey':
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+      },
+      params: {
+        'idPropriedade': idPropriedade,
+        'mes': mes?.toString(),
+        'ano': ano?.toString(),
+      },
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  List? items(dynamic response) => getJsonField(
+        response,
+        r'''$.items''',
+        true,
+      ) as List?;
+  bool? ok(dynamic response) => castToType<bool>(getJsonField(
+        response,
+        r'''$.items''',
+      ));
+  String? itemssituacao(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.items[:].situacao''',
+      ));
+  int? itemstotal(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.items[:].total''',
+      ));
+  double? itemsporcentagem(dynamic response) => castToType<double>(getJsonField(
+        response,
+        r'''$.items[:].porcentagem''',
+      ));
 }
 
 String? escapeStringForJson(String? input) {
