@@ -11,9 +11,11 @@ export 'sub_menu_lotes_model.dart';
 class SubMenuLotesWidget extends StatefulWidget {
   const SubMenuLotesWidget({
     super.key,
+    required this.idLote,
     required this.loteNome,
   });
 
+  final String? idLote;
   final String? loteNome;
 
   @override
@@ -192,7 +194,7 @@ class _SubMenuLotesWidgetState extends State<SubMenuLotesWidget> {
                         alignment: const AlignmentDirectional(0.0, 0.0)
                             .resolve(Directionality.of(context)),
                         child: ModalExcluirLoteWidget(
-                          idLote: widget.loteNome!,
+                          idLote: widget.idLote!,
                         ),
                       );
                     },

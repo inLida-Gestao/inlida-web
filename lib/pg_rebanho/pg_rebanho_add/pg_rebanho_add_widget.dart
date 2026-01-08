@@ -6487,6 +6487,27 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                       ),
                                       FFButtonWidget(
                                         onPressed: () async {
+                                          if ((_model.dropDownStatusValue ?? '')
+                                              .isEmpty) {
+                                            await showDialog(
+                                              context: context,
+                                              builder: (alertDialogContext) {
+                                                return AlertDialog(
+                                                  content: const Text(
+                                                      'O campo status é obrigatório'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              alertDialogContext),
+                                                      child: const Text('Ok'),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                            return;
+                                          }
                                           _model.idRebanho = null;
                                           safeSetState(() {});
                                           _model.idRebanho =

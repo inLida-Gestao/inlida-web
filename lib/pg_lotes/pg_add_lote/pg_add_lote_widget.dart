@@ -81,24 +81,22 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
+    const int pageSize = 20;
+
     return FutureBuilder<ApiCallResponse>(
       future: (_model.apiRequestCompleter ??= Completer<ApiCallResponse>()
             ..complete(
                 FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
-              pCategoria: FFAppState().filtroCategoria,
-              pDataNascimento: dateTimeFormat(
-                "yyyy-MM-dd",
-                FFAppState().filtroDataNacimento,
-                locale: FFLocalizations.of(context).languageCode,
-              ),
+              pCategoria: '',
+              pDataNascimento: '',
               pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
-              pOrigem: FFAppState().filtroOrigem,
-              pRaca: FFAppState().filtroRaca,
-              pSexo: FFAppState().filtroSexo,
+              pLoteNome: '',
+              pOrigem: '',
+              pRaca: '',
+              pSexo: '',
               pStatus: 'Na propriedade',
-              pLimite: FFAppConstants.limit,
-              pOffset: functions.calcDeslocamento(
-                  _model.pageNumAdd, FFAppConstants.limit),
+              pLimite: pageSize,
+              pOffset: functions.calcDeslocamento(_model.pageNumAdd, pageSize),
               pPesquisa: _model.pesquisaTextController1.text,
             )))
           .future,
@@ -197,7 +195,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                         child: Column(
                                           children: [
                                             Align(
-                                              alignment: const Alignment(0.0, 0),
+                                              alignment:
+                                                  const Alignment(0.0, 0),
                                               child: TabBar(
                                                 labelColor:
                                                     FlutterFlowTheme.of(context)
@@ -468,13 +467,15 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                         .asValidator(
                                                                             context),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        8.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            8.0)),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              width: 24.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 24.0)),
                                                         ),
                                                         Column(
                                                           mainAxisSize:
@@ -681,8 +682,9 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                         context),
                                                               ),
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              height: 8.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  height: 8.0)),
                                                         ),
                                                         Container(
                                                           width:
@@ -716,8 +718,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                           ),
                                                           child: Padding(
                                                             padding:
-                                                                const EdgeInsets.all(
-                                                                    24.0),
+                                                                const EdgeInsets
+                                                                    .all(24.0),
                                                             child: Row(
                                                               mainAxisSize:
                                                                   MainAxisSize
@@ -874,7 +876,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                           0.0,
                                                                       borderRadius:
                                                                           8.0,
-                                                                      margin: const EdgeInsetsDirectional.fromSTEB(
+                                                                      margin: const EdgeInsetsDirectional
+                                                                          .fromSTEB(
                                                                           12.0,
                                                                           0.0,
                                                                           12.0,
@@ -1172,8 +1175,10 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                           8.0)),
                                                                 ),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                width: 24.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        24.0)),
                                                           ),
                                                         Container(
                                                           width:
@@ -1206,8 +1211,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                           ),
                                                           child: Padding(
                                                             padding:
-                                                                const EdgeInsets.all(
-                                                                    24.0),
+                                                                const EdgeInsets
+                                                                    .all(24.0),
                                                             child: Column(
                                                               mainAxisSize:
                                                                   MainAxisSize
@@ -1307,7 +1312,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                             0.4,
                                                                         child:
                                                                             Padding(
-                                                                          padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                          padding: const EdgeInsetsDirectional
+                                                                              .fromSTEB(
                                                                               0.0,
                                                                               0.0,
                                                                               0.0,
@@ -1360,24 +1366,28 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                     ],
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  height:
-                                                                      16.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          16.0)),
                                                             ),
                                                           ),
                                                         ),
                                                       ]
-                                                          .divide(const SizedBox(
-                                                              height: 24.0))
-                                                          .addToStart(const SizedBox(
-                                                              height: 24.0)),
+                                                          .divide(
+                                                              const SizedBox(
+                                                                  height: 24.0))
+                                                          .addToStart(
+                                                              const SizedBox(
+                                                                  height:
+                                                                      24.0)),
                                                     ),
                                                   ),
                                                   Padding(
                                                     padding:
                                                         const EdgeInsetsDirectional
                                                             .fromSTEB(0.0, 24.0,
-                                                                0.0, 0.0),
+                                                            0.0, 0.0),
                                                     child: Row(
                                                       mainAxisSize:
                                                           MainAxisSize.max,
@@ -1389,10 +1399,10 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      0.0,
-                                                                      0.0,
-                                                                      0.0,
-                                                                      2.0),
+                                                                  0.0,
+                                                                  0.0,
+                                                                  0.0,
+                                                                  2.0),
                                                           child: Container(
                                                             width: 378.0,
                                                             height:
@@ -1430,7 +1440,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                               padding:
                                                                   const EdgeInsets
                                                                       .all(
-                                                                          24.0),
+                                                                      24.0),
                                                               child: Column(
                                                                 mainAxisSize:
                                                                     MainAxisSize
@@ -1440,15 +1450,13 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                         .start,
                                                                 children: [
                                                                   Text(
-                                                                    'Animais fora do lote (${valueOrDefault<String>(
+                                                                    'Animais da propriedade (${valueOrDefault<String>(
                                                                       (pgAddLoteBuscarRebanhoFiltrosResponse
                                                                               .jsonBody
                                                                               .toList()
                                                                               .map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap)
                                                                               .toList() as Iterable<RebanhoDTStruct?>)
                                                                           .withoutNulls
-                                                                          .where((e) => (e.loteID == 'null') || (e.loteID == ''))
-                                                                          .toList()
                                                                           .length
                                                                           .toString(),
                                                                       '0',
@@ -1662,14 +1670,16 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                           FFButtonOptions(
                                                                         height:
                                                                             40.0,
-                                                                        padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        padding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             16.0,
                                                                             0.0,
                                                                             16.0,
                                                                             0.0),
                                                                         iconAlignment:
                                                                             IconAlignment.end,
-                                                                        iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        iconPadding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             0.0,
                                                                             0.0,
                                                                             0.0,
@@ -1739,7 +1749,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                       ),
                                                                       child:
                                                                           Padding(
-                                                                        padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        padding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             12.0,
                                                                             8.0,
                                                                             12.0,
@@ -1852,12 +1863,13 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                               safeSetState(() {});
                                                                             }
                                                                           },
-                                                                          side: (FlutterFlowTheme.of(context).primaryText != null)
-                                                                              ? BorderSide(
-                                                                                  width: 2,
-                                                                                  color: FlutterFlowTheme.of(context).primaryText,
-                                                                                )
-                                                                              : null,
+                                                                          side:
+                                                                              BorderSide(
+                                                                            width:
+                                                                                2,
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).primaryText,
+                                                                          ),
                                                                           activeColor:
                                                                               FlutterFlowTheme.of(context).primary,
                                                                           checkColor:
@@ -1887,9 +1899,12 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                         Builder(
                                                                       builder:
                                                                           (context) {
-                                                                        final animais =
-                                                                            (pgAddLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') || (e.status != 'Fora da propriedade')).toList().toList() ??
-                                                                                [];
+                                                                        final animais = (pgAddLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>)
+                                                                            .withoutNulls
+                                                                            .where((e) =>
+                                                                            (e.status != 'Sêmen') &&
+                                                                            (e.status != 'Fora da propriedade'))
+                                                                            .toList();
 
                                                                         return ListView
                                                                             .builder(
@@ -1936,12 +1951,10 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                               safeSetState(() {});
                                                                                             }
                                                                                           },
-                                                                                          side: (FlutterFlowTheme.of(context).primaryText != null)
-                                                                                              ? BorderSide(
-                                                                                                  width: 2,
-                                                                                                  color: FlutterFlowTheme.of(context).primaryText,
-                                                                                                )
-                                                                                              : null,
+                                                                                          side: BorderSide(
+                                                                                            width: 2,
+                                                                                            color: FlutterFlowTheme.of(context).primaryText,
+                                                                                          ),
                                                                                           activeColor: FlutterFlowTheme.of(context).primary,
                                                                                           checkColor: FlutterFlowTheme.of(context).secondaryBackground,
                                                                                         ),
@@ -2099,25 +2112,15 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                           pIdPropriedade: FFAppState()
                                                                               .propriedadeSelecionada
                                                                               .idPropriedade,
-                                                                          pCategoria:
-                                                                              FFAppState().filtroCategoria,
-                                                                          pDataNascimento:
-                                                                              dateTimeFormat(
-                                                                            "yyyy-MM-dd",
-                                                                            FFAppState().filtroDataNacimento,
-                                                                            locale:
-                                                                                FFLocalizations.of(context).languageCode,
-                                                                          ),
+                                                                          pCategoria: '',
+                                                                          pDataNascimento: '',
                                                                           pLoteID:
-                                                                              FFAppState().filtroLoteId,
-                                                                          pOrigem:
-                                                                              FFAppState().filtroOrigem,
-                                                                          pRaca:
-                                                                              FFAppState().filtroRaca,
-                                                                          pSexo:
-                                                                              FFAppState().filtroSexo,
+                                                                              '',
+                                                                          pOrigem: '',
+                                                                          pRaca: '',
+                                                                          pSexo: '',
                                                                           pStatus:
-                                                                              FFAppState().filtroStatusRebanho,
+                                                                              'Na propriedade',
                                                                           pPesquisa: _model
                                                                               .pesquisaTextController1
                                                                               .text,
@@ -2142,6 +2145,13 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                           }
                                                                           final containerCountRebanhoFiltrosResponse =
                                                                               snapshot.data!;
+
+                                                                            final totalRegistros =
+                                                                              (containerCountRebanhoFiltrosResponse.jsonBody as num?) ?? 0;
+                                                                            final totalPages =
+                                                                              (totalRegistros / pageSize).ceil();
+                                                                            final totalPagesSafe =
+                                                                              totalPages == 0 ? 1 : totalPages;
 
                                                                           return Container(
                                                                             height:
@@ -2257,7 +2267,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                         ),
                                                                                         TextSpan(
                                                                                           text: valueOrDefault<String>(
-                                                                                            ((containerCountRebanhoFiltrosResponse.jsonBody / FFAppConstants.limit).ceil()).toString(),
+                                                                                            totalPagesSafe.toString(),
                                                                                             '1',
                                                                                           ),
                                                                                           style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -2291,11 +2301,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                   hoverColor: Colors.transparent,
                                                                                   highlightColor: Colors.transparent,
                                                                                   onTap: () async {
-                                                                                    if (_model.pageNumAdd <
-                                                                                        valueOrDefault<int>(
-                                                                                          (containerCountRebanhoFiltrosResponse.jsonBody / FFAppConstants.limit).ceil(),
-                                                                                          1,
-                                                                                        )) {
+                                                                                    if (_model.pageNumAdd < totalPagesSafe) {
                                                                                       _model.pageNumAdd = _model.pageNumAdd + 1;
                                                                                       safeSetState(() {});
                                                                                       safeSetState(() => _model.apiRequestCompleter = null);
@@ -2314,11 +2320,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                       child: Icon(
                                                                                         Icons.keyboard_arrow_right_sharp,
                                                                                         color: valueOrDefault<Color>(
-                                                                                          _model.pageNumAdd <
-                                                                                                  valueOrDefault<int>(
-                                                                                                    (containerCountRebanhoFiltrosResponse.jsonBody / FFAppConstants.limit).ceil(),
-                                                                                                    1,
-                                                                                                  )
+                                                                                          _model.pageNumAdd < totalPagesSafe
                                                                                               ? FlutterFlowTheme.of(context).primaryText
                                                                                               : FlutterFlowTheme.of(context).accent3,
                                                                                           FlutterFlowTheme.of(context).primaryText,
@@ -2334,10 +2336,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                   hoverColor: Colors.transparent,
                                                                                   highlightColor: Colors.transparent,
                                                                                   onTap: () async {
-                                                                                    _model.pageNumAdd = valueOrDefault<int>(
-                                                                                      (containerCountRebanhoFiltrosResponse.jsonBody / FFAppConstants.limit).ceil(),
-                                                                                      1,
-                                                                                    );
+                                                                                    _model.pageNumAdd = totalPagesSafe;
                                                                                     safeSetState(() {});
                                                                                     safeSetState(() => _model.apiRequestCompleter = null);
                                                                                   },
@@ -2361,10 +2360,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                         Icons.keyboard_double_arrow_right_outlined,
                                                                                         color: valueOrDefault<Color>(
                                                                                           _model.pageNumAdd ==
-                                                                                                  valueOrDefault<int>(
-                                                                                                    (containerCountRebanhoFiltrosResponse.jsonBody / FFAppConstants.limit).ceil(),
-                                                                                                    1,
-                                                                                                  )
+                                                                                                  totalPagesSafe
                                                                                               ? FlutterFlowTheme.of(context).accent3
                                                                                               : FlutterFlowTheme.of(context).primaryText,
                                                                                           FlutterFlowTheme.of(context).primaryText,
@@ -2381,9 +2377,10 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                       ),
                                                                     ],
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        16.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            16.0)),
                                                               ),
                                                             ),
                                                           ),
@@ -2447,17 +2444,18 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                 }
                                                               },
                                                             ),
-                                                          ].divide(const SizedBox(
-                                                              height: 8.0)),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  height: 8.0)),
                                                         ),
                                                         Padding(
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      0.0,
-                                                                      0.0,
-                                                                      0.0,
-                                                                      2.0),
+                                                                  0.0,
+                                                                  0.0,
+                                                                  0.0,
+                                                                  2.0),
                                                           child: Container(
                                                             width: 378.0,
                                                             height:
@@ -2495,7 +2493,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                               padding:
                                                                   const EdgeInsets
                                                                       .all(
-                                                                          24.0),
+                                                                      24.0),
                                                               child: Column(
                                                                 mainAxisSize:
                                                                     MainAxisSize
@@ -2506,16 +2504,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                 children: [
                                                                   Text(
                                                                     'Animais neste lote (${valueOrDefault<String>(
-                                                                      (pgAddLoteBuscarRebanhoFiltrosResponse
-                                                                              .jsonBody
-                                                                              .toList()
-                                                                              .map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap)
-                                                                              .toList() as Iterable<RebanhoDTStruct?>)
-                                                                          .withoutNulls
-                                                                          .where((e) => (e.loteID == 'null') || (e.loteID == ''))
-                                                                          .toList()
-                                                                          .length
-                                                                          .toString(),
+                                                                      _model.animaisDentroLote.length.toString(),
                                                                       '0',
                                                                     )})',
                                                                     style: FlutterFlowTheme.of(
@@ -2725,14 +2714,16 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                           FFButtonOptions(
                                                                         height:
                                                                             40.0,
-                                                                        padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        padding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             16.0,
                                                                             0.0,
                                                                             16.0,
                                                                             0.0),
                                                                         iconAlignment:
                                                                             IconAlignment.end,
-                                                                        iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        iconPadding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             0.0,
                                                                             0.0,
                                                                             0.0,
@@ -2802,7 +2793,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                       ),
                                                                       child:
                                                                           Padding(
-                                                                        padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        padding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             12.0,
                                                                             8.0,
                                                                             12.0,
@@ -2887,7 +2879,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                             .end,
                                                                     children: [
                                                                       if (_model
-                                                                              .animaisDentroLote.isNotEmpty)
+                                                                          .animaisDentroLote
+                                                                          .isNotEmpty)
                                                                         FFButtonWidget(
                                                                           onPressed:
                                                                               () async {
@@ -3031,12 +3024,10 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                               }
                                                                                             }
                                                                                           },
-                                                                                          side: (FlutterFlowTheme.of(context).primaryText != null)
-                                                                                              ? BorderSide(
-                                                                                                  width: 2,
-                                                                                                  color: FlutterFlowTheme.of(context).primaryText,
-                                                                                                )
-                                                                                              : null,
+                                                                                          side: BorderSide(
+                                                                                            width: 2,
+                                                                                            color: FlutterFlowTheme.of(context).primaryText,
+                                                                                          ),
                                                                                           activeColor: FlutterFlowTheme.of(context).primary,
                                                                                           checkColor: FlutterFlowTheme.of(context).secondaryBackground,
                                                                                         ),
@@ -3280,9 +3271,10 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                         ),
                                                                     ],
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    height:
-                                                                        16.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        height:
+                                                                            16.0)),
                                                               ),
                                                             ),
                                                           ),
@@ -3303,20 +3295,22 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                               MainAxisAlignment.end,
                                           children: [
                                             FFButtonWidget(
-                                              onPressed: () {
-                                                print('Button pressed ...');
+                                              onPressed: () async {
+                                                context.pushNamed(
+                                                    PgLotesWidget.routeName);
                                               },
                                               text: 'Cancelar',
                                               options: FFButtonOptions(
                                                 width: 160.0,
                                                 height: 56.0,
-                                                padding: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         16.0, 0.0, 16.0, 0.0),
                                                 iconPadding:
                                                     const EdgeInsetsDirectional
                                                         .fromSTEB(
-                                                            0.0, 0.0, 0.0, 0.0),
+                                                        0.0, 0.0, 0.0, 0.0),
                                                 color: Colors.white,
                                                 textStyle: FlutterFlowTheme.of(
                                                         context)
@@ -3334,7 +3328,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                 .titleSmall
                                                                 .fontStyle,
                                                       ),
-                                                      color: const Color(0xFF28A365),
+                                                      color: const Color(
+                                                          0xFF28A365),
                                                       letterSpacing: 0.0,
                                                       fontWeight:
                                                           FlutterFlowTheme.of(
@@ -3418,17 +3413,15 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                   DateTime>(
                                                               getCurrentTimestamp),
                                                       'dataVenda': supaSerialize<
-                                                          DateTime>(_model.datePicked ?? functions.converterParaData(_model
+                                                          DateTime>(_model
+                                                              .datePicked ??
+                                                          functions.converterParaData(_model
                                                               .animaisDentroLote
                                                               .elementAtOrNull(
                                                                   _model.index)
                                                               ?.dataVenda)),
                                                       'valorVenda': FFAppState()
-                                                              .valueDouble2 ?? _model
-                                                              .animaisDentroLote
-                                                              .elementAtOrNull(
-                                                                  _model.index)
-                                                              ?.valorVenda,
+                                                          .valueDouble2,
                                                     },
                                                     matchingRows: (rows) =>
                                                         rows.eqOrNull(
@@ -3481,13 +3474,14 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                               options: FFButtonOptions(
                                                 width: 160.0,
                                                 height: 56.0,
-                                                padding: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         16.0, 0.0, 16.0, 0.0),
                                                 iconPadding:
                                                     const EdgeInsetsDirectional
                                                         .fromSTEB(
-                                                            0.0, 0.0, 0.0, 0.0),
+                                                        0.0, 0.0, 0.0, 0.0),
                                                 color:
                                                     FlutterFlowTheme.of(context)
                                                         .primary,

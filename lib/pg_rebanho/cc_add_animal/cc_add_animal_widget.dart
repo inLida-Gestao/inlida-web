@@ -4696,6 +4696,26 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                     ),
                     FFButtonWidget(
                       onPressed: () async {
+                        if ((_model.dropDownStatusValue == null) ||
+                            (_model.dropDownStatusValue!.trim().isEmpty)) {
+                          await showDialog(
+                            context: context,
+                            builder: (alertDialogContext) {
+                              return AlertDialog(
+                                content:
+                                    const Text('O campo status é obrigatório'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(alertDialogContext),
+                                    child: const Text('Ok'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                          return;
+                        }
                         _model.idRebanho = null;
                         safeSetState(() {});
                         _model.idRebanho = random_data.randomString(

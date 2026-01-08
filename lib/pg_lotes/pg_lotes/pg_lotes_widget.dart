@@ -980,8 +980,10 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                             as Iterable<
                                                                 LotesStruct?>)
                                                         .withoutNulls
-                                                        .toList() ??
-                                                    [];
+                                                  .where((e) =>
+                                                    e.deletado !=
+                                                    'SIM')
+                                                  .toList();
                                             if (lote.isEmpty) {
                                               return const Center(
                                                 child: EmptyRebanhoWidget(),
@@ -1356,6 +1358,9 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                                     },
                                                                     child:
                                                                         SubMenuLotesWidget(
+                                                                      idLote:
+                                                                          loteItem
+                                                                              .idLote,
                                                                       loteNome:
                                                                           loteItem
                                                                               .nome,
