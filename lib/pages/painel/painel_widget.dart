@@ -3727,8 +3727,19 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .idPropriedade,
                                                                     dataInicio:
                                                                         '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
-                                                                    dataFim:
-                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
+                                                                    dataFim: () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimAnoValue,
+                                                                        '2025',
+                                                                      )) ?? 2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimMesValue?.toString(),
+                                                                        '12',
+                                                                      )) ?? 12;
+                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
+                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                    }(),
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {

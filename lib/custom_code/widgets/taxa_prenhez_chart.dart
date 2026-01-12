@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import 'dart:convert';
 
 /// Classe de modelo interna para tipagem segura dos dados JSON
 class PrenhezDataPoint {
@@ -28,13 +29,44 @@ class TaxaPrenhezChart extends StatefulWidget {
 
   final double? width;
   final double? height;
-  final List<dynamic>? prenhezData;
+  final dynamic prenhezData;
 
   @override
   State<TaxaPrenhezChart> createState() => _TaxaPrenhezChartState();
 }
 
 class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
+  /// Extrai a lista de items da resposta JSON
+  List<dynamic> _extractItems(dynamic raw) {
+    if (raw == null) return [];
+
+    List<dynamic> listDyn;
+
+    // RAW pode ser List, Map ou String JSON
+    if (raw is List) {
+      listDyn = raw;
+    } else if (raw is String) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is List) {
+          listDyn = decoded;
+        } else if (decoded is Map && decoded['items'] is List) {
+          listDyn = decoded['items'] as List;
+        } else {
+          listDyn = const [];
+        }
+      } catch (_) {
+        listDyn = const [];
+      }
+    } else if (raw is Map && raw['items'] is List) {
+      listDyn = raw['items'] as List;
+    } else {
+      listDyn = const [];
+    }
+
+    return listDyn;
+  }
+
   /// Parse e valida os dados JSON recebidos
   List<PrenhezDataPoint> _parseData(List<dynamic> jsonList) {
     if (jsonList.isEmpty) return [];
@@ -64,8 +96,8 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
 
   @override
   Widget build(BuildContext context) {
-    final List<PrenhezDataPoint> chartData =
-        _parseData(widget.prenhezData ?? []);
+    final items = _extractItems(widget.prenhezData);
+    final List<PrenhezDataPoint> chartData = _parseData(items);
     final orderedData = chartData.reversed.toList();
 
     final double? w =
