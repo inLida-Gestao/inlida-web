@@ -2669,18 +2669,12 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                       _model.checkboxValue =
                                                           newValue!);
                                                 },
-                                                side: (FlutterFlowTheme.of(
-                                                                context)
-                                                            .alternate !=
-                                                        null)
-                                                    ? BorderSide(
-                                                        width: 2,
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .alternate,
-                                                      )
-                                                    : null,
+                                                side: BorderSide(
+                                                  width: 2,
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .alternate,
+                                                ),
                                                 activeColor:
                                                     FlutterFlowTheme.of(context)
                                                         .primary,
@@ -3156,7 +3150,6 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                       'Não diagnosticado',
                                                       'Absorção',
                                                       'Aborto',
-                                                      'Parida',
                                                       'Prenhez',
                                                       'Vazio'
                                                     ],

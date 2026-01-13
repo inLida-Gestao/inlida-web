@@ -7448,10 +7448,656 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                         ),
                                                     ],
                                                   ),
-                                                  const Column(
+                                                  Column(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
-                                                    children: [],
+                                                    children: [
+                                                      Expanded(
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                  0.0,
+                                                                  32.0,
+                                                                  0.0,
+                                                                  0.0),
+                                                          child: FutureBuilder<
+                                                              List<SanidadeRow>>(
+                                                            future: SanidadeTable()
+                                                                .queryRows(
+                                                              queryFn: (q) => q
+                                                                  .eqOrNull(
+                                                                    'id_rebanho',
+                                                                    pgRebanhoViewRebanhoRow
+                                                                        ?.idRebanho,
+                                                                  )
+                                                                  .eqOrNull(
+                                                                    'id_propriedade',
+                                                                    FFAppState()
+                                                                        .propriedadeSelecionada
+                                                                        .idPropriedade,
+                                                                  )
+                                                                  .eqOrNull(
+                                                                    'deletado',
+                                                                    'NAO',
+                                                                  ),
+                                                            ),
+                                                            builder: (context,
+                                                                snapshot) {
+                                                              // Customize what your widget looks like when it's loading.
+                                                              if (!snapshot
+                                                                  .hasData) {
+                                                                return Center(
+                                                                  child:
+                                                                      SizedBox(
+                                                                    width:
+                                                                        50.0,
+                                                                    height:
+                                                                        50.0,
+                                                                    child:
+                                                                        CircularProgressIndicator(
+                                                                      valueColor:
+                                                                          AlwaysStoppedAnimation<Color>(
+                                                                        FlutterFlowTheme.of(context)
+                                                                            .primary,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              }
+
+                                                              final sanidade = snapshot
+                                                                  .data!
+                                                                  .where((e) =>
+                                                                      e.deletado ==
+                                                                      'NAO')
+                                                                  .toList()
+                                                                  .sortedList(
+                                                                    keyOf: (e) =>
+                                                                        e.dataSanidade ??
+                                                                        e.createdAt,
+                                                                    desc: true,
+                                                                  )
+                                                                  .toList();
+                                                              if (sanidade
+                                                                  .isEmpty) {
+                                                                return const Center(
+                                                                  child:
+                                                                      EmptyWidget(),
+                                                                );
+                                                              }
+
+                                                              Widget buildChips(
+                                                                  List<String>
+                                                                      values) {
+                                                                if (values
+                                                                    .isEmpty) {
+                                                                  return Text(
+                                                                    '—',
+                                                                    style: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .override(
+                                                                          font: GoogleFonts
+                                                                              .poppins(
+                                                                            fontWeight:
+                                                                                FontWeight
+                                                                                    .w500,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context)
+                                                                                    .bodyMedium
+                                                                                    .fontStyle,
+                                                                          ),
+                                                                          letterSpacing:
+                                                                              0.0,
+                                                                          fontWeight:
+                                                                              FontWeight
+                                                                                  .w500,
+                                                                          fontStyle:
+                                                                              FlutterFlowTheme.of(context)
+                                                                                  .bodyMedium
+                                                                                  .fontStyle,
+                                                                        ),
+                                                                  );
+                                                                }
+
+                                                                return SingleChildScrollView(
+                                                                  scrollDirection:
+                                                                      Axis.horizontal,
+                                                                  child: Row(
+                                                                    mainAxisSize:
+                                                                        MainAxisSize
+                                                                            .max,
+                                                                    children: List.generate(
+                                                                        values
+                                                                            .length,
+                                                                        (index) {
+                                                                      final item =
+                                                                          values[
+                                                                              index];
+                                                                      return Container(
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color: FlutterFlowTheme.of(context)
+                                                                              .accent2,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(4.0),
+                                                                        ),
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                              8.0,
+                                                                              4.0,
+                                                                              8.0,
+                                                                              4.0),
+                                                                          child:
+                                                                              Text(
+                                                                            item,
+                                                                            style: FlutterFlowTheme.of(context)
+                                                                                .bodyMedium
+                                                                                .override(
+                                                                                  font: GoogleFonts.poppins(
+                                                                                    fontWeight: FontWeight.w600,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                  ),
+                                                                                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                  fontSize: 10.0,
+                                                                                  letterSpacing: 0.0,
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                ),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    }).divide(
+                                                                        const SizedBox(
+                                                                            width:
+                                                                                4.0)),
+                                                                  ),
+                                                                );
+                                                              }
+
+                                                              List<String>
+                                                                  mergeJsonAndText(
+                                                                String?
+                                                                    jsonList,
+                                                                String?
+                                                                    outros,
+                                                              ) {
+                                                                final values = functions
+                                                                        .converterJSONparaLista(
+                                                                            jsonList)
+                                                                        ?.toList() ??
+                                                                    <String>[];
+
+                                                                final outrosTrim =
+                                                                    (outros ??
+                                                                            '')
+                                                                        .trim();
+                                                                if (outrosTrim
+                                                                        .isNotEmpty &&
+                                                                    outrosTrim
+                                                                            .toLowerCase() !=
+                                                                        'null' &&
+                                                                    outrosTrim !=
+                                                                        '[]') {
+                                                                  values.add(
+                                                                      outrosTrim);
+                                                                }
+                                                                return values;
+                                                              }
+
+                                                              List<String>
+                                                                  mergeTextOnly(
+                                                                String?
+                                                                    value,
+                                                                String?
+                                                                    outros,
+                                                              ) {
+                                                                final values =
+                                                                    <String>[];
+                                                                final valueTrim =
+                                                                    (value ??
+                                                                            '')
+                                                                        .trim();
+                                                                if (valueTrim
+                                                                        .isNotEmpty &&
+                                                                    valueTrim
+                                                                            .toLowerCase() !=
+                                                                        'null' &&
+                                                                    valueTrim !=
+                                                                        '[]') {
+                                                                  values.add(
+                                                                      valueTrim);
+                                                                }
+
+                                                                final outrosTrim =
+                                                                    (outros ??
+                                                                            '')
+                                                                        .trim();
+                                                                if (outrosTrim
+                                                                        .isNotEmpty &&
+                                                                    outrosTrim
+                                                                            .toLowerCase() !=
+                                                                        'null' &&
+                                                                    outrosTrim !=
+                                                                        '[]') {
+                                                                  values.add(
+                                                                      outrosTrim);
+                                                                }
+                                                                return values;
+                                                              }
+
+                                                              String _safeStringField(
+                                                                SanidadeRow row,
+                                                                String fieldName,
+                                                              ) {
+                                                                try {
+                                                                  final value = row
+                                                                      .getField<String>(
+                                                                          fieldName);
+                                                                  final trimmed =
+                                                                      (value ?? '')
+                                                                          .trim();
+                                                                  if (trimmed
+                                                                      .isEmpty) {
+                                                                    return '—';
+                                                                  }
+                                                                  if (trimmed
+                                                                          .toLowerCase() ==
+                                                                      'null') {
+                                                                    return '—';
+                                                                  }
+                                                                  return trimmed;
+                                                                } catch (_) {
+                                                                  return '—';
+                                                                }
+                                                              }
+
+                                                              return FlutterFlowDataTable<
+                                                                  SanidadeRow>(
+                                                                controller: _model
+                                                                    .paginatedDataTableController5,
+                                                                data: sanidade,
+                                                                columnsBuilder:
+                                                                    (onSortChanged) =>
+                                                                        [
+                                                                  DataColumn2(
+                                                                    label:
+                                                                        DefaultTextStyle
+                                                                            .merge(
+                                                                      softWrap:
+                                                                          true,
+                                                                      child:
+                                                                          Text(
+                                                                        'Data',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .labelLarge
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                              ),
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                    ),
+                                                                    fixedWidth:
+                                                                        110.0,
+                                                                    onSort:
+                                                                        onSortChanged,
+                                                                  ),
+                                                                  DataColumn2(
+                                                                    label:
+                                                                        DefaultTextStyle
+                                                                            .merge(
+                                                                      softWrap:
+                                                                          true,
+                                                                      child:
+                                                                          Text(
+                                                                        'Vacinação',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .labelLarge
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                              ),
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  DataColumn2(
+                                                                    label:
+                                                                        DefaultTextStyle
+                                                                            .merge(
+                                                                      softWrap:
+                                                                          true,
+                                                                      child:
+                                                                          Text(
+                                                                        'Antiparasitário',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .labelLarge
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                              ),
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  DataColumn2(
+                                                                    label:
+                                                                        DefaultTextStyle
+                                                                            .merge(
+                                                                      softWrap:
+                                                                          true,
+                                                                      child:
+                                                                          Text(
+                                                                        'Tratamento',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .labelLarge
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                              ),
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  DataColumn2(
+                                                                    label:
+                                                                        DefaultTextStyle
+                                                                            .merge(
+                                                                      softWrap:
+                                                                          true,
+                                                                      child:
+                                                                          Text(
+                                                                        'Protocolo reprodutivo',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .labelLarge
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                              ),
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  DataColumn2(
+                                                                    label:
+                                                                        DefaultTextStyle
+                                                                            .merge(
+                                                                      softWrap:
+                                                                          true,
+                                                                      child:
+                                                                          Text(
+                                                                        'Protocolo D0',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .labelLarge
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                              ),
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                    ),
+                                                                    fixedWidth:
+                                                                        120.0,
+                                                                  ),
+                                                                  DataColumn2(
+                                                                    label:
+                                                                        DefaultTextStyle
+                                                                            .merge(
+                                                                      softWrap:
+                                                                          true,
+                                                                      child:
+                                                                          Text(
+                                                                        'Retirada',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .labelLarge
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                              ),
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                    ),
+                                                                    fixedWidth:
+                                                                        120.0,
+                                                                  ),
+                                                                  DataColumn2(
+                                                                    label:
+                                                                        DefaultTextStyle
+                                                                            .merge(
+                                                                      softWrap:
+                                                                          true,
+                                                                      child:
+                                                                          Text(
+                                                                        'IATF',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .labelLarge
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                              ),
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                    ),
+                                                                    fixedWidth:
+                                                                        120.0,
+                                                                  ),
+                                                                ],
+                                                                dataRowBuilder:
+                                                                    (sanidadeItem,
+                                                                            sanidadeIndex,
+                                                                            selected,
+                                                                            onSelectChanged) =>
+                                                                        DataRow(
+                                                                  color:
+                                                                      WidgetStateProperty
+                                                                          .all(
+                                                                    sanidadeIndex %
+                                                                                2 ==
+                                                                            0
+                                                                        ? FlutterFlowTheme.of(context)
+                                                                            .secondaryBackground
+                                                                        : FlutterFlowTheme.of(context)
+                                                                            .customColor11,
+                                                                  ),
+                                                                  cells: [
+                                                                    Text(
+                                                                      dateTimeFormat(
+                                                                        'd/M/y',
+                                                                        sanidadeItem.dataSanidade ??
+                                                                            sanidadeItem.createdAt,
+                                                                        locale: FFLocalizations.of(context)
+                                                                            .languageCode,
+                                                                      ),
+                                                                      style: FlutterFlowTheme.of(context)
+                                                                          .bodyMedium
+                                                                          .override(
+                                                                            font: GoogleFonts.poppins(
+                                                                              fontWeight: FontWeight.w500,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                            letterSpacing: 0.0,
+                                                                            fontWeight: FontWeight.w500,
+                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          ),
+                                                                    ),
+                                                                    buildChips(
+                                                                      mergeJsonAndText(
+                                                                        sanidadeItem
+                                                                            .vacinacao,
+                                                                        sanidadeItem
+                                                                            .vacinacaoOutros,
+                                                                      ),
+                                                                    ),
+                                                                    buildChips(
+                                                                      mergeJsonAndText(
+                                                                        sanidadeItem
+                                                                            .antiparasitario,
+                                                                        sanidadeItem
+                                                                            .antiparasitarioOutros,
+                                                                      ),
+                                                                    ),
+                                                                    buildChips(
+                                                                      mergeJsonAndText(
+                                                                        sanidadeItem
+                                                                            .tratamento,
+                                                                        sanidadeItem
+                                                                            .tratamentoOutros,
+                                                                      ),
+                                                                    ),
+                                                                    buildChips(
+                                                                      mergeTextOnly(
+                                                                        sanidadeItem
+                                                                            .protocoloReprodutivo,
+                                                                        null,
+                                                                      ),
+                                                                    ),
+                                                                    Text(
+                                                                      _safeStringField(
+                                                                        sanidadeItem,
+                                                                        'protocolo_d0',
+                                                                      ),
+                                                                      style: FlutterFlowTheme.of(context)
+                                                                          .bodyMedium
+                                                                          .override(
+                                                                            font: GoogleFonts.poppins(
+                                                                              fontWeight: FontWeight.w500,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                            letterSpacing: 0.0,
+                                                                            fontWeight: FontWeight.w500,
+                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          ),
+                                                                    ),
+                                                                    Text(
+                                                                      _safeStringField(
+                                                                        sanidadeItem,
+                                                                        'protocolo_retirada',
+                                                                      ),
+                                                                      style: FlutterFlowTheme.of(context)
+                                                                          .bodyMedium
+                                                                          .override(
+                                                                            font: GoogleFonts.poppins(
+                                                                              fontWeight: FontWeight.w500,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                            letterSpacing: 0.0,
+                                                                            fontWeight: FontWeight.w500,
+                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          ),
+                                                                    ),
+                                                                    Text(
+                                                                      _safeStringField(
+                                                                        sanidadeItem,
+                                                                        'protocolo_iatf',
+                                                                      ),
+                                                                      style: FlutterFlowTheme.of(context)
+                                                                          .bodyMedium
+                                                                          .override(
+                                                                            font: GoogleFonts.poppins(
+                                                                              fontWeight: FontWeight.w500,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                            letterSpacing: 0.0,
+                                                                            fontWeight: FontWeight.w500,
+                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          ),
+                                                                    ),
+                                                                  ]
+                                                                      .map((c) =>
+                                                                          DataCell(c))
+                                                                      .toList(),
+                                                                ),
+                                                                emptyBuilder:
+                                                                    () =>
+                                                                        const Center(
+                                                                  child:
+                                                                      EmptyWidget(),
+                                                                ),
+                                                                paginated:
+                                                                    false,
+                                                                selectable:
+                                                                    false,
+                                                                headingRowHeight:
+                                                                    56.0,
+                                                                dataRowHeight:
+                                                                    48.0,
+                                                                columnSpacing:
+                                                                    20.0,
+                                                                headingRowColor:
+                                                                    FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .customColor11,
+                                                                sortIconColor:
+                                                                    FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .primaryText,
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            8.0),
+                                                                addHorizontalDivider:
+                                                                    true,
+                                                                addTopAndBottomDivider:
+                                                                    false,
+                                                                hideDefaultHorizontalDivider:
+                                                                    true,
+                                                                horizontalDividerColor:
+                                                                    FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .secondaryBackground,
+                                                                horizontalDividerThickness:
+                                                                    1.0,
+                                                                addVerticalDivider:
+                                                                    false,
+                                                              );
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ],
                                               ),
@@ -7701,3 +8347,4 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     );
   }
 }
+

@@ -2845,13 +2845,16 @@ class _PgReproducaoEditLoteWidgetState
                                                                   String>(
                                                             _model.dropDownStatusValue ??=
                                                                 pgReproducaoEditLoteReproducaoRow
-                                                                    .statusReproducao,
+                                                                            .statusReproducao ==
+                                                                        'Parida'
+                                                                    ? 'Não diagnosticado'
+                                                                    : pgReproducaoEditLoteReproducaoRow
+                                                                        .statusReproducao,
                                                           ),
                                                           options: const [
                                                             'Não diagnosticado',
                                                             'Absorção',
                                                             'Aborto',
-                                                            'Parida',
                                                             'Prenhez',
                                                             'Vazio'
                                                           ],

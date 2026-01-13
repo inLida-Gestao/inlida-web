@@ -16,10 +16,14 @@ class CcEditSanidadeAnimalWidget extends StatefulWidget {
     super.key,
     required this.sanidade,
     required this.action,
+    this.readOnly = false,
+    this.onEdit,
   });
 
   final SanidadeStruct sanidade;
   final Future Function(String? page)? action;
+  final bool readOnly;
+  final Future<void> Function()? onEdit;
 
   @override
   State<CcEditSanidadeAnimalWidget> createState() =>
@@ -186,7 +190,9 @@ class _CcEditSanidadeAnimalWidgetState
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Text(
-                          'Editar sanidade em um animal',
+                          widget.readOnly
+                              ? 'Visualizar sanidade'
+                              : 'Editar sanidade em um animal',
                           style: FlutterFlowTheme.of(context)
                               .headlineLarge
                               .override(
@@ -257,7 +263,9 @@ class _CcEditSanidadeAnimalWidgetState
                           focusColor: Colors.transparent,
                           hoverColor: Colors.transparent,
                           highlightColor: Colors.transparent,
-                          onTap: () async {
+                          onTap: widget.readOnly
+                              ? null
+                              : () async {
                             await showModalBottomSheet(
                               isScrollControlled: true,
                               backgroundColor: Colors.transparent,
@@ -368,7 +376,9 @@ class _CcEditSanidadeAnimalWidgetState
                           focusColor: Colors.transparent,
                           hoverColor: Colors.transparent,
                           highlightColor: Colors.transparent,
-                          onTap: () async {
+                          onTap: widget.readOnly
+                              ? null
+                              : () async {
                             final datePickedDate = await showDatePicker(
                               context: context,
                               initialDate:
@@ -447,7 +457,9 @@ class _CcEditSanidadeAnimalWidgetState
                       children: [
                         Expanded(
                           child: FFButtonWidget(
-                            onPressed: () async {
+                            onPressed: widget.readOnly
+                                ? null
+                                : () async {
                               await showDialog(
                                 context: context,
                                 barrierDismissible: true,
@@ -537,19 +549,20 @@ class _CcEditSanidadeAnimalWidgetState
                                         ),
                                   ),
                                   const SizedBox(width: 8),
-                                  InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        _model.tiposSelecionados.remove(tipo);
-                                      });
-                                    },
-                                    child: Icon(
-                                      Icons.close,
-                                      color:
-                                          FlutterFlowTheme.of(context).primary,
-                                      size: 16,
+                                  if (!widget.readOnly)
+                                    InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          _model.tiposSelecionados.remove(tipo);
+                                        });
+                                      },
+                                      child: Icon(
+                                        Icons.close,
+                                        color:
+                                            FlutterFlowTheme.of(context).primary,
+                                        size: 16,
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
@@ -617,9 +630,13 @@ class _CcEditSanidadeAnimalWidgetState
                 Expanded(
                   child: FFButtonWidget(
                     onPressed: () async {
+                      if (widget.readOnly) {
+                        await widget.onEdit?.call();
+                        return;
+                      }
                       await _atualizarSanidade();
                     },
-                    text: 'Salvar',
+                    text: widget.readOnly ? 'Editar' : 'Salvar',
                     options: FFButtonOptions(
                       width: double.infinity,
                       height: 56,
@@ -768,8 +785,10 @@ class _CcEditSanidadeAnimalWidgetState
                   FormListFieldController<String>(_model.vacinaDropdownValue),
               options: FFAppState().vacinacao,
               isMultiSelect: true,
-              onMultiSelectChanged: (val) =>
-                  setState(() => _model.vacinaDropdownValue = val),
+              onMultiSelectChanged: (val) {
+                if (widget.readOnly) return;
+                setState(() => _model.vacinaDropdownValue = val);
+              },
               hidesUnderline: true,
               width: double.infinity,
               height: 56,
@@ -791,6 +810,7 @@ class _CcEditSanidadeAnimalWidgetState
               borderWidth: 0,
               borderRadius: 6,
               margin: const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
+              disabled: widget.readOnly,
             ),
           ],
         ),
@@ -855,8 +875,10 @@ class _CcEditSanidadeAnimalWidgetState
                           _model.antiparasitarioDropdownValue),
               options: FFAppState().antiparasitario,
               isMultiSelect: true,
-              onMultiSelectChanged: (val) =>
-                  setState(() => _model.antiparasitarioDropdownValue = val),
+              onMultiSelectChanged: (val) {
+                if (widget.readOnly) return;
+                setState(() => _model.antiparasitarioDropdownValue = val);
+              },
               hidesUnderline: true,
               width: double.infinity,
               height: 56,
@@ -878,6 +900,7 @@ class _CcEditSanidadeAnimalWidgetState
               borderWidth: 0,
               borderRadius: 6,
               margin: const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
+              disabled: widget.readOnly,
             ),
           ],
         ),
@@ -942,8 +965,10 @@ class _CcEditSanidadeAnimalWidgetState
                           _model.tratamentoDropdownValue),
               options: FFAppState().tratamento,
               isMultiSelect: true,
-              onMultiSelectChanged: (val) =>
-                  setState(() => _model.tratamentoDropdownValue = val),
+              onMultiSelectChanged: (val) {
+                if (widget.readOnly) return;
+                setState(() => _model.tratamentoDropdownValue = val);
+              },
               hidesUnderline: true,
               width: double.infinity,
               height: 56,
@@ -965,6 +990,7 @@ class _CcEditSanidadeAnimalWidgetState
               borderWidth: 0,
               borderRadius: 6,
               margin: const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
+              disabled: widget.readOnly,
             ),
           ],
         ),
@@ -1028,8 +1054,10 @@ class _CcEditSanidadeAnimalWidgetState
                       _model.protocoloDropdownValue),
               options: FFAppState().protocoloReprodutivo,
               isMultiSelect: true,
-              onMultiSelectChanged: (val) =>
-                  setState(() => _model.protocoloDropdownValue = val),
+              onMultiSelectChanged: (val) {
+                if (widget.readOnly) return;
+                setState(() => _model.protocoloDropdownValue = val);
+              },
               hidesUnderline: true,
               width: double.infinity,
               height: 56,
@@ -1051,6 +1079,7 @@ class _CcEditSanidadeAnimalWidgetState
               borderWidth: 0,
               borderRadius: 6,
               margin: const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
+              disabled: widget.readOnly,
             ),
           ],
         ),
@@ -1099,6 +1128,8 @@ class _CcEditSanidadeAnimalWidgetState
           focusNode: focusNode,
           autofocus: false,
           obscureText: false,
+          readOnly: widget.readOnly,
+          enabled: !widget.readOnly,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: FlutterFlowTheme.of(context).bodyMedium.override(

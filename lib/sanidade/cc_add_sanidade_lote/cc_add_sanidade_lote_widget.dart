@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/flutter_flow/random_data_util.dart' as random_data;
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'cc_add_sanidade_lote_model.dart';
 export 'cc_add_sanidade_lote_model.dart';
@@ -1957,8 +1958,8 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
         // Adicionar campos específicos conforme tipo selecionado
         if (_model.tiposSelecionados.contains('Vacinação')) {
           dados['vacinacao'] = (_model.vacinaDropdownValue?.isNotEmpty ?? false)
-              ? _model.vacinaDropdownValue!.join(', ')
-              : null;
+            ? jsonEncode(_model.vacinaDropdownValue)
+            : null;
           dados['vacinacao_outros'] =
               vacinaOutros.isNotEmpty ? vacinaOutros : null;
           dados['vacinacao_obs'] = vacinaObs.isNotEmpty ? vacinaObs : null;
@@ -1967,7 +1968,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
         if (_model.tiposSelecionados.contains('Antiparasitário')) {
           dados['antiparasitario'] =
               (_model.antiparasitarioDropdownValue?.isNotEmpty ?? false)
-                  ? _model.antiparasitarioDropdownValue!.join(', ')
+              ? jsonEncode(_model.antiparasitarioDropdownValue)
                   : null;
           dados['antiparasitario_outros'] =
               antiparasitarioOutros.isNotEmpty ? antiparasitarioOutros : null;
@@ -1978,7 +1979,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
         if (_model.tiposSelecionados.contains('Tratamento')) {
           dados['tratamento'] =
               (_model.tratamentoDropdownValue?.isNotEmpty ?? false)
-                  ? _model.tratamentoDropdownValue!.join(', ')
+              ? jsonEncode(_model.tratamentoDropdownValue)
                   : null;
           dados['tratamento_outros'] =
               tratamentoOutros.isNotEmpty ? tratamentoOutros : null;

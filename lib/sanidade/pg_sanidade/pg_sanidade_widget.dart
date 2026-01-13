@@ -64,14 +64,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
       _model.countVacinas = vacinasCount.length;
 
       // Contar antiparasitários aplicados
-      final antiparasitariosCount = await SanidadeTable().queryRows(
+        final antiparasitariosRows = await SanidadeTable().queryRows(
         queryFn: (q) => q
-            .eqOrNull('id_propriedade',
-                FFAppState().propriedadeSelecionada.idPropriedade)
-            .eq('deletado', 'NAO')
-            .not('antiparasitario', 'is', null),
-      );
-      _model.countAntiparasitarios = antiparasitariosCount.length;
+          .eqOrNull('id_propriedade',
+            FFAppState().propriedadeSelecionada.idPropriedade)
+          .eq('deletado', 'NAO')
+          .or('antiparasitario.not.is.null,antiparasitario_outros.not.is.null'),
+        );
+        final antiparasitariosSet = <String>{};
+        for (final row in antiparasitariosRows) {
+        antiparasitariosSet.addAll(_extractJsonListValues(row.antiparasitario));
+        antiparasitariosSet
+          .addAll(_extractJsonListValues(row.antiparasitarioOutros));
+        }
+        _model.countAntiparasitarios = antiparasitariosSet.length;
 
       // Contar tratamentos aplicados
       final tratamentosCount = await SanidadeTable().queryRows(
@@ -178,12 +184,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
   Set<String> _extractJsonListValues(String? raw) {
     final parsed = functions.converterJSONparaLista(raw);
     if (parsed != null) {
-      return _toNormSet(parsed.cast<String>());
+      return _toNormSet(parsed.whereType<String>());
     }
-    if (_hasValue(raw) && raw!.trim() != '[]') {
-      return _toNormSet([raw]);
+
+    final v = (raw ?? '').trim();
+    if (v.isEmpty || v.toLowerCase() == 'null' || v == '[]') {
+      return <String>{};
     }
-    return <String>{};
+
+    // Suporta legado onde era salvo como "A, B".
+    if (v.contains(',')) {
+      return _toNormSet(v.split(',').map((e) => e.trim()));
+    }
+
+    return _toNormSet([v]);
   }
 
   bool _matchesMulti(String selectedCsv, Set<String> candidateValues) {
@@ -220,229 +234,28 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     return true;
   }
 
-  String _displayOrNA(String? value) {
-    return _hasValue(value) ? value!.trim() : 'N/A';
-  }
-
   Future<void> _openViewSanidadeDialog(SanidadeStruct sanidade) async {
-    final rawDate = _hasValue(sanidade.dataSanidade)
-        ? sanidade.dataSanidade
-        : sanidade.createdAt;
-    final parsedDate = functions.converterParaData(rawDate);
-    final dateText = parsedDate != null
-        ? dateTimeFormat(
-            'dd/MM/yyyy',
-            parsedDate,
-            locale: 'pt_BR',
-          )
-        : _displayOrNA(rawDate);
-
     await showDialog(
       context: context,
       barrierDismissible: true,
       barrierColor: const Color(0x99000000),
       builder: (context) {
-        final theme = FlutterFlowTheme.of(context);
-
-        Widget section(
-            {required String title, required List<Widget> children}) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: theme.bodyMedium.override(
-                  font: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    fontStyle: theme.bodyMedium.fontStyle,
-                  ),
-                  color: theme.secondaryText,
-                  fontSize: 14.0,
-                  letterSpacing: 0.0,
-                  fontWeight: FontWeight.w600,
-                  fontStyle: theme.bodyMedium.fontStyle,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ...children,
-            ],
-          );
-        }
-
-        Widget kv(String k, String v) {
-          return Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 150,
-                  child: Text(
-                    k,
-                    style: theme.bodyMedium.override(
-                      font: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        fontStyle: theme.bodyMedium.fontStyle,
-                      ),
-                      color: theme.primaryText,
-                      fontSize: 14.0,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w600,
-                      fontStyle: theme.bodyMedium.fontStyle,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    v,
-                    style: theme.bodyMedium.override(
-                      font: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w500,
-                        fontStyle: theme.bodyMedium.fontStyle,
-                      ),
-                      color: theme.primaryText,
-                      fontSize: 14.0,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w500,
-                      fontStyle: theme.bodyMedium.fontStyle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        Widget sanidadeTipo(
-            String label, String? value, String? outros, String? obs) {
-          if (!_hasValue(value) && !_hasValue(outros) && !_hasValue(obs)) {
-            return const SizedBox.shrink();
-          }
-
-          final main = _displayOrNA(value);
-          final out = _hasValue(outros) ? outros!.trim() : null;
-          final ob = _hasValue(obs) ? obs!.trim() : null;
-          final details = [
-            if (main != 'N/A') main,
-            if (out != null) 'Outros: $out',
-            if (ob != null) 'Obs: $ob',
-          ].join(' • ');
-
-          return kv(label, details.isEmpty ? 'N/A' : details);
-        }
-
         return Dialog(
           backgroundColor: Colors.transparent,
           insetPadding: const EdgeInsets.all(24),
-          child: Container(
-            width: 640.0,
-            constraints: const BoxConstraints(maxHeight: 760.0),
-            decoration: BoxDecoration(
-              color: theme.secondaryBackground,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Detalhes da sanidade',
-                        style: theme.bodyMedium.override(
-                          font: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            fontStyle: theme.bodyMedium.fontStyle,
-                          ),
-                          color: theme.primaryText,
-                          fontSize: 20.0,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w600,
-                          fontStyle: theme.bodyMedium.fontStyle,
-                        ),
-                      ),
-                      InkWell(
-                        splashColor: Colors.transparent,
-                        focusColor: Colors.transparent,
-                        hoverColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.close,
-                            color: theme.primaryText,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Flexible(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          section(
-                            title: 'Informações',
-                            children: [
-                              kv(
-                                'Animal',
-                                '${_displayOrNA(sanidade.numeroAnimal)} - ${_displayOrNA(sanidade.nome)}',
-                              ),
-                              kv('Lote', _displayOrNA(sanidade.loteNome)),
-                              kv('Data', dateText),
-                              kv('Chip', _displayOrNA(sanidade.chip)),
-                              kv('Categoria', _displayOrNA(sanidade.categoria)),
-                              kv('Raça', _displayOrNA(sanidade.raca)),
-                              kv('Sexo', _displayOrNA(sanidade.sexo)),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          section(
-                            title: 'Tipos',
-                            children: [
-                              sanidadeTipo(
-                                'Vacinação',
-                                sanidade.vacinacao,
-                                sanidade.vacinacaoOutros,
-                                sanidade.vacinacaoObs,
-                              ),
-                              sanidadeTipo(
-                                'Antiparasitário',
-                                sanidade.antiparasitario,
-                                sanidade.antiparasitarioOutros,
-                                sanidade.antiparasitarioObs,
-                              ),
-                              sanidadeTipo(
-                                'Tratamento',
-                                sanidade.tratamento,
-                                sanidade.tratamentoOutros,
-                                sanidade.tratamentoObs,
-                              ),
-                              sanidadeTipo(
-                                'Protocolo reprodutivo',
-                                sanidade.protocoloReprodutivo,
-                                sanidade.protocoloReprodutivoOutros,
-                                sanidade.protocoloReprodutivoObs,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          child: CcEditSanidadeAnimalWidget(
+            sanidade: sanidade,
+            readOnly: true,
+            onEdit: () async {
+              Navigator.pop(context);
+              await _openEditSanidadeDialog(sanidade);
+            },
+            action: (page) async {
+              safeSetState(() {
+                _model.apiRequestCompleter2 = null;
+                _model.apiRequestCompleter1 = null;
+              });
+            },
           ),
         );
       },
@@ -1028,10 +841,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         idPropriedade)
                                                                     .eq('deletado',
                                                                         'NAO')
-                                                                    .not(
-                                                                        'antiparasitario',
-                                                                        'is',
-                                                                        null),
+                                                                  .or(
+                                                                    'antiparasitario.not.is.null,antiparasitario_outros.not.is.null'),
                                                               );
 
                                                               final tratamentosCount =
@@ -1068,9 +879,19 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 _model.countVacinas =
                                                                     vacinasCount
                                                                         .length;
+                                                                final antiparasitariosSet =
+                                                                  <String>{};
+                                                                for (final row
+                                                                  in antiparasitariosCount) {
+                                                                  antiparasitariosSet.addAll(
+                                                                    _extractJsonListValues(
+                                                                      row.antiparasitario));
+                                                                  antiparasitariosSet.addAll(
+                                                                    _extractJsonListValues(
+                                                                      row.antiparasitarioOutros));
+                                                                }
                                                                 _model.countAntiparasitarios =
-                                                                    antiparasitariosCount
-                                                                        .length;
+                                                                  antiparasitariosSet.length;
                                                                 _model.countTratamentos =
                                                                     tratamentosCount
                                                                         .length;
@@ -2162,7 +1983,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     softWrap:
                                                                         true,
                                                                     child: Text(
-                                                                      'Número do animal',
+                                                                    'Animal',
                                                                       style: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelLarge
@@ -2185,35 +2006,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                   ),
                                                                   onSort:
                                                                       onSortChanged,
-                                                                ),
-                                                                DataColumn2(
-                                                                  label:
-                                                                      DefaultTextStyle
-                                                                          .merge(
-                                                                    softWrap:
-                                                                        true,
-                                                                    child: Text(
-                                                                      'Nome do animal',
-                                                                      style: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelLarge
-                                                                          .override(
-                                                                            font:
-                                                                                GoogleFonts.poppins(
-                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                            ),
-                                                                            fontSize:
-                                                                                12.0,
-                                                                            letterSpacing:
-                                                                                0.0,
-                                                                            fontWeight:
-                                                                                FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                          ),
-                                                                    ),
-                                                                  ),
                                                                 ),
                                                                 DataColumn2(
                                                                   label:
@@ -2469,34 +2261,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                               width: 4.0)),
                                                                     ),
                                                                   ),
-                                                                  Row(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    children: [
-                                                                      Text(
-                                                                        valueOrDefault<
-                                                                            String>(
-                                                                          sanidadeItem
-                                                                              .numeroAnimal,
-                                                                          'Não se aplica',
-                                                                        ),
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FontWeight.w500,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ].divide(const SizedBox(
-                                                                        width:
-                                                                            8.0)),
-                                                                  ),
                                                                   Column(
                                                                     mainAxisSize:
                                                                         MainAxisSize
@@ -2509,17 +2273,15 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                             .start,
                                                                     children: [
                                                                       Text(
-                                                                        valueOrDefault<
-                                                                            String>(
+                                                                        '${valueOrDefault<String>(
+                                                                          sanidadeItem
+                                                                              .numeroAnimal,
+                                                                          'S/N',
+                                                                        )} • ${valueOrDefault<String>(
                                                                           sanidadeItem
                                                                               .nome,
-                                                                          'Não se aplica',
-                                                                        ).maybeHandleOverflow(
-                                                                          maxChars:
-                                                                              27,
-                                                                          replacement:
-                                                                              '…',
-                                                                        ),
+                                                                          'S/N',
+                                                                        )}',
                                                                         style: FlutterFlowTheme.of(context)
                                                                             .bodyMedium
                                                                             .override(
@@ -2527,9 +2289,37 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FontWeight.w500,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              fontSize: 14.0,
+                                                                              fontSize: 16.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FontWeight.w500,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                      Text(
+                                                                        'Nascido em: ${valueOrDefault<String>(
+                                                                          dateTimeFormat(
+                                                                            "d/M/y",
+                                                                            functions.converterParaData(
+                                                                              sanidadeItem
+                                                                                  .dataNascimento,
+                                                                            ),
+                                                                            locale: FFLocalizations.of(context)
+                                                                                .languageCode,
+                                                                          ),
+                                                                          'S/D',
+                                                                        )}',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .bodyMedium
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                              color: FlutterFlowTheme.of(context)
+                                                                                  .icon,
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
                                                                       ),
@@ -3202,7 +2992,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     softWrap:
                                                                         true,
                                                                     child: Text(
-                                                                      'Número do animal',
+                                                                    'Animal',
                                                                       style: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelLarge
@@ -3225,35 +3015,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                   ),
                                                                   onSort:
                                                                       onSortChanged,
-                                                                ),
-                                                                DataColumn2(
-                                                                  label:
-                                                                      DefaultTextStyle
-                                                                          .merge(
-                                                                    softWrap:
-                                                                        true,
-                                                                    child: Text(
-                                                                      'Nome do animal',
-                                                                      style: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelLarge
-                                                                          .override(
-                                                                            font:
-                                                                                GoogleFonts.poppins(
-                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                            ),
-                                                                            fontSize:
-                                                                                12.0,
-                                                                            letterSpacing:
-                                                                                0.0,
-                                                                            fontWeight:
-                                                                                FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                          ),
-                                                                    ),
-                                                                  ),
                                                                 ),
                                                                 DataColumn2(
                                                                   label:
@@ -3424,34 +3185,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       );
                                                                     },
                                                                   ),
-                                                                  Row(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    children: [
-                                                                      Text(
-                                                                        valueOrDefault<
-                                                                            String>(
-                                                                          sanidadeItem
-                                                                              .numeroAnimal,
-                                                                          'Não se aplica',
-                                                                        ),
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FontWeight.w500,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ].divide(const SizedBox(
-                                                                        width:
-                                                                            8.0)),
-                                                                  ),
                                                                   Column(
                                                                     mainAxisSize:
                                                                         MainAxisSize
@@ -3464,17 +3197,15 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                             .start,
                                                                     children: [
                                                                       Text(
-                                                                        valueOrDefault<
-                                                                            String>(
+                                                                        '${valueOrDefault<String>(
+                                                                          sanidadeItem
+                                                                              .numeroAnimal,
+                                                                          'S/N',
+                                                                        )} • ${valueOrDefault<String>(
                                                                           sanidadeItem
                                                                               .nome,
-                                                                          'Não se aplica',
-                                                                        ).maybeHandleOverflow(
-                                                                          maxChars:
-                                                                              27,
-                                                                          replacement:
-                                                                              '…',
-                                                                        ),
+                                                                          'S/N',
+                                                                        )}',
                                                                         style: FlutterFlowTheme.of(context)
                                                                             .bodyMedium
                                                                             .override(
@@ -3482,9 +3213,37 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FontWeight.w500,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              fontSize: 14.0,
+                                                                              fontSize: 16.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FontWeight.w500,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                      Text(
+                                                                        'Nascido em: ${valueOrDefault<String>(
+                                                                          dateTimeFormat(
+                                                                            "d/M/y",
+                                                                            functions.converterParaData(
+                                                                              sanidadeItem
+                                                                                  .dataNascimento,
+                                                                            ),
+                                                                            locale: FFLocalizations.of(context)
+                                                                                .languageCode,
+                                                                          ),
+                                                                          'S/D',
+                                                                        )}',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .bodyMedium
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                              color: FlutterFlowTheme.of(context)
+                                                                                  .icon,
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
                                                                       ),
@@ -4160,7 +3919,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     softWrap:
                                                                         true,
                                                                     child: Text(
-                                                                      'Número do animal',
+                                                                    'Animal',
                                                                       style: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelLarge
@@ -4183,35 +3942,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                   ),
                                                                   onSort:
                                                                       onSortChanged,
-                                                                ),
-                                                                DataColumn2(
-                                                                  label:
-                                                                      DefaultTextStyle
-                                                                          .merge(
-                                                                    softWrap:
-                                                                        true,
-                                                                    child: Text(
-                                                                      'Nome do animal',
-                                                                      style: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelLarge
-                                                                          .override(
-                                                                            font:
-                                                                                GoogleFonts.poppins(
-                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                            ),
-                                                                            fontSize:
-                                                                                12.0,
-                                                                            letterSpacing:
-                                                                                0.0,
-                                                                            fontWeight:
-                                                                                FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                          ),
-                                                                    ),
-                                                                  ),
                                                                 ),
                                                                 DataColumn2(
                                                                   label:
@@ -4382,34 +4112,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       );
                                                                     },
                                                                   ),
-                                                                  Row(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    children: [
-                                                                      Text(
-                                                                        valueOrDefault<
-                                                                            String>(
-                                                                          sanidadeItem
-                                                                              .numeroAnimal,
-                                                                          'Não se aplica',
-                                                                        ),
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FontWeight.w500,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ].divide(const SizedBox(
-                                                                        width:
-                                                                            8.0)),
-                                                                  ),
                                                                   Column(
                                                                     mainAxisSize:
                                                                         MainAxisSize
@@ -4422,17 +4124,15 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                             .start,
                                                                     children: [
                                                                       Text(
-                                                                        valueOrDefault<
-                                                                            String>(
+                                                                        '${valueOrDefault<String>(
+                                                                          sanidadeItem
+                                                                              .numeroAnimal,
+                                                                          'S/N',
+                                                                        )} • ${valueOrDefault<String>(
                                                                           sanidadeItem
                                                                               .nome,
-                                                                          'Não se aplica',
-                                                                        ).maybeHandleOverflow(
-                                                                          maxChars:
-                                                                              27,
-                                                                          replacement:
-                                                                              '…',
-                                                                        ),
+                                                                          'S/N',
+                                                                        )}',
                                                                         style: FlutterFlowTheme.of(context)
                                                                             .bodyMedium
                                                                             .override(
@@ -4440,9 +4140,37 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FontWeight.w500,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              fontSize: 14.0,
+                                                                              fontSize: 16.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FontWeight.w500,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                      Text(
+                                                                        'Nascido em: ${valueOrDefault<String>(
+                                                                          dateTimeFormat(
+                                                                            "d/M/y",
+                                                                            functions.converterParaData(
+                                                                              sanidadeItem
+                                                                                  .dataNascimento,
+                                                                            ),
+                                                                            locale: FFLocalizations.of(context)
+                                                                                .languageCode,
+                                                                          ),
+                                                                          'S/D',
+                                                                        )}',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .bodyMedium
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                              color: FlutterFlowTheme.of(context)
+                                                                                  .icon,
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
                                                                       ),
@@ -5118,7 +4846,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     softWrap:
                                                                         true,
                                                                     child: Text(
-                                                                      'Número do animal',
+                                                                    'Animal',
                                                                       style: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelLarge
@@ -5141,35 +4869,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                   ),
                                                                   onSort:
                                                                       onSortChanged,
-                                                                ),
-                                                                DataColumn2(
-                                                                  label:
-                                                                      DefaultTextStyle
-                                                                          .merge(
-                                                                    softWrap:
-                                                                        true,
-                                                                    child: Text(
-                                                                      'Nome do animal',
-                                                                      style: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelLarge
-                                                                          .override(
-                                                                            font:
-                                                                                GoogleFonts.poppins(
-                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                            ),
-                                                                            fontSize:
-                                                                                12.0,
-                                                                            letterSpacing:
-                                                                                0.0,
-                                                                            fontWeight:
-                                                                                FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                          ),
-                                                                    ),
-                                                                  ),
                                                                 ),
                                                                 DataColumn2(
                                                                   label:
@@ -5340,34 +5039,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       );
                                                                     },
                                                                   ),
-                                                                  Row(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    children: [
-                                                                      Text(
-                                                                        valueOrDefault<
-                                                                            String>(
-                                                                          sanidadeItem
-                                                                              .numeroAnimal,
-                                                                          'Não se aplica',
-                                                                        ),
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FontWeight.w500,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ].divide(const SizedBox(
-                                                                        width:
-                                                                            8.0)),
-                                                                  ),
                                                                   Column(
                                                                     mainAxisSize:
                                                                         MainAxisSize
@@ -5380,17 +5051,15 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                             .start,
                                                                     children: [
                                                                       Text(
-                                                                        valueOrDefault<
-                                                                            String>(
+                                                                        '${valueOrDefault<String>(
+                                                                          sanidadeItem
+                                                                              .numeroAnimal,
+                                                                          'S/N',
+                                                                        )} • ${valueOrDefault<String>(
                                                                           sanidadeItem
                                                                               .nome,
-                                                                          'Não se aplica',
-                                                                        ).maybeHandleOverflow(
-                                                                          maxChars:
-                                                                              27,
-                                                                          replacement:
-                                                                              '…',
-                                                                        ),
+                                                                          'S/N',
+                                                                        )}',
                                                                         style: FlutterFlowTheme.of(context)
                                                                             .bodyMedium
                                                                             .override(
@@ -5398,9 +5067,37 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FontWeight.w500,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              fontSize: 14.0,
+                                                                              fontSize: 16.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FontWeight.w500,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                      Text(
+                                                                        'Nascido em: ${valueOrDefault<String>(
+                                                                          dateTimeFormat(
+                                                                            "d/M/y",
+                                                                            functions.converterParaData(
+                                                                              sanidadeItem
+                                                                                  .dataNascimento,
+                                                                            ),
+                                                                            locale: FFLocalizations.of(context)
+                                                                                .languageCode,
+                                                                          ),
+                                                                          'S/D',
+                                                                        )}',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .bodyMedium
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                              color: FlutterFlowTheme.of(context)
+                                                                                  .icon,
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
                                                                       ),
@@ -6076,7 +5773,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     softWrap:
                                                                         true,
                                                                     child: Text(
-                                                                      'Número do animal',
+                                                                    'Animal',
                                                                       style: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelLarge
@@ -6099,35 +5796,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                   ),
                                                                   onSort:
                                                                       onSortChanged,
-                                                                ),
-                                                                DataColumn2(
-                                                                  label:
-                                                                      DefaultTextStyle
-                                                                          .merge(
-                                                                    softWrap:
-                                                                        true,
-                                                                    child: Text(
-                                                                      'Nome do animal',
-                                                                      style: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelLarge
-                                                                          .override(
-                                                                            font:
-                                                                                GoogleFonts.poppins(
-                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                            ),
-                                                                            fontSize:
-                                                                                12.0,
-                                                                            letterSpacing:
-                                                                                0.0,
-                                                                            fontWeight:
-                                                                                FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                          ),
-                                                                    ),
-                                                                  ),
                                                                 ),
                                                                 DataColumn2(
                                                                   label:
@@ -6298,34 +5966,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       );
                                                                     },
                                                                   ),
-                                                                  Row(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    children: [
-                                                                      Text(
-                                                                        valueOrDefault<
-                                                                            String>(
-                                                                          sanidadeItem
-                                                                              .numeroAnimal,
-                                                                          'Não se aplica',
-                                                                        ),
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FontWeight.w500,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ].divide(const SizedBox(
-                                                                        width:
-                                                                            8.0)),
-                                                                  ),
                                                                   Column(
                                                                     mainAxisSize:
                                                                         MainAxisSize
@@ -6338,17 +5978,15 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                             .start,
                                                                     children: [
                                                                       Text(
-                                                                        valueOrDefault<
-                                                                            String>(
+                                                                        '${valueOrDefault<String>(
+                                                                          sanidadeItem
+                                                                              .numeroAnimal,
+                                                                          'S/N',
+                                                                        )} • ${valueOrDefault<String>(
                                                                           sanidadeItem
                                                                               .nome,
-                                                                          'Não se aplica',
-                                                                        ).maybeHandleOverflow(
-                                                                          maxChars:
-                                                                              27,
-                                                                          replacement:
-                                                                              '…',
-                                                                        ),
+                                                                          'S/N',
+                                                                        )}',
                                                                         style: FlutterFlowTheme.of(context)
                                                                             .bodyMedium
                                                                             .override(
@@ -6356,9 +5994,37 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FontWeight.w500,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              fontSize: 14.0,
+                                                                              fontSize: 16.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FontWeight.w500,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                      ),
+                                                                      Text(
+                                                                        'Nascido em: ${valueOrDefault<String>(
+                                                                          dateTimeFormat(
+                                                                            "d/M/y",
+                                                                            functions.converterParaData(
+                                                                              sanidadeItem
+                                                                                  .dataNascimento,
+                                                                            ),
+                                                                            locale: FFLocalizations.of(context)
+                                                                                .languageCode,
+                                                                          ),
+                                                                          'S/D',
+                                                                        )}',
+                                                                        style: FlutterFlowTheme.of(context)
+                                                                            .bodyMedium
+                                                                            .override(
+                                                                              font: GoogleFonts.poppins(
+                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                              color: FlutterFlowTheme.of(context)
+                                                                                  .icon,
+                                                                              fontSize: 12.0,
+                                                                              letterSpacing: 0.0,
+                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
                                                                       ),

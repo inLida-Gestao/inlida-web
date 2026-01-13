@@ -3143,8 +3143,7 @@ class _PgReproducaoEditAnimalWidgetState
                                                         highlightColor:
                                                             Colors.transparent,
                                                         onTap: () async {
-                                                          _model.ressinc =
-                                                              false;
+                                                                                                                    _model.parida = false;
                                                           safeSetState(() {});
                                                         },
                                                         child: Icon(
@@ -3167,7 +3166,7 @@ class _PgReproducaoEditAnimalWidgetState
                                                         highlightColor:
                                                             Colors.transparent,
                                                         onTap: () async {
-                                                          _model.ressinc = true;
+                                                                                                                    _model.parida = true;
                                                           safeSetState(() {});
                                                         },
                                                         child: Icon(
@@ -3623,13 +3622,16 @@ class _PgReproducaoEditAnimalWidgetState
                                                                   String>(
                                                             _model.dropDownStatusValue ??=
                                                                 pgReproducaoEditAnimalReproducaoRow
-                                                                    ?.statusReproducao,
+                                                                            ?.statusReproducao ==
+                                                                        'Parida'
+                                                                    ? 'Não diagnosticado'
+                                                                    : pgReproducaoEditAnimalReproducaoRow
+                                                                        ?.statusReproducao,
                                                           ),
                                                           options: const [
                                                             'Não diagnosticado',
                                                             'Absorção',
                                                             'Aborto',
-                                                            'Parida',
                                                             'Prenhez',
                                                             'Vazio'
                                                           ],

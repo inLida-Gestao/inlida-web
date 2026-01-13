@@ -212,13 +212,17 @@ class _PainelWidgetState extends State<PainelWidget>
                                           children: [
                                             Row(
                                               mainAxisSize: MainAxisSize.max,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.center,
                                               children: [
-                                                if (FFAppState()
-                                                        .propriedadeSelecionada
-                                                        .idPropriedade !=
-                                                    '')
+                                                if ((FFAppState()
+                                                            .propriedadeSelecionada
+                                                            .idPropriedade !=
+                                                        '') &&
+                                                    (_model.tabBarCurrentIndex !=
+                                                        0))
                                                   Container(
                                                     decoration:
                                                         const BoxDecoration(),

@@ -9,6 +9,7 @@ export 'package:data_table_2/data_table_2.dart' show DataColumn2;
 const _kDataTableHorizontalMargin = 48.0;
 const kDefaultColumnSpacing = 56.0;
 const _kMinRowsPerPage = 5;
+const _kTableRowHeightIncrease = 8.0;
 
 typedef ColumnsBuilder<T> = List<DataColumn> Function(void Function(int, bool));
 typedef DataRowBuilder<T> = DataRow? Function(
@@ -332,8 +333,8 @@ class _FlutterFlowDataTableState<T> extends State<FlutterFlowDataTable<T>> {
               dividerThickness:
                   widget.hideDefaultHorizontalDivider ? 0.0 : null,
               headingRowColor: WidgetStateProperty.all(widget.headingRowColor),
-              headingRowHeight: widget.headingRowHeight,
-              dataRowHeight: widget.dataRowHeight,
+                headingRowHeight: widget.headingRowHeight + _kTableRowHeightIncrease,
+                dataRowHeight: widget.dataRowHeight + _kTableRowHeightIncrease,
               showFirstLastButtons: widget.showFirstLastButtons,
               minWidth:
                   math.max(widget.minWidth ?? 0, _getColumnsWidth(columns)),
@@ -391,8 +392,8 @@ class _FlutterFlowDataTableState<T> extends State<FlutterFlowDataTable<T>> {
               dividerThickness:
                   widget.hideDefaultHorizontalDivider ? 0.0 : null,
               headingRowColor: WidgetStateProperty.all(widget.headingRowColor),
-              headingRowHeight: widget.headingRowHeight,
-              dataRowHeight: widget.dataRowHeight,
+                headingRowHeight: widget.headingRowHeight + _kTableRowHeightIncrease,
+                dataRowHeight: widget.dataRowHeight + _kTableRowHeightIncrease,
               showFirstLastButtons: widget.showFirstLastButtons,
               minWidth:
                   math.max(widget.minWidth ?? 0, _getColumnsWidth(columns)),

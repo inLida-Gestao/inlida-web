@@ -557,6 +557,7 @@ class _PgReproducaoAddAnimalWidgetState
                                                             );
                                                           },
                                                         );
+                                                        safeSetState(() {});
                                                       },
                                                       child: Container(
                                                         width: 450.0,
@@ -945,6 +946,7 @@ class _PgReproducaoAddAnimalWidgetState
                                                         );
                                                       },
                                                     );
+                                                    safeSetState(() {});
                                                   },
                                                   child: Container(
                                                     width: double.infinity,
@@ -2811,16 +2813,11 @@ class _PgReproducaoAddAnimalWidgetState
                                               safeSetState(() => _model
                                                   .checkboxValue = newValue!);
                                             },
-                                            side: (FlutterFlowTheme.of(context)
-                                                        .alternate !=
-                                                    null)
-                                                ? BorderSide(
-                                                    width: 2,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .alternate,
-                                                  )
-                                                : null,
+                                            side: BorderSide(
+                                              width: 2,
+                                              color: FlutterFlowTheme.of(context)
+                                                .alternate,
+                                            ),
                                             activeColor:
                                                 FlutterFlowTheme.of(context)
                                                     .primary,
@@ -2889,18 +2886,12 @@ class _PgReproducaoAddAnimalWidgetState
                                                           .checkboxParidaValue =
                                                       newValue!);
                                                 },
-                                                side: (FlutterFlowTheme.of(
-                                                                context)
-                                                            .alternate !=
-                                                        null)
-                                                    ? BorderSide(
-                                                        width: 2,
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .alternate,
-                                                      )
-                                                    : null,
+                                                side: BorderSide(
+                                                  width: 2,
+                                                  color: FlutterFlowTheme.of(
+                                                      context)
+                                                    .alternate,
+                                                ),
                                                 activeColor:
                                                     FlutterFlowTheme.of(context)
                                                         .primary,

@@ -1848,7 +1848,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
         'deletado': 'NAO',
         'vacinacao': _model.tiposSelecionados.contains('Vacinação')
             ? (_model.vacinaDropdownValue?.isNotEmpty ?? false)
-                ? _model.vacinaDropdownValue!.join(', ')
+            ? jsonEncode(_model.vacinaDropdownValue)
                 : null
             : null,
         'vacinacao_outros': _model.tiposSelecionados.contains('Vacinação')
@@ -1859,7 +1859,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
             : null,
         'antiparasitario': _model.tiposSelecionados.contains('Antiparasitário')
             ? (_model.antiparasitarioDropdownValue?.isNotEmpty ?? false)
-                ? _model.antiparasitarioDropdownValue!.join(', ')
+            ? jsonEncode(_model.antiparasitarioDropdownValue)
                 : null
             : null,
         'antiparasitario_outros': _model.tiposSelecionados
@@ -1872,7 +1872,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
                 : null,
         'tratamento': _model.tiposSelecionados.contains('Tratamento')
             ? (_model.tratamentoDropdownValue?.isNotEmpty ?? false)
-                ? _model.tratamentoDropdownValue!.join(', ')
+            ? jsonEncode(_model.tratamentoDropdownValue)
                 : null
             : null,
         'tratamento_outros': _model.tiposSelecionados.contains('Tratamento')

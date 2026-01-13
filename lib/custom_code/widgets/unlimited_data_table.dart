@@ -211,14 +211,14 @@ class _UnlimitedDataTableState extends State<UnlimitedDataTable> {
                 sortColumnIndex: _sortColumnIndex,
                 sortAscending: _sortAscending,
                 showCheckboxColumn: widget.showCheckboxColumn,
+                onSelectAll: widget.showCheckboxColumn ? _onSelectAll : null,
                 columnSpacing: widget.columnSpacing,
-                dataRowHeight: widget.dataRowHeight,
-                headingRowHeight: widget.headingRowHeight,
+                dataRowHeight: widget.dataRowHeight + 8.0,
+                headingRowHeight: widget.headingRowHeight + 8.0,
                 headingRowColor: widget.headerColor != null
                     ? WidgetStateProperty.all(widget.headerColor)
                     : null,
                 columns: widget.columnLabels.asMap().entries.map((entry) {
-                  final index = entry.key;
                   final label = entry.value;
                   return DataColumn(
                     label: Text(label),

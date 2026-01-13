@@ -151,6 +151,9 @@ class PgRebanhoViewModel extends FlutterFlowModel<PgRebanhoViewWidget> {
   // State field(s) for PaginatedDataTable widget.
   final paginatedDataTableController4 =
       FlutterFlowDataTableController<ReproducaoRow>();
+    // State field(s) for PaginatedDataTable widget.
+    final paginatedDataTableController5 =
+      FlutterFlowDataTableController<SanidadeRow>();
   // Stores action output result for [Backend Call - Query Rows] action in Button widget.
   List<RebanhoRow>? matriz;
   // Stores action output result for [Backend Call - Query Rows] action in Button widget.

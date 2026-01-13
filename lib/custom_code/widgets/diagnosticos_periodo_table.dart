@@ -90,6 +90,8 @@ class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
       child: DataTable2(
         columnSpacing: 20,
         horizontalMargin: 20,
+        headingRowHeight: 64.0,
+        dataRowHeight: 56.0,
         minWidth: 400,
         columns: [
           DataColumn2(
