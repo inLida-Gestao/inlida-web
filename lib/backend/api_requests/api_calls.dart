@@ -1356,6 +1356,7 @@ class SupabaseEdgeGroup {
   static PrecoMedioCategoriaCall precoMedioCategoriaCall =
       PrecoMedioCategoriaCall();
   static TaxaPrenhezGetCall taxaPrenhezGetCall = TaxaPrenhezGetCall();
+  static TaxaNatalidadeGetCall taxaNatalidadeGetCall = TaxaNatalidadeGetCall();
   static ProjecaoDesmamasCall projecaoDesmamasCall = ProjecaoDesmamasCall();
 }
 
@@ -1743,6 +1744,55 @@ class TaxaPrenhezGetCall {
     return ApiManager.instance.makeApiCall(
       callName: 'taxa prenhez get',
       apiUrl: '${baseUrl}taxa-prenhez',
+      callType: ApiCallType.GET,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      params: {
+        'id_propriedade': idPropriedade,
+        'data_inicio': dataInicio,
+        'data_fim': dataFim,
+      },
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  List<String>? titulo(dynamic response) => (getJsonField(
+        response,
+        r'''$[:].titulo''',
+        true,
+      ) as List?)
+          ?.withoutNulls
+          .map((x) => castToType<String>(x))
+          .withoutNulls
+          .toList();
+  List<int>? porcentagem(dynamic response) => (getJsonField(
+        response,
+        r'''$[:].porcentagem''',
+        true,
+      ) as List?)
+          ?.withoutNulls
+          .map((x) => castToType<int>(x))
+          .withoutNulls
+          .toList();
+}
+
+class TaxaNatalidadeGetCall {
+  Future<ApiCallResponse> call({
+    String? idPropriedade = '',
+    String? dataInicio = '',
+    String? dataFim = '',
+  }) async {
+    final baseUrl = SupabaseEdgeGroup.getBaseUrl();
+
+    return ApiManager.instance.makeApiCall(
+      callName: 'taxa natalidade get',
+      apiUrl: '${baseUrl}taxa-natalidade',
       callType: ApiCallType.GET,
       headers: {
         'Content-Type': 'application/json',
@@ -2384,6 +2434,7 @@ class ReproducaoDiagnosticosCategoriaCall {
     String? idPropriedade = '',
     String? dataInicial = '',
     String? dataFinal = '',
+    String? categoria = '',
   }) async {
     final baseUrl = SupaEdgeGroup.getBaseUrl();
 
@@ -2402,6 +2453,7 @@ class ReproducaoDiagnosticosCategoriaCall {
         'idPropriedade': idPropriedade,
         'inicio': dataInicial,
         'fim': dataFinal,
+        if (categoria != null && categoria != '' && categoria != 'Todos') 'categoria': categoria,
       },
       returnBody: true,
       encodeBodyUtf8: false,

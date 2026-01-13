@@ -204,10 +204,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                         .fontStyle,
                                               ),
                                         ),
-                                        Column(
-                                          mainAxisSize: MainAxisSize.max,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.max,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                           children: [
                                             Row(
                                               mainAxisSize: MainAxisSize.max,
@@ -1020,6 +1021,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                   const SizedBox(width: 16.0)),
                                             ),
                                           ],
+                                        ),
                                         ),
                                       ],
                                     ),
@@ -2777,7 +2779,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                     causa: _model.dropDownMotivoMorteValue !=
                                                                                 null &&
                                                                             _model.dropDownMotivoMorteValue !=
-                                                                                ''
+                                                                                '' &&
+                                                                            _model.dropDownMotivoMorteValue !=
+                                                                                'Todos'
                                                                         ? _model
                                                                             .dropDownMotivoMorteValue
                                                                         : '',
@@ -2850,7 +2854,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                   Padding(
                                                                                     padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 16.0, 0.0),
                                                                                     child: Text(
-                                                                                      'Mortalidade no período (cabeça)',
+                                                                                      'Mortalidade de bezerros no Período (cabeça)',
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                             font: GoogleFonts.poppins(
                                                                                               fontWeight: FontWeight.w600,
@@ -2863,73 +2867,51 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           ),
                                                                                     ),
                                                                                   ),
-                                                                                  Row(
-                                                                                    mainAxisSize: MainAxisSize.max,
-                                                                                    children: [
-                                                                                      if (_model.dropDownMotivoMorteValue != null && _model.dropDownMotivoMorteValue != '')
-                                                                                        InkWell(
-                                                                                          splashColor: Colors.transparent,
-                                                                                          focusColor: Colors.transparent,
-                                                                                          hoverColor: Colors.transparent,
-                                                                                          highlightColor: Colors.transparent,
-                                                                                          onTap: () async {
-                                                                                            safeSetState(() {
-                                                                                              _model.dropDownMotivoMorteValueController?.reset();
-                                                                                              _model.dropDownMotivoMorteValue = null;
-                                                                                            });
-                                                                                          },
-                                                                                          child: Icon(
-                                                                                            Icons.replay,
-                                                                                            color: FlutterFlowTheme.of(context).primaryText,
-                                                                                            size: 24.0,
-                                                                                          ),
-                                                                                        ),
-                                                                                      FlutterFlowDropDown<String>(
-                                                                                        controller: _model.dropDownMotivoMorteValueController ??= FormFieldController<String>(null),
-                                                                                        options: const [
-                                                                                          'ACIDENTE',
-                                                                                          'ANIMAL PEÇONHENTO',
-                                                                                          'ATAQUE AVE',
-                                                                                          'DOENÇA',
-                                                                                          'ESTRESSE TÉRMICO',
-                                                                                          'INTOXICAÇÃO',
-                                                                                          'NEONATO',
-                                                                                          'PARTO DISTÓCICO',
-                                                                                          'PREDADOR'
-                                                                                        ],
-                                                                                        onChanged: (val) => safeSetState(() => _model.dropDownMotivoMorteValue = val),
-                                                                                        width: 140.0,
-                                                                                        height: 40.0,
-                                                                                        textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                              font: GoogleFonts.poppins(
-                                                                                                fontWeight: FontWeight.w600,
-                                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                              ),
-                                                                                              fontSize: 14.0,
-                                                                                              letterSpacing: 0.0,
-                                                                                              fontWeight: FontWeight.w600,
-                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                            ),
-                                                                                        hintText: 'Causa',
-                                                                                        icon: Icon(
-                                                                                          Icons.keyboard_arrow_down_rounded,
-                                                                                          color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                          size: 24.0,
-                                                                                        ),
-                                                                                        fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                        elevation: 2.0,
-                                                                                        borderColor: FlutterFlowTheme.of(context).customColor5,
-                                                                                        borderWidth: 0.0,
-                                                                                        borderRadius: 8.0,
-                                                                                        margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                        hidesUnderline: true,
-                                                                                        isOverButton: false,
-                                                                                        isSearchable: false,
-                                                                                        isMultiSelect: false,
+                                                                                  FlutterFlowDropDown<String>(
+                                                                                    controller: _model.dropDownMotivoMorteValueController ??= FormFieldController<String>('Todos'),
+                                                                                    options: const [
+                                                                                      'Todos',
+                                                                                      'ACIDENTE',
+                                                                                      'ANIMAL PEÇONHENTO',
+                                                                                      'ATAQUE AVE',
+                                                                                      'DOENÇA',
+                                                                                      'ESTRESSE TÉRMICO',
+                                                                                      'INTOXICAÇÃO',
+                                                                                      'NEONATO',
+                                                                                      'PARTO DISTÓCICO',
+                                                                                      'PREDADOR'
+                                                                                    ],
+                                                                                    onChanged: (val) => safeSetState(() => _model.dropDownMotivoMorteValue = val),
+                                                                                    width: 140.0,
+                                                                                    height: 40.0,
+                                                                                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                      font: GoogleFonts.poppins(
+                                                                                        fontWeight: FontWeight.w600,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                       ),
-                                                                                    ].divide(const SizedBox(width: 16.0)),
+                                                                                      fontSize: 14.0,
+                                                                                      letterSpacing: 0.0,
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                    ),
+                                                                                    hintText: 'Causa',
+                                                                                    icon: Icon(
+                                                                                      Icons.keyboard_arrow_down_rounded,
+                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                      size: 24.0,
+                                                                                    ),
+                                                                                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                    elevation: 2.0,
+                                                                                    borderColor: FlutterFlowTheme.of(context).customColor5,
+                                                                                    borderWidth: 0.0,
+                                                                                    borderRadius: 8.0,
+                                                                                    margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                    hidesUnderline: true,
+                                                                                    isOverButton: false,
+                                                                                    isSearchable: false,
+                                                                                    isMultiSelect: false,
                                                                                   ),
-                                                                                ],
+                                                                                ].divide(const SizedBox(width: 16.0)),
                                                                               ),
                                                                               Expanded(
                                                                                 child: Padding(
@@ -3001,16 +2983,19 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                           .dDInicioMesValue,
                                                                       1,
                                                                     ).toString().padLeft(2, '0')}-01',
-                                                                    fim:
-                                                                        '${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDFimAnoValue,
-                                                                      '2025',
-                                                                    )}-${valueOrDefault<int>(
-                                                                      _model
-                                                                          .dDFimMesValue,
-                                                                      12,
-                                                                    ).toString().padLeft(2, '0')}-01',
+                                                                    fim: () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimAnoValue,
+                                                                        '2025',
+                                                                      )) ?? 2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimMesValue?.toString(),
+                                                                        '12',
+                                                                      )) ?? 12;
+                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
+                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                    }(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -3464,8 +3449,19 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .idPropriedade,
                                                                     dataInicio:
                                                                         '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
-                                                                    dataFim:
-                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
+                                                                    dataFim: () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimAnoValue,
+                                                                        '2025',
+                                                                      )) ?? 2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimMesValue?.toString(),
+                                                                        '12',
+                                                                      )) ?? 12;
+                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
+                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                    }(),
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -3586,8 +3582,19 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .idPropriedade,
                                                                     dataInicio:
                                                                         '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
-                                                                    dataFim:
-                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
+                                                                    dataFim: () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimAnoValue,
+                                                                        '2025',
+                                                                      )) ?? 2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimMesValue?.toString(),
+                                                                        '12',
+                                                                      )) ?? 12;
+                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
+                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                    }(),
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -3853,82 +3860,144 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   },
                                                                 ),
                                                               ),
-                                                              if (responsiveVisibility(
-                                                                context:
-                                                                    context,
-                                                                phone: false,
-                                                                tablet: false,
-                                                                tabletLandscape:
-                                                                    false,
-                                                                desktop: false,
-                                                              ))
-                                                                Expanded(
-                                                                  child:
-                                                                      Material(
-                                                                    color: Colors
-                                                                        .transparent,
-                                                                    elevation:
-                                                                        2.0,
-                                                                    shape:
-                                                                        RoundedRectangleBorder(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              6.0),
-                                                                    ),
-                                                                    child:
-                                                                        Container(
-                                                                      height:
-                                                                          433.0,
-                                                                      decoration:
-                                                                          BoxDecoration(
-                                                                        color: FlutterFlowTheme.of(context)
-                                                                            .secondaryBackground,
+                                                              Expanded(
+                                                                child: FutureBuilder<
+                                                                    ApiCallResponse>(
+                                                                  future: SupabaseEdgeGroup
+                                                                      .taxaNatalidadeGetCall
+                                                                      .call(
+                                                                    idPropriedade:
+                                                                        FFAppState()
+                                                                            .propriedadeSelecionada
+                                                                            .idPropriedade,
+                                                                    dataInicio:
+                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                    dataFim: () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimAnoValue,
+                                                                        '2025',
+                                                                      )) ?? 2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimMesValue?.toString(),
+                                                                        '12',
+                                                                      )) ?? 12;
+                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
+                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                    }(),
+                                                                  ),
+                                                                  builder: (context,
+                                                                      snapshot) {
+                                                                    // Customize what your widget looks like when it's loading.
+                                                                    if (!snapshot
+                                                                        .hasData) {
+                                                                      return Center(
+                                                                        child:
+                                                                            SizedBox(
+                                                                          width:
+                                                                              50.0,
+                                                                          height:
+                                                                              50.0,
+                                                                          child:
+                                                                              CircularProgressIndicator(
+                                                                            valueColor:
+                                                                                AlwaysStoppedAnimation<Color>(
+                                                                              FlutterFlowTheme.of(context).primary,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                    final containerTaxaNatalidadeGetResponse =
+                                                                        snapshot
+                                                                            .data!;
+
+                                                                    return Material(
+                                                                      color: Colors
+                                                                          .transparent,
+                                                                      elevation:
+                                                                          2.0,
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
                                                                         borderRadius:
                                                                             BorderRadius.circular(6.0),
                                                                       ),
                                                                       child:
-                                                                          Padding(
-                                                                        padding: const EdgeInsets
-                                                                            .all(
-                                                                            24.0),
+                                                                          Container(
+                                                                        width: double
+                                                                            .infinity,
+                                                                        height:
+                                                                            433.0,
+                                                                        constraints:
+                                                                            const BoxConstraints(
+                                                                          maxHeight:
+                                                                              433.0,
+                                                                        ),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color:
+                                                                              FlutterFlowTheme.of(context).secondaryBackground,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(6.0),
+                                                                        ),
                                                                         child:
-                                                                            Column(
-                                                                          mainAxisSize:
-                                                                              MainAxisSize.max,
-                                                                          mainAxisAlignment:
-                                                                              MainAxisAlignment.start,
-                                                                          crossAxisAlignment:
-                                                                              CrossAxisAlignment.start,
-                                                                          children: [
-                                                                            Text(
-                                                                              'Taxa de natalidade',
-                                                                              style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                    font: GoogleFonts.poppins(
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
+                                                                          child:
+                                                                              Column(
+                                                                            mainAxisSize:
+                                                                                MainAxisSize.max,
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.start,
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.start,
+                                                                            children: [
+                                                                              Text(
+                                                                                'Taxa de natalidade',
+                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                      font: GoogleFonts.poppins(
+                                                                                        fontWeight: FontWeight.w600,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                      ),
+                                                                                      fontSize: 18.0,
+                                                                                      letterSpacing: 0.0,
                                                                                       fontWeight: FontWeight.w600,
                                                                                       fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                     ),
-                                                                                    fontSize: 18.0,
-                                                                                    letterSpacing: 0.0,
-                                                                                    fontWeight: FontWeight.w600,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                              Expanded(
+                                                                                child: Container(
+                                                                                  width: double.infinity,
+                                                                                  height: double.infinity,
+                                                                                  constraints: const BoxConstraints(
+                                                                                    maxHeight: 350.0,
                                                                                   ),
-                                                                            ),
-                                                                            Container(
-                                                                              width: double.infinity,
-                                                                              height: double.infinity,
-                                                                              constraints: const BoxConstraints(
-                                                                                maxHeight: 350.0,
+                                                                                  decoration: BoxDecoration(
+                                                                                    color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                  ),
+                                                                                  child: containerTaxaNatalidadeGetResponse.succeeded
+                                                                                      ? SizedBox(
+                                                                                          width: double.infinity,
+                                                                                          height: double.infinity,
+                                                                                          child: custom_widgets.TaxaPrenhezChart(
+                                                                                            width: double.infinity,
+                                                                                            height: double.infinity,
+                                                                                            prenhezData: containerTaxaNatalidadeGetResponse.jsonBody,
+                                                                                          ),
+                                                                                        )
+                                                                                      : const EmptyWidget(),
+                                                                                ),
                                                                               ),
-                                                                              decoration: BoxDecoration(
-                                                                                color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                              ),
-                                                                            ),
-                                                                          ],
+                                                                            ],
+                                                                          ),
                                                                         ),
                                                                       ),
-                                                                    ),
-                                                                  ),
+                                                                    );
+                                                                  },
                                                                 ),
+                                                              ),
                                                               Expanded(
                                                                 child:
                                                                     Container(
@@ -4229,13 +4298,32 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .reproducaoDiagnosticosCategoriaCall
                                                                       .call(
                                                                     dataInicial:
-                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
-                                                                    dataFinal:
-                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
+                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString().padLeft(2, '0')}-01',
+                                                                    dataFinal: () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimAnoValue,
+                                                                        '2025',
+                                                                      )) ?? 2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimMesValue?.toString(),
+                                                                        '12',
+                                                                      )) ?? 12;
+                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                    }(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
+                                                                    categoria: _model.dropDownDiagnosticoCategoriaValue !=
+                                                                            null &&
+                                                                        _model.dropDownDiagnosticoCategoriaValue !=
+                                                                            '' &&
+                                                                        _model.dropDownDiagnosticoCategoriaValue !=
+                                                                            'Todos'
+                                                                        ? _model
+                                                                            .dropDownDiagnosticoCategoriaValue
+                                                                        : '',
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -4303,18 +4391,67 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             crossAxisAlignment:
                                                                                 CrossAxisAlignment.start,
                                                                             children: [
-                                                                              Text(
-                                                                                'Diagnósticos reprodutivos por categoria',
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                              Row(
+                                                                                mainAxisSize: MainAxisSize.max,
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                children: [
+                                                                                  Padding(
+                                                                                    padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 16.0, 0.0),
+                                                                                    child: Text(
+                                                                                      'Diagnósticos reprodutivos por categoria',
+                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                            fontSize: 18.0,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                    ),
+                                                                                  ),
+                                                                                  FlutterFlowDropDown<String>(
+                                                                                    controller: _model.dropDownDiagnosticoCategoriaValueController ??= FormFieldController<String>('Todos'),
+                                                                                    options: const [
+                                                                                      'Todos',
+                                                                                      'Não diagnosticado',
+                                                                                      'Absorção',
+                                                                                      'Aborto',
+                                                                                      'Prenhaz',
+                                                                                      'Vazio'
+                                                                                    ],
+                                                                                    onChanged: (val) => safeSetState(() => _model.dropDownDiagnosticoCategoriaValue = val),
+                                                                                    width: 180.0,
+                                                                                    height: 40.0,
+                                                                                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                       font: GoogleFonts.poppins(
                                                                                         fontWeight: FontWeight.w600,
                                                                                         fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                       ),
-                                                                                      fontSize: 18.0,
+                                                                                      fontSize: 14.0,
                                                                                       letterSpacing: 0.0,
                                                                                       fontWeight: FontWeight.w600,
                                                                                       fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                     ),
+                                                                                    hintText: 'Categoria',
+                                                                                    icon: Icon(
+                                                                                      Icons.keyboard_arrow_down_rounded,
+                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                      size: 24.0,
+                                                                                    ),
+                                                                                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                    elevation: 2.0,
+                                                                                    borderColor: FlutterFlowTheme.of(context).customColor5,
+                                                                                    borderWidth: 0.0,
+                                                                                    borderRadius: 8.0,
+                                                                                    margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                    hidesUnderline: true,
+                                                                                    isOverButton: false,
+                                                                                    isSearchable: false,
+                                                                                    isMultiSelect: false,
+                                                                                  ),
+                                                                                ],
                                                                               ),
                                                                               Expanded(
                                                                                 child: Container(

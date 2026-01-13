@@ -69,6 +69,9 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   // State field(s) for DropDownMotivoMorte widget.
   String? dropDownMotivoMorteValue;
   FormFieldController<String>? dropDownMotivoMorteValueController;
+  // State field(s) for DropDownDiagnosticoCategoria widget.
+  String? dropDownDiagnosticoCategoriaValue;
+  FormFieldController<String>? dropDownDiagnosticoCategoriaValueController;
   // State field(s) for ddProjDesmama widget.
   String? ddProjDesmamaValue;
   FormFieldController<String>? ddProjDesmamaValueController;
@@ -84,6 +87,8 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
     sideBarModel = createModel(context, () => SideBarModel());
     emptyModel = createModel(context, () => EmptyModel());
     loadingModel = createModel(context, () => LoadingModel());
+    dropDownMotivoMorteValue = 'Todos';
+    dropDownDiagnosticoCategoriaValue = 'Todos';
   }
 
   @override
