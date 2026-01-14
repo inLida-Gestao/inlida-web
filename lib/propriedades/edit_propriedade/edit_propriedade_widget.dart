@@ -2760,6 +2760,98 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                               FFAppState().propriedadeEdit,
                             ),
                           );
+                          if ((_model.dropDownValue == null) ||
+                              _model.dropDownValue!.isEmpty) {
+                            await showDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return AlertDialog(
+                                  title: Text(
+                                    'Atenção',
+                                    style: FlutterFlowTheme.of(dialogContext)
+                                        .headlineSmall
+                                        .override(
+                                          font: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w600,
+                                            fontStyle: FlutterFlowTheme.of(
+                                                    dialogContext)
+                                                .headlineSmall
+                                                .fontStyle,
+                                          ),
+                                          letterSpacing: 0.0,
+                                          fontWeight: FontWeight.w600,
+                                          fontStyle: FlutterFlowTheme.of(
+                                                  dialogContext)
+                                              .headlineSmall
+                                              .fontStyle,
+                                        ),
+                                  ),
+                                  content: Text(
+                                    'Selecione pelo menos uma atividade para salvar a propriedade.',
+                                    style: FlutterFlowTheme.of(dialogContext)
+                                        .bodyMedium
+                                        .override(
+                                          font: GoogleFonts.poppins(
+                                            fontWeight:
+                                                FlutterFlowTheme.of(dialogContext)
+                                                    .bodyMedium
+                                                    .fontWeight,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(dialogContext)
+                                                    .bodyMedium
+                                                    .fontStyle,
+                                          ),
+                                          letterSpacing: 0.0,
+                                          fontWeight:
+                                              FlutterFlowTheme.of(dialogContext)
+                                                  .bodyMedium
+                                                  .fontWeight,
+                                          fontStyle:
+                                              FlutterFlowTheme.of(dialogContext)
+                                                  .bodyMedium
+                                                  .fontStyle,
+                                        ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext),
+                                      child: Text(
+                                        'OK',
+                                        style: FlutterFlowTheme.of(dialogContext)
+                                            .bodyMedium
+                                            .override(
+                                              font: GoogleFonts.poppins(
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(dialogContext)
+                                                        .bodyMedium
+                                                        .fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(dialogContext)
+                                                        .bodyMedium
+                                                        .fontStyle,
+                                              ),
+                                              color:
+                                                  FlutterFlowTheme.of(dialogContext)
+                                                      .primary,
+                                              letterSpacing: 0.0,
+                                              fontWeight:
+                                                  FlutterFlowTheme.of(dialogContext)
+                                                      .bodyMedium
+                                                      .fontWeight,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(dialogContext)
+                                                      .bodyMedium
+                                                      .fontStyle,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                            return;
+                          }
                           if (_model.usersPropriedade != null &&
                               (_model.usersPropriedade)!.isNotEmpty) {
                             await PropriedadesTable().update(
@@ -2802,8 +2894,7 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                               .areaReservaTextController.text) +
                                           int.parse(_model
                                               .areaAgriculturaTextController
-                                              .text) ??
-                                      0,
+                                        .text),
                                   0,
                                 ),
                                 'cidade': _model.dropDownCidadeValue,
@@ -2853,8 +2944,7 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                               .areaReservaTextController.text) +
                                           int.parse(_model
                                               .areaAgriculturaTextController
-                                              .text) ??
-                                      0,
+                                        .text),
                                   0,
                                 ),
                                 'cidade': _model.dropDownCidadeValue,
