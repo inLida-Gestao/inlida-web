@@ -2289,7 +2289,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FontWeight.w500,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              fontSize: 16.0,
+                                                                              fontSize: 14.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FontWeight.w500,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
@@ -2409,7 +2409,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               headingRowHeight:
                                                                   40.0,
                                                               dataRowHeight:
-                                                                  32.0,
+                                                                  40.0,
                                                               columnSpacing:
                                                                   20.0,
                                                               headingRowColor:
@@ -3213,7 +3213,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FontWeight.w500,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              fontSize: 16.0,
+                                                                              fontSize: 14.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FontWeight.w500,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
@@ -3337,7 +3337,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               headingRowHeight:
                                                                   40.0,
                                                               dataRowHeight:
-                                                                  32.0,
+                                                                  40.0,
                                                               columnSpacing:
                                                                   20.0,
                                                               headingRowColor:
@@ -4140,7 +4140,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FontWeight.w500,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              fontSize: 16.0,
+                                                                              fontSize: 14.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FontWeight.w500,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
@@ -4264,7 +4264,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               headingRowHeight:
                                                                   40.0,
                                                               dataRowHeight:
-                                                                  32.0,
+                                                                  40.0,
                                                               columnSpacing:
                                                                   20.0,
                                                               headingRowColor:
@@ -5067,7 +5067,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FontWeight.w500,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              fontSize: 16.0,
+                                                                              fontSize: 14.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FontWeight.w500,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
@@ -5191,7 +5191,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               headingRowHeight:
                                                                   40.0,
                                                               dataRowHeight:
-                                                                  32.0,
+                                                                  40.0,
                                                               columnSpacing:
                                                                   20.0,
                                                               headingRowColor:
@@ -5768,6 +5768,99 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 ),
                                                                 DataColumn2(
                                                                   label:
+                                                                    DefaultTextStyle
+                                                                      .merge(
+                                                                  softWrap:
+                                                                    true,
+                                                                  child: Text(
+                                                                    'Protocolo D0',
+                                                                    style: FlutterFlowTheme.of(
+                                                                        context)
+                                                                      .labelLarge
+                                                                      .override(
+                                                                      font:
+                                                                        GoogleFonts.poppins(
+                                                                        fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                        fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                      ),
+                                                                      fontSize:
+                                                                        12.0,
+                                                                      letterSpacing:
+                                                                        0.0,
+                                                                      fontWeight:
+                                                                        FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                      fontStyle:
+                                                                        FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                      ),
+                                                                  ),
+                                                                  ),
+                                                                  onSort:
+                                                                    onSortChanged,
+                                                                ),
+                                                                DataColumn2(
+                                                                  label:
+                                                                    DefaultTextStyle
+                                                                      .merge(
+                                                                  softWrap:
+                                                                    true,
+                                                                  child: Text(
+                                                                    'Protocolo retirada',
+                                                                    style: FlutterFlowTheme.of(
+                                                                        context)
+                                                                      .labelLarge
+                                                                      .override(
+                                                                      font:
+                                                                        GoogleFonts.poppins(
+                                                                        fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                        fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                      ),
+                                                                      fontSize:
+                                                                        12.0,
+                                                                      letterSpacing:
+                                                                        0.0,
+                                                                      fontWeight:
+                                                                        FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                      fontStyle:
+                                                                        FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                      ),
+                                                                  ),
+                                                                  ),
+                                                                  onSort:
+                                                                    onSortChanged,
+                                                                ),
+                                                                DataColumn2(
+                                                                  label:
+                                                                    DefaultTextStyle
+                                                                      .merge(
+                                                                  softWrap:
+                                                                    true,
+                                                                  child: Text(
+                                                                    'Protocolo IATF',
+                                                                    style: FlutterFlowTheme.of(
+                                                                        context)
+                                                                      .labelLarge
+                                                                      .override(
+                                                                      font:
+                                                                        GoogleFonts.poppins(
+                                                                        fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                        fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                      ),
+                                                                      fontSize:
+                                                                        12.0,
+                                                                      letterSpacing:
+                                                                        0.0,
+                                                                      fontWeight:
+                                                                        FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                      fontStyle:
+                                                                        FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                      ),
+                                                                  ),
+                                                                  ),
+                                                                  onSort:
+                                                                    onSortChanged,
+                                                                ),
+                                                                DataColumn2(
+                                                                  label:
                                                                       DefaultTextStyle
                                                                           .merge(
                                                                     softWrap:
@@ -5966,6 +6059,57 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       );
                                                                     },
                                                                   ),
+                                                                  Text(
+                                                                    _hasValue(sanidadeItem.protocoloD0)
+                                                                        ? sanidadeItem.protocoloD0.trim()
+                                                                        : '—',
+                                                                    style: FlutterFlowTheme.of(context)
+                                                                        .bodyMedium
+                                                                        .override(
+                                                                          font: GoogleFonts.poppins(
+                                                                            fontWeight: FontWeight.w500,
+                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          ),
+                                                                          fontSize: 14.0,
+                                                                          letterSpacing: 0.0,
+                                                                          fontWeight: FontWeight.w500,
+                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                        ),
+                                                                  ),
+                                                                  Text(
+                                                                    _hasValue(sanidadeItem.protocoloRetirada)
+                                                                        ? sanidadeItem.protocoloRetirada.trim()
+                                                                        : '—',
+                                                                    style: FlutterFlowTheme.of(context)
+                                                                        .bodyMedium
+                                                                        .override(
+                                                                          font: GoogleFonts.poppins(
+                                                                            fontWeight: FontWeight.w500,
+                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          ),
+                                                                          fontSize: 14.0,
+                                                                          letterSpacing: 0.0,
+                                                                          fontWeight: FontWeight.w500,
+                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                        ),
+                                                                  ),
+                                                                  Text(
+                                                                    _hasValue(sanidadeItem.protocoloIatf)
+                                                                        ? sanidadeItem.protocoloIatf.trim()
+                                                                        : '—',
+                                                                    style: FlutterFlowTheme.of(context)
+                                                                        .bodyMedium
+                                                                        .override(
+                                                                          font: GoogleFonts.poppins(
+                                                                            fontWeight: FontWeight.w500,
+                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          ),
+                                                                          fontSize: 14.0,
+                                                                          letterSpacing: 0.0,
+                                                                          fontWeight: FontWeight.w500,
+                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                        ),
+                                                                  ),
                                                                   Column(
                                                                     mainAxisSize:
                                                                         MainAxisSize
@@ -5994,7 +6138,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FontWeight.w500,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              fontSize: 16.0,
+                                                                              fontSize: 14.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FontWeight.w500,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
@@ -6118,7 +6262,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               headingRowHeight:
                                                                   40.0,
                                                               dataRowHeight:
-                                                                  32.0,
+                                                                  40.0,
                                                               columnSpacing:
                                                                   20.0,
                                                               headingRowColor:

@@ -29,6 +29,9 @@ class SanidadeStruct extends BaseStruct {
     String? protocoloReprodutivo,
     String? protocoloReprodutivoOutros,
     String? protocoloReprodutivoObs,
+    String? protocoloD0,
+    String? protocoloRetirada,
+    String? protocoloIatf,
     String? numeroAnimal,
     String? nome,
     String? chip,
@@ -59,6 +62,9 @@ class SanidadeStruct extends BaseStruct {
         _protocoloReprodutivo = protocoloReprodutivo,
         _protocoloReprodutivoOutros = protocoloReprodutivoOutros,
         _protocoloReprodutivoObs = protocoloReprodutivoObs,
+        _protocoloD0 = protocoloD0,
+        _protocoloRetirada = protocoloRetirada,
+        _protocoloIatf = protocoloIatf,
         _numeroAnimal = numeroAnimal,
         _nome = nome,
         _chip = chip,
@@ -225,6 +231,27 @@ class SanidadeStruct extends BaseStruct {
 
   bool hasProtocoloReprodutivoObs() => _protocoloReprodutivoObs != null;
 
+  // "protocolo_d0" field.
+  String? _protocoloD0;
+  String get protocoloD0 => _protocoloD0 ?? '';
+  set protocoloD0(String? val) => _protocoloD0 = val;
+
+  bool hasProtocoloD0() => _protocoloD0 != null;
+
+  // "protocolo_retirada" field.
+  String? _protocoloRetirada;
+  String get protocoloRetirada => _protocoloRetirada ?? '';
+  set protocoloRetirada(String? val) => _protocoloRetirada = val;
+
+  bool hasProtocoloRetirada() => _protocoloRetirada != null;
+
+  // "protocolo_iatf" field.
+  String? _protocoloIatf;
+  String get protocoloIatf => _protocoloIatf ?? '';
+  set protocoloIatf(String? val) => _protocoloIatf = val;
+
+  bool hasProtocoloIatf() => _protocoloIatf != null;
+
   // "numeroAnimal" field.
   String? _numeroAnimal;
   String get numeroAnimal => _numeroAnimal ?? '';
@@ -305,6 +332,9 @@ class SanidadeStruct extends BaseStruct {
       protocoloReprodutivoOutros:
         data['protocolo_reprodutivo_outros']?.toString(),
       protocoloReprodutivoObs: data['protocolo_reprodutivo_obs']?.toString(),
+      protocoloD0: data['protocolo_d0']?.toString(),
+      protocoloRetirada: data['protocolo_retirada']?.toString(),
+      protocoloIatf: data['protocolo_iatf']?.toString(),
       numeroAnimal: data['numeroAnimal']?.toString(),
       nome: data['nome']?.toString(),
       chip: data['chip']?.toString(),
@@ -341,6 +371,9 @@ class SanidadeStruct extends BaseStruct {
         'protocolo_reprodutivo': _protocoloReprodutivo,
         'protocolo_reprodutivo_outros': _protocoloReprodutivoOutros,
         'protocolo_reprodutivo_obs': _protocoloReprodutivoObs,
+      'protocolo_d0': _protocoloD0,
+      'protocolo_retirada': _protocoloRetirada,
+      'protocolo_iatf': _protocoloIatf,
         'numeroAnimal': _numeroAnimal,
         'nome': _nome,
         'chip': _chip,
@@ -439,6 +472,18 @@ class SanidadeStruct extends BaseStruct {
         ),
         'protocolo_reprodutivo_obs': serializeParam(
           _protocoloReprodutivoObs,
+          ParamType.String,
+        ),
+        'protocolo_d0': serializeParam(
+          _protocoloD0,
+          ParamType.String,
+        ),
+        'protocolo_retirada': serializeParam(
+          _protocoloRetirada,
+          ParamType.String,
+        ),
+        'protocolo_iatf': serializeParam(
+          _protocoloIatf,
           ParamType.String,
         ),
         'numeroAnimal': serializeParam(
@@ -587,6 +632,21 @@ class SanidadeStruct extends BaseStruct {
           ParamType.String,
           false,
         ),
+        protocoloD0: deserializeParam(
+          data['protocolo_d0'],
+          ParamType.String,
+          false,
+        ),
+        protocoloRetirada: deserializeParam(
+          data['protocolo_retirada'],
+          ParamType.String,
+          false,
+        ),
+        protocoloIatf: deserializeParam(
+          data['protocolo_iatf'],
+          ParamType.String,
+          false,
+        ),
         numeroAnimal: deserializeParam(
           data['numeroAnimal'],
           ParamType.String,
@@ -657,6 +717,9 @@ class SanidadeStruct extends BaseStruct {
         protocoloReprodutivo == other.protocoloReprodutivo &&
         protocoloReprodutivoOutros == other.protocoloReprodutivoOutros &&
         protocoloReprodutivoObs == other.protocoloReprodutivoObs &&
+          protocoloD0 == other.protocoloD0 &&
+          protocoloRetirada == other.protocoloRetirada &&
+          protocoloIatf == other.protocoloIatf &&
         numeroAnimal == other.numeroAnimal &&
         nome == other.nome &&
         chip == other.chip &&
@@ -691,6 +754,9 @@ class SanidadeStruct extends BaseStruct {
         protocoloReprodutivo,
         protocoloReprodutivoOutros,
         protocoloReprodutivoObs,
+        protocoloD0,
+        protocoloRetirada,
+        protocoloIatf,
         numeroAnimal,
         nome,
         chip,
@@ -725,6 +791,9 @@ SanidadeStruct createSanidadeStruct({
   String? protocoloReprodutivo,
   String? protocoloReprodutivoOutros,
   String? protocoloReprodutivoObs,
+  String? protocoloD0,
+  String? protocoloRetirada,
+  String? protocoloIatf,
   String? numeroAnimal,
   String? nome,
   String? chip,
@@ -757,6 +826,9 @@ SanidadeStruct createSanidadeStruct({
       protocoloReprodutivo: protocoloReprodutivo,
       protocoloReprodutivoOutros: protocoloReprodutivoOutros,
       protocoloReprodutivoObs: protocoloReprodutivoObs,
+      protocoloD0: protocoloD0,
+      protocoloRetirada: protocoloRetirada,
+      protocoloIatf: protocoloIatf,
       numeroAnimal: numeroAnimal,
       nome: nome,
       chip: chip,

@@ -171,7 +171,10 @@ Future<List<dynamic>> parseCsvToJsonReproducao(FFUploadedFile? csvFile) async {
     if (useHeaderMapping) {
       final mapping = _buildHeaderToDbMapping(headerStrings, dbColumnSet);
 
-      return rows.skip(1).map((row) {
+      final out = <dynamic>[];
+      for (final row in rows.skip(1)) {
+        if (_isCsvRowEmpty(row)) continue;
+
         final map = <String, dynamic>{};
 
         mapping.forEach((dbColumn, index) {
@@ -202,12 +205,19 @@ Future<List<dynamic>> parseCsvToJsonReproducao(FFUploadedFile? csvFile) async {
         map.putIfAbsent('id_reproducao', () => null);
         map.putIfAbsent('id_propriedade', () => null);
 
-        return map;
-      }).toList();
+        // Se após limpeza tudo ficou nulo/vazio, ignora.
+        if (_isAllValuesMissing(map.values)) continue;
+
+        out.add(map);
+      }
+      return out;
     }
 
     // Fallback: CSV sem header (ou inesperado), por posição com a ordem do banco.
-    return rows.skip(1).map((row) {
+    final out = <dynamic>[];
+    for (final row in rows.skip(1)) {
+      if (_isCsvRowEmpty(row)) continue;
+
       final map = <String, dynamic>{};
 
       for (var i = 0; i < dbColumnsInOrder.length; i++) {
@@ -233,8 +243,11 @@ Future<List<dynamic>> parseCsvToJsonReproducao(FFUploadedFile? csvFile) async {
         }
       }
 
-      return map;
-    }).toList();
+      if (_isAllValuesMissing(map.values)) continue;
+      out.add(map);
+    }
+
+    return out;
   } catch (e, stack) {
     print('Erro no processamento CSV: $e');
     print(stack);
@@ -242,49 +255,105 @@ Future<List<dynamic>> parseCsvToJsonReproducao(FFUploadedFile? csvFile) async {
   }
 }
 
+bool _isCsvRowEmpty(List<dynamic> row) {
+  if (row.isEmpty) return true;
+  for (final cell in row) {
+    if (cell == null) continue;
+    final cleaned = _cleanText(cell.toString());
+    if (cleaned.isNotEmpty && cleaned.toLowerCase() != 'null') {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool _isAllValuesMissing(Iterable<dynamic> values) {
+  for (final v in values) {
+    if (v == null) continue;
+    final s = v.toString().trim();
+    if (s.isNotEmpty && s.toLowerCase() != 'null' && s.toLowerCase() != 'undefined') {
+      return false;
+    }
+  }
+  return true;
+}
+
 // Função auxiliar para decodificação customizada (fallback)
 String _decodeWithBestEncoding(List<int> bytes) {
-  // 1) Tentar UTF-8 estrito (principal caminho).
+  // 1) UTF-8 estrito (principal caminho).
   // Importante: NÃO usar allowMalformed aqui, senão perde caracteres (vira "�")
   // e depois não dá pra recuperar.
   try {
     return utf8.decode(bytes);
-  } catch (_) {}
-
-  // 2) Tentar Latin-1 (muito comum em CSVs antigos / Excel).
-  try {
-    return latin1.decode(bytes);
-  } catch (_) {}
-
-  // 3) Fallback customizado (mantido para casos específicos)
-  print('Usando decodificação customizada como fallback');
-
-  // Criar string resultado para casos de encoding customizado
-  String result = '';
-
-  // Processar byte por byte com mapeamento específico para arquivos antigos
-  for (int i = 0; i < bytes.length; i++) {
-    final byte = bytes[i];
-
-    // Mapeamento apenas dos bytes problemáticos identificados em arquivos não-UTF8
-    switch (byte) {
-      case 0x90:
-        result += 'ê'; // Fêmea
-        break;
-      case 0x8D:
-        result += 'ç'; // Mestiço
-        break;
-      case 0xCC:
-        result += 'Ã'; // SÃO
-        break;
-      default:
-        result += String.fromCharCode(byte);
-        break;
-    }
+  } catch (_) {
+    // Ignora e tenta caminhos alternativos.
   }
 
-  return result;
+  // 2) Fallback: decodificação byte-a-byte com correções para arquivos antigos.
+  // - cobre casos tipo Windows-1252 (bytes 0x80-0x9F)
+  // - e mantém mapeamentos específicos já identificados no projeto (0x90/0x8D/0xCC)
+  return _decodeBytewiseWithFixes(bytes);
 }
+
+String _decodeBytewiseWithFixes(List<int> bytes) {
+  final sb = StringBuffer();
+  for (final b in bytes) {
+    // Mapeamentos específicos já encontrados em CSVs antigos.
+    if (b == 0x90) {
+      sb.write('ê');
+      continue;
+    }
+    if (b == 0x8D) {
+      sb.write('ç');
+      continue;
+    }
+    if (b == 0xCC) {
+      sb.write('Ã');
+      continue;
+    }
+
+    // Conserto Windows-1252 para a faixa C1 (0x80-0x9F), quando presente.
+    final mapped = _windows1252Map[b];
+    if (mapped != null) {
+      sb.write(mapped);
+      continue;
+    }
+
+    // Default: Latin-1 (ISO-8859-1).
+    sb.writeCharCode(b);
+  }
+  return sb.toString();
+}
+
+const Map<int, String> _windows1252Map = {
+  0x80: '€',
+  0x82: '‚',
+  0x83: 'ƒ',
+  0x84: '„',
+  0x85: '…',
+  0x86: '†',
+  0x87: '‡',
+  0x88: 'ˆ',
+  0x89: '‰',
+  0x8A: 'Š',
+  0x8B: '‹',
+  0x8C: 'Œ',
+  0x8E: 'Ž',
+  0x91: '‘',
+  0x92: '’',
+  0x93: '“',
+  0x94: '”',
+  0x95: '•',
+  0x96: '–',
+  0x97: '—',
+  0x98: '˜',
+  0x99: '™',
+  0x9A: 'š',
+  0x9B: '›',
+  0x9C: 'œ',
+  0x9E: 'ž',
+  0x9F: 'Ÿ',
+};
 
 // Função auxiliar para detectar delimitador
 String _detectDelimiter(String firstLine) {
@@ -311,7 +380,7 @@ String _cleanText(String text) {
   return text
       .trim()
       .replaceAll(RegExp(r'\s+'), ' ') // Múltiplos espaços viram um só
-      .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'),
+      .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\x80-\x9F]'),
           ''); // Remove caracteres de controle
 }
 

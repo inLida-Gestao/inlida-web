@@ -505,18 +505,68 @@ Future<bool> batchInsertSupabaseReproducao(
 // Função auxiliar para corrigir problemas de encoding (acentuação)
 String _fixEncoding(String text) {
   try {
-    // Heurística: tenta corrigir strings UTF-8 que foram interpretadas como Latin-1.
+    // Objetivo: corrigir mojibake (UTF-8 interpretado como Latin-1).
     // Ex.: "SÃ£o" -> "São".
-    if (!(text.contains('Ã') || text.contains('Â') || text.contains('�'))) {
+    // Regras de segurança:
+    // - NÃO usar allowMalformed (evita gerar "�")
+    // - Só aplica se a string tiver padrões típicos de mojibake
+    // - Só aceita a conversão se reduzir sinais de mojibake
+
+    // Indicadores típicos: "Ã" seguido de algo, ou "Â " (NBSP) muito comum.
+    final looksLikeMojibake = text.contains('Ã') || text.contains('Â ');
+    if (!looksLikeMojibake) return text;
+
+    // Só tenta se for possível representar em Latin-1 (senão já tem chars fora da faixa).
+    late final List<int> bytes;
+    try {
+      bytes = latin1.encode(text);
+    } catch (_) {
       return text;
     }
 
-    final bytes = latin1.encode(text);
-    return utf8.decode(bytes, allowMalformed: true);
+    final decoded = utf8.decode(bytes);
+
+    // Aceita só se realmente melhorou.
+    final beforeScore = _mojibakeScore(text);
+    final afterScore = _mojibakeScore(decoded);
+
+    if (afterScore < beforeScore && !decoded.contains('�')) {
+      return decoded;
+    }
+    return text;
   } catch (e) {
     print('Erro ao corrigir encoding: $e');
     return text;
   }
+}
+
+int _mojibakeScore(String s) {
+  var score = 0;
+  // Padrões mais comuns em PT-BR quando UTF-8 vira Latin-1.
+  const patterns = [
+    'Ã',
+    'Â ',
+    'Ã¡',
+    'Ã¢',
+    'Ã£',
+    'Ã¤',
+    'Ã©',
+    'Ãª',
+    'Ã¨',
+    'Ã­',
+    'Ã³',
+    'Ã´',
+    'Ãµ',
+    'Ãº',
+    'Ã§',
+  ];
+  for (final p in patterns) {
+    if (!s.contains(p)) continue;
+    score += 3;
+  }
+  // Penaliza presença do replacement char.
+  if (s.contains('�')) score += 10;
+  return score;
 }
 
 // Função auxiliar para gerar id_reproducao único
