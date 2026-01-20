@@ -1424,19 +1424,24 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               mainAxisSize: MainAxisSize.max,
                                                                               mainAxisAlignment: MainAxisAlignment.center,
                                                                               children: [
-                                                                                Text(
-                                                                                  'Rebanho por período (Cabeça)',
-                                                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                        font: GoogleFonts.poppins(
+                                                                                Flexible(
+                                                                                  child: Text(
+                                                                                    'Rebanho por período (Cabeça)',
+                                                                                    textAlign: TextAlign.center,
+                                                                                    overflow: TextOverflow.ellipsis,
+                                                                                    maxLines: 2,
+                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                          color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                          fontSize: 18.0,
+                                                                                          letterSpacing: 0.0,
                                                                                           fontWeight: FontWeight.w600,
                                                                                           fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                         ),
-                                                                                        color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                        fontSize: 18.0,
-                                                                                        letterSpacing: 0.0,
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
+                                                                                  ),
                                                                                 ),
                                                                               ].divide(const SizedBox(width: 8.0)),
                                                                             ),
@@ -3821,7 +3826,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 CrossAxisAlignment.start,
                                                                             children: [
                                                                               Text(
-                                                                                'Taxa de prenhez',
+                                                                                'Taxa de concepção',
                                                                                 style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                       font: GoogleFonts.poppins(
                                                                                         fontWeight: FontWeight.w600,
@@ -4422,7 +4427,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       'Não diagnosticado',
                                                                                       'Absorção',
                                                                                       'Aborto',
-                                                                                      'Prenhaz',
+                                                                                      'Prenhez',
                                                                                       'Vazio'
                                                                                     ],
                                                                                     onChanged: (val) => safeSetState(() => _model.dropDownDiagnosticoCategoriaValue = val),

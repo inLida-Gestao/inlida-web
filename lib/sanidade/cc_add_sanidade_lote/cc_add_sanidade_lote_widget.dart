@@ -6,7 +6,6 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/flutter_flow/random_data_util.dart' as random_data;
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'cc_add_sanidade_lote_model.dart';
 export 'cc_add_sanidade_lote_model.dart';

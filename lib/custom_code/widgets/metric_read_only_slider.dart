@@ -226,8 +226,10 @@ class MetricReadOnlySlider extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(titulo, style: FlutterFlowTheme.of(context).titleMedium),
-            const SizedBox(height: 8),
+            if (titulo.isNotEmpty) ...[
+              Text(titulo, style: FlutterFlowTheme.of(context).titleMedium),
+              const SizedBox(height: 8),
+            ],
             LayoutBuilder(
               builder: (context, constraints) {
                 final trackWidth = constraints.maxWidth;
@@ -299,8 +301,10 @@ class MetricReadOnlySlider extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(titulo, style: FlutterFlowTheme.of(context).titleMedium),
-            const SizedBox(height: 8),
+            if (titulo.isNotEmpty) ...[
+              Text(titulo, style: FlutterFlowTheme.of(context).titleMedium),
+              const SizedBox(height: 8),
+            ],
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(

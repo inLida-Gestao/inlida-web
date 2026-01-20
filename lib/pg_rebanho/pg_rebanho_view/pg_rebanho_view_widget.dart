@@ -7688,7 +7688,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                 return values;
                                                               }
 
-                                                              String _safeStringField(
+                                                              String safeStringField(
                                                                 SanidadeRow row,
                                                                 String fieldName,
                                                               ) {
@@ -7995,7 +7995,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                       ),
                                                                     ),
                                                                     Text(
-                                                                      _safeStringField(
+                                                                      safeStringField(
                                                                         sanidadeItem,
                                                                         'protocolo_d0',
                                                                       ),
@@ -8012,7 +8012,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                           ),
                                                                     ),
                                                                     Text(
-                                                                      _safeStringField(
+                                                                      safeStringField(
                                                                         sanidadeItem,
                                                                         'protocolo_retirada',
                                                                       ),
@@ -8029,7 +8029,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                           ),
                                                                     ),
                                                                     Text(
-                                                                      _safeStringField(
+                                                                      safeStringField(
                                                                         sanidadeItem,
                                                                         'protocolo_iatf',
                                                                       ),
@@ -8110,14 +8110,15 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                         mainAxisAlignment:
                                             MainAxisAlignment.end,
                                         children: [
-                                          FFButtonWidget(
-                                            onPressed: () async {
-                                              context.pushNamed(
-                                                  PgRebanhoWidget.routeName);
-                                            },
-                                            text: 'Voltar',
-                                            options: FFButtonOptions(
-                                              width: 218.0,
+                                          Flexible(
+                                            child: FFButtonWidget(
+                                              onPressed: () async {
+                                                context.pushNamed(
+                                                    PgRebanhoWidget.routeName);
+                                              },
+                                              text: 'Voltar',
+                                              options: FFButtonOptions(
+                                                width: double.infinity,
                                               height: 56.0,
                                               padding:
                                                   const EdgeInsetsDirectional
@@ -8166,6 +8167,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                               ),
                                               borderRadius:
                                                   BorderRadius.circular(8.0),
+                                            ),
                                             ),
                                           ),
                                           FFButtonWidget(
