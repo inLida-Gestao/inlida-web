@@ -195,7 +195,10 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
     if (useHeaderMapping) {
       final mapping = _buildHeaderToDbMapping(headerStrings, dbColumnSet);
 
-      return rows.skip(1).map((row) {
+      final out = <dynamic>[];
+      for (final row in rows.skip(1)) {
+        if (_isCsvRowEmpty(row)) continue;
+
         final map = <String, dynamic>{};
 
         mapping.forEach((dbColumn, index) {
@@ -222,12 +225,18 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
         map.putIfAbsent('idRebanho', () => null);
         map.putIfAbsent('idPropriedade', () => null);
 
-        return map;
-      }).toList();
+        if (_isAllValuesMissing(map.values)) continue;
+        out.add(map);
+      }
+
+      return out;
     }
 
     // Fallback: CSV sem header (ou inesperado), por posição com a ordem do banco.
-    return rows.skip(1).map((row) {
+    final out = <dynamic>[];
+    for (final row in rows.skip(1)) {
+      if (_isCsvRowEmpty(row)) continue;
+
       final map = <String, dynamic>{};
 
       for (var i = 0; i < dbColumnsInOrder.length; i++) {
@@ -250,13 +259,39 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
         }
       }
 
-      return map;
-    }).toList();
+      if (_isAllValuesMissing(map.values)) continue;
+      out.add(map);
+    }
+
+    return out;
   } catch (e, stack) {
     print('Erro no processamento CSV: $e');
     print(stack);
     return [];
   }
+}
+
+bool _isCsvRowEmpty(List<dynamic> row) {
+  if (row.isEmpty) return true;
+  for (final cell in row) {
+    if (cell == null) continue;
+    final cleaned = _cleanText(cell.toString());
+    if (cleaned.isNotEmpty && cleaned.toLowerCase() != 'null') {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool _isAllValuesMissing(Iterable<dynamic> values) {
+  for (final v in values) {
+    if (v == null) continue;
+    final s = v.toString().trim();
+    if (s.isNotEmpty && s.toLowerCase() != 'null' && s.toLowerCase() != 'undefined') {
+      return false;
+    }
+  }
+  return true;
 }
 
 // Função auxiliar para decodificação customizada (fallback)
