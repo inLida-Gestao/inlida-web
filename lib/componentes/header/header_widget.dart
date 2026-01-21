@@ -192,17 +192,37 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                                     nome: _model.propriedade?.firstOrNull?.nome,
                                   );
                                   FFAppState().update(() {});
-                                  _model.qtdAnimais =
+                                    _model.qtdAnimais =
                                       await FunctionsSupabaseRebanhoGroup
-                                          .qTDRebanhoPropriedadesCall
-                                          .call(
+                                        .countRebanhoFiltrosCall
+                                        .call(
                                     pIdPropriedade: FFAppState()
-                                        .propriedadeSelecionada
-                                        .idPropriedade,
-                                  );
+                                      .propriedadeSelecionada
+                                      .idPropriedade,
+                                    pStatus: 'Na Propriedade',
+                                    );
+                                    final qtdAnimaisLower =
+                                      await FunctionsSupabaseRebanhoGroup
+                                        .countRebanhoFiltrosCall
+                                        .call(
+                                    pIdPropriedade: FFAppState()
+                                      .propriedadeSelecionada
+                                      .idPropriedade,
+                                    pStatus: 'Na propriedade',
+                                    );
+                                    final qtdUpper = valueOrDefault<int>(
+                                    (_model.qtdAnimais?.jsonBody ?? ''),
+                                    0,
+                                    );
+                                    final qtdLower = valueOrDefault<int>(
+                                      (qtdAnimaisLower.jsonBody ?? ''),
+                                      0,
+                                    );
+                                    final qtdTotal =
+                                      qtdUpper == qtdLower ? qtdUpper : (qtdUpper + qtdLower);
 
-                                  FFAppState().qtdAnimaisNaPropriedade =
-                                      (_model.qtdAnimais?.jsonBody ?? '');
+                                    FFAppState().qtdAnimaisNaPropriedade =
+                                      qtdTotal;
                                   safeSetState(() {});
                                   await action_blocks.countReproducoes(context);
                                   await action_blocks.countLotes(context);

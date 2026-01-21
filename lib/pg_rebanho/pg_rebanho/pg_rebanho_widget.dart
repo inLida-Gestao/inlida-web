@@ -99,12 +99,26 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
       );
       safeSetState(() {});
       _model.qtdAnimais2 =
-          await FunctionsSupabaseRebanhoGroup.qTDRebanhoPropriedadesCall.call(
+          await FunctionsSupabaseRebanhoGroup.countRebanhoFiltrosCall.call(
         pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+        pStatus: 'Na Propriedade',
       );
+      final qtdAnimais2Lower =
+          await FunctionsSupabaseRebanhoGroup.countRebanhoFiltrosCall.call(
+        pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+        pStatus: 'Na propriedade',
+      );
+      final qtdUpper = valueOrDefault<int>(
+        (_model.qtdAnimais2?.jsonBody ?? ''),
+        0,
+      );
+      final qtdLower = valueOrDefault<int>(
+        (qtdAnimais2Lower.jsonBody ?? ''),
+        0,
+      );
+      final qtdTotal = qtdUpper == qtdLower ? qtdUpper : (qtdUpper + qtdLower);
 
-      FFAppState().qtdAnimaisNaPropriedade =
-          (_model.qtdAnimais2?.jsonBody ?? '');
+      FFAppState().qtdAnimaisNaPropriedade = qtdTotal;
       safeSetState(() {});
       _model.countRebanhos =
           await FunctionsSupabaseRebanhoGroup.countRebanhoFiltrosCall.call(
