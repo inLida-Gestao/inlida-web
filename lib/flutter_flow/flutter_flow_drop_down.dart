@@ -126,18 +126,50 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
 
   late void Function() _listener;
   final TextEditingController _textEditingController = TextEditingController();
+  T? _lastValue;
+  List<T>? _lastMultiValue;
 
   @override
   void initState() {
     super.initState();
     if (isMultiSelect) {
-      _listener =
-          () => widget.onMultiSelectChanged!(multiSelectController.value);
+      _lastMultiValue = multiSelectController.value != null 
+          ? List<T>.from(multiSelectController.value!) 
+          : null;
+      _listener = () {
+        final currentValue = multiSelectController.value;
+        // Só chama onChanged se o valor realmente mudou
+        final currentList = currentValue != null 
+            ? List<T>.from(currentValue) 
+            : null;
+        if (!_listsEqual(_lastMultiValue, currentList)) {
+          _lastMultiValue = currentList;
+          widget.onMultiSelectChanged!(currentValue);
+        }
+      };
       multiSelectController.addListener(_listener);
     } else {
-      _listener = () => widget.onChanged!(controller.value);
+      _lastValue = controller.value;
+      _listener = () {
+        final currentValue = controller.value;
+        // Só chama onChanged se o valor realmente mudou
+        if (currentValue != _lastValue) {
+          _lastValue = currentValue;
+          widget.onChanged!(currentValue);
+        }
+      };
       controller.addListener(_listener);
     }
+  }
+
+  bool _listsEqual(List<T>? a, List<T>? b) {
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   @override

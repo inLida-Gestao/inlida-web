@@ -3819,42 +3819,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
-                                                                    // Customize what your widget looks like when it's loading.
-                                                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                                                      return Center(
-                                                                        child: SizedBox(
-                                                                          width: 50.0,
-                                                                          height: 50.0,
-                                                                          child: CircularProgressIndicator(
-                                                                            valueColor: AlwaysStoppedAnimation<Color>(
-                                                                              FlutterFlowTheme.of(context).primary,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      );
-                                                                    }
-                                                                    if (!snapshot
-                                                                        .hasData) {
-                                                                      return Center(
-                                                                        child:
-                                                                            SizedBox(
-                                                                          width:
-                                                                              50.0,
-                                                                          height:
-                                                                              50.0,
-                                                                          child:
-                                                                              CircularProgressIndicator(
-                                                                            valueColor:
-                                                                                AlwaysStoppedAnimation<Color>(
-                                                                              FlutterFlowTheme.of(context).primary,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      );
-                                                                    }
-                                                                    final containerTaxaPrenhezGetResponse =
-                                                                        snapshot
-                                                                            .data!;
+                                                                    // Não mostrar loading no container inteiro, apenas no gráfico
+                                                                    final isLoading = snapshot.connectionState == ConnectionState.waiting || !snapshot.hasData;
+                                                                    final containerTaxaPrenhezGetResponse = snapshot.hasData ? snapshot.data! : null;
 
                                                                     final dataInicioStr = () {
                                                                       final ano = int.tryParse(valueOrDefault<String>(
@@ -3940,31 +3907,32 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               ),
                                                                               Padding(
                                                                                 padding: const EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
-                                                                                child: Row(
-                                                                                  mainAxisSize: MainAxisSize.max,
-                                                                                  mainAxisAlignment: MainAxisAlignment.start,
-                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                  children: [
-                                                                                    Expanded(
-                                                                                      child: Column(
-                                                                                        mainAxisSize: MainAxisSize.min,
-                                                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                        children: [
-                                                                                          Text(
-                                                                                            'Lote',
-                                                                                            style: FlutterFlowTheme.of(context).labelMedium.override(
-                                                                                                  font: GoogleFonts.poppins(
+                                                                                child: RepaintBoundary(
+                                                                                  child: Row(
+                                                                                    mainAxisSize: MainAxisSize.max,
+                                                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                    children: [
+                                                                                      Expanded(
+                                                                                        child: Column(
+                                                                                          mainAxisSize: MainAxisSize.min,
+                                                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                          children: [
+                                                                                            Text(
+                                                                                              'Lote',
+                                                                                              style: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                                    font: GoogleFonts.poppins(
+                                                                                                      fontWeight: FontWeight.w500,
+                                                                                                      fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                                    ),
+                                                                                                    letterSpacing: 0.0,
                                                                                                     fontWeight: FontWeight.w500,
                                                                                                     fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
                                                                                                   ),
-                                                                                                  letterSpacing: 0.0,
-                                                                                                  fontWeight: FontWeight.w500,
-                                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                                ),
-                                                                                          ),
-                                                                                          const SizedBox(height: 8.0),
-                                                                                          FutureBuilder<ApiCallResponse>(
-                                                                                            key: ValueKey('lotes_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
+                                                                                            ),
+                                                                                            const SizedBox(height: 8.0),
+                                                                                            FutureBuilder<ApiCallResponse>(
+                                                                                              key: ValueKey('lotes_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
                                                                                             future: FunctionsSupabaseRebanhoGroup.buscarLotesFiltrosCall.call(
                                                                                               pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
                                                                                               pPesquisa: '',
@@ -4003,10 +3971,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 options: loteOptions,
                                                                                                 optionLabels: loteLabels,
                                                                                                 onChanged: (val) {
+                                                                                                  // Só atualizar se o valor realmente mudou
                                                                                                   if (_model.filtroLoteTaxaConcepcaoValue != val) {
-                                                                                                    // Atualizar o controller imediatamente para manter o estado do dropdown
-                                                                                                    _model.filtroLoteTaxaConcepcaoValueController?.value = val;
                                                                                                     // Adiar o setState para depois do frame atual para evitar fechar o dropdown
+                                                                                                    // Não atualizar o controller aqui pois o DropdownButton2 já faz isso
                                                                                                     SchedulerBinding.instance.addPostFrameCallback((_) {
                                                                                                       if (mounted) {
                                                                                                         safeSetState(() {
@@ -4120,10 +4088,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 options: options,
                                                                                                 optionLabels: labels,
                                                                                                 onChanged: (val) {
+                                                                                                  // Só atualizar se o valor realmente mudou
                                                                                                   if (_model.filtroTouroTaxaConcepcaoValue != val) {
-                                                                                                    // Atualizar o controller imediatamente para manter o estado do dropdown
-                                                                                                    _model.filtroTouroTaxaConcepcaoValueController?.value = val;
                                                                                                     // Adiar o setState para depois do frame atual para evitar fechar o dropdown
+                                                                                                    // Não atualizar o controller aqui pois o DropdownButton2 já faz isso
                                                                                                     SchedulerBinding.instance.addPostFrameCallback((_) {
                                                                                                       if (mounted) {
                                                                                                         safeSetState(() {
@@ -4228,10 +4196,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 options: options,
                                                                                                 optionLabels: labels,
                                                                                                 onChanged: (val) {
+                                                                                                  // Só atualizar se o valor realmente mudou
                                                                                                   if (_model.filtroInseminadorTaxaConcepcaoValue != val) {
-                                                                                                    // Atualizar o controller imediatamente para manter o estado do dropdown
-                                                                                                    _model.filtroInseminadorTaxaConcepcaoValueController?.value = val;
                                                                                                     // Adiar o setState para depois do frame atual para evitar fechar o dropdown
+                                                                                                    // Não atualizar o controller aqui pois o DropdownButton2 já faz isso
                                                                                                     SchedulerBinding.instance.addPostFrameCallback((_) {
                                                                                                       if (mounted) {
                                                                                                         safeSetState(() {
@@ -4274,6 +4242,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       ),
                                                                                     ),
                                                                                   ],
+                                                                                  ),
                                                                                 ),
                                                                               ),
                                                                               Expanded(
@@ -4286,26 +4255,38 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                   decoration: BoxDecoration(
                                                                                     color: FlutterFlowTheme.of(context).secondaryBackground,
                                                                                   ),
-                                                                                  child: containerTaxaPrenhezGetResponse.succeeded
-                                                                                      ? SizedBox(
-                                                                                          width: double.infinity,
-                                                                                          height: double.infinity,
-                                                                                          child: custom_widgets.TaxaPrenhezChart(
-                                                                                            key: ValueKey(
-                                                                                              'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_${dataInicioStr}-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValue}_${_model.filtroTouroTaxaConcepcaoValue}_${_model.filtroInseminadorTaxaConcepcaoValue}',
+                                                                                  child: isLoading
+                                                                                      ? Center(
+                                                                                          child: SizedBox(
+                                                                                            width: 50.0,
+                                                                                            height: 50.0,
+                                                                                            child: CircularProgressIndicator(
+                                                                                              valueColor: AlwaysStoppedAnimation<Color>(
+                                                                                                FlutterFlowTheme.of(context).primary,
+                                                                                              ),
                                                                                             ),
-                                                                                            width: double.infinity,
-                                                                                            height: double.infinity,
-                                                                                            prenhezData: containerTaxaPrenhezGetResponse.bodyText,
                                                                                           ),
                                                                                         )
-                                                                                      : Center(
-                                                                                          child: Text(
-                                                                                            'Sem dados de reprodução no período.',
-                                                                                            style: FlutterFlowTheme.of(context).labelMedium,
-                                                                                            textAlign: TextAlign.center,
-                                                                                          ),
-                                                                                        ),
+                                                                                      : (containerTaxaPrenhezGetResponse != null && containerTaxaPrenhezGetResponse.succeeded)
+                                                                                          ? SizedBox(
+                                                                                              width: double.infinity,
+                                                                                              height: double.infinity,
+                                                                                              child: custom_widgets.TaxaPrenhezChart(
+                                                                                                key: ValueKey(
+                                                                                                  'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_${dataInicioStr}-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValue}_${_model.filtroTouroTaxaConcepcaoValue}_${_model.filtroInseminadorTaxaConcepcaoValue}',
+                                                                                                ),
+                                                                                                width: double.infinity,
+                                                                                                height: double.infinity,
+                                                                                                prenhezData: containerTaxaPrenhezGetResponse?.bodyText ?? '',
+                                                                                              ),
+                                                                                            )
+                                                                                          : Center(
+                                                                                              child: Text(
+                                                                                                'Sem dados de reprodução no período.',
+                                                                                                style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                                textAlign: TextAlign.center,
+                                                                                              ),
+                                                                                            ),
                                                                                 ),
                                                                               ),
                                                                             ],
