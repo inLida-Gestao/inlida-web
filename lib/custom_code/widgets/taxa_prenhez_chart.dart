@@ -77,16 +77,22 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
           if (json is! Map<String, dynamic>) return null;
 
           // ✅ Validação de campos obrigatórios
-          final titulo = json['titulo'];
-          final porcentagem = json['porcentagem'];
+          final titulo = json['titulo'] ?? json['label'];
+          final rawPct = json['porcentagem'] ?? json['percentual'];
 
-          if (titulo == null || porcentagem == null) return null;
+          if (titulo == null || rawPct == null) return null;
           if (titulo is! String) return null;
-          if (porcentagem is! num) return null;
+
+          final num? porcentagem = rawPct is num
+              ? rawPct
+              : (rawPct is String ? num.tryParse(rawPct.replaceAll('%', '').trim()) : null);
+          if (porcentagem == null) return null;
 
           // ✅ Clamp porcentagem entre 0 e 1
-          final porcentagemNormalizada =
-              (porcentagem.toDouble()).clamp(0.0, 1.0);
+          // Se vier em % (ex.: 55 ou 55.2), normaliza para 0-1.
+          final double pctDouble = porcentagem.toDouble();
+          final double pct0a1 = (pctDouble > 1.0) ? (pctDouble / 100.0) : pctDouble;
+          final porcentagemNormalizada = pct0a1.clamp(0.0, 1.0);
 
           return PrenhezDataPoint(titulo, porcentagemNormalizada);
         })

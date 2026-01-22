@@ -3732,9 +3732,13 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 MainAxisSize
                                                                     .max,
                                                             children: [
-                                                              Expanded(
+                                                              SizedBox(
+                                                                width: 550.0,
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
+                                                                  key: ValueKey(
+                                                                    'taxa_prenhez_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValue}_${_model.filtroTouroTaxaConcepcaoValue}_${_model.filtroInseminadorTaxaConcepcaoValue}',
+                                                                  ),
                                                                   future: SupabaseEdgeGroup
                                                                     .taxaPrenhezGetCall
                                                                     .call(
@@ -3742,8 +3746,19 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
-                                                                    dataInicio:
-                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                    dataInicio: () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDInicioAnoValue,
+                                                                            '2025',
+                                                                          )) ??
+                                                                          2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDInicioMesValue?.toString(),
+                                                                            '1',
+                                                                          )) ??
+                                                                          1;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
+                                                                    }(),
                                                                     dataFim: () {
                                                                       final ano = int.tryParse(valueOrDefault<String>(
                                                                         _model.dDFimAnoValue,
@@ -3767,6 +3782,19 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   builder: (context,
                                                                       snapshot) {
                                                                     // Customize what your widget looks like when it's loading.
+                                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                                      return Center(
+                                                                        child: SizedBox(
+                                                                          width: 50.0,
+                                                                          height: 50.0,
+                                                                          child: CircularProgressIndicator(
+                                                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                                                              FlutterFlowTheme.of(context).primary,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    }
                                                                     if (!snapshot
                                                                         .hasData) {
                                                                       return Center(
@@ -3789,6 +3817,33 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                     final containerTaxaPrenhezGetResponse =
                                                                         snapshot
                                                                             .data!;
+
+                                                                    final dataInicioStr = () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDInicioAnoValue,
+                                                                            '2025',
+                                                                          )) ??
+                                                                          2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDInicioMesValue?.toString(),
+                                                                            '1',
+                                                                          )) ??
+                                                                          1;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
+                                                                    }();
+
+                                                                    final dataFimStr = () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimAnoValue,
+                                                                        '2025',
+                                                                      )) ?? 2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimMesValue?.toString(),
+                                                                        '12',
+                                                                      )) ?? 12;
+                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                    }();
 
                                                                     return Material(
                                                                       color: Colors
@@ -3847,13 +3902,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               ),
                                                                               Padding(
                                                                                 padding: const EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
-                                                                                child: Wrap(
-                                                                                  spacing: 12.0,
-                                                                                  runSpacing: 8.0,
-                                                                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                                                                child: Row(
+                                                                                  mainAxisSize: MainAxisSize.max,
                                                                                   children: [
-                                                                                    SizedBox(
-                                                                                      width: 220.0,
+                                                                                    Expanded(
                                                                                       child: FutureBuilder<ApiCallResponse>(
                                                                                         future: FunctionsSupabaseRebanhoGroup.buscarLotesFiltrosCall.call(
                                                                                           pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
@@ -3894,7 +3946,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             options: loteOptions,
                                                                                             optionLabels: loteLabels,
                                                                                             onChanged: (val) => safeSetState(() => _model.filtroLoteTaxaConcepcaoValue = val),
-                                                                                            width: 220.0,
+                                                                                            width: double.infinity,
                                                                                             height: 48.0,
                                                                                             textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                                   font: GoogleFonts.poppins(
@@ -3918,14 +3970,14 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
                                                                                             hidesUnderline: true,
                                                                                             isOverButton: false,
-                                                                                            isSearchable: false,
+                                                                                            isSearchable: true,
                                                                                             isMultiSelect: false,
                                                                                           );
                                                                                         },
                                                                                       ),
                                                                                     ),
-                                                                                    SizedBox(
-                                                                                      width: 220.0,
+                                                                                    const SizedBox(width: 12.0),
+                                                                                    Expanded(
                                                                                       child: FutureBuilder<ApiCallResponse>(
                                                                                         future: FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
                                                                                           pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
@@ -3979,7 +4031,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             options: options,
                                                                                             optionLabels: labels,
                                                                                             onChanged: (val) => safeSetState(() => _model.filtroTouroTaxaConcepcaoValue = val),
-                                                                                            width: 220.0,
+                                                                                            width: double.infinity,
                                                                                             height: 48.0,
                                                                                             textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                                   font: GoogleFonts.poppins(
@@ -4003,14 +4055,14 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
                                                                                             hidesUnderline: true,
                                                                                             isOverButton: false,
-                                                                                            isSearchable: false,
+                                                                                            isSearchable: true,
                                                                                             isMultiSelect: false,
                                                                                           );
                                                                                         },
                                                                                       ),
                                                                                     ),
-                                                                                    SizedBox(
-                                                                                      width: 220.0,
+                                                                                    const SizedBox(width: 12.0),
+                                                                                    Expanded(
                                                                                       child: FutureBuilder<List<ReproducaoRow>>(
                                                                                         future: ReproducaoTable().queryRows(
                                                                                           queryFn: (q) => q
@@ -4055,7 +4107,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             options: options,
                                                                                             optionLabels: labels,
                                                                                             onChanged: (val) => safeSetState(() => _model.filtroInseminadorTaxaConcepcaoValue = val),
-                                                                                            width: 220.0,
+                                                                                            width: double.infinity,
                                                                                             height: 48.0,
                                                                                             textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                                   font: GoogleFonts.poppins(
@@ -4079,7 +4131,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
                                                                                             hidesUnderline: true,
                                                                                             isOverButton: false,
-                                                                                            isSearchable: false,
+                                                                                            isSearchable: true,
                                                                                             isMultiSelect: false,
                                                                                           );
                                                                                         },
@@ -4103,12 +4155,21 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           width: double.infinity,
                                                                                           height: double.infinity,
                                                                                           child: custom_widgets.TaxaPrenhezChart(
+                                                                                            key: ValueKey(
+                                                                                              'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_${dataInicioStr}-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValue}_${_model.filtroTouroTaxaConcepcaoValue}_${_model.filtroInseminadorTaxaConcepcaoValue}',
+                                                                                            ),
                                                                                             width: double.infinity,
                                                                                             height: double.infinity,
-                                                                                            prenhezData: containerTaxaPrenhezGetResponse.jsonBody,
+                                                                                            prenhezData: containerTaxaPrenhezGetResponse.bodyText,
                                                                                           ),
                                                                                         )
-                                                                                      : const EmptyWidget(),
+                                                                                      : Center(
+                                                                                          child: Text(
+                                                                                            'Sem dados de reprodução no período.',
+                                                                                            style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                            textAlign: TextAlign.center,
+                                                                                          ),
+                                                                                        ),
                                                                                 ),
                                                                               ),
                                                                             ],
@@ -4119,9 +4180,13 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   },
                                                                 ),
                                                               ),
-                                                              Expanded(
+                                                              SizedBox(
+                                                                width: 550.0,
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
+                                                                  key: ValueKey(
+                                                                    'taxa_natalidade_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}',
+                                                                  ),
                                                                   future: SupabaseEdgeGroup
                                                                       .taxaNatalidadeGetCall
                                                                       .call(
@@ -4129,8 +4194,19 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
-                                                                    dataInicio:
-                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                    dataInicio: () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDInicioAnoValue,
+                                                                            '2025',
+                                                                          )) ??
+                                                                          2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDInicioMesValue?.toString(),
+                                                                            '1',
+                                                                          )) ??
+                                                                          1;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
+                                                                    }(),
                                                                     dataFim: () {
                                                                       final ano = int.tryParse(valueOrDefault<String>(
                                                                         _model.dDFimAnoValue,
@@ -4148,6 +4224,19 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   builder: (context,
                                                                       snapshot) {
                                                                     // Customize what your widget looks like when it's loading.
+                                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                                      return Center(
+                                                                        child: SizedBox(
+                                                                          width: 50.0,
+                                                                          height: 50.0,
+                                                                          child: CircularProgressIndicator(
+                                                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                                                              FlutterFlowTheme.of(context).primary,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    }
                                                                     if (!snapshot
                                                                         .hasData) {
                                                                       return Center(
@@ -4170,6 +4259,33 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                     final containerTaxaNatalidadeGetResponse =
                                                                         snapshot
                                                                             .data!;
+
+                                                                    final dataInicioStr = () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDInicioAnoValue,
+                                                                            '2025',
+                                                                          )) ??
+                                                                          2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDInicioMesValue?.toString(),
+                                                                            '1',
+                                                                          )) ??
+                                                                          1;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
+                                                                    }();
+
+                                                                    final dataFimStr = () {
+                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimAnoValue,
+                                                                        '2025',
+                                                                      )) ?? 2025;
+                                                                      final mes = int.tryParse(valueOrDefault<String>(
+                                                                        _model.dDFimMesValue?.toString(),
+                                                                        '12',
+                                                                      )) ?? 12;
+                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                    }();
 
                                                                     return Material(
                                                                       color: Colors
@@ -4243,7 +4359,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           child: custom_widgets.TaxaPrenhezChart(
                                                                                             width: double.infinity,
                                                                                             height: double.infinity,
-                                                                                            prenhezData: containerTaxaNatalidadeGetResponse.jsonBody,
+                                                                                            prenhezData: containerTaxaNatalidadeGetResponse.bodyText,
+                                                                                            key: ValueKey(
+                                                                                              'taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_${dataInicioStr}-${dataFimStr}',
+                                                                                            ),
                                                                                           ),
                                                                                         )
                                                                                       : const EmptyWidget(),
