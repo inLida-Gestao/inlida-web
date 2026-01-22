@@ -39,4 +39,11 @@ flutter config --no-analytics
 flutter pub get
 flutter build web --release --pwa-strategy=none --base-href /
 
+# Criar AssetManifest.json para compatibilidade com google_fonts
+# O Flutter agora gera AssetManifest.bin.json, mas alguns pacotes ainda procuram AssetManifest.json
+if [ -f "build/web/assets/AssetManifest.bin.json" ] && [ ! -f "build/web/assets/AssetManifest.json" ]; then
+  cp build/web/assets/AssetManifest.bin.json build/web/assets/AssetManifest.json
+  echo "Created AssetManifest.json for compatibility"
+fi
+
 echo "Built Flutter web into build/web"
