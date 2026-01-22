@@ -116,7 +116,13 @@ class _PainelWidgetState extends State<PainelWidget>
       initialIndex: 0,
     )..addListener(() => safeSetState(() {}));
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      safeSetState(() {});
+      // Sincronizar controllers dos filtros com os valores do modelo
+      _model.filtroLoteTaxaConcepcaoValueController?.value = _model.filtroLoteTaxaConcepcaoValue ?? '';
+      _model.filtroTouroTaxaConcepcaoValueController?.value = _model.filtroTouroTaxaConcepcaoValue ?? '';
+      _model.filtroInseminadorTaxaConcepcaoValueController?.value = _model.filtroInseminadorTaxaConcepcaoValue ?? '';
+    });
   }
 
   @override
@@ -3904,6 +3910,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 padding: const EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
                                                                                 child: Row(
                                                                                   mainAxisSize: MainAxisSize.max,
+                                                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                                                   children: [
                                                                                     Expanded(
                                                                                       child: Column(
@@ -3924,6 +3932,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           ),
                                                                                           const SizedBox(height: 8.0),
                                                                                           FutureBuilder<ApiCallResponse>(
+                                                                                            key: ValueKey('lotes_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
                                                                                             future: FunctionsSupabaseRebanhoGroup.buscarLotesFiltrosCall.call(
                                                                                               pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
                                                                                               pPesquisa: '',
@@ -3957,12 +3966,24 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               final loteLabels = <String>['Todos', ...lotes.map((e) => e.nome).where((e) => e.isNotEmpty).toList()];
 
                                                                                               return FlutterFlowDropDown<String>(
-                                                                                                controller: _model.filtroLoteTaxaConcepcaoValueController ??= FormFieldController<String>(
-                                                                                                  _model.filtroLoteTaxaConcepcaoValue ??= '',
-                                                                                                ),
+                                                                                                key: ValueKey('filtro_lote_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
+                                                                                                controller: _model.filtroLoteTaxaConcepcaoValueController!,
                                                                                                 options: loteOptions,
                                                                                                 optionLabels: loteLabels,
-                                                                                                onChanged: (val) => safeSetState(() => _model.filtroLoteTaxaConcepcaoValue = val),
+                                                                                                onChanged: (val) {
+                                                                                                  if (_model.filtroLoteTaxaConcepcaoValue != val) {
+                                                                                                    // Atualizar o controller imediatamente para manter o estado do dropdown
+                                                                                                    _model.filtroLoteTaxaConcepcaoValueController?.value = val;
+                                                                                                    // Adiar o setState para depois do frame atual para evitar fechar o dropdown
+                                                                                                    SchedulerBinding.instance.addPostFrameCallback((_) {
+                                                                                                      if (mounted) {
+                                                                                                        safeSetState(() {
+                                                                                                          _model.filtroLoteTaxaConcepcaoValue = val;
+                                                                                                        });
+                                                                                                      }
+                                                                                                    });
+                                                                                                  }
+                                                                                                },
                                                                                                 width: double.infinity,
                                                                                                 height: 48.0,
                                                                                                 textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -4015,6 +4036,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           ),
                                                                                           const SizedBox(height: 8.0),
                                                                                           FutureBuilder<ApiCallResponse>(
+                                                                                            key: ValueKey('touros_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
                                                                                             future: FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
                                                                                               pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
                                                                                               pCategoria: 'Touro',
@@ -4061,12 +4083,24 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               final labels = <String>['Todos', ...touroLabels];
 
                                                                                               return FlutterFlowDropDown<String>(
-                                                                                                controller: _model.filtroTouroTaxaConcepcaoValueController ??= FormFieldController<String>(
-                                                                                                  _model.filtroTouroTaxaConcepcaoValue ??= '',
-                                                                                                ),
+                                                                                                key: ValueKey('filtro_touro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
+                                                                                                controller: _model.filtroTouroTaxaConcepcaoValueController!,
                                                                                                 options: options,
                                                                                                 optionLabels: labels,
-                                                                                                onChanged: (val) => safeSetState(() => _model.filtroTouroTaxaConcepcaoValue = val),
+                                                                                                onChanged: (val) {
+                                                                                                  if (_model.filtroTouroTaxaConcepcaoValue != val) {
+                                                                                                    // Atualizar o controller imediatamente para manter o estado do dropdown
+                                                                                                    _model.filtroTouroTaxaConcepcaoValueController?.value = val;
+                                                                                                    // Adiar o setState para depois do frame atual para evitar fechar o dropdown
+                                                                                                    SchedulerBinding.instance.addPostFrameCallback((_) {
+                                                                                                      if (mounted) {
+                                                                                                        safeSetState(() {
+                                                                                                          _model.filtroTouroTaxaConcepcaoValue = val;
+                                                                                                        });
+                                                                                                      }
+                                                                                                    });
+                                                                                                  }
+                                                                                                },
                                                                                                 width: double.infinity,
                                                                                                 height: 48.0,
                                                                                                 textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -4119,6 +4153,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           ),
                                                                                           const SizedBox(height: 8.0),
                                                                                           FutureBuilder<List<ReproducaoRow>>(
+                                                                                            key: ValueKey('inseminadores_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
                                                                                             future: ReproducaoTable().queryRows(
                                                                                               queryFn: (q) => q
                                                                                                   .eqOrNull(
@@ -4156,12 +4191,24 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               final labels = <String>['Todos', ...inseminadores];
 
                                                                                               return FlutterFlowDropDown<String>(
-                                                                                                controller: _model.filtroInseminadorTaxaConcepcaoValueController ??= FormFieldController<String>(
-                                                                                                  _model.filtroInseminadorTaxaConcepcaoValue ??= '',
-                                                                                                ),
+                                                                                                key: ValueKey('filtro_inseminador_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
+                                                                                                controller: _model.filtroInseminadorTaxaConcepcaoValueController!,
                                                                                                 options: options,
                                                                                                 optionLabels: labels,
-                                                                                                onChanged: (val) => safeSetState(() => _model.filtroInseminadorTaxaConcepcaoValue = val),
+                                                                                                onChanged: (val) {
+                                                                                                  if (_model.filtroInseminadorTaxaConcepcaoValue != val) {
+                                                                                                    // Atualizar o controller imediatamente para manter o estado do dropdown
+                                                                                                    _model.filtroInseminadorTaxaConcepcaoValueController?.value = val;
+                                                                                                    // Adiar o setState para depois do frame atual para evitar fechar o dropdown
+                                                                                                    SchedulerBinding.instance.addPostFrameCallback((_) {
+                                                                                                      if (mounted) {
+                                                                                                        safeSetState(() {
+                                                                                                          _model.filtroInseminadorTaxaConcepcaoValue = val;
+                                                                                                        });
+                                                                                                      }
+                                                                                                    });
+                                                                                                  }
+                                                                                                },
                                                                                                 width: double.infinity,
                                                                                                 height: 48.0,
                                                                                                 textStyle: FlutterFlowTheme.of(context).bodyMedium.override(

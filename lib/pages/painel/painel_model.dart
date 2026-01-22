@@ -104,6 +104,11 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
     filtroLoteTaxaConcepcaoValue = '';
     filtroTouroTaxaConcepcaoValue = '';
     filtroInseminadorTaxaConcepcaoValue = '';
+    
+    // Inicializar controllers dos filtros do gráfico "Taxa de concepção".
+    filtroLoteTaxaConcepcaoValueController = FormFieldController<String>('');
+    filtroTouroTaxaConcepcaoValueController = FormFieldController<String>('');
+    filtroInseminadorTaxaConcepcaoValueController = FormFieldController<String>('');
   }
 
   @override
@@ -114,6 +119,11 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
     tabBarController?.dispose();
     emptyModel.dispose();
     loadingModel.dispose();
+    
+    // Limpar controllers dos filtros do gráfico "Taxa de concepção".
+    filtroLoteTaxaConcepcaoValueController?.dispose();
+    filtroTouroTaxaConcepcaoValueController?.dispose();
+    filtroInseminadorTaxaConcepcaoValueController?.dispose();
   }
 
   /// Additional helper methods.
