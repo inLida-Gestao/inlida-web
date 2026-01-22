@@ -283,6 +283,14 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       safeSetState(() =>
                                                                           _model.dDInicioAnoValue =
                                                                               val);
+                                                                      // Sincronizar controllers após mudança de data
+                                                                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                                                                        if (mounted) {
+                                                                          _model.filtroLoteTaxaConcepcaoValueController?.value = _model.filtroLoteTaxaConcepcaoValue ?? '';
+                                                                          _model.filtroTouroTaxaConcepcaoValueController?.value = _model.filtroTouroTaxaConcepcaoValue ?? '';
+                                                                          _model.filtroInseminadorTaxaConcepcaoValueController?.value = _model.filtroInseminadorTaxaConcepcaoValue ?? '';
+                                                                        }
+                                                                      });
                                                                       safeSetState(
                                                                           () {});
                                                                     },
@@ -390,6 +398,14 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       safeSetState(() =>
                                                                           _model.dDInicioMesValue =
                                                                               val);
+                                                                      // Sincronizar controllers após mudança de data
+                                                                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                                                                        if (mounted) {
+                                                                          _model.filtroLoteTaxaConcepcaoValueController?.value = _model.filtroLoteTaxaConcepcaoValue ?? '';
+                                                                          _model.filtroTouroTaxaConcepcaoValueController?.value = _model.filtroTouroTaxaConcepcaoValue ?? '';
+                                                                          _model.filtroInseminadorTaxaConcepcaoValueController?.value = _model.filtroInseminadorTaxaConcepcaoValue ?? '';
+                                                                        }
+                                                                      });
                                                                       safeSetState(
                                                                           () {});
                                                                     },
@@ -523,6 +539,14 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       safeSetState(() =>
                                                                           _model.dDFimAnoValue =
                                                                               val);
+                                                                      // Sincronizar controllers após mudança de data
+                                                                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                                                                        if (mounted) {
+                                                                          _model.filtroLoteTaxaConcepcaoValueController?.value = _model.filtroLoteTaxaConcepcaoValue ?? '';
+                                                                          _model.filtroTouroTaxaConcepcaoValueController?.value = _model.filtroTouroTaxaConcepcaoValue ?? '';
+                                                                          _model.filtroInseminadorTaxaConcepcaoValueController?.value = _model.filtroInseminadorTaxaConcepcaoValue ?? '';
+                                                                        }
+                                                                      });
                                                                       safeSetState(
                                                                           () {});
                                                                     },
@@ -628,6 +652,14 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       safeSetState(() =>
                                                                           _model.dDFimMesValue =
                                                                               val);
+                                                                      // Sincronizar controllers após mudança de data
+                                                                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                                                                        if (mounted) {
+                                                                          _model.filtroLoteTaxaConcepcaoValueController?.value = _model.filtroLoteTaxaConcepcaoValue ?? '';
+                                                                          _model.filtroTouroTaxaConcepcaoValueController?.value = _model.filtroTouroTaxaConcepcaoValue ?? '';
+                                                                          _model.filtroInseminadorTaxaConcepcaoValueController?.value = _model.filtroInseminadorTaxaConcepcaoValue ?? '';
+                                                                        }
+                                                                      });
                                                                       safeSetState(
                                                                           () {});
                                                                     },
