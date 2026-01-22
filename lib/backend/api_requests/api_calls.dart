@@ -1738,8 +1738,23 @@ class TaxaPrenhezGetCall {
     String? idPropriedade = '',
     String? dataInicio = '',
     String? dataFim = '',
+    String? pLoteId = '',
+    String? pInseminador = '',
+    String? pIdRebanhoReprodutor = '',
   }) async {
     final baseUrl = SupabaseEdgeGroup.getBaseUrl();
+
+    final params = <String, dynamic>{
+      'id_propriedade': idPropriedade,
+      'data_inicio': dataInicio,
+      'data_fim': dataFim,
+      // Filtros opcionais (se vazios, não são enviados)
+      'p_lote_id': pLoteId,
+      'p_inseminador': pInseminador,
+      'p_id_rebanho_reprodutor': pIdRebanhoReprodutor,
+    };
+    params.removeWhere((key, value) =>
+        value == null || (value is String && value.trim().isEmpty));
 
     return ApiManager.instance.makeApiCall(
       callName: 'taxa prenhez get',
@@ -1748,11 +1763,7 @@ class TaxaPrenhezGetCall {
       headers: {
         'Content-Type': 'application/json',
       },
-      params: {
-        'id_propriedade': idPropriedade,
-        'data_inicio': dataInicio,
-        'data_fim': dataFim,
-      },
+      params: params,
       returnBody: true,
       encodeBodyUtf8: false,
       decodeUtf8: false,

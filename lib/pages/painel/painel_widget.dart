@@ -1,6 +1,7 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/schema/structs/index.dart';
+import '/backend/supabase/supabase.dart';
 import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
 import '/components/empty_widget.dart';
@@ -3735,8 +3736,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
                                                                   future: SupabaseEdgeGroup
-                                                                      .taxaPrenhezGetCall
-                                                                      .call(
+                                                                    .taxaPrenhezGetCall
+                                                                    .call(
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -3756,6 +3757,12 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       final ultimoDia = DateTime(ano, mes + 1, 0).day;
                                                                       return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                     }(),
+                                                                      pLoteId: _model
+                                                                        .filtroLoteTaxaConcepcaoValue,
+                                                                      pIdRebanhoReprodutor: _model
+                                                                        .filtroTouroTaxaConcepcaoValue,
+                                                                      pInseminador: _model
+                                                                        .filtroInseminadorTaxaConcepcaoValue,
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -3837,6 +3844,249 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       fontWeight: FontWeight.w600,
                                                                                       fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                     ),
+                                                                              ),
+                                                                              Padding(
+                                                                                padding: const EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
+                                                                                child: Wrap(
+                                                                                  spacing: 12.0,
+                                                                                  runSpacing: 8.0,
+                                                                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                                                                  children: [
+                                                                                    SizedBox(
+                                                                                      width: 220.0,
+                                                                                      child: FutureBuilder<ApiCallResponse>(
+                                                                                        future: FunctionsSupabaseRebanhoGroup.buscarLotesFiltrosCall.call(
+                                                                                          pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                          pPesquisa: '',
+                                                                                          pStatus: '',
+                                                                                          pLimite: 1000,
+                                                                                          pOffset: 0,
+                                                                                        ),
+                                                                                        builder: (context, lotesSnapshot) {
+                                                                                          if (!lotesSnapshot.hasData) {
+                                                                                            return const SizedBox(
+                                                                                              height: 48.0,
+                                                                                              child: Center(
+                                                                                                child: SizedBox(
+                                                                                                  width: 20.0,
+                                                                                                  height: 20.0,
+                                                                                                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                                                                                                ),
+                                                                                              ),
+                                                                                            );
+                                                                                          }
+                                                                                          final lotesResponse = lotesSnapshot.data!;
+                                                                                          final lotes = (lotesResponse.jsonBody
+                                                                                                      .toList()
+                                                                                                      .map<LotesStruct?>(LotesStruct.maybeFromMap)
+                                                                                                      .toList() as Iterable<LotesStruct?>)
+                                                                                                  .withoutNulls
+                                                                                              .where((e) => e.deletado != 'SIM')
+                                                                                              .toList();
+
+                                                                                          final loteOptions = <String>['', ...lotes.map((e) => e.idLote).where((e) => e.isNotEmpty).toList()];
+                                                                                          final loteLabels = <String>['Todos', ...lotes.map((e) => e.nome).where((e) => e.isNotEmpty).toList()];
+
+                                                                                          return FlutterFlowDropDown<String>(
+                                                                                            controller: _model.filtroLoteTaxaConcepcaoValueController ??= FormFieldController<String>(
+                                                                                              _model.filtroLoteTaxaConcepcaoValue ??= '',
+                                                                                            ),
+                                                                                            options: loteOptions,
+                                                                                            optionLabels: loteLabels,
+                                                                                            onChanged: (val) => safeSetState(() => _model.filtroLoteTaxaConcepcaoValue = val),
+                                                                                            width: 220.0,
+                                                                                            height: 48.0,
+                                                                                            textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                  font: GoogleFonts.poppins(
+                                                                                                    fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                  ),
+                                                                                                  letterSpacing: 0.0,
+                                                                                                  fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                ),
+                                                                                            hintText: 'Lote',
+                                                                                            icon: Icon(
+                                                                                              Icons.keyboard_arrow_down_rounded,
+                                                                                              color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                              size: 24.0,
+                                                                                            ),
+                                                                                            elevation: 2.0,
+                                                                                            borderColor: FlutterFlowTheme.of(context).customColor2,
+                                                                                            borderWidth: 0.0,
+                                                                                            borderRadius: 8.0,
+                                                                                            margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                            hidesUnderline: true,
+                                                                                            isOverButton: false,
+                                                                                            isSearchable: false,
+                                                                                            isMultiSelect: false,
+                                                                                          );
+                                                                                        },
+                                                                                      ),
+                                                                                    ),
+                                                                                    SizedBox(
+                                                                                      width: 220.0,
+                                                                                      child: FutureBuilder<ApiCallResponse>(
+                                                                                        future: FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
+                                                                                          pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                          pCategoria: 'Touro',
+                                                                                          pPesquisa: '',
+                                                                                          pStatus: '',
+                                                                                          pLimite: 1000,
+                                                                                          pOffset: 0,
+                                                                                        ),
+                                                                                        builder: (context, tourosSnapshot) {
+                                                                                          if (!tourosSnapshot.hasData) {
+                                                                                            return const SizedBox(
+                                                                                              height: 48.0,
+                                                                                              child: Center(
+                                                                                                child: SizedBox(
+                                                                                                  width: 20.0,
+                                                                                                  height: 20.0,
+                                                                                                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                                                                                                ),
+                                                                                              ),
+                                                                                            );
+                                                                                          }
+                                                                                          final tourosResponse = tourosSnapshot.data!;
+                                                                                          final touros = (tourosResponse.jsonBody
+                                                                                                      .toList()
+                                                                                                      .map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap)
+                                                                                                      .toList() as Iterable<RebanhoDTStruct?>)
+                                                                                                  .withoutNulls
+                                                                                              .where((e) => e.deletado != 'SIM')
+                                                                                              .where((e) =>
+                                                                                                  (e.status == 'Na Propriedade') ||
+                                                                                                  (e.status == 'Na propriedade') ||
+                                                                                                  (e.status.isEmpty))
+                                                                                              .toList();
+
+                                                                                          final touroIds = touros.map((e) => e.idRebanho).where((e) => e.isNotEmpty).toList();
+                                                                                          final touroLabels = touros
+                                                                                              .map((e) => (e.nomeConcat.isNotEmpty)
+                                                                                                  ? e.nomeConcat
+                                                                                                  : (e.nome.isNotEmpty ? e.nome : e.numeroAnimal))
+                                                                                              .where((e) => e.isNotEmpty)
+                                                                                              .toList();
+
+                                                                                          final options = <String>['', ...touroIds];
+                                                                                          final labels = <String>['Todos', ...touroLabels];
+
+                                                                                          return FlutterFlowDropDown<String>(
+                                                                                            controller: _model.filtroTouroTaxaConcepcaoValueController ??= FormFieldController<String>(
+                                                                                              _model.filtroTouroTaxaConcepcaoValue ??= '',
+                                                                                            ),
+                                                                                            options: options,
+                                                                                            optionLabels: labels,
+                                                                                            onChanged: (val) => safeSetState(() => _model.filtroTouroTaxaConcepcaoValue = val),
+                                                                                            width: 220.0,
+                                                                                            height: 48.0,
+                                                                                            textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                  font: GoogleFonts.poppins(
+                                                                                                    fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                  ),
+                                                                                                  letterSpacing: 0.0,
+                                                                                                  fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                ),
+                                                                                            hintText: 'Touro',
+                                                                                            icon: Icon(
+                                                                                              Icons.keyboard_arrow_down_rounded,
+                                                                                              color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                              size: 24.0,
+                                                                                            ),
+                                                                                            elevation: 2.0,
+                                                                                            borderColor: FlutterFlowTheme.of(context).customColor2,
+                                                                                            borderWidth: 0.0,
+                                                                                            borderRadius: 8.0,
+                                                                                            margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                            hidesUnderline: true,
+                                                                                            isOverButton: false,
+                                                                                            isSearchable: false,
+                                                                                            isMultiSelect: false,
+                                                                                          );
+                                                                                        },
+                                                                                      ),
+                                                                                    ),
+                                                                                    SizedBox(
+                                                                                      width: 220.0,
+                                                                                      child: FutureBuilder<List<ReproducaoRow>>(
+                                                                                        future: ReproducaoTable().queryRows(
+                                                                                          queryFn: (q) => q
+                                                                                              .eqOrNull(
+                                                                                                'id_propriedade',
+                                                                                                FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                              )
+                                                                                              .eqOrNull(
+                                                                                                'deletado',
+                                                                                                'NAO',
+                                                                                              ),
+                                                                                        ),
+                                                                                        builder: (context, reproSnapshot) {
+                                                                                          if (!reproSnapshot.hasData) {
+                                                                                            return const SizedBox(
+                                                                                              height: 48.0,
+                                                                                              child: Center(
+                                                                                                child: SizedBox(
+                                                                                                  width: 20.0,
+                                                                                                  height: 20.0,
+                                                                                                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                                                                                                ),
+                                                                                              ),
+                                                                                            );
+                                                                                          }
+                                                                                          final rows = reproSnapshot.data!;
+                                                                                          final inseminadores = rows
+                                                                                              .map((e) => e.inseminador)
+                                                                                              .withoutNulls
+                                                                                              .map((e) => e.trim())
+                                                                                              .where((e) => e.isNotEmpty)
+                                                                                              .toList()
+                                                                                              .unique((e) => e);
+
+                                                                                          final options = <String>['', ...inseminadores];
+                                                                                          final labels = <String>['Todos', ...inseminadores];
+
+                                                                                          return FlutterFlowDropDown<String>(
+                                                                                            controller: _model.filtroInseminadorTaxaConcepcaoValueController ??= FormFieldController<String>(
+                                                                                              _model.filtroInseminadorTaxaConcepcaoValue ??= '',
+                                                                                            ),
+                                                                                            options: options,
+                                                                                            optionLabels: labels,
+                                                                                            onChanged: (val) => safeSetState(() => _model.filtroInseminadorTaxaConcepcaoValue = val),
+                                                                                            width: 220.0,
+                                                                                            height: 48.0,
+                                                                                            textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                  font: GoogleFonts.poppins(
+                                                                                                    fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                  ),
+                                                                                                  letterSpacing: 0.0,
+                                                                                                  fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                ),
+                                                                                            hintText: 'Inseminador',
+                                                                                            icon: Icon(
+                                                                                              Icons.keyboard_arrow_down_rounded,
+                                                                                              color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                              size: 24.0,
+                                                                                            ),
+                                                                                            elevation: 2.0,
+                                                                                            borderColor: FlutterFlowTheme.of(context).customColor2,
+                                                                                            borderWidth: 0.0,
+                                                                                            borderRadius: 8.0,
+                                                                                            margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                            hidesUnderline: true,
+                                                                                            isOverButton: false,
+                                                                                            isSearchable: false,
+                                                                                            isMultiSelect: false,
+                                                                                          );
+                                                                                        },
+                                                                                      ),
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
                                                                               ),
                                                                               Expanded(
                                                                                 child: Container(

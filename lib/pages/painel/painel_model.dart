@@ -58,6 +58,16 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   // State field(s) for DropDown widget.
   int? dropDownValue4;
   FormFieldController<int>? dropDownValueController4;
+
+  // State field(s) for FiltroLoteTaxaConcepcao widget.
+  String? filtroLoteTaxaConcepcaoValue;
+  FormFieldController<String>? filtroLoteTaxaConcepcaoValueController;
+  // State field(s) for FiltroTouroTaxaConcepcao widget.
+  String? filtroTouroTaxaConcepcaoValue;
+  FormFieldController<String>? filtroTouroTaxaConcepcaoValueController;
+  // State field(s) for FiltroInseminadorTaxaConcepcao widget.
+  String? filtroInseminadorTaxaConcepcaoValue;
+  FormFieldController<String>? filtroInseminadorTaxaConcepcaoValueController;
   // Model for empty component.
   late EmptyModel emptyModel;
   // State field(s) for ddIdade widget.
@@ -89,6 +99,11 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
     loadingModel = createModel(context, () => LoadingModel());
     dropDownMotivoMorteValue = 'Todos';
     dropDownDiagnosticoCategoriaValue = 'Todos';
+
+    // Defaults dos filtros do gráfico "Taxa de concepção".
+    filtroLoteTaxaConcepcaoValue = '';
+    filtroTouroTaxaConcepcaoValue = '';
+    filtroInseminadorTaxaConcepcaoValue = '';
   }
 
   @override
