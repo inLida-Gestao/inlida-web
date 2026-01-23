@@ -299,9 +299,26 @@ String _decodeWithBestEncoding(List<int> bytes) {
   // 1) Tentar UTF-8 estrito (principal caminho).
   // Importante: NÃO usar allowMalformed aqui, senão perde caracteres (vira "�")
   // e depois não dá pra recuperar.
+  String? utf8Text;
   try {
-    return utf8.decode(bytes);
+    utf8Text = utf8.decode(bytes);
   } catch (_) {}
+
+  if (utf8Text != null) {
+    if (!_looksMojibake(utf8Text)) {
+      return utf8Text;
+    }
+
+    // Se UTF-8 parece mojibake, tenta Latin-1 e escolhe o melhor.
+    try {
+      final latin1Text = latin1.decode(bytes);
+      if (_mojibakeScore(latin1Text) < _mojibakeScore(utf8Text)) {
+        return latin1Text;
+      }
+    } catch (_) {}
+
+    return utf8Text;
+  }
 
   // 2) Tentar Latin-1 (muito comum em CSVs antigos / Excel).
   try {
@@ -336,6 +353,18 @@ String _decodeWithBestEncoding(List<int> bytes) {
   }
 
   return result;
+}
+
+bool _looksMojibake(String value) {
+  return value.contains('Ã') || value.contains('Â') || value.contains('�');
+}
+
+int _mojibakeScore(String value) {
+  var score = 0;
+  for (final ch in value.split('')) {
+    if (ch == 'Ã' || ch == 'Â' || ch == '�') score += 2;
+  }
+  return score;
 }
 
 // Função auxiliar para detectar delimitador

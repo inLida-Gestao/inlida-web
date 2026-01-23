@@ -791,16 +791,43 @@ String _fixEncoding(String text) {
   try {
     // Heurística: corrige strings UTF-8 interpretadas como Latin-1.
     // Ex.: "FÃªmea" -> "Fêmea".
-    if (!(text.contains('Ã') || text.contains('Â') || text.contains('�'))) {
+    if (!_looksMojibake(text)) {
       return text;
     }
 
-    final bytes = latin1.encode(text);
-    return utf8.decode(bytes, allowMalformed: true);
+    final originalScore = _mojibakeScore(text);
+    String? candidate;
+
+    try {
+      final bytes = latin1.encode(text);
+      candidate = utf8.decode(bytes);
+    } catch (_) {
+      try {
+        final bytes = latin1.encode(text);
+        candidate = utf8.decode(bytes, allowMalformed: true);
+      } catch (_) {}
+    }
+
+    if (candidate != null && _mojibakeScore(candidate) < originalScore) {
+      return candidate;
+    }
+    return text;
   } catch (e) {
     print('Erro ao corrigir encoding: $e');
     return text;
   }
+}
+
+bool _looksMojibake(String value) {
+  return value.contains('Ã') || value.contains('Â') || value.contains('�');
+}
+
+int _mojibakeScore(String value) {
+  var score = 0;
+  for (final ch in value.split('')) {
+    if (ch == 'Ã' || ch == 'Â' || ch == '�') score += 2;
+  }
+  return score;
 }
 
 // Função auxiliar para gerar id_reproducao único
