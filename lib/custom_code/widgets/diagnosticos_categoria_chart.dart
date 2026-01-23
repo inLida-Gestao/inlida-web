@@ -92,6 +92,26 @@ class _DiagnosticosCategoriaChartState extends State<DiagnosticosCategoriaChart>
 
     final rotate = MediaQuery.of(context).size.width < 380 ? -45 : -30;
 
+    final maxStack = data
+        .map((e) => e.novilha + e.primipara + e.multipara)
+      .fold<int>(0, (prev, value) => value > prev ? value : prev);
+
+    final int interval;
+    if (maxStack < 100) {
+      interval = 10;
+    } else if (maxStack <= 200) {
+      interval = 50;
+    } else if (maxStack <= 500) {
+      interval = 100;
+    } else {
+      interval = 200;
+    }
+
+    final int computedMax = maxStack == 0
+        ? interval
+        : ((maxStack + interval - 1) ~/ interval) * interval;
+    final int maxY = computedMax < 100 ? 100 : computedMax;
+
     return SizedBox(
       width: w,
       height: h,
@@ -108,11 +128,12 @@ class _DiagnosticosCategoriaChartState extends State<DiagnosticosCategoriaChart>
           labelRotation: rotate,
           majorGridLines: const MajorGridLines(width: 0),
         ),
-        primaryYAxis: const NumericAxis(
+        primaryYAxis: NumericAxis(
           minimum: 0,
-          maximum: 100,
-          axisLine: AxisLine(width: 0),
-          majorGridLines: MajorGridLines(width: 0),
+          maximum: maxY.toDouble(),
+          interval: interval.toDouble(),
+          axisLine: const AxisLine(width: 0),
+          majorGridLines: const MajorGridLines(width: 0),
         ),
         series: <CartesianSeries<_DiagnosticoPorPeriodo, String>>[
           StackedColumnSeries<_DiagnosticoPorPeriodo, String>(
