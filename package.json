@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "vercel-build": "bash scripts/vercel_build.sh"
+    "vercel-build": "bash scripts/vercel_build.sh",
+    "build:web": "flutter build web --release --pwa-strategy=none --base-href / --web-renderer html"
   }
 }
