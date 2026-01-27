@@ -166,28 +166,28 @@ class _PgReproducaoEditAnimalWidgetState
                             updateCallback: () => safeSetState(() {}),
                             child: const SideBarWidget(),
                           ),
-                          Flexible(
-                            child: Align(
-                              alignment: const AlignmentDirectional(0.0, -1.0),
-                              child: FutureBuilder<List<RebanhoRow>>(
-                                future: RebanhoTable().queryRows(
-                                  queryFn: (q) => q
-                                      .eqOrNull(
-                                        'idPropriedade',
-                                        FFAppState()
-                                            .propriedadeSelecionada
-                                            .idPropriedade,
-                                      )
-                                      .eqOrNull(
-                                        'deletado',
-                                        'NAO',
-                                      )
-                                      .eqOrNull(
-                                        'status',
-                                        'Na propriedade',
-                                      ),
-                                ),
-                                builder: (context, snapshot) {
+                                                    Flexible(
+                                                        child: Align(
+                                                            alignment: const AlignmentDirectional(0.0, -1.0),
+                                                            child: FutureBuilder<List<RebanhoRow>>(
+                                                                future: RebanhoTable().queryRows(
+                                                                    queryFn: (q) => q
+                                                                            .eqOrNull(
+                                                                                'idPropriedade',
+                                                                                FFAppState()
+                                                                                        .propriedadeSelecionada
+                                                                                        .idPropriedade,
+                                                                            )
+                                                                            .eqOrNull(
+                                                                                'deletado',
+                                                                                'NAO',
+                                                                            )
+                                                                            .eqOrNull(
+                                                                                'status',
+                                                                                'Na propriedade',
+                                                                            ),
+                                                                ),
+                                                                builder: (context, snapshot) {
                                   // Customize what your widget looks like when it's loading.
                                   if (!snapshot.hasData) {
                                     return Center(
@@ -671,7 +671,7 @@ class _PgReproducaoEditAnimalWidgetState
                                                       CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
-                                                      'Score corporal',
+                                                                                                            'Escore corporal',
                                                       style: FlutterFlowTheme
                                                               .of(context)
                                                           .bodyMedium
@@ -3581,7 +3581,7 @@ class _PgReproducaoEditAnimalWidgetState
                                                             .start,
                                                     children: [
                                                       Text(
-                                                        'Status*',
+                                                                                                                'Diagnóstico*',
                                                         style: FlutterFlowTheme
                                                                 .of(context)
                                                             .bodyMedium
@@ -3711,7 +3711,7 @@ class _PgReproducaoEditAnimalWidgetState
                                                             .start,
                                                     children: [
                                                       Text(
-                                                        'Data',
+                                                                                                                'Data do diagnóstico',
                                                         style: FlutterFlowTheme
                                                                 .of(context)
                                                             .bodyMedium

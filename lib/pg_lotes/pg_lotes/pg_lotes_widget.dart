@@ -117,6 +117,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
         }
         final pgLotesBuscarLotesFiltrosResponse = snapshot.data!;
 
+
         return GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
@@ -1141,11 +1142,27 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                   ),
                                                 ),
                                               ],
-                                              dataRowBuilder: (loteItem,
-                                                      loteIndex,
-                                                      selected,
-                                                      onSelectChanged) =>
-                                                  DataRow(
+                                                dataRowBuilder: (loteItem,
+                                                    loteIndex,
+                                                    selected,
+                                                    onSelectChanged) {
+                                                final statusRaw =
+                                                  loteItem.ativo.trim().toLowerCase();
+                                                final hasExitInfo = loteItem
+                                                    .dataSaidaPiquete
+                                                    .trim()
+                                                    .isNotEmpty ||
+                                                  loteItem.dataMotivo
+                                                    .trim()
+                                                    .isNotEmpty ||
+                                                  loteItem.motivo
+                                                    .trim()
+                                                    .isNotEmpty;
+                                                final isAtivo =
+                                                  statusRaw == 'ativo' &&
+                                                    !hasExitInfo;
+
+                                                return DataRow(
                                                 color:
                                                     WidgetStateProperty.all(
                                                   loteIndex % 2 == 0
@@ -1232,8 +1249,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                   ),
                                                   Container(
                                                     decoration: BoxDecoration(
-                                                      color: loteItem.ativo ==
-                                                              'Ativo'
+                                                      color: isAtivo
                                                           ? const Color(0xFFD6F5E5)
                                                           : const Color(0xFFF5D7D4),
                                                       borderRadius:
@@ -1253,8 +1269,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                             MainAxisSize.min,
                                                         children: [
                                                           Text(
-                                                            loteItem.ativo ==
-                                                                    'Ativo'
+                                                            isAtivo
                                                                 ? 'Ativo'
                                                                 : 'Inativo',
                                                             style: FlutterFlowTheme
@@ -1272,14 +1287,12 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                                         .bodyMedium
                                                                         .fontStyle,
                                                                   ),
-                                                                  color: loteItem
-                                                                              .ativo ==
-                                                                          'Ativo'
+                                                                    color: isAtivo
                                                                       ? FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .secondary
+                                                                          context)
+                                                                        .secondary
                                                                       : const Color(
-                                                                          0xFFCC3729),
+                                                                        0xFFCC3729),
                                                                   letterSpacing:
                                                                       0.0,
                                                                   fontWeight: FlutterFlowTheme.of(
@@ -1377,7 +1390,8 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                 ]
                                                     .map((c) => DataCell(c))
                                                     .toList(),
-                                              ),
+                                              );
+                                              },
                                               emptyBuilder: () => const Center(
                                                 child: EmptyRebanhoWidget(),
                                               ),

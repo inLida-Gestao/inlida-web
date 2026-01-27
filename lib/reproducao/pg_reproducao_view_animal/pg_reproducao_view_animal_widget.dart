@@ -741,7 +741,7 @@ class _PgReproducaoViewAnimalWidgetState
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              'Score corporal',
+                                              'Escore corporal',
                                               style: FlutterFlowTheme.of(
                                                       context)
                                                   .bodyMedium
@@ -2682,7 +2682,7 @@ class _PgReproducaoViewAnimalWidgetState
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                'Status*',
+                                                'Diagnóstico*',
                                                 style: FlutterFlowTheme.of(
                                                         context)
                                                     .bodyMedium
@@ -2788,7 +2788,7 @@ class _PgReproducaoViewAnimalWidgetState
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                'Data',
+                                                'Data do diagnóstico',
                                                 style: FlutterFlowTheme.of(
                                                         context)
                                                     .bodyMedium

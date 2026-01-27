@@ -35,14 +35,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
 
   static const List<String> _kProtocoloRetiradaOptions = <String>[
     'eCG + PGF + CE',
-    'PGF + eCG',
-    'CE + eCG',
-    'PGF + CE',
-  ];
-
-  static const List<String> _kProtocoloIatfOptions = <String>[
-    'Com GnRH',
-    'Sem GnRH',
+    'eCG + PGR + CE + BE',
   ];
 
   String? _loteSelecionadoId;
@@ -1561,78 +1554,6 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
           ],
         ),
         const SizedBox(height: 32),
-        Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'IATF',
-              style: FlutterFlowTheme.of(context).bodyMedium.override(
-                    fontFamily: 'Poppins',
-                    color: FlutterFlowTheme.of(context).secondaryText,
-                    fontSize: 16,
-                    letterSpacing: 0.0,
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: FlutterFlowDropDown<String>(
-                    controller: _model.protocoloIatfDropdownValueController ??=
-                        FormFieldController<String>(null),
-                    options: _kProtocoloIatfOptions,
-                    onChanged: (val) =>
-                        setState(() => _model.protocoloIatfDropdownValue = val),
-                    width: double.infinity,
-                    height: 56,
-                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w600,
-                        ),
-                    hintText: 'Selecionar',
-                    icon: Icon(
-                      Icons.expand_more,
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      size: 24,
-                    ),
-                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                    elevation: 0,
-                    borderColor: Colors.transparent,
-                    borderWidth: 0,
-                    borderRadius: 6,
-                    margin:
-                        const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
-                    hidesUnderline: true,
-                  ),
-                ),
-                if ((_model.protocoloIatfDropdownValue ?? '')
-                    .trim()
-                    .isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  FlutterFlowIconButton(
-                    borderColor: Colors.transparent,
-                    borderRadius: 6,
-                    buttonSize: 44,
-                    icon: Icon(
-                      Icons.close,
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      size: 24,
-                    ),
-                    onPressed: () {
-                      _model.protocoloIatfDropdownValueController?.reset();
-                      setState(() => _model.protocoloIatfDropdownValue = null);
-                    },
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 32),
         Align(
           alignment: Alignment.centerLeft,
           child: Column(
@@ -1940,7 +1861,6 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
         final protocoloObs = _model.protocoloObsTextController.text.trim();
         final d0 = (_model.protocoloD0DropdownValue ?? '').trim();
         final retirada = (_model.protocoloRetiradaDropdownValue ?? '').trim();
-        final iatf = (_model.protocoloIatfDropdownValue ?? '').trim();
 
         // Preparar dados do registro
         final dados = <String, dynamic>{
@@ -1998,7 +1918,6 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
 
           dados['protocolo_d0'] = d0.isNotEmpty ? d0 : null;
           dados['protocolo_retirada'] = retirada.isNotEmpty ? retirada : null;
-          dados['protocolo_iatf'] = iatf.isNotEmpty ? iatf : null;
         }
 
         // Inserir na tabela de sanidade

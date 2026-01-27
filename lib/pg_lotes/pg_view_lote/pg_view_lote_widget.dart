@@ -30,9 +30,11 @@ export 'pg_view_lote_model.dart';
 class PgViewLoteWidget extends StatefulWidget {
   const PgViewLoteWidget({
     super.key,
+    required this.idLote,
     required this.loteNome,
   });
 
+  final String? idLote;
   final String? loteNome;
 
   static String routeName = 'pgViewLote';
@@ -56,10 +58,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _model.lote = await LotesTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'id_lote',
-          widget.loteNome,
-        ),
+        queryFn: (q) => q.eqOrNull('id_lote', widget.idLote),
       );
       if (_model.lote?.firstOrNull?.ativo == 'Ativo') {
         _model.ativo = true;
@@ -168,10 +167,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                   Expanded(
                     child: FutureBuilder<List<LotesRow>>(
                       future: LotesTable().querySingleRow(
-                        queryFn: (q) => q.eqOrNull(
-                          'nome',
-                          widget.loteNome,
-                        ),
+                        queryFn: (q) => q.eqOrNull('id_lote', widget.idLote),
                       ),
                       builder: (context, snapshot) {
                         // Customize what your widget looks like when it's loading.
@@ -3347,6 +3343,11 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                       PgEditLoteWidget
                                                           .routeName,
                                                       queryParameters: {
+                                                        'idLote':
+                                                            serializeParam(
+                                                          widget.idLote,
+                                                          ParamType.String,
+                                                        ),
                                                         'loteNome':
                                                             serializeParam(
                                                           widget.loteNome,

@@ -3112,7 +3112,7 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    'Status*',
+                                                                                                        'Diagnóstico*',
                                                     style: FlutterFlowTheme.of(
                                                             context)
                                                         .bodyMedium
@@ -3218,7 +3218,7 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    'Data',
+                                                                                                        'Data do diagnóstico',
                                                     style: FlutterFlowTheme.of(
                                                             context)
                                                         .bodyMedium

@@ -247,6 +247,10 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: PgViewLoteWidget.routePath,
           requireAuth: true,
           builder: (context, params) => PgViewLoteWidget(
+            idLote: params.getParam(
+              'idLote',
+              ParamType.String,
+            ),
             loteNome: params.getParam(
               'loteNome',
               ParamType.String,
@@ -258,6 +262,10 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: PgEditLoteWidget.routePath,
           requireAuth: true,
           builder: (context, params) => PgEditLoteWidget(
+            idLote: params.getParam(
+              'idLote',
+              ParamType.String,
+            ),
             loteNome: params.getParam(
               'loteNome',
               ParamType.String,

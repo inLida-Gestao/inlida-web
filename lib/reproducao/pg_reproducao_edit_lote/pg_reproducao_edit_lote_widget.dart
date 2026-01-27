@@ -2804,7 +2804,7 @@ class _PgReproducaoEditLoteWidgetState
                                                             .start,
                                                     children: [
                                                       Text(
-                                                        'Status*',
+                                                                                                                'Diagnóstico*',
                                                         style: FlutterFlowTheme
                                                                 .of(context)
                                                             .bodyMedium
@@ -2934,7 +2934,7 @@ class _PgReproducaoEditLoteWidgetState
                                                             .start,
                                                     children: [
                                                       Text(
-                                                        'Data',
+                                                                                                                'Data do diagnóstico',
                                                         style: FlutterFlowTheme
                                                                 .of(context)
                                                             .bodyMedium

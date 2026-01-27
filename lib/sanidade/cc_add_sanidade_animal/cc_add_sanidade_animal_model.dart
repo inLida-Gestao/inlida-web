@@ -50,9 +50,6 @@ class CcAddSanidadeAnimalModel
   // State field(s) for protocoloRetiradaDropdown widget.
   String? protocoloRetiradaDropdownValue;
   FormFieldController<String>? protocoloRetiradaDropdownValueController;
-  // State field(s) for protocoloIatfDropdown widget.
-  String? protocoloIatfDropdownValue;
-  FormFieldController<String>? protocoloIatfDropdownValueController;
   // State field(s) for protocoloOutros widget.
   FocusNode? protocoloOutrosFocusNode;
   TextEditingController? protocoloOutrosTextController;

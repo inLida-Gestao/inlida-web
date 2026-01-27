@@ -1178,7 +1178,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                 label: DefaultTextStyle.merge(
                                                   softWrap: true,
                                                   child: Text(
-                                                    'Status',
+                                                    'Diagnóstico',
                                                     style: FlutterFlowTheme.of(
                                                             context)
                                                         .labelLarge

@@ -27,9 +27,11 @@ export 'pg_edit_lote_model.dart';
 class PgEditLoteWidget extends StatefulWidget {
   const PgEditLoteWidget({
     super.key,
+    required this.idLote,
     required this.loteNome,
   });
 
+  final String? idLote;
   final String? loteNome;
 
   static String routeName = 'pgEditLote';
@@ -53,22 +55,21 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _model.loteEdit = await LotesTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'id_lote',
-          widget.loteNome,
-        ),
+        queryFn: (q) => q.eqOrNull('id_lote', widget.idLote),
       );
       _model.animaisDentroLote = [];
       _model.animaisSelecionados = [];
       _model.index = 0;
       safeSetState(() {});
-      if (_model.loteEdit?.firstOrNull?.ativo == 'Ativo') {
-        _model.ativo = true;
-        safeSetState(() {});
-      } else {
-        _model.ativo = false;
-        safeSetState(() {});
-      }
+      final ativoRaw =
+          (_model.loteEdit?.firstOrNull?.ativo ?? '').trim().toLowerCase();
+      final isAtivo = ativoRaw == 'ativo' ||
+          ativoRaw == 'true' ||
+          ativoRaw == '1' ||
+          ativoRaw == 'sim';
+      _model.ativo = isAtivo;
+      _model.switchValue = isAtivo;
+      safeSetState(() {});
 
       _model.rebanhosLote =
           await FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
@@ -290,10 +291,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                   Expanded(
                     child: FutureBuilder<List<LotesRow>>(
                       future: LotesTable().querySingleRow(
-                        queryFn: (q) => q.eqOrNull(
-                          'nome',
-                          widget.loteNome,
-                        ),
+                        queryFn: (q) => q.eqOrNull('id_lote', widget.idLote),
                       ),
                       builder: (context, snapshot) {
                         // Customize what your widget looks like when it's loading.
@@ -862,29 +860,33 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
                                                                         ),
-                                                                        Switch
-                                                                            .adaptive(
-                                                                          value: _model
-                                                                              .switchValue ??= valueOrDefault<String>(
-                                                                                    containerLotesRow?.ativo,
-                                                                                    'anotações',
-                                                                                  ) ==
-                                                                                  'Ativo'
-                                                                              ? true
-                                                                              : false,
-                                                                          onChanged:
-                                                                              (newValue) async {
+                                                                        Builder(
+                                                                          builder: (context) {
+                                                                          final ativoValue =
+                                                                            (containerLotesRow?.ativo ?? '')
+                                                                              .trim()
+                                                                              .toLowerCase();
+                                                                          final isAtivo = ativoValue == 'ativo' ||
+                                                                            ativoValue == 'true' ||
+                                                                            ativoValue == '1' ||
+                                                                            ativoValue == 'sim';
+
+                                                                          return Switch.adaptive(
+                                                                            value: _model.switchValue ??= isAtivo,
+                                                                            onChanged: (newValue) async {
                                                                             safeSetState(() =>
-                                                                                _model.switchValue = newValue);
-                                                                          },
-                                                                          activeColor:
+                                                                              _model.switchValue = newValue);
+                                                                            },
+                                                                            activeColor:
                                                                               FlutterFlowTheme.of(context).primary,
-                                                                          activeTrackColor:
+                                                                            activeTrackColor:
                                                                               FlutterFlowTheme.of(context).primary,
-                                                                          inactiveTrackColor:
+                                                                            inactiveTrackColor:
                                                                               FlutterFlowTheme.of(context).alternate,
-                                                                          inactiveThumbColor:
+                                                                            inactiveThumbColor:
                                                                               FlutterFlowTheme.of(context).secondaryBackground,
+                                                                          );
+                                                                          },
                                                                         ),
                                                                       ],
                                                                     ),
@@ -924,41 +926,79 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                     fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                   ),
                                                                             ),
-                                                                            FlutterFlowDropDown<String>(
-                                                                              controller: _model.dropDownLotesValueController ??= FormFieldController<String>(
-                                                                                _model.dropDownLotesValue ??= containerLotesRow?.motivo,
-                                                                              ),
-                                                                              options: const [
-                                                                                'Lote vendido'
-                                                                              ],
-                                                                              onChanged: (val) => safeSetState(() => _model.dropDownLotesValue = val),
-                                                                              height: 56.0,
-                                                                              textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                    font: GoogleFonts.poppins(
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            Builder(
+                                                                              builder: (context) {
+                                                                                final currentMotivo = _model.motivoCleared
+                                                                                  ? null
+                                                                                  : _model.dropDownLotesValue;
+                                                                                final hasMotivo = currentMotivo != null &&
+                                                                                  currentMotivo.trim().isNotEmpty;
+
+                                                                                return Row(
+                                                                                  mainAxisSize: MainAxisSize.max,
+                                                                                  children: [
+                                                                                    Expanded(
+                                                                                      child: FlutterFlowDropDown<String>(
+                                                                                        controller: _model.dropDownLotesValueController ??=
+                                                                                            FormFieldController<String>(
+                                                                                          _model.dropDownLotesValue ??= containerLotesRow?.motivo,
+                                                                                        ),
+                                                                                        options: const [
+                                                                                          'Lote vendido'
+                                                                                        ],
+                                                                                        onChanged: (val) => safeSetState(() {
+                                                                                          _model.motivoCleared = false;
+                                                                                          _model.dropDownLotesValue = val;
+                                                                                        }),
+                                                                                        height: 56.0,
+                                                                                        textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                              font: GoogleFonts.poppins(
+                                                                                                fontWeight: FontWeight.w600,
+                                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                              ),
+                                                                                              fontSize: 16.0,
+                                                                                              letterSpacing: 0.0,
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                        hintText: 'Selecionar',
+                                                                                        icon: Icon(
+                                                                                          Icons.keyboard_arrow_down_rounded,
+                                                                                          color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                          size: 24.0,
+                                                                                        ),
+                                                                                        fillColor: const Color(0xFFF1F1F1),
+                                                                                        elevation: 2.0,
+                                                                                        borderColor: Colors.transparent,
+                                                                                        borderWidth: 0.0,
+                                                                                        borderRadius: 8.0,
+                                                                                        margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                        hidesUnderline: true,
+                                                                                        isOverButton: false,
+                                                                                        isSearchable: false,
+                                                                                        isMultiSelect: false,
+                                                                                      ),
                                                                                     ),
-                                                                                    fontSize: 16.0,
-                                                                                    letterSpacing: 0.0,
-                                                                                    fontWeight: FontWeight.w600,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                  ),
-                                                                              hintText: 'Selecionar',
-                                                                              icon: Icon(
-                                                                                Icons.keyboard_arrow_down_rounded,
-                                                                                color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                size: 24.0,
-                                                                              ),
-                                                                              fillColor: const Color(0xFFF1F1F1),
-                                                                              elevation: 2.0,
-                                                                              borderColor: Colors.transparent,
-                                                                              borderWidth: 0.0,
-                                                                              borderRadius: 8.0,
-                                                                              margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                              hidesUnderline: true,
-                                                                              isOverButton: false,
-                                                                              isSearchable: false,
-                                                                              isMultiSelect: false,
+                                                                                    if (hasMotivo) ...[
+                                                                                      const SizedBox(width: 8.0),
+                                                                                      IconButton(
+                                                                                        icon: Icon(
+                                                                                          Icons.close,
+                                                                                          color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                          size: 20.0,
+                                                                                        ),
+                                                                                        onPressed: () async {
+                                                                                          safeSetState(() {
+                                                                                            _model.motivoCleared = true;
+                                                                                            _model.dropDownLotesValue = null;
+                                                                                            _model.dropDownLotesValueController?.value = null;
+                                                                                          });
+                                                                                        },
+                                                                                      ),
+                                                                                    ],
+                                                                                  ],
+                                                                                );
+                                                                              },
                                                                             ),
                                                                           ].divide(const SizedBox(height: 8.0)),
                                                                         ),
@@ -985,9 +1025,18 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                     fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                   ),
                                                                             ),
-                                                                            Stack(
-                                                                              children: [
-                                                                                TextFormField(
+                                                                            Builder(
+                                                                              builder: (context) {
+                                                                                final hasDate = !_model.dataMotivoCleared &&
+                                                                                  _model.datePicked != null;
+
+                                                                                return Row(
+                                                                                  mainAxisSize: MainAxisSize.max,
+                                                                                  children: [
+                                                                                    Expanded(
+                                                                                      child: Stack(
+                                                                                        children: [
+                                                                                          TextFormField(
                                                                                   controller: _model.dataEntradaLoteTextController ??= TextEditingController(
                                                                                     text: valueOrDefault<String>(
                                                                                       _model.datePicked != null
@@ -996,14 +1045,16 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                               _model.datePicked,
                                                                                               locale: FFLocalizations.of(context).languageCode,
                                                                                             )
-                                                                                          : valueOrDefault<String>(
-                                                                                              dateTimeFormat(
-                                                                                                "d/M/y",
-                                                                                                containerLotesRow?.dataMotivo,
-                                                                                                locale: FFLocalizations.of(context).languageCode,
-                                                                                              ),
-                                                                                              'dd/mm/aaaa',
-                                                                                            ),
+                                                                                          : _model.dataMotivoCleared
+                                                                                              ? 'dd/mm/aaaa'
+                                                                                              : valueOrDefault<String>(
+                                                                                                  dateTimeFormat(
+                                                                                                    "d/M/y",
+                                                                                                    containerLotesRow?.dataMotivo,
+                                                                                                    locale: FFLocalizations.of(context).languageCode,
+                                                                                                  ),
+                                                                                                  'dd/mm/aaaa',
+                                                                                                ),
                                                                                       'dd/mm/yyyy',
                                                                                     ),
                                                                                   ),
@@ -1030,11 +1081,13 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                               _model.datePicked,
                                                                                               locale: FFLocalizations.of(context).languageCode,
                                                                                             )
-                                                                                          : dateTimeFormat(
-                                                                                              "d/M/y",
-                                                                                              containerLotesRow?.dataMotivo,
-                                                                                              locale: FFLocalizations.of(context).languageCode,
-                                                                                            ),
+                                                                                          : _model.dataMotivoCleared
+                                                                                              ? 'dd/mm/aaaa'
+                                                                                              : dateTimeFormat(
+                                                                                                  "d/M/y",
+                                                                                                  containerLotesRow?.dataMotivo,
+                                                                                                  locale: FFLocalizations.of(context).languageCode,
+                                                                                                ),
                                                                                       'dd/mm/aaaa',
                                                                                     ),
                                                                                     hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
@@ -1096,71 +1149,94 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                   cursorColor: FlutterFlowTheme.of(context).primaryText,
                                                                                   validator: _model.dataEntradaLoteTextControllerValidator.asValidator(context),
                                                                                 ),
-                                                                                InkWell(
-                                                                                  splashColor: Colors.transparent,
-                                                                                  focusColor: Colors.transparent,
-                                                                                  hoverColor: Colors.transparent,
-                                                                                  highlightColor: Colors.transparent,
-                                                                                  onTap: () async {
-                                                                                    final datePickedDate = await showDatePicker(
-                                                                                      context: context,
-                                                                                      initialDate: getCurrentTimestamp,
-                                                                                      firstDate: DateTime(1900),
-                                                                                      lastDate: DateTime(2050),
-                                                                                      builder: (context, child) {
-                                                                                        return wrapInMaterialDatePickerTheme(
-                                                                                          context,
-                                                                                          child!,
-                                                                                          headerBackgroundColor: FlutterFlowTheme.of(context).primary,
-                                                                                          headerForegroundColor: FlutterFlowTheme.of(context).info,
-                                                                                          headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
-                                                                                                font: GoogleFonts.poppins(
-                                                                                                  fontWeight: FontWeight.w600,
-                                                                                                  fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
-                                                                                                ),
-                                                                                                fontSize: 32.0,
-                                                                                                letterSpacing: 0.0,
-                                                                                                fontWeight: FontWeight.w600,
-                                                                                                fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
-                                                                                              ),
-                                                                                          pickerBackgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                          pickerForegroundColor: FlutterFlowTheme.of(context).primaryText,
-                                                                                          selectedDateTimeBackgroundColor: FlutterFlowTheme.of(context).primary,
-                                                                                          selectedDateTimeForegroundColor: FlutterFlowTheme.of(context).info,
-                                                                                          actionButtonForegroundColor: FlutterFlowTheme.of(context).primaryText,
-                                                                                          iconSize: 24.0,
-                                                                                        );
-                                                                                      },
-                                                                                    );
+                                                                                          InkWell(
+                                                                                            splashColor: Colors.transparent,
+                                                                                            focusColor: Colors.transparent,
+                                                                                            hoverColor: Colors.transparent,
+                                                                                            highlightColor: Colors.transparent,
+                                                                                            onTap: () async {
+                                                                                              final datePickedDate = await showDatePicker(
+                                                                                                context: context,
+                                                                                                initialDate: getCurrentTimestamp,
+                                                                                                firstDate: DateTime(1900),
+                                                                                                lastDate: DateTime(2050),
+                                                                                                builder: (context, child) {
+                                                                                                  return wrapInMaterialDatePickerTheme(
+                                                                                                    context,
+                                                                                                    child!,
+                                                                                                    headerBackgroundColor: FlutterFlowTheme.of(context).primary,
+                                                                                                    headerForegroundColor: FlutterFlowTheme.of(context).info,
+                                                                                                    headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
+                                                                                                          font: GoogleFonts.poppins(
+                                                                                                            fontWeight: FontWeight.w600,
+                                                                                                            fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                                          ),
+                                                                                                          fontSize: 32.0,
+                                                                                                          letterSpacing: 0.0,
+                                                                                                          fontWeight: FontWeight.w600,
+                                                                                                          fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                                        ),
+                                                                                                    pickerBackgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                                    pickerForegroundColor: FlutterFlowTheme.of(context).primaryText,
+                                                                                                    selectedDateTimeBackgroundColor: FlutterFlowTheme.of(context).primary,
+                                                                                                    selectedDateTimeForegroundColor: FlutterFlowTheme.of(context).info,
+                                                                                                    actionButtonForegroundColor: FlutterFlowTheme.of(context).primaryText,
+                                                                                                    iconSize: 24.0,
+                                                                                                  );
+                                                                                                },
+                                                                                              );
 
-                                                                                    if (datePickedDate != null) {
-                                                                                      safeSetState(() {
-                                                                                        _model.datePicked = DateTime(
-                                                                                          datePickedDate.year,
-                                                                                          datePickedDate.month,
-                                                                                          datePickedDate.day,
-                                                                                        );
-                                                                                      });
-                                                                                    } else if (_model.datePicked != null) {
-                                                                                      safeSetState(() {
-                                                                                        _model.datePicked = getCurrentTimestamp;
-                                                                                      });
-                                                                                    }
-                                                                                    safeSetState(() {
-                                                                                      _model.dataEntradaLoteTextController?.text = dateTimeFormat(
-                                                                                        "d/M/y",
-                                                                                        _model.datePicked,
-                                                                                        locale: FFLocalizations.of(context).languageCode,
-                                                                                      );
-                                                                                    });
-                                                                                  },
-                                                                                  child: Container(
-                                                                                    width: double.infinity,
-                                                                                    height: 56.0,
-                                                                                    decoration: const BoxDecoration(),
-                                                                                  ),
-                                                                                ),
-                                                                              ],
+                                                                                              if (datePickedDate != null) {
+                                                                                                safeSetState(() {
+                                                                                                  _model.dataMotivoCleared = false;
+                                                                                                  _model.datePicked = DateTime(
+                                                                                                    datePickedDate.year,
+                                                                                                    datePickedDate.month,
+                                                                                                    datePickedDate.day,
+                                                                                                  );
+                                                                                                });
+                                                                                              } else if (_model.datePicked != null) {
+                                                                                                safeSetState(() {
+                                                                                                  _model.datePicked = getCurrentTimestamp;
+                                                                                                });
+                                                                                              }
+                                                                                              safeSetState(() {
+                                                                                                _model.dataEntradaLoteTextController?.text = dateTimeFormat(
+                                                                                                  "d/M/y",
+                                                                                                  _model.datePicked,
+                                                                                                  locale: FFLocalizations.of(context).languageCode,
+                                                                                                );
+                                                                                              });
+                                                                                            },
+                                                                                            child: Container(
+                                                                                              width: double.infinity,
+                                                                                              height: 56.0,
+                                                                                              decoration: const BoxDecoration(),
+                                                                                            ),
+                                                                                          ),
+                                                                                        ],
+                                                                                      ),
+                                                                                    ),
+                                                                                    if (hasDate) ...[
+                                                                                      const SizedBox(width: 8.0),
+                                                                                      IconButton(
+                                                                                        icon: Icon(
+                                                                                          Icons.close,
+                                                                                          color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                          size: 20.0,
+                                                                                        ),
+                                                                                        onPressed: () async {
+                                                                                          safeSetState(() {
+                                                                                            _model.dataMotivoCleared = true;
+                                                                                            _model.datePicked = null;
+                                                                                            _model.dataEntradaLoteTextController?.text = 'dd/mm/aaaa';
+                                                                                          });
+                                                                                        },
+                                                                                      ),
+                                                                                    ],
+                                                                                  ],
+                                                                                );
+                                                                              },
                                                                             ),
                                                                           ].divide(const SizedBox(height: 8.0)),
                                                                         ),
@@ -3352,22 +3428,29 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                         DateTime>(
                                                                     getCurrentTimestamp),
                                                             'motivo': _model
-                                                                .dropDownLotesValue,
-                                                            'data_motivo': supaSerialize<
+                                                                .motivoCleared
+                                                              ? null
+                                                              : (_model.dropDownLotesValue ??
+                                                                containerLotesRow
+                                                                  ?.motivo),
+                                                            'data_motivo': _model
+                                                                .dataMotivoCleared
+                                                              ? null
+                                                              : supaSerialize<
                                                                 DateTime>(_model
-                                                                    .datePicked ?? containerLotesRow
-                                                                    ?.dataMotivo),
+                                                                  .datePicked ?? containerLotesRow
+                                                                  ?.dataMotivo),
                                                             'valorVenda':
                                                                 FFAppState()
                                                                     .valueDouble2,
                                                           },
                                                           matchingRows:
                                                               (rows) =>
-                                                                  rows.eqOrNull(
+                                                                rows.eqOrNull(
                                                             'id_lote',
                                                             containerLotesRow
-                                                                ?.idLote,
-                                                          ),
+                                                              ?.idLote,
+                                                            ),
                                                         );
                                                         _model.index = 0;
                                                         safeSetState(() {});

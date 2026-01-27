@@ -83,6 +83,10 @@ class _SubMenuLotesWidgetState extends State<SubMenuLotesWidget> {
                 context.pushNamed(
                   PgViewLoteWidget.routeName,
                   queryParameters: {
+                    'idLote': serializeParam(
+                      widget.idLote,
+                      ParamType.String,
+                    ),
                     'loteNome': serializeParam(
                       widget.loteNome,
                       ParamType.String,
@@ -134,6 +138,10 @@ class _SubMenuLotesWidgetState extends State<SubMenuLotesWidget> {
                 context.pushNamed(
                   PgEditLoteWidget.routeName,
                   queryParameters: {
+                    'idLote': serializeParam(
+                      widget.idLote,
+                      ParamType.String,
+                    ),
                     'loteNome': serializeParam(
                       widget.loteNome,
                       ParamType.String,

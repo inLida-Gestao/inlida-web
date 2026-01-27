@@ -36,14 +36,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
 
   static const List<String> _kProtocoloRetiradaOptions = <String>[
     'eCG + PGF + CE',
-    'PGF + eCG',
-    'CE + eCG',
-    'PGF + CE',
-  ];
-
-  static const List<String> _kProtocoloIatfOptions = <String>[
-    'Com GnRH',
-    'Sem GnRH',
+    'eCG + PGR + CE + BE',
   ];
 
   @override
@@ -1518,78 +1511,6 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
             ),
           ],
         ),
-        const SizedBox(height: 32),
-        Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'IATF',
-              style: FlutterFlowTheme.of(context).bodyMedium.override(
-                    fontFamily: 'Poppins',
-                    color: FlutterFlowTheme.of(context).secondaryText,
-                    fontSize: 16,
-                    letterSpacing: 0.0,
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: FlutterFlowDropDown<String>(
-                    controller: _model.protocoloIatfDropdownValueController ??=
-                        FormFieldController<String>(null),
-                    options: _kProtocoloIatfOptions,
-                    onChanged: (val) =>
-                        setState(() => _model.protocoloIatfDropdownValue = val),
-                    hidesUnderline: true,
-                    width: double.infinity,
-                    height: 56,
-                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w600,
-                        ),
-                    hintText: 'Selecionar',
-                    icon: Icon(
-                      Icons.expand_more,
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      size: 24,
-                    ),
-                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                    elevation: 0,
-                    borderColor: Colors.transparent,
-                    borderWidth: 0,
-                    borderRadius: 6,
-                    margin:
-                        const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
-                  ),
-                ),
-                if ((_model.protocoloIatfDropdownValue ?? '')
-                    .trim()
-                    .isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  FlutterFlowIconButton(
-                    borderColor: Colors.transparent,
-                    borderRadius: 6,
-                    buttonSize: 44,
-                    icon: Icon(
-                      Icons.close,
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      size: 24,
-                    ),
-                    onPressed: () {
-                      _model.protocoloIatfDropdownValueController?.reset();
-                      setState(() => _model.protocoloIatfDropdownValue = null);
-                    },
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
         const SizedBox(height: 16),
         Align(
           alignment: Alignment.centerLeft,
@@ -1836,7 +1757,6 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
 
       final d0 = (_model.protocoloD0DropdownValue ?? '').trim();
       final retirada = (_model.protocoloRetiradaDropdownValue ?? '').trim();
-      final iatf = (_model.protocoloIatfDropdownValue ?? '').trim();
 
       // Inserir no banco de dados
       final dadosBase = <String, dynamic>{
@@ -1902,7 +1822,6 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
         if (_model.tiposSelecionados.contains('Protocolo reprodutivo')) ...{
           'protocolo_d0': d0.isNotEmpty ? d0 : null,
           'protocolo_retirada': retirada.isNotEmpty ? retirada : null,
-          'protocolo_iatf': iatf.isNotEmpty ? iatf : null,
         },
       };
 
@@ -1912,7 +1831,6 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
         final msg = e.toString();
         final isPossivelMismatchDeSchema = msg.contains('protocolo_d0') ||
             msg.contains('protocolo_retirada') ||
-            msg.contains('protocolo_iatf') ||
             msg.toLowerCase().contains('column') ||
             msg.toUpperCase().contains('PGRST');
 
