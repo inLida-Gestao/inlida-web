@@ -308,7 +308,7 @@ Future<Map<String, String>> _fetchLoteNomeToIdLoteMap(
   try {
     final res = await Supabase.instance.client
         .from('lotes')
-        .select('id_lote,nome,deletado')
+        .select('id_lote,nome,deletado,id_propriedade')
         .eq('id_propriedade', idPropriedade);
 
     final map = <String, String>{};
@@ -316,11 +316,13 @@ Future<Map<String, String>> _fetchLoteNomeToIdLoteMap(
       final nome = row['nome']?.toString();
       final idLote = row['id_lote']?.toString();
       final deletado = row['deletado']?.toString();
+      final propriedade = row['id_propriedade']?.toString();
 
       if (deletado != null && deletado.trim().toUpperCase() == 'SIM') continue;
       if (nome == null || nome.trim().isEmpty) continue;
       if (idLote == null || idLote.trim().isEmpty) continue;
-      map[_normalizeLoteNome(nome)] = idLote;
+      if (propriedade == null || propriedade.trim().isEmpty) continue;
+      map['${propriedade.trim()}|${_normalizeLoteNome(nome)}'] = idLote;
     }
     return map;
   } catch (e) {
@@ -492,7 +494,8 @@ Future<bool> batchInsertSupabaseRebanho(
             final normalizedLoteNome = _normalizeLoteNome(
               _fixEncoding(loteNomeRaw.toString()),
             );
-            final resolvedIdLote = loteNomeToIdLote[normalizedLoteNome];
+            final resolvedIdLote =
+                loteNomeToIdLote['$idPropriedade|$normalizedLoteNome'];
             if (resolvedIdLote != null && resolvedIdLote.isNotEmpty) {
               data['loteID'] = resolvedIdLote;
             }
@@ -606,7 +609,8 @@ Future<bool> batchInsertSupabaseRebanho(
               final normalizedLoteNome = _normalizeLoteNome(
                 _fixEncoding(loteNomeRaw.toString()),
               );
-              final resolvedIdLote = loteNomeToIdLote[normalizedLoteNome];
+              final resolvedIdLote =
+                  loteNomeToIdLote['$idPropriedade|$normalizedLoteNome'];
               if (resolvedIdLote != null && resolvedIdLote.isNotEmpty) {
                 data['loteID'] = resolvedIdLote;
               }
@@ -789,6 +793,8 @@ num? _parsePeso(dynamic peso) {
 // Função auxiliar para corrigir problemas de encoding (acentuação)
 String _fixEncoding(String text) {
   try {
+    text = _stripControlChars(text);
+
     // Heurística: corrige strings UTF-8 interpretadas como Latin-1.
     // Ex.: "FÃªmea" -> "Fêmea".
     if (!_looksMojibake(text)) {
@@ -809,13 +815,20 @@ String _fixEncoding(String text) {
     }
 
     if (candidate != null && _mojibakeScore(candidate) < originalScore) {
-      return candidate;
+      return _stripControlChars(candidate);
     }
     return text;
   } catch (e) {
     print('Erro ao corrigir encoding: $e');
     return text;
   }
+}
+
+String _stripControlChars(String value) {
+  return value.replaceAll(
+    RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFFFD]'),
+    '',
+  );
 }
 
 bool _looksMojibake(String value) {

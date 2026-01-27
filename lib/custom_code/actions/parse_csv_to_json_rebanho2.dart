@@ -392,8 +392,8 @@ String _cleanText(String text) {
   return text
       .trim()
       .replaceAll(RegExp(r'\s+'), ' ') // Múltiplos espaços viram um só
-      .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'),
-          ''); // Remove caracteres de controle
+    .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFFFD]'),
+      ''); // Remove caracteres de controle e substituições inválidas
 }
 
 String? _cleanCellToNull(
