@@ -197,6 +197,10 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: PgReproducaoViewAnimalWidget.routePath,
           requireAuth: true,
           builder: (context, params) => PgReproducaoViewAnimalWidget(
+            reproducaoDbId: params.getParam(
+              'reproducaoDbId',
+              ParamType.int,
+            ),
             idReproducao: params.getParam(
               'idReproducao',
               ParamType.String,

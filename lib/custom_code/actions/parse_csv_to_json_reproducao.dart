@@ -84,6 +84,8 @@ Future<List<dynamic>> parseCsvToJsonReproducao(FFUploadedFile? csvFile) async {
       'ressinc',
       'parida',
       'data_parto',
+      'gnrh',
+      'cio',
     ];
 
     const dbColumnSet = {
@@ -123,6 +125,8 @@ Future<List<dynamic>> parseCsvToJsonReproducao(FFUploadedFile? csvFile) async {
       'ressinc',
       'parida',
       'data_parto',
+      'gnrh',
+      'cio',
     };
 
     const dateColumns = [
@@ -515,6 +519,8 @@ Map<String, int> _buildHeaderToDbMapping(
     'ressinc': 'ressinc',
     'parida': 'parida',
     'data_parto': 'data_parto',
+    'gnrh': 'gnrh',
+    'cio': 'cio',
   };
 
   final out = <String, int>{};

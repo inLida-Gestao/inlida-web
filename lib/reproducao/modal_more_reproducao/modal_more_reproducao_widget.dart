@@ -11,9 +11,11 @@ export 'modal_more_reproducao_model.dart';
 class ModalMoreReproducaoWidget extends StatefulWidget {
   const ModalMoreReproducaoWidget({
     super.key,
+    required this.reproducaoDbId,
     required this.reproducaoID,
   });
 
+  final int? reproducaoDbId;
   final String? reproducaoID;
 
   @override
@@ -74,6 +76,10 @@ class _ModalMoreReproducaoWidgetState extends State<ModalMoreReproducaoWidget> {
                 context.pushNamed(
                   PgReproducaoViewAnimalWidget.routeName,
                   queryParameters: {
+                    'reproducaoDbId': serializeParam(
+                      widget.reproducaoDbId,
+                      ParamType.int,
+                    ),
                     'idReproducao': serializeParam(
                       widget.reproducaoID,
                       ParamType.String,

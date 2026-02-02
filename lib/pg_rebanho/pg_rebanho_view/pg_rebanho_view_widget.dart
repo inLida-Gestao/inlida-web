@@ -6707,6 +6707,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                                     FocusManager.instance.primaryFocus?.unfocus();
                                                                                                   },
                                                                                                   child: ModalMoreReproducaoWidget(
+                                                                                                    reproducaoDbId: reproducaoItem.id,
                                                                                                     reproducaoID: reproducaoItem.idReproducao!,
                                                                                                   ),
                                                                                                 ),
@@ -7391,6 +7392,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                                     FocusManager.instance.primaryFocus?.unfocus();
                                                                                                   },
                                                                                                   child: ModalMoreReproducaoWidget(
+                                                                                                    reproducaoDbId: reproducaoItem.id,
                                                                                                     reproducaoID: reproducaoItem.idReproducao!,
                                                                                                   ),
                                                                                                 ),

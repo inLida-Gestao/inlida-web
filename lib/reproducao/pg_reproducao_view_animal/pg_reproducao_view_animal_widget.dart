@@ -19,9 +19,11 @@ export 'pg_reproducao_view_animal_model.dart';
 class PgReproducaoViewAnimalWidget extends StatefulWidget {
   const PgReproducaoViewAnimalWidget({
     super.key,
+    this.reproducaoDbId,
     required this.idReproducao,
   });
 
+  final int? reproducaoDbId;
   final String? idReproducao;
 
   static String routeName = 'pgReproducaoViewAnimal';
@@ -47,10 +49,9 @@ class _PgReproducaoViewAnimalWidgetState
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       await action_blocks.countReproducoes(context);
       _model.reproducao = await ReproducaoTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'id_reproducao',
-          widget.idReproducao,
-        ),
+        queryFn: (q) => widget.reproducaoDbId != null
+            ? q.eqOrNull('id', widget.reproducaoDbId)
+            : q.eqOrNull('id_reproducao', widget.idReproducao),
       );
       _model.reproducaoSelecionada = _model.reproducao?.firstOrNull;
       _model.tipoReproducao = _model.reproducao!.firstOrNull!.tipoReproducao!;

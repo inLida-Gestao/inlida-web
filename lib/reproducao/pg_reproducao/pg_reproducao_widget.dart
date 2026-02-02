@@ -2295,6 +2295,9 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                   },
                                                                   child:
                                                                       ModalMoreReproducaoWidget(
+                                                                    reproducaoDbId:
+                                                                      reproducaoItem
+                                                                        .id,
                                                                     reproducaoID:
                                                                         reproducaoItem
                                                                             .idReproducao,
