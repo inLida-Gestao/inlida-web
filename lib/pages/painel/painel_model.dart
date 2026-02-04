@@ -68,6 +68,12 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   // State field(s) for FiltroInseminadorTaxaConcepcao widget.
   String? filtroInseminadorTaxaConcepcaoValue;
   FormFieldController<String>? filtroInseminadorTaxaConcepcaoValueController;
+  // Cache for Taxa de concepção API call.
+  Future<ApiCallResponse>? taxaPrenhezFuture;
+  String? taxaPrenhezFutureKey;
+  // Cache for Taxa de natalidade API call.
+  Future<ApiCallResponse>? taxaNatalidadeFuture;
+  String? taxaNatalidadeFutureKey;
   // Model for empty component.
   late EmptyModel emptyModel;
   // State field(s) for ddIdade widget.

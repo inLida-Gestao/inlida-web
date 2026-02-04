@@ -3777,46 +3777,59 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   key: ValueKey(
                                                                     'taxa_prenhez_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValue}_${_model.filtroTouroTaxaConcepcaoValue}_${_model.filtroInseminadorTaxaConcepcaoValue}',
                                                                   ),
-                                                                  future: SupabaseEdgeGroup
-                                                                    .taxaPrenhezGetCall
-                                                                    .call(
-                                                                    idPropriedade:
-                                                                        FFAppState()
-                                                                            .propriedadeSelecionada
-                                                                            .idPropriedade,
-                                                                    dataInicio: () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
-                                                                            _model.dDInicioAnoValue,
+                                                                  future: () {
+                                                                    final taxaPrenhezKey =
+                                                                        'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValue}_${_model.filtroTouroTaxaConcepcaoValue}_${_model.filtroInseminadorTaxaConcepcaoValue}';
+                                                                    if (_model.taxaPrenhezFutureKey !=
+                                                                        taxaPrenhezKey) {
+                                                                      _model.taxaPrenhezFutureKey =
+                                                                          taxaPrenhezKey;
+                                                                      _model.taxaPrenhezFuture =
+                                                                          SupabaseEdgeGroup
+                                                                              .taxaPrenhezGetCall
+                                                                              .call(
+                                                                        idPropriedade:
+                                                                            FFAppState()
+                                                                                .propriedadeSelecionada
+                                                                                .idPropriedade,
+                                                                        dataInicio: () {
+                                                                          final ano = int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDInicioAnoValue,
+                                                                                '2025',
+                                                                              )) ??
+                                                                              2025;
+                                                                          final mes = int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDInicioMesValue?.toString(),
+                                                                                '1',
+                                                                              )) ??
+                                                                              1;
+                                                                          return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
+                                                                        }(),
+                                                                        dataFim: () {
+                                                                          final ano = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDFimAnoValue,
                                                                             '2025',
-                                                                          )) ??
-                                                                          2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                            _model.dDInicioMesValue?.toString(),
-                                                                            '1',
-                                                                          )) ??
-                                                                          1;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
-                                                                    }(),
-                                                                    dataFim: () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimAnoValue,
-                                                                        '2025',
-                                                                      )) ?? 2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimMesValue?.toString(),
-                                                                        '12',
-                                                                      )) ?? 12;
-                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                    }(),
-                                                                      pLoteId: _model
-                                                                        .filtroLoteTaxaConcepcaoValue,
-                                                                      pIdRebanhoReprodutor: _model
-                                                                        .filtroTouroTaxaConcepcaoValue,
-                                                                      pInseminador: _model
-                                                                        .filtroInseminadorTaxaConcepcaoValue,
-                                                                  ),
+                                                                          )) ?? 2025;
+                                                                          final mes = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDFimMesValue?.toString(),
+                                                                            '12',
+                                                                          )) ?? 12;
+                                                                          // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
+                                                                          final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                          return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                        }(),
+                                                                        pLoteId: _model
+                                                                            .filtroLoteTaxaConcepcaoValue,
+                                                                        pIdRebanhoReprodutor:
+                                                                            _model
+                                                                                .filtroTouroTaxaConcepcaoValue,
+                                                                        pInseminador: _model
+                                                                            .filtroInseminadorTaxaConcepcaoValue,
+                                                                      );
+                                                                    }
+                                                                    return _model
+                                                                        .taxaPrenhezFuture;
+                                                                  }(),
                                                                   builder: (context,
                                                                       snapshot) {
                                                                     // Não mostrar loading no container inteiro, apenas no gráfico
@@ -3931,41 +3944,109 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                   ),
                                                                                             ),
                                                                                             const SizedBox(height: 8.0),
-                                                                                            FutureBuilder<ApiCallResponse>(
-                                                                                              key: ValueKey('lotes_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
-                                                                                            future: FunctionsSupabaseRebanhoGroup.buscarLotesFiltrosCall.call(
-                                                                                              pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
-                                                                                              pPesquisa: '',
-                                                                                              pStatus: '',
-                                                                                              pLimite: 1000,
-                                                                                              pOffset: 0,
-                                                                                            ),
-                                                                                            builder: (context, lotesSnapshot) {
-                                                                                              if (!lotesSnapshot.hasData) {
-                                                                                                return const SizedBox(
-                                                                                                  height: 48.0,
-                                                                                                  child: Center(
-                                                                                                    child: SizedBox(
-                                                                                                      width: 20.0,
-                                                                                                      height: 20.0,
-                                                                                                      child: CircularProgressIndicator(strokeWidth: 2.0),
-                                                                                                    ),
+                                                                                            FutureBuilder<List<dynamic>>(
+                                                                                              key: ValueKey('lotes_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
+                                                                                              future: () {
+                                                                                                final dataInicioFiltro = () {
+                                                                                                  final ano = int.tryParse(valueOrDefault<String>(
+                                                                                                        _model.dDInicioAnoValue,
+                                                                                                        '2025',
+                                                                                                      )) ??
+                                                                                                      2025;
+                                                                                                  final mes = int.tryParse(valueOrDefault<String>(
+                                                                                                        _model.dDInicioMesValue?.toString(),
+                                                                                                        '1',
+                                                                                                      )) ??
+                                                                                                      1;
+                                                                                                  return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
+                                                                                                }();
+
+                                                                                                final dataFimFiltro = () {
+                                                                                                  final ano = int.tryParse(valueOrDefault<String>(
+                                                                                                        _model.dDFimAnoValue,
+                                                                                                        '2025',
+                                                                                                      )) ??
+                                                                                                      2025;
+                                                                                                  final mes = int.tryParse(valueOrDefault<String>(
+                                                                                                        _model.dDFimMesValue?.toString(),
+                                                                                                        '12',
+                                                                                                      )) ??
+                                                                                                      12;
+                                                                                                  final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                                                  return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                                                }();
+
+                                                                                                return Future.wait([
+                                                                                                  ReproducaoTable().queryRows(
+                                                                                                    queryFn: (q) => q
+                                                                                                        .eqOrNull(
+                                                                                                          'id_propriedade',
+                                                                                                          FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                                        )
+                                                                                                        .eqOrNull(
+                                                                                                          'deletado',
+                                                                                                          'NAO',
+                                                                                                        )
+                                                                                                        .gte(
+                                                                                                          'data_inseminacao',
+                                                                                                          dataInicioFiltro,
+                                                                                                        )
+                                                                                                        .lte(
+                                                                                                          'data_inseminacao',
+                                                                                                          dataFimFiltro,
+                                                                                                        ),
+                                                                                                    limit: 5000,
                                                                                                   ),
-                                                                                                );
-                                                                                              }
-                                                                                              final lotesResponse = lotesSnapshot.data!;
-                                                                                              final lotes = (lotesResponse.jsonBody
-                                                                                                          .toList()
-                                                                                                          .map<LotesStruct?>(LotesStruct.maybeFromMap)
-                                                                                                          .toList() as Iterable<LotesStruct?>)
-                                                                                                      .withoutNulls
-                                                                                                  .where((e) => e.deletado != 'SIM')
+                                                                                                  LotesTable().queryRows(
+                                                                                                    queryFn: (q) => q
+                                                                                                        .eqOrNull(
+                                                                                                          'id_propriedade',
+                                                                                                          FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                                        )
+                                                                                                        .eqOrNull(
+                                                                                                          'deletado',
+                                                                                                          'NAO',
+                                                                                                        ),
+                                                                                                    limit: 5000,
+                                                                                                  ),
+                                                                                                ]);
+                                                                                              }(),
+                                                                                              builder: (context, lotesSnapshot) {
+                                                                                                if (!lotesSnapshot.hasData) {
+                                                                                                  return const SizedBox(
+                                                                                                    height: 48.0,
+                                                                                                    child: Center(
+                                                                                                      child: SizedBox(
+                                                                                                        width: 20.0,
+                                                                                                        height: 20.0,
+                                                                                                        child: CircularProgressIndicator(strokeWidth: 2.0),
+                                                                                                      ),
+                                                                                                    ),
+                                                                                                  );
+                                                                                                }
+                                                                                                final reproRows = lotesSnapshot.data![0] as List<ReproducaoRow>;
+                                                                                                final lotesRows = lotesSnapshot.data![1] as List<LotesRow>;
+
+                                                                                                final lotesComReproducao = reproRows
+                                                                                                    .map((e) => e.idLote)
+                                                                                                    .withoutNulls
+                                                                                                    .map((e) => e.trim())
+                                                                                                    .where((e) => e.isNotEmpty)
+                                                                                                    .toSet();
+
+                                                                                                final lotes = lotesRows
+                                                                                                  .where((e) {
+                                                                                                    final idLote = e.idLote?.trim();
+                                                                                                    return idLote != null &&
+                                                                                                      idLote.isNotEmpty &&
+                                                                                                      lotesComReproducao.contains(idLote);
+                                                                                                  })
                                                                                                   .toList();
 
-                                                                                              final loteOptions = <String>['', ...lotes.map((e) => e.idLote).where((e) => e.isNotEmpty).toList()];
-                                                                                              final loteLabels = <String>['Todos', ...lotes.map((e) => e.nome).where((e) => e.isNotEmpty).toList()];
+                                                                                                final loteOptions = <String>['', ...lotes.map((e) => e.idLote?.trim()).whereType<String>().where((e) => e.isNotEmpty).toList()];
+                                                                                                final loteLabels = <String>['Todos', ...lotes.map((e) => e.nome?.trim()).whereType<String>().where((e) => e.isNotEmpty).toList()];
 
-                                                                                              return FlutterFlowDropDown<String>(
+                                                                                                return FlutterFlowDropDown<String>(
                                                                                                 key: ValueKey('filtro_lote_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
                                                                                                 controller: _model.filtroLoteTaxaConcepcaoValueController!,
                                                                                                 options: loteOptions,
@@ -4006,6 +4087,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 borderWidth: 0.0,
                                                                                                 borderRadius: 8.0,
                                                                                                 margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                                maxHeight: 300.0,
                                                                                                 hidesUnderline: true,
                                                                                                 isOverButton: false,
                                                                                                 isSearchable: true,
@@ -4035,16 +4117,73 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 ),
                                                                                           ),
                                                                                           const SizedBox(height: 8.0),
-                                                                                          FutureBuilder<ApiCallResponse>(
-                                                                                            key: ValueKey('touros_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
-                                                                                            future: FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
-                                                                                              pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
-                                                                                              pCategoria: 'Touro',
-                                                                                              pPesquisa: '',
-                                                                                              pStatus: '',
-                                                                                              pLimite: 1000,
-                                                                                              pOffset: 0,
-                                                                                            ),
+                                                                                          FutureBuilder<List<dynamic>>(
+                                                                                            key: ValueKey('touros_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
+                                                                                            future: () {
+                                                                                              final dataInicioFiltro = () {
+                                                                                                final ano = int.tryParse(valueOrDefault<String>(
+                                                                                                      _model.dDInicioAnoValue,
+                                                                                                      '2025',
+                                                                                                    )) ??
+                                                                                                    2025;
+                                                                                                final mes = int.tryParse(valueOrDefault<String>(
+                                                                                                      _model.dDInicioMesValue?.toString(),
+                                                                                                      '1',
+                                                                                                    )) ??
+                                                                                                    1;
+                                                                                                return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
+                                                                                              }();
+
+                                                                                              final dataFimFiltro = () {
+                                                                                                final ano = int.tryParse(valueOrDefault<String>(
+                                                                                                      _model.dDFimAnoValue,
+                                                                                                      '2025',
+                                                                                                    )) ??
+                                                                                                    2025;
+                                                                                                final mes = int.tryParse(valueOrDefault<String>(
+                                                                                                      _model.dDFimMesValue?.toString(),
+                                                                                                      '12',
+                                                                                                    )) ??
+                                                                                                    12;
+                                                                                                final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                                                return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                                              }();
+
+                                                                                              return Future.wait([
+                                                                                                ReproducaoTable().queryRows(
+                                                                                                  queryFn: (q) => q
+                                                                                                      .eqOrNull(
+                                                                                                        'id_propriedade',
+                                                                                                        FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                                      )
+                                                                                                      .eqOrNull(
+                                                                                                        'deletado',
+                                                                                                        'NAO',
+                                                                                                      )
+                                                                                                      .gte(
+                                                                                                        'data_inseminacao',
+                                                                                                        dataInicioFiltro,
+                                                                                                      )
+                                                                                                      .lte(
+                                                                                                        'data_inseminacao',
+                                                                                                        dataFimFiltro,
+                                                                                                      ),
+                                                                                                  limit: 5000,
+                                                                                                ),
+                                                                                                RebanhoTable().queryRows(
+                                                                                                  queryFn: (q) => q
+                                                                                                      .eqOrNull(
+                                                                                                        'categoria',
+                                                                                                        'Touro',
+                                                                                                      )
+                                                                                                      .eqOrNull(
+                                                                                                        'deletado',
+                                                                                                        'NAO',
+                                                                                                      ),
+                                                                                                  limit: 5000,
+                                                                                                ),
+                                                                                              ]);
+                                                                                            }(),
                                                                                             builder: (context, tourosSnapshot) {
                                                                                               if (!tourosSnapshot.hasData) {
                                                                                                 return const SizedBox(
@@ -4058,29 +4197,46 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                   ),
                                                                                                 );
                                                                                               }
-                                                                                              final tourosResponse = tourosSnapshot.data!;
-                                                                                              final touros = (tourosResponse.jsonBody
-                                                                                                          .toList()
-                                                                                                          .map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap)
-                                                                                                          .toList() as Iterable<RebanhoDTStruct?>)
-                                                                                                      .withoutNulls
-                                                                                                  .where((e) => e.deletado != 'SIM')
-                                                                                                  .where((e) =>
-                                                                                                      (e.status == 'Na Propriedade') ||
-                                                                                                      (e.status == 'Na propriedade') ||
-                                                                                                      (e.status.isEmpty))
-                                                                                                  .toList();
+                                                                                              final reproRows = tourosSnapshot.data![0] as List<ReproducaoRow>;
+                                                                                              final rebanhoRows = tourosSnapshot.data![1] as List<RebanhoRow>;
 
-                                                                                              final touroIds = touros.map((e) => e.idRebanho).where((e) => e.isNotEmpty).toList();
-                                                                                              final touroLabels = touros
-                                                                                                  .map((e) => (e.nomeConcat.isNotEmpty)
-                                                                                                      ? e.nomeConcat
-                                                                                                      : (e.nome.isNotEmpty ? e.nome : e.numeroAnimal))
+                                                                                              final tourosComReproducao = reproRows
+                                                                                                  .map((e) => e.idRebanhoReprodutor)
+                                                                                                  .withoutNulls
+                                                                                                  .map((e) => e.trim())
                                                                                                   .where((e) => e.isNotEmpty)
-                                                                                                  .toList();
+                                                                                                  .toSet();
 
-                                                                                              final options = <String>['', ...touroIds];
-                                                                                              final labels = <String>['Todos', ...touroLabels];
+                                                                                                final rebanhoNomeById = <String, String>{};
+                                                                                                for (final touro in rebanhoRows) {
+                                                                                                  final idRebanho = touro.idRebanho?.trim();
+                                                                                                  if (idRebanho == null || idRebanho.isEmpty) {
+                                                                                                    continue;
+                                                                                                  }
+                                                                                                  if (rebanhoNomeById.containsKey(idRebanho)) {
+                                                                                                    continue;
+                                                                                                  }
+                                                                                                  final nome = touro.nome?.trim() ?? '';
+                                                                                                  rebanhoNomeById[idRebanho] =
+                                                                                                      nome.isNotEmpty ? nome : 'Touro S/N';
+                                                                                                }
+
+                                                                                                final touroEntries = tourosComReproducao
+                                                                                                    .where((id) => rebanhoNomeById.containsKey(id))
+                                                                                                    .map((id) => MapEntry(id, rebanhoNomeById[id]!))
+                                                                                                    .toList();
+
+                                                                                                touroEntries.sort((a, b) {
+                                                                                                  final labelA = a.value.toLowerCase();
+                                                                                                  final labelB = b.value.toLowerCase();
+                                                                                                  if (labelA != labelB) {
+                                                                                                    return labelA.compareTo(labelB);
+                                                                                                  }
+                                                                                                  return a.key.compareTo(b.key);
+                                                                                                });
+
+                                                                                                final options = <String>['', ...touroEntries.map((e) => e.key)];
+                                                                                                final labels = <String>['Todos', ...touroEntries.map((e) => e.value)];
 
                                                                                               return FlutterFlowDropDown<String>(
                                                                                                 key: ValueKey('filtro_touro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
@@ -4123,6 +4279,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 borderWidth: 0.0,
                                                                                                 borderRadius: 8.0,
                                                                                                 margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                                maxHeight: 300.0,
                                                                                                 hidesUnderline: true,
                                                                                                 isOverButton: false,
                                                                                                 isSearchable: true,
@@ -4231,6 +4388,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 borderWidth: 0.0,
                                                                                                 borderRadius: 8.0,
                                                                                                 margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                                maxHeight: 300.0,
                                                                                                 hidesUnderline: true,
                                                                                                 isOverButton: false,
                                                                                                 isSearchable: true,
@@ -4277,7 +4435,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
-                                                                                                prenhezData: containerTaxaPrenhezGetResponse?.bodyText ?? '',
+                                                                                                prenhezData: containerTaxaPrenhezGetResponse.bodyText,
                                                                                               ),
                                                                                             )
                                                                                           : Center(
@@ -4304,40 +4462,52 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   key: ValueKey(
                                                                     'taxa_natalidade_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}',
                                                                   ),
-                                                                  future: SupabaseEdgeGroup
-                                                                      .taxaNatalidadeGetCall
-                                                                      .call(
-                                                                    idPropriedade:
-                                                                        FFAppState()
-                                                                            .propriedadeSelecionada
-                                                                            .idPropriedade,
-                                                                    dataInicio: () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
-                                                                            _model.dDInicioAnoValue,
+                                                                  future: () {
+                                                                    final taxaNatalidadeKey =
+                                                                        'taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}';
+                                                                    if (_model.taxaNatalidadeFutureKey !=
+                                                                        taxaNatalidadeKey) {
+                                                                      _model.taxaNatalidadeFutureKey =
+                                                                          taxaNatalidadeKey;
+                                                                      _model.taxaNatalidadeFuture =
+                                                                          SupabaseEdgeGroup
+                                                                              .taxaNatalidadeGetCall
+                                                                              .call(
+                                                                        idPropriedade:
+                                                                            FFAppState()
+                                                                                .propriedadeSelecionada
+                                                                                .idPropriedade,
+                                                                        dataInicio: () {
+                                                                          final ano = int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDInicioAnoValue,
+                                                                                '2025',
+                                                                              )) ??
+                                                                              2025;
+                                                                          final mes = int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDInicioMesValue?.toString(),
+                                                                                '1',
+                                                                              )) ??
+                                                                              1;
+                                                                          return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
+                                                                        }(),
+                                                                        dataFim: () {
+                                                                          final ano = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDFimAnoValue,
                                                                             '2025',
-                                                                          )) ??
-                                                                          2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                            _model.dDInicioMesValue?.toString(),
-                                                                            '1',
-                                                                          )) ??
-                                                                          1;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
-                                                                    }(),
-                                                                    dataFim: () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimAnoValue,
-                                                                        '2025',
-                                                                      )) ?? 2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimMesValue?.toString(),
-                                                                        '12',
-                                                                      )) ?? 12;
-                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                    }(),
-                                                                  ),
+                                                                          )) ?? 2025;
+                                                                          final mes = int.tryParse(valueOrDefault<String>(
+                                                                            _model.dDFimMesValue?.toString(),
+                                                                            '12',
+                                                                          )) ?? 12;
+                                                                          // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
+                                                                          final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                          return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                        }(),
+                                                                      );
+                                                                    }
+                                                                    return _model
+                                                                        .taxaNatalidadeFuture;
+                                                                  }(),
                                                                   builder: (context,
                                                                       snapshot) {
                                                                     // Customize what your widget looks like when it's loading.
