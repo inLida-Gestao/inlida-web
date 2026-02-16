@@ -35,6 +35,7 @@ Future exportReproducaoExcel(String nameExcel, String idPropriedade) async {
             .select()
             .eq('id_propriedade', idPropriedade)
             .eq('deletado', 'NAO')
+            .order('id', ascending: true)
             .range(offset, offset + batchSize - 1);
 
         print('Registros retornados: ${response.length}');
