@@ -1068,7 +1068,11 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                     Expanded(
                                       child: Builder(
                                         builder: (context) {
-                                          final reproducao = (pgReproducaoBuscarReproducaoFiltrosResponse
+                                          final sortCol = _model.paginatedDataTableController.sortColumnIndex ?? 1;
+                                          final sortAsc = _model.paginatedDataTableController.sortColumnIndex != null
+                                              ? _model.paginatedDataTableController.sortAscending
+                                              : false;
+                                          final reproducao = ((pgReproducaoBuscarReproducaoFiltrosResponse
                                                           .jsonBody
                                                           .toList()
                                                           .map<ReproducaoDTStruct?>(
@@ -1078,11 +1082,30 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                       as Iterable<
                                                           ReproducaoDTStruct?>)
                                                   .withoutNulls
-                                                  .sortedList(
-                                                      keyOf: (e) => e.createdAt,
-                                                      desc: true)
-                                                  .toList() ??
-                                              [];
+                                                  .toList()
+                                                ..sort((a, b) {
+                                                  String aKey, bKey;
+                                                  switch (sortCol) {
+                                                    case 0:
+                                                      aKey = a.tipoReproducao; bKey = b.tipoReproducao;
+                                                      break;
+                                                    case 1:
+                                                      aKey = a.dataInseminacao.isNotEmpty ? a.dataInseminacao : a.dataInicial;
+                                                      bKey = b.dataInseminacao.isNotEmpty ? b.dataInseminacao : b.dataInicial;
+                                                      break;
+                                                    case 2:
+                                                      aKey = a.statusReproducao; bKey = b.statusReproducao;
+                                                      break;
+                                                    case 4:
+                                                      aKey = a.nomeMatriz; bKey = b.nomeMatriz;
+                                                      break;
+                                                    default:
+                                                      aKey = a.dataInseminacao.isNotEmpty ? a.dataInseminacao : a.dataInicial;
+                                                      bKey = b.dataInseminacao.isNotEmpty ? b.dataInseminacao : b.dataInicial;
+                                                      break;
+                                                  }
+                                                  return sortAsc ? aKey.compareTo(bKey) : bKey.compareTo(aKey);
+                                                }));
                                           if (reproducao.isEmpty) {
                                             return const Center(
                                               child: EmptyRebanhoWidget(),
@@ -1094,6 +1117,9 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                             controller: _model
                                                 .paginatedDataTableController,
                                             data: reproducao,
+                                            onSortChanged: (columnIndex, ascending) {
+                                              safeSetState(() {});
+                                            },
                                             columnsBuilder: (onSortChanged) => [
                                               DataColumn2(
                                                 label: DefaultTextStyle.merge(
