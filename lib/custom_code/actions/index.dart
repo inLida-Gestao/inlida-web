@@ -12,3 +12,4 @@ export 'batch_insert_supabase_rebanho.dart' show batchInsertSupabaseRebanho;
 export 'batch_insert_supabase_lotes.dart' show batchInsertSupabaseLotes;
 export 'export_rebanho_excel.dart' show exportRebanhoExcel;
 export 'export_reproducao_excel.dart' show exportReproducaoExcel;
+export 'export_sanidade_excel.dart' show exportSanidadeExcel;
