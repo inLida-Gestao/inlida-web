@@ -46,7 +46,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
           _model.dataNascimentoTextController1?.text = valueOrDefault<String>(
             dateTimeFormat(
               "d/M/y",
-              FFAppState().filtroDataNacimento,
+              FFAppState().filtroDataReproducao,
               locale: FFLocalizations.of(context).languageCode,
             ),
             'dd/mm/aaaa',
@@ -54,7 +54,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
           _model.dataNascimentoTextController2?.text = valueOrDefault<String>(
             dateTimeFormat(
               "d/M/y",
-              FFAppState().filtroDataNacimento,
+              FFAppState().filtroDataParto,
               locale: FFLocalizations.of(context).languageCode,
             ),
             'dd/mm/aaaa',
@@ -617,7 +617,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                             .languageCode,
                                       );
                                     });
-                                    FFAppState().filtroDataNacimento =
+                                    FFAppState().filtroDataParto =
                                         _model.datePicked2;
                                     safeSetState(() {});
                                   },
@@ -1340,7 +1340,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                 valueOrDefault<String>(
                               dateTimeFormat(
                                 "d/M/y",
-                                FFAppState().filtroDataNacimento,
+                                FFAppState().filtroDataReproducao,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),
@@ -1351,7 +1351,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                 valueOrDefault<String>(
                               dateTimeFormat(
                                 "d/M/y",
-                                FFAppState().filtroDataNacimento,
+                                FFAppState().filtroDataParto,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),
