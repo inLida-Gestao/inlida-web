@@ -18,9 +18,17 @@ class PgReproducaoEditAnimalModel
 
   int? partidaSemen = 1;
 
-  bool ressinc = false;
-
   bool parida = false;
+
+  // State field(s) for Ressinc dropdown widget.
+  String? ressincDropdownValue;
+  FormFieldController<String>? ressincDropdownValueController;
+  // State field(s) for GnRH dropdown widget.
+  String? gnrhDropdownValue;
+  FormFieldController<String>? gnrhDropdownValueController;
+  // State field(s) for Cio dropdown widget.
+  String? cioDropdownValue;
+  FormFieldController<String>? cioDropdownValueController;
 
   ///  State fields for stateful widgets in this page.
 

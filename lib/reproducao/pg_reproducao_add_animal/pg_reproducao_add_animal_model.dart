@@ -49,8 +49,15 @@ class PgReproducaoAddAnimalModel
   TextEditingController? nomeInseminadorTextController;
   String? Function(BuildContext, String?)?
       nomeInseminadorTextControllerValidator;
-  // State field(s) for Checkbox widget.
-  bool? checkboxValue;
+  // State field(s) for Ressinc dropdown widget.
+  String? ressincDropdownValue;
+  FormFieldController<String>? ressincDropdownValueController;
+  // State field(s) for GnRH dropdown widget.
+  String? gnrhDropdownValue;
+  FormFieldController<String>? gnrhDropdownValueController;
+  // State field(s) for Cio dropdown widget.
+  String? cioDropdownValue;
+  FormFieldController<String>? cioDropdownValueController;
   // State field(s) for CheckboxParida widget.
   bool? checkboxParidaValue;
   // State field(s) for dataParida widget.

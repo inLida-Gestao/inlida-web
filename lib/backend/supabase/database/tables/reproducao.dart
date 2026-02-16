@@ -129,6 +129,12 @@ class ReproducaoRow extends SupabaseDataRow {
   String? get ressinc => getField<String>('ressinc');
   set ressinc(String? value) => setField<String>('ressinc', value);
 
+  String? get gnrh => getField<String>('gnrh');
+  set gnrh(String? value) => setField<String>('gnrh', value);
+
+  String? get cio => getField<String>('cio');
+  set cio(String? value) => setField<String>('cio', value);
+
   String? get parida => getField<String>('parida');
   set parida(String? value) => setField<String>('parida', value);
 

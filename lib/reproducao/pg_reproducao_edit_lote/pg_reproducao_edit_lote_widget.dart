@@ -56,8 +56,9 @@ class _PgReproducaoEditLoteWidgetState
       _model.tipoReproducao = _model.reproducao!.firstOrNull!.tipoReproducao!;
       _model.score = _model.reproducao?.firstOrNull?.scoreCorporal;
       _model.partidaSemen = _model.reproducao?.firstOrNull?.partidaSemen;
-      _model.ressinc =
-          _model.reproducao?.firstOrNull?.ressinc == 'SIM' ? true : false;
+      _model.ressincDropdownValue = _model.reproducao?.firstOrNull?.ressinc;
+      _model.gnrhDropdownValue = _model.reproducao?.firstOrNull?.gnrh;
+      _model.cioDropdownValue = _model.reproducao?.firstOrNull?.cio;
       safeSetState(() {});
     });
 
@@ -787,7 +788,13 @@ class _PgReproducaoEditLoteWidgetState
                                             ),
                                             if (_model.tipoReproducao ==
                                                 'Inseminação')
-                                              Column(
+                                              Row(
+                                                mainAxisSize: MainAxisSize.max,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                    child: Column(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
@@ -1143,6 +1150,120 @@ class _PgReproducaoEditLoteWidgetState
                                                     ],
                                                   ),
                                                 ].divide(const SizedBox(height: 8.0)),
+                                              ),
+                                                  ),
+                                                  const SizedBox(width: 16.0),
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.max,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          'Ressinc.',
+                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                            font: GoogleFonts.poppins(
+                                                              fontWeight: FontWeight.w600,
+                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                            ),
+                                                            fontSize: 16.0,
+                                                            letterSpacing: 0.0,
+                                                            fontWeight: FontWeight.w600,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                          ),
+                                                        ),
+                                                        FlutterFlowDropDown<String>(
+                                                          controller: _model.ressincDropdownValueController ??= FormFieldController<String>(_model.ressincDropdownValue),
+                                                          options: const [
+                                                            'Tradicional',
+                                                            'Precoce',
+                                                            'Superprecoce',
+                                                          ],
+                                                          onChanged: (val) => safeSetState(() => _model.ressincDropdownValue = val),
+                                                          width: double.infinity,
+                                                          height: 56.0,
+                                                          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                            font: GoogleFonts.poppins(
+                                                              fontWeight: FontWeight.w600,
+                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                            ),
+                                                            fontSize: 16.0,
+                                                            letterSpacing: 0.0,
+                                                            fontWeight: FontWeight.w600,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                          ),
+                                                          hintText: 'Selecionar',
+                                                          icon: Icon(
+                                                            Icons.expand_more,
+                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                            size: 24.0,
+                                                          ),
+                                                          fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                          elevation: 0,
+                                                          borderColor: Colors.transparent,
+                                                          borderWidth: 0,
+                                                          borderRadius: 8,
+                                                          margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                                                          hidesUnderline: true,
+                                                        ),
+                                                      ].divide(const SizedBox(height: 8.0)),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16.0),
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.max,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          'GnRH',
+                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                            font: GoogleFonts.poppins(
+                                                              fontWeight: FontWeight.w600,
+                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                            ),
+                                                            fontSize: 16.0,
+                                                            letterSpacing: 0.0,
+                                                            fontWeight: FontWeight.w600,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                          ),
+                                                        ),
+                                                        FlutterFlowDropDown<String>(
+                                                          controller: _model.gnrhDropdownValueController ??= FormFieldController<String>(_model.gnrhDropdownValue),
+                                                          options: const [
+                                                            'Sim',
+                                                            'Não',
+                                                          ],
+                                                          onChanged: (val) => safeSetState(() => _model.gnrhDropdownValue = val),
+                                                          width: double.infinity,
+                                                          height: 56.0,
+                                                          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                            font: GoogleFonts.poppins(
+                                                              fontWeight: FontWeight.w600,
+                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                            ),
+                                                            fontSize: 16.0,
+                                                            letterSpacing: 0.0,
+                                                            fontWeight: FontWeight.w600,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                          ),
+                                                          hintText: 'Selecionar',
+                                                          icon: Icon(
+                                                            Icons.expand_more,
+                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                            size: 24.0,
+                                                          ),
+                                                          fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                          elevation: 0,
+                                                          borderColor: Colors.transparent,
+                                                          borderWidth: 0,
+                                                          borderRadius: 8,
+                                                          margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                                                          hidesUnderline: true,
+                                                        ),
+                                                      ].divide(const SizedBox(height: 8.0)),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             if (_model.tipoReproducao ==
                                                 'Inseminação')
@@ -1668,155 +1789,15 @@ class _PgReproducaoEditLoteWidgetState
                                                   ),
                                                 ].divide(const SizedBox(width: 16.0)),
                                               ),
-                                            if ((_model.tipoReproducao ==
-                                                    'Inseminação') &&
-                                                (pgReproducaoEditLoteReproducaoRow
-                                                        .dataInseminacao !=
-                                                    null))
-                                              Column(
+                                            if (_model.tipoReproducao ==
+                                                'Monta Natural')
+                                              Row(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                  Text(
-                                                    'Previsão do parto',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          fontSize: 16.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                  Container(
-                                                    width: double.infinity,
-                                                    height: 56.0,
-                                                    decoration: BoxDecoration(
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .customColor2,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8.0),
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.max,
-                                                      children: [
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsetsDirectional
-                                                                  .fromSTEB(
-                                                                      12.0,
-                                                                      0.0,
-                                                                      0.0,
-                                                                      0.0),
-                                                          child: Text(
-                                                            valueOrDefault<
-                                                                String>(
-                                                              dateTimeFormat(
-                                                                "d/M/y",
-                                                                functions.dataMais295(_model.datePicked1 !=
-                                                                        null
-                                                                    ? _model
-                                                                        .datePicked1!
-                                                                    : pgReproducaoEditLoteReproducaoRow
-                                                                        .dataInseminacao!),
-                                                                locale: FFLocalizations.of(
-                                                                        context)
-                                                                    .languageCode,
-                                                              ),
-                                                              'dd/mm/yyyy',
-                                                            ),
-                                                            style: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  font: GoogleFonts
-                                                                      .poppins(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                                  fontSize:
-                                                                      16.0,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    'Data da inseminação + 295 dias',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .accent3,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                ].divide(const SizedBox(height: 8.0)),
-                                              ),
-                                            if (_model.tipoReproducao ==
-                                                'Monta Natural')
-                                              Column(
+                                                  Expanded(
+                                                    child: Column(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
@@ -2170,6 +2151,120 @@ class _PgReproducaoEditLoteWidgetState
                                                     ],
                                                   ),
                                                 ].divide(const SizedBox(height: 8.0)),
+                                              ),
+                                                  ),
+                                                  const SizedBox(width: 16.0),
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.max,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          'Ressinc.',
+                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                            font: GoogleFonts.poppins(
+                                                              fontWeight: FontWeight.w600,
+                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                            ),
+                                                            fontSize: 16.0,
+                                                            letterSpacing: 0.0,
+                                                            fontWeight: FontWeight.w600,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                          ),
+                                                        ),
+                                                        FlutterFlowDropDown<String>(
+                                                          controller: _model.ressincDropdownValueController ??= FormFieldController<String>(_model.ressincDropdownValue),
+                                                          options: const [
+                                                            'Tradicional',
+                                                            'Precoce',
+                                                            'Superprecoce',
+                                                          ],
+                                                          onChanged: (val) => safeSetState(() => _model.ressincDropdownValue = val),
+                                                          width: double.infinity,
+                                                          height: 56.0,
+                                                          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                            font: GoogleFonts.poppins(
+                                                              fontWeight: FontWeight.w600,
+                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                            ),
+                                                            fontSize: 16.0,
+                                                            letterSpacing: 0.0,
+                                                            fontWeight: FontWeight.w600,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                          ),
+                                                          hintText: 'Selecionar',
+                                                          icon: Icon(
+                                                            Icons.expand_more,
+                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                            size: 24.0,
+                                                          ),
+                                                          fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                          elevation: 0,
+                                                          borderColor: Colors.transparent,
+                                                          borderWidth: 0,
+                                                          borderRadius: 8,
+                                                          margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                                                          hidesUnderline: true,
+                                                        ),
+                                                      ].divide(const SizedBox(height: 8.0)),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16.0),
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.max,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          'GnRH',
+                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                            font: GoogleFonts.poppins(
+                                                              fontWeight: FontWeight.w600,
+                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                            ),
+                                                            fontSize: 16.0,
+                                                            letterSpacing: 0.0,
+                                                            fontWeight: FontWeight.w600,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                          ),
+                                                        ),
+                                                        FlutterFlowDropDown<String>(
+                                                          controller: _model.gnrhDropdownValueController ??= FormFieldController<String>(_model.gnrhDropdownValue),
+                                                          options: const [
+                                                            'Sim',
+                                                            'Não',
+                                                          ],
+                                                          onChanged: (val) => safeSetState(() => _model.gnrhDropdownValue = val),
+                                                          width: double.infinity,
+                                                          height: 56.0,
+                                                          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                            font: GoogleFonts.poppins(
+                                                              fontWeight: FontWeight.w600,
+                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                            ),
+                                                            fontSize: 16.0,
+                                                            letterSpacing: 0.0,
+                                                            fontWeight: FontWeight.w600,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                          ),
+                                                          hintText: 'Selecionar',
+                                                          icon: Icon(
+                                                            Icons.expand_more,
+                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                            size: 24.0,
+                                                          ),
+                                                          fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                          elevation: 0,
+                                                          borderColor: Colors.transparent,
+                                                          borderWidth: 0,
+                                                          borderRadius: 8,
+                                                          margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                                                          hidesUnderline: true,
+                                                        ),
+                                                      ].divide(const SizedBox(height: 8.0)),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             if (_model.tipoReproducao ==
                                                 'Monta Natural')
@@ -2713,84 +2808,57 @@ class _PgReproducaoEditLoteWidgetState
                                                 ),
                                               ].divide(const SizedBox(height: 8.0)),
                                             ),
-                                            Row(
+                                            Column(
                                               mainAxisSize: MainAxisSize.max,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                if (_model.ressinc == true)
-                                                  InkWell(
-                                                    splashColor:
-                                                        Colors.transparent,
-                                                    focusColor:
-                                                        Colors.transparent,
-                                                    hoverColor:
-                                                        Colors.transparent,
-                                                    highlightColor:
-                                                        Colors.transparent,
-                                                    onTap: () async {
-                                                      _model.ressinc = false;
-                                                      safeSetState(() {});
-                                                    },
-                                                    child: Icon(
-                                                      Icons.check_box_rounded,
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primary,
-                                                      size: 24.0,
-                                                    ),
-                                                  ),
-                                                if (_model.ressinc == false)
-                                                  InkWell(
-                                                    splashColor:
-                                                        Colors.transparent,
-                                                    focusColor:
-                                                        Colors.transparent,
-                                                    hoverColor:
-                                                        Colors.transparent,
-                                                    highlightColor:
-                                                        Colors.transparent,
-                                                    onTap: () async {
-                                                      _model.ressinc = true;
-                                                      safeSetState(() {});
-                                                    },
-                                                    child: Icon(
-                                                      Icons
-                                                          .check_box_outline_blank,
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .alternate,
-                                                      size: 24.0,
-                                                    ),
-                                                  ),
                                                 Text(
-                                                  'Ressincronização',
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        font:
-                                                            GoogleFonts.poppins(
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        fontSize: 16.0,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
+                                                  'Cio',
+                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                    font: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                    ),
+                                                    fontSize: 16.0,
+                                                    letterSpacing: 0.0,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                  ),
                                                 ),
-                                              ].divide(const SizedBox(width: 8.0)),
+                                                FlutterFlowDropDown<String>(
+                                                  controller: _model.cioDropdownValueController ??= FormFieldController<String>(_model.cioDropdownValue),
+                                                  options: const [
+                                                    'Sim',
+                                                    'Não',
+                                                  ],
+                                                  onChanged: (val) => safeSetState(() => _model.cioDropdownValue = val),
+                                                  width: double.infinity,
+                                                  height: 56.0,
+                                                  textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                    font: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                    ),
+                                                    fontSize: 16.0,
+                                                    letterSpacing: 0.0,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                  ),
+                                                  hintText: 'Selecionar',
+                                                  icon: Icon(
+                                                    Icons.expand_more,
+                                                    color: FlutterFlowTheme.of(context).secondaryText,
+                                                    size: 24.0,
+                                                  ),
+                                                  fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                  elevation: 0,
+                                                  borderColor: Colors.transparent,
+                                                  borderWidth: 0,
+                                                  borderRadius: 8,
+                                                  margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                                                  hidesUnderline: true,
+                                                ),
+                                              ].divide(const SizedBox(height: 8.0)),
                                             ),
                                             Row(
                                               mainAxisSize: MainAxisSize.max,
@@ -3278,6 +3346,152 @@ class _PgReproducaoEditLoteWidgetState
                                                 ),
                                               ].divide(const SizedBox(width: 16.0)),
                                             ),
+                                            if ((_model.tipoReproducao ==
+                                                    'Inseminação') &&
+                                                (pgReproducaoEditLoteReproducaoRow
+                                                        .dataInseminacao !=
+                                                    null))
+                                              Column(
+                                                mainAxisSize: MainAxisSize.max,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Previsão do parto',
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          font: GoogleFonts
+                                                              .poppins(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
+                                                          fontSize: 16.0,
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                  ),
+                                                  Container(
+                                                    width: double.infinity,
+                                                    height: 56.0,
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .customColor2,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8.0),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      children: [
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                      12.0,
+                                                                      0.0,
+                                                                      0.0,
+                                                                      0.0),
+                                                          child: Text(
+                                                            valueOrDefault<
+                                                                String>(
+                                                              dateTimeFormat(
+                                                                "d/M/y",
+                                                                functions.dataMais295(_model.datePicked1 !=
+                                                                        null
+                                                                    ? _model
+                                                                        .datePicked1!
+                                                                    : pgReproducaoEditLoteReproducaoRow
+                                                                        .dataInseminacao!),
+                                                                locale: FFLocalizations.of(
+                                                                        context)
+                                                                    .languageCode,
+                                                              ),
+                                                              'dd/mm/yyyy',
+                                                            ),
+                                                            style: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  fontSize:
+                                                                      16.0,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'Data da inseminação + 295 dias',
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          font: GoogleFonts
+                                                              .poppins(
+                                                            fontWeight:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontWeight,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .accent3,
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                  ),
+                                                ].divide(const SizedBox(height: 8.0)),
+                                              ),
                                             Column(
                                               mainAxisSize: MainAxisSize.max,
                                               crossAxisAlignment:
@@ -3640,6 +3854,18 @@ class _PgReproducaoEditLoteWidgetState
                                                                     .toList()
                                                                     .firstOrNull
                                                                     ?.dataNascimento),
+                                                            'ressinc':
+                                                                (_model.ressincDropdownValue ?? '').trim().isNotEmpty
+                                                                    ? _model.ressincDropdownValue
+                                                                    : 'NAO',
+                                                            'gnrh':
+                                                                (_model.gnrhDropdownValue ?? '').trim().isNotEmpty
+                                                                    ? _model.gnrhDropdownValue
+                                                                    : 'NAO',
+                                                            'cio':
+                                                                (_model.cioDropdownValue ?? '').trim().isNotEmpty
+                                                                    ? _model.cioDropdownValue
+                                                                    : 'NAO',
                                                           },
                                                           matchingRows:
                                                               (rows) =>
@@ -3712,6 +3938,18 @@ class _PgReproducaoEditLoteWidgetState
                                                                     .toList()
                                                                     .firstOrNull
                                                                     ?.dataNascimento),
+                                                            'ressinc':
+                                                                (_model.ressincDropdownValue ?? '').trim().isNotEmpty
+                                                                    ? _model.ressincDropdownValue
+                                                                    : 'NAO',
+                                                            'gnrh':
+                                                                (_model.gnrhDropdownValue ?? '').trim().isNotEmpty
+                                                                    ? _model.gnrhDropdownValue
+                                                                    : 'NAO',
+                                                            'cio':
+                                                                (_model.cioDropdownValue ?? '').trim().isNotEmpty
+                                                                    ? _model.cioDropdownValue
+                                                                    : 'NAO',
                                                           },
                                                           matchingRows:
                                                               (rows) =>
