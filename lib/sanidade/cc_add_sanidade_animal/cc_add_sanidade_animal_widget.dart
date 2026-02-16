@@ -38,6 +38,61 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
     'eCG + PGF + CE',
     'eCG + PGR + CE + BE',
   ];
+  static const String _kProtocoloLegenda =
+      'BE - Benzoato de Estradiol\n'
+      'Implante - Implante intravaginal de Progesterona (P4)\n'
+      'PGF - Prostaglandina\n'
+      'eCG - Gonadotrofina Coriônica Equina\n'
+      'CE - Cipionato de Estradiol\n'
+      'GnRH - Hormônio Liberador de Gonadotrofinas';
+
+  Widget _buildLegendaTooltip() {
+    final legendaColor = FlutterFlowTheme.of(context).primary;
+
+    return Tooltip(
+      message: _kProtocoloLegenda,
+      waitDuration: const Duration(milliseconds: 200),
+      showDuration: const Duration(seconds: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Legenda',
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  fontFamily: 'Poppins',
+                  color: legendaColor,
+                  fontSize: 12,
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(width: 4),
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: legendaColor,
+                width: 1,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '?',
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'Poppins',
+                    color: legendaColor,
+                    fontSize: 11,
+                    letterSpacing: 0.0,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void setState(VoidCallback callback) {
@@ -1442,15 +1497,22 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Retirada',
-              style: FlutterFlowTheme.of(context).bodyMedium.override(
-                    fontFamily: 'Poppins',
-                    color: FlutterFlowTheme.of(context).secondaryText,
-                    fontSize: 16,
-                    letterSpacing: 0.0,
-                    fontWeight: FontWeight.w600,
-                  ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Retirada',
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily: 'Poppins',
+                        color: FlutterFlowTheme.of(context).secondaryText,
+                        fontSize: 16,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(width: 6),
+                _buildLegendaTooltip(),
+              ],
             ),
             const SizedBox(height: 8),
             Row(
@@ -1510,87 +1572,6 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
               ],
             ),
           ],
-        ),
-        const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Legenda',
-                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      fontFamily: 'Poppins',
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      fontSize: 18,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'BE - Benzoato de estradiol',
-                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      fontFamily: 'Poppins',
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      fontSize: 16,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-              Text(
-                'Implante - Implante de progesterona',
-                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      fontFamily: 'Poppins',
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      fontSize: 16,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-              Text(
-                'PGF - Prostaglandina',
-                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      fontFamily: 'Poppins',
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      fontSize: 16,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-              Text(
-                'eCG - Gonadotrofina coriônica',
-                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      fontFamily: 'Poppins',
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      fontSize: 16,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-              Text(
-                'CE - Cipionato de estradiol',
-                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      fontFamily: 'Poppins',
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      fontSize: 16,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-              Text(
-                'GnRH - Gonadotrofina',
-                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      fontFamily: 'Poppins',
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      fontSize: 16,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-            ],
-          ),
         ),
         const SizedBox(height: 32),
         Column(
