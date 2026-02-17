@@ -72,7 +72,7 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
             locale: FFLocalizations.of(context).languageCode,
           ),
           pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
-          pLoteNome: FFAppState().filtroLoteId,
+          pLoteNome: FFAppState().filtroLoteNome,
           pOrigem: FFAppState().filtroOrigem,
           pRaca: FFAppState().filtroRaca,
           pSexo: widget.sanidade == true ? '' : widget.sexo,

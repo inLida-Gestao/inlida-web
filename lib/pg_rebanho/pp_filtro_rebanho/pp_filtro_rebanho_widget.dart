@@ -581,6 +581,14 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                     () => _model.dropDownLoteValue = val);
                                 FFAppState().filtroLoteId =
                                     _model.dropDownLoteValue!;
+                                FFAppState().filtroLoteNome =
+                                    containerLotesRowList
+                                        .where((e) =>
+                                            e.idLote ==
+                                            _model.dropDownLoteValue)
+                                        .map((e) => e.nome)
+                                        .firstOrNull ??
+                                    '';
                                 safeSetState(() {});
                               },
                               height: 56.0,
@@ -974,6 +982,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                           FFAppState().filtroCategoria = '';
                           FFAppState().filtroDataNacimento = null;
                           FFAppState().filtroLoteId = '';
+                          FFAppState().filtroLoteNome = '';
                           FFAppState().filtroRaca = '';
                           FFAppState().filtroOrigem = '';
                           safeSetState(() {});
