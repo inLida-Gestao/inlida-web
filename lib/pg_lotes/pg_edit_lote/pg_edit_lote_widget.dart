@@ -349,6 +349,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                       pIdPropriedade: FFAppState()
                                           .propriedadeSelecionada
                                           .idPropriedade,
+                                      pLoteNome: FFAppState().filtroLoteNome,
                                       pOrigem: FFAppState().filtroOrigem,
                                       pRaca: FFAppState().filtroRaca,
                                       pSexo: FFAppState().filtroSexo,
@@ -1714,7 +1715,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             [
                                                                           Text(
                                                                             'Animais fora do lote (${valueOrDefault<String>(
-                                                                              (pgEditLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.loteID == 'null') || (e.loteID == '')).toList().length.toString(),
+                                                                              (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.length.toString(),
                                                                               '0',
                                                                             )})',
                                                                             style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -2667,7 +2668,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             [
                                                                           Text(
                                                                             'Animais neste lote (${valueOrDefault<String>(
-                                                                              (pgEditLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.loteID == 'null') || (e.loteID == '')).toList().length.toString(),
+                                                                              _model.animaisDentroLote.length.toString(),
                                                                               '0',
                                                                             )})',
                                                                             style: FlutterFlowTheme.of(context).bodyMedium.override(
