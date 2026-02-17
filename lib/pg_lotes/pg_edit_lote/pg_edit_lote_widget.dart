@@ -239,7 +239,9 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                 locale: FFLocalizations.of(context).languageCode,
               ),
               pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
-              pLoteNome: widget.loteNome,
+              pLoteNome: FFAppState().filtroLoteNome.isNotEmpty
+                  ? FFAppState().filtroLoteNome
+                  : '',
               pOrigem: FFAppState().filtroOrigem,
               pRaca: FFAppState().filtroRaca,
               pSexo: FFAppState().filtroSexo,
