@@ -1866,6 +1866,10 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                     );
                                                                                   },
                                                                                 );
+                                                                                _model.pageNumAdd = 1;
+                                                                                safeSetState(() =>
+                                                                                    _model.apiRequestCompleter =
+                                                                                        null);
                                                                               },
                                                                               text: 'Filtrar',
                                                                               icon: const Icon(
@@ -2812,6 +2816,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                     );
                                                                                   },
                                                                                 );
+                                                                                safeSetState(() {});
                                                                               },
                                                                               text: 'Filtrar',
                                                                               icon: const Icon(

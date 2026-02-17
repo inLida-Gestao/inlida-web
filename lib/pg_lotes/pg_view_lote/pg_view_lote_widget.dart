@@ -2542,6 +2542,10 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                           );
                                                                                         },
                                                                                       );
+                                                                                      _model.pageNumAdd = 1;
+                                                                                      safeSetState(() =>
+                                                                                          _model.apiRequestCompleter =
+                                                                                              null);
                                                                                     },
                                                                                     text: 'Filtrar',
                                                                                     icon: const Icon(
