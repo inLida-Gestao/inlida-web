@@ -49,6 +49,14 @@ class PgEditLoteModel extends FlutterFlowModel<PgEditLoteWidget> {
 
   bool ativo = true;
 
+  // Local filter state for "Animais neste lote" (right side)
+  String filtroRightSexo = '';
+  String filtroRightCategoria = '';
+  String filtroRightRaca = '';
+  String filtroRightOrigem = '';
+  String filtroRightStatusRebanho = '';
+  DateTime? filtroRightDataNacimento;
+
   List<RebanhoDTStruct> animaisRetiradosLote = [];
   void addToAnimaisRetiradosLote(RebanhoDTStruct item) =>
       animaisRetiradosLote.add(item);

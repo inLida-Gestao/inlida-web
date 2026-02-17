@@ -1354,7 +1354,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                           children: [
                                                                             Text(
                                                                               'Animais neste lote (${valueOrDefault<String>(
-                                                                                _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (FFAppState().filtroCategoria == '') && (FFAppState().filtroSexo == '') && (FFAppState().filtroRaca == '') && (FFAppState().filtroOrigem == '') && (FFAppState().filtroStatusRebanho == '') && (FFAppState().filtroDataNacimento == null)) || ((e.numeroAnimal.contains(_model.pesquisaDentroTextController.text) || e.nome.toLowerCase().contains(_model.pesquisaDentroTextController.text.toLowerCase()) || e.chip.contains(_model.pesquisaDentroTextController.text)) && ((FFAppState().filtroSexo == '') || (e.sexo == FFAppState().filtroSexo)) && ((FFAppState().filtroCategoria == '') || (e.categoria == FFAppState().filtroCategoria)) && ((FFAppState().filtroRaca == '') || (e.raca == FFAppState().filtroRaca)) && ((FFAppState().filtroOrigem == '') || (e.origem == FFAppState().filtroOrigem)) && ((FFAppState().filtroStatusRebanho == '') || (e.status == FFAppState().filtroStatusRebanho)) && ((FFAppState().filtroDataNacimento == null) && (functions.converterParaData(e.dataNascimento) == FFAppState().filtroDataNacimento)))).toList().length.toString(),
+                                                                                _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimento == null)) || ((e.numeroAnimal.contains(_model.pesquisaDentroTextController.text) || e.nome.toLowerCase().contains(_model.pesquisaDentroTextController.text.toLowerCase()) || e.chip.contains(_model.pesquisaDentroTextController.text)) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimento == null) && (functions.converterParaData(e.dataNascimento) == _model.filtroRightDataNacimento)))).toList().length.toString(),
                                                                                 '0',
                                                                               )})',
                                                                               style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -1473,7 +1473,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             child:
                                                                                 Builder(
                                                                               builder: (context) {
-                                                                                final animais = _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (FFAppState().filtroCategoria == '') && (FFAppState().filtroSexo == '') && (FFAppState().filtroRaca == '') && (FFAppState().filtroOrigem == '') && (FFAppState().filtroStatusRebanho == '') && (FFAppState().filtroDataNacimento == null)) || ((e.numeroAnimal.contains(_model.pesquisaDentroTextController.text) || e.nome.toLowerCase().contains(_model.pesquisaDentroTextController.text.toLowerCase()) || e.chip.contains(_model.pesquisaDentroTextController.text)) && ((FFAppState().filtroSexo == '') || (e.sexo == FFAppState().filtroSexo)) && ((FFAppState().filtroCategoria == '') || (e.categoria == FFAppState().filtroCategoria)) && ((FFAppState().filtroRaca == '') || (e.raca == FFAppState().filtroRaca)) && ((FFAppState().filtroOrigem == '') || (e.origem == FFAppState().filtroOrigem)) && ((FFAppState().filtroStatusRebanho == '') || (e.status == FFAppState().filtroStatusRebanho)) && ((FFAppState().filtroDataNacimento == null) && (functions.converterParaData(e.dataNascimento) == FFAppState().filtroDataNacimento)))).toList().take(4).toList();
+                                                                                final animais = _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimento == null)) || ((e.numeroAnimal.contains(_model.pesquisaDentroTextController.text) || e.nome.toLowerCase().contains(_model.pesquisaDentroTextController.text.toLowerCase()) || e.chip.contains(_model.pesquisaDentroTextController.text)) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimento == null) && (functions.converterParaData(e.dataNascimento) == _model.filtroRightDataNacimento)))).toList().take(4).toList();
 
                                                                                 return ListView.builder(
                                                                                   padding: EdgeInsets.zero,
@@ -2799,6 +2799,24 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             builder: (context) =>
                                                                                 FFButtonWidget(
                                                                               onPressed: () async {
+                                                                                // Save left-side global filter state
+                                                                                final savedSexo = FFAppState().filtroSexo;
+                                                                                final savedCategoria = FFAppState().filtroCategoria;
+                                                                                final savedRaca = FFAppState().filtroRaca;
+                                                                                final savedOrigem = FFAppState().filtroOrigem;
+                                                                                final savedStatus = FFAppState().filtroStatusRebanho;
+                                                                                final savedData = FFAppState().filtroDataNacimento;
+                                                                                final savedLoteId = FFAppState().filtroLoteId;
+                                                                                final savedLoteNome = FFAppState().filtroLoteNome;
+                                                                                // Pre-set global state with right-side values
+                                                                                FFAppState().filtroSexo = _model.filtroRightSexo;
+                                                                                FFAppState().filtroCategoria = _model.filtroRightCategoria;
+                                                                                FFAppState().filtroRaca = _model.filtroRightRaca;
+                                                                                FFAppState().filtroOrigem = _model.filtroRightOrigem;
+                                                                                FFAppState().filtroStatusRebanho = _model.filtroRightStatusRebanho;
+                                                                                FFAppState().filtroDataNacimento = _model.filtroRightDataNacimento;
+                                                                                FFAppState().filtroLoteId = '';
+                                                                                FFAppState().filtroLoteNome = '';
                                                                                 await showDialog(
                                                                                   context: context,
                                                                                   builder: (dialogContext) {
@@ -2817,6 +2835,22 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                     );
                                                                                   },
                                                                                 );
+                                                                                // Capture new values into local right-side state
+                                                                                _model.filtroRightSexo = FFAppState().filtroSexo;
+                                                                                _model.filtroRightCategoria = FFAppState().filtroCategoria;
+                                                                                _model.filtroRightRaca = FFAppState().filtroRaca;
+                                                                                _model.filtroRightOrigem = FFAppState().filtroOrigem;
+                                                                                _model.filtroRightStatusRebanho = FFAppState().filtroStatusRebanho;
+                                                                                _model.filtroRightDataNacimento = FFAppState().filtroDataNacimento;
+                                                                                // Restore left-side global filter state
+                                                                                FFAppState().filtroSexo = savedSexo;
+                                                                                FFAppState().filtroCategoria = savedCategoria;
+                                                                                FFAppState().filtroRaca = savedRaca;
+                                                                                FFAppState().filtroOrigem = savedOrigem;
+                                                                                FFAppState().filtroStatusRebanho = savedStatus;
+                                                                                FFAppState().filtroDataNacimento = savedData;
+                                                                                FFAppState().filtroLoteId = savedLoteId;
+                                                                                FFAppState().filtroLoteNome = savedLoteNome;
                                                                                 safeSetState(() {});
                                                                               },
                                                                               text: 'Filtrar',
@@ -3022,7 +3056,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             child:
                                                                                 Builder(
                                                                               builder: (context) {
-                                                                                final animais = _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (FFAppState().filtroCategoria == '') && (FFAppState().filtroSexo == '') && (FFAppState().filtroRaca == '') && (FFAppState().filtroOrigem == '') && (FFAppState().filtroStatusRebanho == '') && (FFAppState().filtroDataNacimento == null)) || ((e.numeroAnimal.trim().toLowerCase().contains(_model.pesquisaDentroTextController.text.trim().toLowerCase())) && ((FFAppState().filtroSexo == '') || (e.sexo == FFAppState().filtroSexo)) && ((FFAppState().filtroCategoria == '') || (e.categoria == FFAppState().filtroCategoria)) && ((FFAppState().filtroRaca == '') || (e.raca == FFAppState().filtroRaca)) && ((FFAppState().filtroOrigem == '') || (e.origem == FFAppState().filtroOrigem)) && ((FFAppState().filtroStatusRebanho == '') || (e.status == FFAppState().filtroStatusRebanho)) && ((FFAppState().filtroDataNacimento == null) || (functions.converterParaData(e.dataNascimento) == FFAppState().filtroDataNacimento)))).toList().take(_model.mostrarAdicionados).toList();
+                                                                                final animais = _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimento == null)) || ((e.numeroAnimal.trim().toLowerCase().contains(_model.pesquisaDentroTextController.text.trim().toLowerCase())) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimento == null) || (functions.converterParaData(e.dataNascimento) == _model.filtroRightDataNacimento)))).toList().take(_model.mostrarAdicionados).toList();
 
                                                                                 return ListView.builder(
                                                                                   padding: EdgeInsets.zero,
