@@ -56,6 +56,8 @@ class PgEditLoteModel extends FlutterFlowModel<PgEditLoteWidget> {
   String filtroRightOrigem = '';
   String filtroRightStatusRebanho = '';
   DateTime? filtroRightDataNacimento;
+  String filtroRightLoteId = '';
+  String filtroRightLoteNome = '';
 
   List<RebanhoDTStruct> animaisRetiradosLote = [];
   void addToAnimaisRetiradosLote(RebanhoDTStruct item) =>
