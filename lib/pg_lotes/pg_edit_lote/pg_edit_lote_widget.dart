@@ -1396,7 +1396,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             ),
                                                                           ],
                                                                         ),
-                                                                        if ((pgEditLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.isEmpty)
+                                                                        if (_model.animaisDentroLote.isEmpty)
                                                                           InkWell(
                                                                             splashColor:
                                                                                 Colors.transparent,
@@ -1465,7 +1465,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                               ],
                                                                             ),
                                                                           ),
-                                                                        if ((pgEditLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.isNotEmpty)
+                                                                        if (_model.animaisDentroLote.isNotEmpty)
                                                                           Container(
                                                                             child:
                                                                                 Builder(
@@ -3427,21 +3427,24 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                 supaSerialize<
                                                                         DateTime>(
                                                                     getCurrentTimestamp),
-                                                            'motivo': _model
-                                                                .motivoCleared
+                                                            'motivo': _model.switchValue == true
                                                               ? null
-                                                              : (_model.dropDownLotesValue ??
-                                                                containerLotesRow
-                                                                  ?.motivo),
-                                                            'data_motivo': _model
-                                                                .dataMotivoCleared
+                                                              : _model.motivoCleared
+                                                                ? null
+                                                                : (_model.dropDownLotesValue ??
+                                                                  containerLotesRow
+                                                                    ?.motivo),
+                                                            'data_motivo': _model.switchValue == true
                                                               ? null
-                                                              : supaSerialize<
-                                                                DateTime>(_model
-                                                                  .datePicked ?? containerLotesRow
-                                                                  ?.dataMotivo),
-                                                            'valorVenda':
-                                                                FFAppState()
+                                                              : _model.dataMotivoCleared
+                                                                ? null
+                                                                : supaSerialize<
+                                                                  DateTime>(_model
+                                                                    .datePicked ?? containerLotesRow
+                                                                    ?.dataMotivo),
+                                                            'valorVenda': _model.switchValue == true
+                                                              ? null
+                                                              : FFAppState()
                                                                     .valueDouble2,
                                                           },
                                                           matchingRows:
@@ -3486,6 +3489,13 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                 'valorVenda':
                                                                     FFAppState()
                                                                         .valueDouble2,
+                                                                'status': _model.switchValue == true
+                                                                    ? 'Na propriedade'
+                                                                    : (_model.dropDownLotesValue ??
+                                                                                containerLotesRow?.motivo) ==
+                                                                            'Lote vendido'
+                                                                        ? 'Vendido'
+                                                                        : 'Inativo',
                                                               },
                                                               matchingRows:
                                                                   (rows) => rows

@@ -6364,6 +6364,22 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                 FFButtonWidget(
                                                               onPressed:
                                                                   () async {
+                                                                if (_model.datePicked9 == null ||
+                                                                    (_model.pesoAddTextController.text).trim().isEmpty) {
+                                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                                    SnackBar(
+                                                                      content: Text(
+                                                                        'Preencha a data da pesagem e o peso.',
+                                                                        style: TextStyle(
+                                                                          color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                        ),
+                                                                      ),
+                                                                      duration: const Duration(milliseconds: 3000),
+                                                                      backgroundColor: FlutterFlowTheme.of(context).error,
+                                                                    ),
+                                                                  );
+                                                                  return;
+                                                                }
                                                                 await HistoricoPesagensTable()
                                                                     .insert({
                                                                   'idRebanho':
@@ -6662,11 +6678,13 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             children:
                                                                                 [
                                                                               Text(
-                                                                                dateTimeFormat(
-                                                                                  "d/M/y",
-                                                                                  pesagensItem.dataPesagem!,
-                                                                                  locale: FFLocalizations.of(context).languageCode,
-                                                                                ),
+                                                                                pesagensItem.dataPesagem != null
+                                                                                    ? dateTimeFormat(
+                                                                                        "d/M/y",
+                                                                                        pesagensItem.dataPesagem!,
+                                                                                        locale: FFLocalizations.of(context).languageCode,
+                                                                                      )
+                                                                                    : 'S/D',
                                                                                 style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                       font: GoogleFonts.poppins(
                                                                                         fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,

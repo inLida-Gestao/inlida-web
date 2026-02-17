@@ -85,6 +85,11 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
+    if (FFAppState().refreshLotes == true) {
+      _model.apiRequestCompleter = null;
+      FFAppState().refreshLotes = false;
+    }
+
     return FutureBuilder<ApiCallResponse>(
       future: (_model.apiRequestCompleter ??= Completer<ApiCallResponse>()
             ..complete(

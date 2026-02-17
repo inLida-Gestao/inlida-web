@@ -57,7 +57,45 @@ class _PgReproducaoViewAnimalWidgetState
       _model.tipoReproducao = _model.reproducao!.firstOrNull!.tipoReproducao!;
       _model.score = _model.reproducao?.firstOrNull?.scoreCorporal;
       _model.partidaSemen = _model.reproducao?.firstOrNull?.partidaSemen;
-      
+      _model.parida = _model.reproducao?.firstOrNull?.parida == 'SIM';
+      _model.ressinc = _model.reproducao?.firstOrNull?.ressinc == 'SIM';
+
+      // Atualizar TextEditingControllers com os dados carregados
+      _model.nomeInseminadorTextController?.text =
+          _model.reproducaoSelecionada?.inseminador ?? '';
+      _model.anotacoesTextController?.text =
+          _model.reproducaoSelecionada?.anotacoes ?? '';
+      _model.dataInseminacaoTextController?.text = dateTimeFormat(
+        "d/M/y",
+        _model.reproducaoSelecionada?.dataInseminacao,
+        locale: FFLocalizations.of(context).languageCode,
+      );
+      _model.dataPartidaSemenTextController?.text = dateTimeFormat(
+        "d/M/y",
+        _model.reproducaoSelecionada?.dataPartidaSemen,
+        locale: FFLocalizations.of(context).languageCode,
+      );
+      _model.dataInicialTextController?.text = dateTimeFormat(
+        "d/M/y",
+        _model.reproducaoSelecionada?.dataInicial,
+        locale: FFLocalizations.of(context).languageCode,
+      );
+      _model.dataFinalTextController?.text = dateTimeFormat(
+        "d/M/y",
+        _model.reproducaoSelecionada?.dataFinal,
+        locale: FFLocalizations.of(context).languageCode,
+      );
+      _model.dataParidaTextController?.text = dateTimeFormat(
+        "d/M/y",
+        _model.reproducaoSelecionada?.dataParto,
+        locale: FFLocalizations.of(context).languageCode,
+      );
+      _model.dataStatusTextController?.text = dateTimeFormat(
+        "d/M/y",
+        _model.reproducaoSelecionada?.dataStatus,
+        locale: FFLocalizations.of(context).languageCode,
+      );
+
       // Buscar dados atualizados da matriz
       if (_model.reproducaoSelecionada?.idRebanhoMatriz != null) {
         _model.matrizData = await RebanhoTable().queryRows(
@@ -2246,18 +2284,14 @@ class _PgReproducaoViewAnimalWidgetState
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
                                       children: [
-                                        if (_model.reproducaoSelecionada
-                                                ?.ressinc ==
-                                            'SIM')
+                                        if (_model.ressinc == true)
                                           Icon(
                                             Icons.check_box_rounded,
                                             color: FlutterFlowTheme.of(context)
                                                 .primary,
                                             size: 24.0,
                                           ),
-                                        if (_model.reproducaoSelecionada
-                                                ?.ressinc ==
-                                            'NAO')
+                                        if (_model.ressinc != true)
                                           Icon(
                                             Icons.check_box_outline_blank,
                                             color: FlutterFlowTheme.of(context)
@@ -2879,8 +2913,10 @@ class _PgReproducaoViewAnimalWidgetState
                                                                       .labelMedium
                                                                       .fontStyle,
                                                                 ),
-                                                                color: const Color(
-                                                                    0xFFBEBEBE),
+                                                                color:
+                                                                    FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .primaryText,
                                                                 fontSize: 16.0,
                                                                 letterSpacing:
                                                                     0.0,

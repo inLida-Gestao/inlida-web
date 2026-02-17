@@ -919,9 +919,10 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                 as Iterable<RebanhoDTStruct?>)
                                             .withoutNulls
                                             .where((e) =>
-                                                (e.status ==
+                                                ((e.status ==
                                                     'Na propriedade') &&
-                                                (e.categoria == 'Touro'))
+                                                (e.categoria == 'Touro')) ||
+                                                (e.status == 'Sêmen'))
                                             .toList()
                                             .toList())
                                         .take(20)

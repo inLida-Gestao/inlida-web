@@ -6834,6 +6834,26 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                           FFAppState().refreshRebanho = true;
                                           safeSetState(() {});
 
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Animal adicionado com sucesso!',
+                                                style: TextStyle(
+                                                  color:
+                                                      FlutterFlowTheme.of(context)
+                                                          .secondaryBackground,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              duration: const Duration(
+                                                  milliseconds: 4000),
+                                              backgroundColor:
+                                                  FlutterFlowTheme.of(context)
+                                                      .secondary,
+                                            ),
+                                          );
+
                                           context.pushNamed(
                                               PgRebanhoWidget.routeName);
 
