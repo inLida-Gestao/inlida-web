@@ -5370,9 +5370,12 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     'ACIDENTE',
                                                                     'ANIMAL PEÇONHENTO',
                                                                     'ATAQUE AVE',
+                                                                    'DESCONHECIDA',
                                                                     'DOENÇA',
                                                                     'ESTRESSE TÉRMICO',
                                                                     'INTOXICAÇÃO',
+                                                                    'MANTIMENTO',
+                                                                    'NATIMORTO',
                                                                     'NEONATO',
                                                                     'PARTO DISTÓCICO',
                                                                     'PREDADOR'
