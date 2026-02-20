@@ -118,10 +118,6 @@ class _PainelWidgetState extends State<PainelWidget>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       safeSetState(() {});
-      // Sincronizar controllers dos filtros com os valores do modelo
-      _model.filtroLoteTaxaConcepcaoValueController?.value = _model.filtroLoteTaxaConcepcaoValue ?? '';
-      _model.filtroTouroTaxaConcepcaoValueController?.value = _model.filtroTouroTaxaConcepcaoValue ?? '';
-      _model.filtroInseminadorTaxaConcepcaoValueController?.value = _model.filtroInseminadorTaxaConcepcaoValue ?? '';
     });
   }
 
@@ -283,14 +279,6 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       safeSetState(() =>
                                                                           _model.dDInicioAnoValue =
                                                                               val);
-                                                                      // Sincronizar controllers após mudança de data
-                                                                      SchedulerBinding.instance.addPostFrameCallback((_) {
-                                                                        if (mounted) {
-                                                                          _model.filtroLoteTaxaConcepcaoValueController?.value = _model.filtroLoteTaxaConcepcaoValue ?? '';
-                                                                          _model.filtroTouroTaxaConcepcaoValueController?.value = _model.filtroTouroTaxaConcepcaoValue ?? '';
-                                                                          _model.filtroInseminadorTaxaConcepcaoValueController?.value = _model.filtroInseminadorTaxaConcepcaoValue ?? '';
-                                                                        }
-                                                                      });
                                                                       safeSetState(
                                                                           () {});
                                                                     },
@@ -398,14 +386,6 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       safeSetState(() =>
                                                                           _model.dDInicioMesValue =
                                                                               val);
-                                                                      // Sincronizar controllers após mudança de data
-                                                                      SchedulerBinding.instance.addPostFrameCallback((_) {
-                                                                        if (mounted) {
-                                                                          _model.filtroLoteTaxaConcepcaoValueController?.value = _model.filtroLoteTaxaConcepcaoValue ?? '';
-                                                                          _model.filtroTouroTaxaConcepcaoValueController?.value = _model.filtroTouroTaxaConcepcaoValue ?? '';
-                                                                          _model.filtroInseminadorTaxaConcepcaoValueController?.value = _model.filtroInseminadorTaxaConcepcaoValue ?? '';
-                                                                        }
-                                                                      });
                                                                       safeSetState(
                                                                           () {});
                                                                     },
@@ -539,14 +519,6 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       safeSetState(() =>
                                                                           _model.dDFimAnoValue =
                                                                               val);
-                                                                      // Sincronizar controllers após mudança de data
-                                                                      SchedulerBinding.instance.addPostFrameCallback((_) {
-                                                                        if (mounted) {
-                                                                          _model.filtroLoteTaxaConcepcaoValueController?.value = _model.filtroLoteTaxaConcepcaoValue ?? '';
-                                                                          _model.filtroTouroTaxaConcepcaoValueController?.value = _model.filtroTouroTaxaConcepcaoValue ?? '';
-                                                                          _model.filtroInseminadorTaxaConcepcaoValueController?.value = _model.filtroInseminadorTaxaConcepcaoValue ?? '';
-                                                                        }
-                                                                      });
                                                                       safeSetState(
                                                                           () {});
                                                                     },
@@ -652,14 +624,6 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       safeSetState(() =>
                                                                           _model.dDFimMesValue =
                                                                               val);
-                                                                      // Sincronizar controllers após mudança de data
-                                                                      SchedulerBinding.instance.addPostFrameCallback((_) {
-                                                                        if (mounted) {
-                                                                          _model.filtroLoteTaxaConcepcaoValueController?.value = _model.filtroLoteTaxaConcepcaoValue ?? '';
-                                                                          _model.filtroTouroTaxaConcepcaoValueController?.value = _model.filtroTouroTaxaConcepcaoValue ?? '';
-                                                                          _model.filtroInseminadorTaxaConcepcaoValueController?.value = _model.filtroInseminadorTaxaConcepcaoValue ?? '';
-                                                                        }
-                                                                      });
                                                                       safeSetState(
                                                                           () {});
                                                                     },
@@ -2684,6 +2648,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
+                                                                    raca: _model.dropDownRacaNascimentoValue != null &&
+                                                                            _model.dropDownRacaNascimentoValue != '' &&
+                                                                            _model.dropDownRacaNascimentoValue != 'Todos'
+                                                                        ? _model.dropDownRacaNascimentoValue
+                                                                        : '',
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -2746,18 +2715,77 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             crossAxisAlignment:
                                                                                 CrossAxisAlignment.center,
                                                                             children: [
-                                                                              Text(
-                                                                                'Nascimentos no período (cabeça)',
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                              Row(
+                                                                                mainAxisSize: MainAxisSize.max,
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                children: [
+                                                                                  Flexible(
+                                                                                    child: Text(
+                                                                                      'Nascimentos no período (cabeça)',
+                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                            fontSize: 18.0,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                    ),
+                                                                                  ),
+                                                                                  FlutterFlowDropDown<String>(
+                                                                                    controller: _model.dropDownRacaNascimentoValueController ??= FormFieldController<String>('Todos'),
+                                                                                    options: ['Todos', ...FFAppState().raca],
+                                                                                    onChanged: (val) => safeSetState(() => _model.dropDownRacaNascimentoValue = val),
+                                                                                    width: 200.0,
+                                                                                    height: 40.0,
+                                                                                    searchHintTextStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                      font: GoogleFonts.poppins(
+                                                                                        fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                      ),
+                                                                                      letterSpacing: 0.0,
+                                                                                      fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                    ),
+                                                                                    searchTextStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                      font: GoogleFonts.poppins(
+                                                                                        fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                      ),
+                                                                                      letterSpacing: 0.0,
+                                                                                      fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                    ),
+                                                                                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                       font: GoogleFonts.poppins(
                                                                                         fontWeight: FontWeight.w600,
                                                                                         fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                       ),
-                                                                                      fontSize: 18.0,
+                                                                                      fontSize: 14.0,
                                                                                       letterSpacing: 0.0,
                                                                                       fontWeight: FontWeight.w600,
                                                                                       fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                     ),
+                                                                                    hintText: 'Raça',
+                                                                                    icon: Icon(
+                                                                                      Icons.keyboard_arrow_down_rounded,
+                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                      size: 24.0,
+                                                                                    ),
+                                                                                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                    elevation: 2.0,
+                                                                                    borderColor: FlutterFlowTheme.of(context).customColor5,
+                                                                                    borderWidth: 0.0,
+                                                                                    borderRadius: 8.0,
+                                                                                    margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                    hidesUnderline: true,
+                                                                                    isOverButton: false,
+                                                                                    isSearchable: true,
+                                                                                    isMultiSelect: false,
+                                                                                  ),
+                                                                                ].divide(const SizedBox(width: 16.0)),
                                                                               ),
                                                                               Expanded(
                                                                                 child: Padding(
@@ -3775,11 +3803,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
                                                                   key: ValueKey(
-                                                                    'taxa_prenhez_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValue}_${_model.filtroTouroTaxaConcepcaoValue}_${_model.filtroInseminadorTaxaConcepcaoValue}',
+                                                                    'taxa_prenhez_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
                                                                   ),
                                                                   future: () {
                                                                     final taxaPrenhezKey =
-                                                                        'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValue}_${_model.filtroTouroTaxaConcepcaoValue}_${_model.filtroInseminadorTaxaConcepcaoValue}';
+                                                                        'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}';
                                                                     if (_model.taxaPrenhezFutureKey !=
                                                                         taxaPrenhezKey) {
                                                                       _model.taxaPrenhezFutureKey =
@@ -3819,12 +3847,12 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                           return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                         }(),
                                                                         pLoteId: _model
-                                                                            .filtroLoteTaxaConcepcaoValue,
+                                                                            .filtroLoteTaxaConcepcaoValues.join(','),
                                                                         pIdRebanhoReprodutor:
                                                                             _model
-                                                                                .filtroTouroTaxaConcepcaoValue,
+                                                                                .filtroTouroTaxaConcepcaoValues.join(','),
                                                                         pInseminador: _model
-                                                                            .filtroInseminadorTaxaConcepcaoValue,
+                                                                            .filtroInseminadorTaxaConcepcaoValues.join(','),
                                                                       );
                                                                     }
                                                                     return _model
@@ -3921,30 +3949,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               Padding(
                                                                                 padding: const EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
                                                                                 child: RepaintBoundary(
-                                                                                  child: Row(
-                                                                                    mainAxisSize: MainAxisSize.max,
-                                                                                    mainAxisAlignment: MainAxisAlignment.start,
-                                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                  child: Wrap(
+                                                                                    spacing: 8.0,
+                                                                                    runSpacing: 8.0,
                                                                                     children: [
-                                                                                      Expanded(
-                                                                                        child: Column(
-                                                                                          mainAxisSize: MainAxisSize.min,
-                                                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                          children: [
-                                                                                            Text(
-                                                                                              'Lote',
-                                                                                              style: FlutterFlowTheme.of(context).labelMedium.override(
-                                                                                                    font: GoogleFonts.poppins(
-                                                                                                      fontWeight: FontWeight.w500,
-                                                                                                      fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                                    ),
-                                                                                                    letterSpacing: 0.0,
-                                                                                                    fontWeight: FontWeight.w500,
-                                                                                                    fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                                  ),
-                                                                                            ),
-                                                                                            const SizedBox(height: 8.0),
-                                                                                            FutureBuilder<List<dynamic>>(
+                                                                                      FutureBuilder<List<dynamic>>(
                                                                                               key: ValueKey('lotes_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
                                                                                               future: () {
                                                                                                 final dataInicioFiltro = () {
@@ -4043,81 +4052,29 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                   })
                                                                                                   .toList();
 
-                                                                                                final loteOptions = <String>['', ...lotes.map((e) => e.idLote?.trim()).whereType<String>().where((e) => e.isNotEmpty).toList()];
-                                                                                                final loteLabels = <String>['Todos', ...lotes.map((e) => e.nome?.trim()).whereType<String>().where((e) => e.isNotEmpty).toList()];
+                                                                                                final loteOptions = lotes.map((e) => e.idLote?.trim() ?? '').where((e) => e.isNotEmpty).toList();
+                                                                                                final loteLabels = lotes.map((e) => e.nome?.trim() ?? '').where((e) => e.isNotEmpty).toList();
 
-                                                                                                return FlutterFlowDropDown<String>(
-                                                                                                key: ValueKey('filtro_lote_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
-                                                                                                controller: _model.filtroLoteTaxaConcepcaoValueController!,
-                                                                                                options: loteOptions,
-                                                                                                optionLabels: loteLabels,
-                                                                                                onChanged: (val) {
-                                                                                                  // Só atualizar se o valor realmente mudou
-                                                                                                  if (_model.filtroLoteTaxaConcepcaoValue != val) {
-                                                                                                    // Adiar o setState para depois do frame atual para evitar fechar o dropdown
-                                                                                                    // Não atualizar o controller aqui pois o DropdownButton2 já faz isso
-                                                                                                    SchedulerBinding.instance.addPostFrameCallback((_) {
-                                                                                                      if (mounted) {
-                                                                                                        safeSetState(() {
-                                                                                                          _model.filtroLoteTaxaConcepcaoValue = val;
-                                                                                                        });
-                                                                                                      }
+                                                                                                return _buildMultiFilterChip(
+                                                                                                  context,
+                                                                                                  label: 'Lote',
+                                                                                                  selectedValues: _model.filtroLoteTaxaConcepcaoValues,
+                                                                                                  options: loteOptions,
+                                                                                                  optionLabels: loteLabels,
+                                                                                                  onChanged: (vals) {
+                                                                                                    safeSetState(() {
+                                                                                                      _model.filtroLoteTaxaConcepcaoValues = vals;
                                                                                                     });
-                                                                                                  }
-                                                                                                },
-                                                                                                width: double.infinity,
-                                                                                                height: 48.0,
-                                                                                                textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                                      font: GoogleFonts.poppins(
-                                                                                                        fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                      ),
-                                                                                                      letterSpacing: 0.0,
-                                                                                                      fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                    ),
-                                                                                                hintText: 'Lote',
-                                                                                                icon: Icon(
-                                                                                                  Icons.keyboard_arrow_down_rounded,
-                                                                                                  color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                                  size: 24.0,
-                                                                                                ),
-                                                                                                elevation: 2.0,
-                                                                                                borderColor: FlutterFlowTheme.of(context).customColor2,
-                                                                                                borderWidth: 0.0,
-                                                                                                borderRadius: 8.0,
-                                                                                                margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                                maxHeight: 300.0,
-                                                                                                hidesUnderline: true,
-                                                                                                isOverButton: false,
-                                                                                                isSearchable: true,
-                                                                                                isMultiSelect: false,
-                                                                                              );
+                                                                                                  },
+                                                                                                  onClear: () {
+                                                                                                    safeSetState(() {
+                                                                                                      _model.filtroLoteTaxaConcepcaoValues = [];
+                                                                                                    });
+                                                                                                  },
+                                                                                                );
                                                                                             },
                                                                                           ),
-                                                                                        ],
-                                                                                      ),
-                                                                                    ),
-                                                                                    const SizedBox(width: 12.0),
-                                                                                    Expanded(
-                                                                                      child: Column(
-                                                                                        mainAxisSize: MainAxisSize.min,
-                                                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                        children: [
-                                                                                          Text(
-                                                                                            'Touro',
-                                                                                            style: FlutterFlowTheme.of(context).labelMedium.override(
-                                                                                                  font: GoogleFonts.poppins(
-                                                                                                    fontWeight: FontWeight.w500,
-                                                                                                    fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                                  ),
-                                                                                                  letterSpacing: 0.0,
-                                                                                                  fontWeight: FontWeight.w500,
-                                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                                ),
-                                                                                          ),
-                                                                                          const SizedBox(height: 8.0),
-                                                                                          FutureBuilder<List<dynamic>>(
+                                                                                      FutureBuilder<List<dynamic>>(
                                                                                             key: ValueKey('touros_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
                                                                                             future: () {
                                                                                               final dataInicioFiltro = () {
@@ -4235,81 +4192,29 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                   return a.key.compareTo(b.key);
                                                                                                 });
 
-                                                                                                final options = <String>['', ...touroEntries.map((e) => e.key)];
-                                                                                                final labels = <String>['Todos', ...touroEntries.map((e) => e.value)];
+                                                                                                final touroOptions = touroEntries.map((e) => e.key).toList();
+                                                                                                final touroLabels = touroEntries.map((e) => e.value).toList();
 
-                                                                                              return FlutterFlowDropDown<String>(
-                                                                                                key: ValueKey('filtro_touro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
-                                                                                                controller: _model.filtroTouroTaxaConcepcaoValueController!,
-                                                                                                options: options,
-                                                                                                optionLabels: labels,
-                                                                                                onChanged: (val) {
-                                                                                                  // Só atualizar se o valor realmente mudou
-                                                                                                  if (_model.filtroTouroTaxaConcepcaoValue != val) {
-                                                                                                    // Adiar o setState para depois do frame atual para evitar fechar o dropdown
-                                                                                                    // Não atualizar o controller aqui pois o DropdownButton2 já faz isso
-                                                                                                    SchedulerBinding.instance.addPostFrameCallback((_) {
-                                                                                                      if (mounted) {
-                                                                                                        safeSetState(() {
-                                                                                                          _model.filtroTouroTaxaConcepcaoValue = val;
-                                                                                                        });
-                                                                                                      }
+                                                                                                return _buildMultiFilterChip(
+                                                                                                  context,
+                                                                                                  label: 'Touro',
+                                                                                                  selectedValues: _model.filtroTouroTaxaConcepcaoValues,
+                                                                                                  options: touroOptions,
+                                                                                                  optionLabels: touroLabels,
+                                                                                                  onChanged: (vals) {
+                                                                                                    safeSetState(() {
+                                                                                                      _model.filtroTouroTaxaConcepcaoValues = vals;
                                                                                                     });
-                                                                                                  }
-                                                                                                },
-                                                                                                width: double.infinity,
-                                                                                                height: 48.0,
-                                                                                                textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                                      font: GoogleFonts.poppins(
-                                                                                                        fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                      ),
-                                                                                                      letterSpacing: 0.0,
-                                                                                                      fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                    ),
-                                                                                                hintText: 'Touro',
-                                                                                                icon: Icon(
-                                                                                                  Icons.keyboard_arrow_down_rounded,
-                                                                                                  color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                                  size: 24.0,
-                                                                                                ),
-                                                                                                elevation: 2.0,
-                                                                                                borderColor: FlutterFlowTheme.of(context).customColor2,
-                                                                                                borderWidth: 0.0,
-                                                                                                borderRadius: 8.0,
-                                                                                                margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                                maxHeight: 300.0,
-                                                                                                hidesUnderline: true,
-                                                                                                isOverButton: false,
-                                                                                                isSearchable: true,
-                                                                                                isMultiSelect: false,
-                                                                                              );
+                                                                                                  },
+                                                                                                  onClear: () {
+                                                                                                    safeSetState(() {
+                                                                                                      _model.filtroTouroTaxaConcepcaoValues = [];
+                                                                                                    });
+                                                                                                  },
+                                                                                                );
                                                                                             },
                                                                                           ),
-                                                                                        ],
-                                                                                      ),
-                                                                                    ),
-                                                                                    const SizedBox(width: 12.0),
-                                                                                    Expanded(
-                                                                                      child: Column(
-                                                                                        mainAxisSize: MainAxisSize.min,
-                                                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                        children: [
-                                                                                          Text(
-                                                                                            'Inseminador',
-                                                                                            style: FlutterFlowTheme.of(context).labelMedium.override(
-                                                                                                  font: GoogleFonts.poppins(
-                                                                                                    fontWeight: FontWeight.w500,
-                                                                                                    fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                                  ),
-                                                                                                  letterSpacing: 0.0,
-                                                                                                  fontWeight: FontWeight.w500,
-                                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                                ),
-                                                                                          ),
-                                                                                          const SizedBox(height: 8.0),
-                                                                                          FutureBuilder<List<ReproducaoRow>>(
+                                                                                      FutureBuilder<List<ReproducaoRow>>(
                                                                                             key: ValueKey('inseminadores_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
                                                                                             future: ReproducaoTable().queryRows(
                                                                                               queryFn: (q) => q
@@ -4344,64 +4249,28 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                   .toList()
                                                                                                   .unique((e) => e);
 
-                                                                                              final options = <String>['', ...inseminadores];
-                                                                                              final labels = <String>['Todos', ...inseminadores];
-
-                                                                                              return FlutterFlowDropDown<String>(
-                                                                                                key: ValueKey('filtro_inseminador_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
-                                                                                                controller: _model.filtroInseminadorTaxaConcepcaoValueController!,
-                                                                                                options: options,
-                                                                                                optionLabels: labels,
-                                                                                                onChanged: (val) {
-                                                                                                  // Só atualizar se o valor realmente mudou
-                                                                                                  if (_model.filtroInseminadorTaxaConcepcaoValue != val) {
-                                                                                                    // Adiar o setState para depois do frame atual para evitar fechar o dropdown
-                                                                                                    // Não atualizar o controller aqui pois o DropdownButton2 já faz isso
-                                                                                                    SchedulerBinding.instance.addPostFrameCallback((_) {
-                                                                                                      if (mounted) {
-                                                                                                        safeSetState(() {
-                                                                                                          _model.filtroInseminadorTaxaConcepcaoValue = val;
-                                                                                                        });
-                                                                                                      }
+                                                                                                return _buildMultiFilterChip(
+                                                                                                  context,
+                                                                                                  label: 'Inseminador',
+                                                                                                  selectedValues: _model.filtroInseminadorTaxaConcepcaoValues,
+                                                                                                  options: inseminadores,
+                                                                                                  optionLabels: inseminadores,
+                                                                                                  onChanged: (vals) {
+                                                                                                    safeSetState(() {
+                                                                                                      _model.filtroInseminadorTaxaConcepcaoValues = vals;
                                                                                                     });
-                                                                                                  }
-                                                                                                },
-                                                                                                width: double.infinity,
-                                                                                                height: 48.0,
-                                                                                                textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                                      font: GoogleFonts.poppins(
-                                                                                                        fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                      ),
-                                                                                                      letterSpacing: 0.0,
-                                                                                                      fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                    ),
-                                                                                                hintText: 'Inseminador',
-                                                                                                icon: Icon(
-                                                                                                  Icons.keyboard_arrow_down_rounded,
-                                                                                                  color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                                  size: 24.0,
-                                                                                                ),
-                                                                                                elevation: 2.0,
-                                                                                                borderColor: FlutterFlowTheme.of(context).customColor2,
-                                                                                                borderWidth: 0.0,
-                                                                                                borderRadius: 8.0,
-                                                                                                margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                                maxHeight: 300.0,
-                                                                                                hidesUnderline: true,
-                                                                                                isOverButton: false,
-                                                                                                isSearchable: true,
-                                                                                                isMultiSelect: false,
-                                                                                              );
+                                                                                                  },
+                                                                                                  onClear: () {
+                                                                                                    safeSetState(() {
+                                                                                                      _model.filtroInseminadorTaxaConcepcaoValues = [];
+                                                                                                    });
+                                                                                                  },
+                                                                                                );
                                                                                             },
                                                                                           ),
-                                                                                        ],
-                                                                                      ),
-                                                                                    ),
                                                                                   ],
-                                                                                  ),
                                                                                 ),
+                                                                              ),
                                                                               ),
                                                                               Expanded(
                                                                                 child: Container(
@@ -4431,7 +4300,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               height: double.infinity,
                                                                                               child: custom_widgets.TaxaPrenhezChart(
                                                                                                 key: ValueKey(
-                                                                                                  'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_${dataInicioStr}-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValue}_${_model.filtroTouroTaxaConcepcaoValue}_${_model.filtroInseminadorTaxaConcepcaoValue}',
+                                                                                                  'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_${dataInicioStr}-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
@@ -5819,6 +5688,241 @@ class _PainelWidgetState extends State<PainelWidget>
                 ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMultiFilterChip(
+    BuildContext context, {
+    required String label,
+    required List<String> selectedValues,
+    required List<String> options,
+    required List<String> optionLabels,
+    required void Function(List<String>) onChanged,
+    required VoidCallback onClear,
+  }) {
+    final isActive = selectedValues.isNotEmpty;
+    const greenColor = Color(0xFF1E7A4C);
+    const grayLabel = Color(0xFF8E8E8E);
+    const borderColor = Color(0xFFBEBEBE);
+
+    String displayValue = '';
+    if (selectedValues.length == 1) {
+      final idx = options.indexOf(selectedValues.first);
+      displayValue = idx >= 0 && idx < optionLabels.length ? optionLabels[idx] : selectedValues.first;
+    } else if (selectedValues.length > 1) {
+      displayValue = '${selectedValues.length} selecionados';
+    }
+
+    return Container(
+      height: 40.0,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24.0),
+        border: Border.all(color: borderColor, width: 1.0),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24.0),
+        onTap: () async {
+          final result = await showDialog<List<String>>(
+            context: context,
+            builder: (dialogContext) {
+              final tempSelected = List<String>.from(selectedValues);
+              return StatefulBuilder(
+                builder: (ctx, setDialogState) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.0),
+                    ),
+                    titlePadding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                    contentPadding: const EdgeInsets.fromLTRB(0.0, 12.0, 0.0, 0.0),
+                    actionsPadding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          label,
+                          style: GoogleFonts.poppins(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF2F2F2F),
+                          ),
+                        ),
+                        if (tempSelected.isNotEmpty)
+                          TextButton(
+                            onPressed: () {
+                              setDialogState(() {
+                                tempSelected.clear();
+                              });
+                            },
+                            child: Text(
+                              'Limpar',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w500,
+                                color: greenColor,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    content: SizedBox(
+                      width: 340.0,
+                      height: 320.0,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: options.length,
+                        itemBuilder: (ctx, i) {
+                          final isItemSelected = tempSelected.contains(options[i]);
+                          return InkWell(
+                            onTap: () {
+                              setDialogState(() {
+                                if (isItemSelected) {
+                                  tempSelected.remove(options[i]);
+                                } else {
+                                  tempSelected.add(options[i]);
+                                }
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 22.0,
+                                    height: 22.0,
+                                    decoration: BoxDecoration(
+                                      color: isItemSelected ? greenColor : Colors.white,
+                                      borderRadius: BorderRadius.circular(6.0),
+                                      border: Border.all(
+                                        color: isItemSelected ? greenColor : borderColor,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: isItemSelected
+                                        ? const Icon(Icons.check, color: Colors.white, size: 16.0)
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 12.0),
+                                  Expanded(
+                                    child: Text(
+                                      optionLabels[i],
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14.0,
+                                        fontWeight: isItemSelected ? FontWeight.w600 : FontWeight.w400,
+                                        color: isItemSelected ? greenColor : const Color(0xFF2F2F2F),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    actions: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 44.0,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: greenColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop(tempSelected);
+                          },
+                          child: Text(
+                            'Aplicar',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          );
+          if (result != null) {
+            onChanged(result);
+          }
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isActive)
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 0.0, 0.0),
+                child: GestureDetector(
+                  onTap: onClear,
+                  child: Container(
+                    width: 24.0,
+                    height: 24.0,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2F2F2F),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 14.0,
+                    ),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                isActive ? 8.0 : 16.0, 0.0, 0.0, 0.0,
+              ),
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w600,
+                  color: grayLabel,
+                  height: 1.3,
+                ),
+              ),
+            ),
+            if (isActive)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Container(
+                  width: 1.0,
+                  height: 24.0,
+                  color: borderColor,
+                ),
+              ),
+            if (isActive)
+              Text(
+                displayValue,
+                style: GoogleFonts.poppins(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w600,
+                  color: greenColor,
+                  height: 1.3,
+                ),
+              ),
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                isActive ? 0.0 : 8.0, 0.0, 12.0, 0.0,
+              ),
+              child: const Icon(
+                Icons.expand_more,
+                color: greenColor,
+                size: 24.0,
+              ),
+            ),
+          ],
         ),
       ),
     );

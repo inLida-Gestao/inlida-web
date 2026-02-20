@@ -1365,6 +1365,7 @@ class NascimentosPeriodoCall {
     String? inicio = '',
     String? fim = '',
     String? idPropriedade = '',
+    String? raca = '',
   }) async {
     final baseUrl = SupabaseEdgeGroup.getBaseUrl();
 
@@ -1373,7 +1374,8 @@ class NascimentosPeriodoCall {
   "inicio": "${escapeStringForJson(inicio)}",
   "fim": "${escapeStringForJson(fim)}",
   "agrupar": "mes",
-  "idPropriedade": "${escapeStringForJson(idPropriedade)}"
+  "idPropriedade": "${escapeStringForJson(idPropriedade)}",
+  "raca": "${escapeStringForJson(raca)}"
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Nascimentos Periodo',

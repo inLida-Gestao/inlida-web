@@ -9,7 +9,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import 'package:excel/excel.dart';
 import 'package:download/download.dart';
 
-Future exportSanidadeExcel(String nameExcel, String idPropriedade) async {
+Future<bool> exportSanidadeExcel(String nameExcel, String idPropriedade) async {
   try {
     print('=== INÍCIO DA EXPORTAÇÃO - SANIDADE ===');
     print('Nome arquivo: $nameExcel');
@@ -57,7 +57,7 @@ Future exportSanidadeExcel(String nameExcel, String idPropriedade) async {
 
     if (allData.isEmpty) {
       print('AVISO: Nenhum registro encontrado para exportar');
-      return;
+      return false;
     }
 
     print('Criando Excel...');
@@ -197,7 +197,7 @@ Future exportSanidadeExcel(String nameExcel, String idPropriedade) async {
 
     if (bytes == null || bytes.isEmpty) {
       print('ERRO: Não foi possível codificar o Excel');
-      return;
+      return false;
     }
 
     print('Excel codificado! Tamanho: ${bytes.length} bytes');
@@ -207,9 +207,11 @@ Future exportSanidadeExcel(String nameExcel, String idPropriedade) async {
 
     print('=== DOWNLOAD CONCLUÍDO COM SUCESSO! ===');
     print('Total de registros exportados: ${allData.length}');
+    return true;
   } catch (e, stackTrace) {
     print('=== ERRO CRÍTICO ===');
     print('Erro: $e');
     print('StackTrace: $stackTrace');
+    return false;
   }
 }

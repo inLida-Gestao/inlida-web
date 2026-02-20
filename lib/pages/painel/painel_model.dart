@@ -59,15 +59,10 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   int? dropDownValue4;
   FormFieldController<int>? dropDownValueController4;
 
-  // State field(s) for FiltroLoteTaxaConcepcao widget.
-  String? filtroLoteTaxaConcepcaoValue;
-  FormFieldController<String>? filtroLoteTaxaConcepcaoValueController;
-  // State field(s) for FiltroTouroTaxaConcepcao widget.
-  String? filtroTouroTaxaConcepcaoValue;
-  FormFieldController<String>? filtroTouroTaxaConcepcaoValueController;
-  // State field(s) for FiltroInseminadorTaxaConcepcao widget.
-  String? filtroInseminadorTaxaConcepcaoValue;
-  FormFieldController<String>? filtroInseminadorTaxaConcepcaoValueController;
+  // Multi-select filters for "Taxa de concepção" chart.
+  List<String> filtroLoteTaxaConcepcaoValues = [];
+  List<String> filtroTouroTaxaConcepcaoValues = [];
+  List<String> filtroInseminadorTaxaConcepcaoValues = [];
   // Cache for Taxa de concepção API call.
   Future<ApiCallResponse>? taxaPrenhezFuture;
   String? taxaPrenhezFutureKey;
@@ -82,6 +77,9 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   // State field(s) for ddPeso widget.
   String? ddPesoValue;
   FormFieldController<String>? ddPesoValueController;
+  // State field(s) for DropDownRacaNascimento widget.
+  String? dropDownRacaNascimentoValue;
+  FormFieldController<String>? dropDownRacaNascimentoValueController;
   // State field(s) for DropDownMotivoMorte widget.
   String? dropDownMotivoMorteValue;
   FormFieldController<String>? dropDownMotivoMorteValueController;
@@ -103,18 +101,13 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
     sideBarModel = createModel(context, () => SideBarModel());
     emptyModel = createModel(context, () => EmptyModel());
     loadingModel = createModel(context, () => LoadingModel());
+    dropDownRacaNascimentoValue = 'Todos';
     dropDownMotivoMorteValue = 'Todos';
     dropDownDiagnosticoCategoriaValue = 'Todos';
 
-    // Defaults dos filtros do gráfico "Taxa de concepção".
-    filtroLoteTaxaConcepcaoValue = '';
-    filtroTouroTaxaConcepcaoValue = '';
-    filtroInseminadorTaxaConcepcaoValue = '';
-    
-    // Inicializar controllers dos filtros do gráfico "Taxa de concepção".
-    filtroLoteTaxaConcepcaoValueController = FormFieldController<String>('');
-    filtroTouroTaxaConcepcaoValueController = FormFieldController<String>('');
-    filtroInseminadorTaxaConcepcaoValueController = FormFieldController<String>('');
+    filtroLoteTaxaConcepcaoValues = [];
+    filtroTouroTaxaConcepcaoValues = [];
+    filtroInseminadorTaxaConcepcaoValues = [];
   }
 
   @override
@@ -126,10 +119,6 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
     emptyModel.dispose();
     loadingModel.dispose();
     
-    // Limpar controllers dos filtros do gráfico "Taxa de concepção".
-    filtroLoteTaxaConcepcaoValueController?.dispose();
-    filtroTouroTaxaConcepcaoValueController?.dispose();
-    filtroInseminadorTaxaConcepcaoValueController?.dispose();
   }
 
   /// Additional helper methods.

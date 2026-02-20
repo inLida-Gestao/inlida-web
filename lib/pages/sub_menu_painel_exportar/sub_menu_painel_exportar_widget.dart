@@ -98,7 +98,7 @@ class _SubMenuPainelExportarWidgetState
                         backgroundColor: FlutterFlowTheme.of(context).secondary,
                       ),
                     );
-                    await actions.exportRebanhoExcel(
+                    final success = await actions.exportRebanhoExcel(
                       'rebanho_${FFAppState().propriedadeSelecionada.nome}_${dateTimeFormat(
                         "d_M_yy_HH_mm_ss",
                         getCurrentTimestamp,
@@ -107,6 +107,19 @@ class _SubMenuPainelExportarWidgetState
                       FFAppState().propriedadeSelecionada.idPropriedade,
                     );
                     Navigator.pop(context);
+                    if (!success) {
+                      ScaffoldMessenger.of(context).clearSnackBars();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                            'Nenhum registro de rebanho encontrado para exportar.',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          duration: const Duration(milliseconds: 3000),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                    }
                   }
                 },
                 child: Container(
@@ -233,7 +246,7 @@ class _SubMenuPainelExportarWidgetState
                         backgroundColor: FlutterFlowTheme.of(context).secondary,
                       ),
                     );
-                    await actions.exportReproducaoExcel(
+                    final success = await actions.exportReproducaoExcel(
                       'reproducao_${FFAppState().propriedadeSelecionada.nome}_${dateTimeFormat(
                         "d_M_yy_HH_mm_ss",
                         getCurrentTimestamp,
@@ -242,6 +255,19 @@ class _SubMenuPainelExportarWidgetState
                       FFAppState().propriedadeSelecionada.idPropriedade,
                     );
                     Navigator.pop(context);
+                    if (!success) {
+                      ScaffoldMessenger.of(context).clearSnackBars();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                            'Nenhum registro de reprodução encontrado para exportar.',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          duration: const Duration(milliseconds: 3000),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                    }
                   }
                 },
                 child: Container(
@@ -321,7 +347,7 @@ class _SubMenuPainelExportarWidgetState
                         backgroundColor: FlutterFlowTheme.of(context).secondary,
                       ),
                     );
-                    await actions.exportSanidadeExcel(
+                    final success = await actions.exportSanidadeExcel(
                       'sanidade_${FFAppState().propriedadeSelecionada.nome}_${dateTimeFormat(
                         "d_M_yy_HH_mm_ss",
                         getCurrentTimestamp,
@@ -330,6 +356,19 @@ class _SubMenuPainelExportarWidgetState
                       FFAppState().propriedadeSelecionada.idPropriedade,
                     );
                     Navigator.pop(context);
+                    if (!success) {
+                      ScaffoldMessenger.of(context).clearSnackBars();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                            'Nenhum registro de sanidade encontrado para exportar.',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          duration: const Duration(milliseconds: 3000),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                    }
                   }
                 },
                 child: Container(
