@@ -2330,18 +2330,20 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 mainAxisSize: MainAxisSize.max,
                                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                 children: [
-                                                                                  Text(
-                                                                                    'Idade desmama (Meses)',
-                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                          font: GoogleFonts.poppins(
+                                                                                  Flexible(
+                                                                                    child: Text(
+                                                                                      'Idade desmama (Meses)',
+                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                            fontSize: 18.0,
+                                                                                            letterSpacing: 0.0,
                                                                                             fontWeight: FontWeight.w600,
                                                                                             fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                           ),
-                                                                                          fontSize: 18.0,
-                                                                                          letterSpacing: 0.0,
-                                                                                          fontWeight: FontWeight.w600,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                        ),
+                                                                                    ),
                                                                                   ),
                                                                                   _buildMultiFilterChip(
                                                                                     context,
@@ -2413,12 +2415,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       final ultimoDia = DateTime(ano, mes + 1, 0).day;
                                                                       return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                     }(),
-                                                                    sexo: valueOrDefault<
-                                                                        String>(
-                                                                      _model
-                                                                          .ddPesoValue,
-                                                                      'M',
-                                                                    ),
+                                                                    sexo: _model.filtroSexoPesoDesmamaValues.isEmpty || _model.filtroSexoPesoDesmamaValues.length == 2
+                                                                        ? 'T'
+                                                                        : _model.filtroSexoPesoDesmamaValues.first,
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -2491,61 +2490,37 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 mainAxisSize: MainAxisSize.max,
                                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                 children: [
-                                                                                  Text(
-                                                                                    'Peso desmama (kg)',
-                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                          font: GoogleFonts.poppins(
+                                                                                  Flexible(
+                                                                                    child: Text(
+                                                                                      'Peso desmama (kg)',
+                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                            fontSize: 18.0,
+                                                                                            letterSpacing: 0.0,
                                                                                             fontWeight: FontWeight.w600,
                                                                                             fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                           ),
-                                                                                          fontSize: 18.0,
-                                                                                          letterSpacing: 0.0,
-                                                                                          fontWeight: FontWeight.w600,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                        ),
+                                                                                    ),
                                                                                   ),
-                                                                                  FlutterFlowDropDown<String>(
-                                                                                    controller: _model.ddPesoValueController ??= FormFieldController<String>(
-                                                                                      _model.ddPesoValue ??= 'T',
-                                                                                    ),
-                                                                                    options: List<String>.from([
-                                                                                      'M',
-                                                                                      'F',
-                                                                                      'T'
-                                                                                    ]),
-                                                                                    optionLabels: const [
-                                                                                      'Macho',
-                                                                                      'Fêmea',
-                                                                                      'Todos'
-                                                                                    ],
-                                                                                    onChanged: (val) => safeSetState(() => _model.ddPesoValue = val),
-                                                                                    width: 104.0,
-                                                                                    height: 40.0,
-                                                                                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                          font: GoogleFonts.poppins(
-                                                                                            fontWeight: FontWeight.w600,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                          ),
-                                                                                          letterSpacing: 0.0,
-                                                                                          fontWeight: FontWeight.w600,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                        ),
-                                                                                    hintText: 'Macho',
-                                                                                    icon: Icon(
-                                                                                      Icons.keyboard_arrow_down_rounded,
-                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                      size: 24.0,
-                                                                                    ),
-                                                                                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                    elevation: 2.0,
-                                                                                    borderColor: FlutterFlowTheme.of(context).customColor5,
-                                                                                    borderWidth: 0.0,
-                                                                                    borderRadius: 4.0,
-                                                                                    margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                    hidesUnderline: true,
-                                                                                    isOverButton: false,
-                                                                                    isSearchable: false,
-                                                                                    isMultiSelect: false,
+                                                                                  _buildMultiFilterChip(
+                                                                                    context,
+                                                                                    label: 'Sexo',
+                                                                                    selectedValues: _model.filtroSexoPesoDesmamaValues,
+                                                                                    options: const ['M', 'F'],
+                                                                                    optionLabels: const ['Macho', 'Fêmea'],
+                                                                                    onChanged: (vals) {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroSexoPesoDesmamaValues = vals;
+                                                                                      });
+                                                                                    },
+                                                                                    onClear: () {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroSexoPesoDesmamaValues = [];
+                                                                                      });
+                                                                                    },
                                                                                   ),
                                                                                 ],
                                                                               ),
@@ -2856,8 +2831,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 mainAxisSize: MainAxisSize.max,
                                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                 children: [
-                                                                                  Padding(
-                                                                                    padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 16.0, 0.0),
+                                                                                  Flexible(
                                                                                     child: Text(
                                                                                       'Mortalidade de bezerros no Período (cabeça)',
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -3155,8 +3129,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .idPropriedade,
                                                                     agrupar:
                                                                         'mes',
-                                                                    sexo: _model
-                                                                        .ddProjDesmamaValue,
+                                                                    sexo: _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2
+                                                                        ? 'Todos'
+                                                                        : _model.filtroSexoProjDesmamaValues.first,
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -3238,91 +3213,39 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           ),
                                                                                     ),
                                                                                   ),
-                                                                                  FlutterFlowDropDown<String>(
-                                                                                    controller: _model.ddProjDesmamaValueController ??= FormFieldController<String>(
-                                                                                      _model.ddProjDesmamaValue ??= 'Macho',
-                                                                                    ),
-                                                                                    options: List<String>.from([
-                                                                                      'Macho',
-                                                                                      'Fêmea',
-                                                                                      'Todos'
-                                                                                    ]),
-                                                                                    optionLabels: const [
-                                                                                      'Todos',
-                                                                                      'Fêmea',
-                                                                                      'Todos'
-                                                                                    ],
-                                                                                    onChanged: (val) => safeSetState(() => _model.ddProjDesmamaValue = val),
-                                                                                    width: 104.0,
-                                                                                    height: 40.0,
-                                                                                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                          font: GoogleFonts.poppins(
-                                                                                            fontWeight: FontWeight.w600,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                          ),
-                                                                                          letterSpacing: 0.0,
-                                                                                          fontWeight: FontWeight.w600,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                        ),
-                                                                                    hintText: 'Macho',
-                                                                                    icon: Icon(
-                                                                                      Icons.keyboard_arrow_down_rounded,
-                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                      size: 24.0,
-                                                                                    ),
-                                                                                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                    elevation: 2.0,
-                                                                                    borderColor: FlutterFlowTheme.of(context).customColor5,
-                                                                                    borderWidth: 0.0,
-                                                                                    borderRadius: 4.0,
-                                                                                    margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                    hidesUnderline: true,
-                                                                                    isOverButton: false,
-                                                                                    isSearchable: false,
-                                                                                    isMultiSelect: false,
+                                                                                  _buildMultiFilterChip(
+                                                                                    context,
+                                                                                    label: 'Sexo',
+                                                                                    selectedValues: _model.filtroSexoProjDesmamaValues,
+                                                                                    options: const ['Macho', 'Fêmea'],
+                                                                                    optionLabels: const ['Macho', 'Fêmea'],
+                                                                                    onChanged: (vals) {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroSexoProjDesmamaValues = vals;
+                                                                                      });
+                                                                                    },
+                                                                                    onClear: () {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroSexoProjDesmamaValues = [];
+                                                                                      });
+                                                                                    },
                                                                                   ),
-                                                                                  FlutterFlowDropDown<String>(
-                                                                                    controller: _model.ddMesesValueController ??= FormFieldController<String>(
-                                                                                      _model.ddMesesValue ??= '6',
-                                                                                    ),
-                                                                                    options: List<String>.from([
-                                                                                      '6',
-                                                                                      '7',
-                                                                                      '8'
-                                                                                    ]),
-                                                                                    optionLabels: const [
-                                                                                      '6',
-                                                                                      '7',
-                                                                                      '8'
-                                                                                    ],
-                                                                                    onChanged: (val) => safeSetState(() => _model.ddMesesValue = val),
-                                                                                    width: 104.0,
-                                                                                    height: 40.0,
-                                                                                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                          font: GoogleFonts.poppins(
-                                                                                            fontWeight: FontWeight.w600,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                          ),
-                                                                                          letterSpacing: 0.0,
-                                                                                          fontWeight: FontWeight.w600,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                        ),
-                                                                                    hintText: '6',
-                                                                                    icon: Icon(
-                                                                                      Icons.keyboard_arrow_down_rounded,
-                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                      size: 24.0,
-                                                                                    ),
-                                                                                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                    elevation: 2.0,
-                                                                                    borderColor: FlutterFlowTheme.of(context).customColor5,
-                                                                                    borderWidth: 0.0,
-                                                                                    borderRadius: 4.0,
-                                                                                    margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                    hidesUnderline: true,
-                                                                                    isOverButton: false,
-                                                                                    isSearchable: false,
-                                                                                    isMultiSelect: false,
+                                                                                  _buildSingleFilterChip(
+                                                                                    context,
+                                                                                    label: 'Meses',
+                                                                                    selectedValue: _model.ddMesesValue,
+                                                                                    options: const ['6', '7', '8'],
+                                                                                    optionLabels: const ['6 meses', '7 meses', '8 meses'],
+                                                                                    onChanged: (val) {
+                                                                                      safeSetState(() {
+                                                                                        _model.ddMesesValue = val;
+                                                                                      });
+                                                                                    },
+                                                                                    onClear: () {
+                                                                                      safeSetState(() {
+                                                                                        _model.ddMesesValue = '6';
+                                                                                      });
+                                                                                    },
                                                                                   ),
                                                                                 ].divide(const SizedBox(width: 12.0)),
                                                                               ),
@@ -3341,8 +3264,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 containerProjecaoDesmamasResponse.jsonBody,
                                                                                               ) ??
                                                                                               containerProjecaoDesmamasResponse.jsonBody,
-                                                                                          filtroSexo: _model.ddProjDesmamaValue!,
-                                                                                          filtroIdadeMeses: _model.ddMesesValue!,
+                                                                                          filtroSexo: _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2
+                                                                                              ? 'Todos'
+                                                                                              : _model.filtroSexoProjDesmamaValues.first,
+                                                                                          filtroIdadeMeses: _model.ddMesesValue,
                                                                                         )
                                                                                       : Center(
                                                                                           child: Text(
@@ -4777,14 +4702,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
-                                                                    categoria: _model.dropDownDiagnosticoCategoriaValue !=
-                                                                            null &&
-                                                                        _model.dropDownDiagnosticoCategoriaValue !=
-                                                                            '' &&
-                                                                        _model.dropDownDiagnosticoCategoriaValue !=
-                                                                            'Todos'
-                                                                        ? _model
-                                                                            .dropDownDiagnosticoCategoriaValue
+                                                                    categoria: _model.filtroCategoriadiagnosticoValue != 'Todos'
+                                                                        ? _model.filtroCategoriadiagnosticoValue
                                                                         : '',
                                                                   ),
                                                                   builder: (context,
@@ -4857,8 +4776,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 mainAxisSize: MainAxisSize.max,
                                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                 children: [
-                                                                                  Padding(
-                                                                                    padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 16.0, 0.0),
+                                                                                  Flexible(
                                                                                     child: Text(
                                                                                       'Diagnósticos reprodutivos por categoria',
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -4873,45 +4791,34 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           ),
                                                                                     ),
                                                                                   ),
-                                                                                  FlutterFlowDropDown<String>(
-                                                                                    controller: _model.dropDownDiagnosticoCategoriaValueController ??= FormFieldController<String>('Todos'),
+                                                                                  _buildSingleFilterChip(
+                                                                                    context,
+                                                                                    label: 'Categoria',
+                                                                                    selectedValue: _model.filtroCategoriadiagnosticoValue == 'Todos' ? null : _model.filtroCategoriadiagnosticoValue,
                                                                                     options: const [
-                                                                                      'Todos',
                                                                                       'Não diagnosticado',
                                                                                       'Absorção',
                                                                                       'Aborto',
                                                                                       'Prenhez',
-                                                                                      'Vazio'
+                                                                                      'Vazio',
                                                                                     ],
-                                                                                    onChanged: (val) => safeSetState(() => _model.dropDownDiagnosticoCategoriaValue = val),
-                                                                                    width: 180.0,
-                                                                                    height: 40.0,
-                                                                                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      fontSize: 14.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                    ),
-                                                                                    hintText: 'Categoria',
-                                                                                    icon: Icon(
-                                                                                      Icons.keyboard_arrow_down_rounded,
-                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                      size: 24.0,
-                                                                                    ),
-                                                                                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                    elevation: 2.0,
-                                                                                    borderColor: FlutterFlowTheme.of(context).customColor5,
-                                                                                    borderWidth: 0.0,
-                                                                                    borderRadius: 8.0,
-                                                                                    margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                    hidesUnderline: true,
-                                                                                    isOverButton: false,
-                                                                                    isSearchable: false,
-                                                                                    isMultiSelect: false,
+                                                                                    optionLabels: const [
+                                                                                      'Não diagnosticado',
+                                                                                      'Absorção',
+                                                                                      'Aborto',
+                                                                                      'Prenhez',
+                                                                                      'Vazio',
+                                                                                    ],
+                                                                                    onChanged: (val) {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroCategoriadiagnosticoValue = val;
+                                                                                      });
+                                                                                    },
+                                                                                    onClear: () {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroCategoriadiagnosticoValue = 'Todos';
+                                                                                      });
+                                                                                    },
                                                                                   ),
                                                                                 ],
                                                                               ),
@@ -5730,6 +5637,213 @@ class _PainelWidgetState extends State<PainelWidget>
                                     ),
                                     child: isItemSelected
                                         ? const Icon(Icons.check, color: Colors.white, size: 16.0)
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 12.0),
+                                  Expanded(
+                                    child: Text(
+                                      optionLabels[i],
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14.0,
+                                        fontWeight: isItemSelected ? FontWeight.w600 : FontWeight.w400,
+                                        color: isItemSelected ? greenColor : const Color(0xFF2F2F2F),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    actions: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 44.0,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: greenColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop(tempSelected);
+                          },
+                          child: Text(
+                            'Aplicar',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          );
+          if (result != null) {
+            onChanged(result);
+          }
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isActive)
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 0.0, 0.0),
+                child: GestureDetector(
+                  onTap: onClear,
+                  child: Container(
+                    width: 24.0,
+                    height: 24.0,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2F2F2F),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 14.0,
+                    ),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                isActive ? 8.0 : 16.0, 0.0, 0.0, 0.0,
+              ),
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w600,
+                  color: grayLabel,
+                  height: 1.3,
+                ),
+              ),
+            ),
+            if (isActive)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Container(
+                  width: 1.0,
+                  height: 24.0,
+                  color: borderColor,
+                ),
+              ),
+            if (isActive)
+              Text(
+                displayValue,
+                style: GoogleFonts.poppins(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w600,
+                  color: greenColor,
+                  height: 1.3,
+                ),
+              ),
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                isActive ? 0.0 : 8.0, 0.0, 12.0, 0.0,
+              ),
+              child: const Icon(
+                Icons.expand_more,
+                color: greenColor,
+                size: 24.0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSingleFilterChip(
+    BuildContext context, {
+    required String label,
+    required String? selectedValue,
+    required List<String> options,
+    required List<String> optionLabels,
+    required void Function(String) onChanged,
+    required VoidCallback onClear,
+  }) {
+    final isActive = selectedValue != null && selectedValue.isNotEmpty;
+    const greenColor = Color(0xFF1E7A4C);
+    const grayLabel = Color(0xFF8E8E8E);
+    const borderColor = Color(0xFFBEBEBE);
+
+    String displayValue = '';
+    if (isActive) {
+      final idx = options.indexOf(selectedValue);
+      displayValue = idx >= 0 && idx < optionLabels.length ? optionLabels[idx] : selectedValue;
+    }
+
+    return Container(
+      height: 40.0,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24.0),
+        border: Border.all(color: borderColor, width: 1.0),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24.0),
+        onTap: () async {
+          final result = await showDialog<String>(
+            context: context,
+            builder: (dialogContext) {
+              String? tempSelected = selectedValue;
+              return StatefulBuilder(
+                builder: (ctx, setDialogState) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.0),
+                    ),
+                    titlePadding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                    contentPadding: const EdgeInsets.fromLTRB(0.0, 12.0, 0.0, 0.0),
+                    actionsPadding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+                    title: Text(
+                      label,
+                      style: GoogleFonts.poppins(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF2F2F2F),
+                      ),
+                    ),
+                    content: SizedBox(
+                      width: 340.0,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: options.length,
+                        itemBuilder: (ctx, i) {
+                          final isItemSelected = tempSelected == options[i];
+                          return InkWell(
+                            onTap: () {
+                              setDialogState(() {
+                                tempSelected = options[i];
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 22.0,
+                                    height: 22.0,
+                                    decoration: BoxDecoration(
+                                      color: isItemSelected ? greenColor : Colors.white,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isItemSelected ? greenColor : borderColor,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: isItemSelected
+                                        ? const Icon(Icons.check, color: Colors.white, size: 14.0)
                                         : null,
                                   ),
                                   const SizedBox(width: 12.0),

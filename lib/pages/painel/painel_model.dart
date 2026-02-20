@@ -74,21 +74,17 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   // State field(s) for ddIdade widget.
   List<String> filtroSexoIdadeDesmamaValues = [];
   // State field(s) for ddPeso widget.
-  String? ddPesoValue;
-  FormFieldController<String>? ddPesoValueController;
+  List<String> filtroSexoPesoDesmamaValues = [];
   // Multi-select filter for Raça in Nascimentos chart.
   List<String> filtroRacaNascimentoValues = [];
   // Multi-select filter for Motivo Morte in Mortalidade chart.
   List<String> filtroMotivoMorteMortalidadeValues = [];
-  // State field(s) for DropDownDiagnosticoCategoria widget.
-  String? dropDownDiagnosticoCategoriaValue;
-  FormFieldController<String>? dropDownDiagnosticoCategoriaValueController;
-  // State field(s) for ddProjDesmama widget.
-  String? ddProjDesmamaValue;
-  FormFieldController<String>? ddProjDesmamaValueController;
-  // State field(s) for ddMeses widget.
-  String? ddMesesValue;
-  FormFieldController<String>? ddMesesValueController;
+  // Single-select filter for Categoria in Diagnósticos reprodutivos chart.
+  String filtroCategoriadiagnosticoValue = 'Todos';
+  // Multi-select filter for Sexo in Projeção de desmamas chart.
+  List<String> filtroSexoProjDesmamaValues = [];
+  // Single-select filter for Meses in Projeção de desmamas chart.
+  String ddMesesValue = '6';
   // Model for loading component.
   late LoadingModel loadingModel;
 
@@ -100,7 +96,6 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
     loadingModel = createModel(context, () => LoadingModel());
     filtroRacaNascimentoValues = [];
     filtroMotivoMorteMortalidadeValues = [];
-    dropDownDiagnosticoCategoriaValue = 'Todos';
 
     filtroLoteTaxaConcepcaoValues = [];
     filtroTouroTaxaConcepcaoValues = [];
