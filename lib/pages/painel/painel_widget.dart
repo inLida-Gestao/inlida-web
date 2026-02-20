@@ -2255,12 +2255,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       final ultimoDia = DateTime(ano, mes + 1, 0).day;
                                                                       return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                     }(),
-                                                                    sexo: valueOrDefault<
-                                                                        String>(
-                                                                      _model
-                                                                          .ddIdadeValue,
-                                                                      'M',
-                                                                    ),
+                                                                    sexo: _model.filtroSexoIdadeDesmamaValues.isEmpty || _model.filtroSexoIdadeDesmamaValues.length == 2
+                                                                        ? 'T'
+                                                                        : _model.filtroSexoIdadeDesmamaValues.first,
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -2346,48 +2343,22 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                         ),
                                                                                   ),
-                                                                                  FlutterFlowDropDown<String>(
-                                                                                    controller: _model.ddIdadeValueController ??= FormFieldController<String>(
-                                                                                      _model.ddIdadeValue ??= 'T',
-                                                                                    ),
-                                                                                    options: List<String>.from([
-                                                                                      'M',
-                                                                                      'F',
-                                                                                      'T'
-                                                                                    ]),
-                                                                                    optionLabels: const [
-                                                                                      'Macho',
-                                                                                      'Fêmea',
-                                                                                      'Todos'
-                                                                                    ],
-                                                                                    onChanged: (val) => safeSetState(() => _model.ddIdadeValue = val),
-                                                                                    width: 104.0,
-                                                                                    height: 40.0,
-                                                                                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                          font: GoogleFonts.poppins(
-                                                                                            fontWeight: FontWeight.w600,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                          ),
-                                                                                          letterSpacing: 0.0,
-                                                                                          fontWeight: FontWeight.w600,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                        ),
-                                                                                    hintText: 'Macho',
-                                                                                    icon: Icon(
-                                                                                      Icons.keyboard_arrow_down_rounded,
-                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                      size: 24.0,
-                                                                                    ),
-                                                                                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                    elevation: 2.0,
-                                                                                    borderColor: FlutterFlowTheme.of(context).customColor5,
-                                                                                    borderWidth: 0.0,
-                                                                                    borderRadius: 4.0,
-                                                                                    margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                    hidesUnderline: true,
-                                                                                    isOverButton: false,
-                                                                                    isSearchable: false,
-                                                                                    isMultiSelect: false,
+                                                                                  _buildMultiFilterChip(
+                                                                                    context,
+                                                                                    label: 'Sexo',
+                                                                                    selectedValues: _model.filtroSexoIdadeDesmamaValues,
+                                                                                    options: const ['M', 'F'],
+                                                                                    optionLabels: const ['Macho', 'Fêmea'],
+                                                                                    onChanged: (vals) {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroSexoIdadeDesmamaValues = vals;
+                                                                                      });
+                                                                                    },
+                                                                                    onClear: () {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroSexoIdadeDesmamaValues = [];
+                                                                                      });
+                                                                                    },
                                                                                   ),
                                                                                 ],
                                                                               ),
@@ -2648,10 +2619,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
-                                                                    raca: _model.dropDownRacaNascimentoValue != null &&
-                                                                            _model.dropDownRacaNascimentoValue != '' &&
-                                                                            _model.dropDownRacaNascimentoValue != 'Todos'
-                                                                        ? _model.dropDownRacaNascimentoValue
+                                                                    raca: _model.filtroRacaNascimentoValues.isNotEmpty
+                                                                        ? _model.filtroRacaNascimentoValues.join(',')
                                                                         : '',
                                                                   ),
                                                                   builder: (context,
@@ -2734,56 +2703,22 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           ),
                                                                                     ),
                                                                                   ),
-                                                                                  FlutterFlowDropDown<String>(
-                                                                                    controller: _model.dropDownRacaNascimentoValueController ??= FormFieldController<String>('Todos'),
-                                                                                    options: ['Todos', ...FFAppState().raca],
-                                                                                    onChanged: (val) => safeSetState(() => _model.dropDownRacaNascimentoValue = val),
-                                                                                    width: 200.0,
-                                                                                    height: 40.0,
-                                                                                    searchHintTextStyle: FlutterFlowTheme.of(context).labelMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                      ),
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                    ),
-                                                                                    searchTextStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                    ),
-                                                                                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      fontSize: 14.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                    ),
-                                                                                    hintText: 'Raça',
-                                                                                    icon: Icon(
-                                                                                      Icons.keyboard_arrow_down_rounded,
-                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                      size: 24.0,
-                                                                                    ),
-                                                                                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                    elevation: 2.0,
-                                                                                    borderColor: FlutterFlowTheme.of(context).customColor5,
-                                                                                    borderWidth: 0.0,
-                                                                                    borderRadius: 8.0,
-                                                                                    margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                    hidesUnderline: true,
-                                                                                    isOverButton: false,
-                                                                                    isSearchable: true,
-                                                                                    isMultiSelect: false,
+                                                                                  _buildMultiFilterChip(
+                                                                                    context,
+                                                                                    label: 'Raça',
+                                                                                    selectedValues: _model.filtroRacaNascimentoValues,
+                                                                                    options: FFAppState().raca,
+                                                                                    optionLabels: FFAppState().raca,
+                                                                                    onChanged: (vals) {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroRacaNascimentoValues = vals;
+                                                                                      });
+                                                                                    },
+                                                                                    onClear: () {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroRacaNascimentoValues = [];
+                                                                                      });
+                                                                                    },
                                                                                   ),
                                                                                 ].divide(const SizedBox(width: 16.0)),
                                                                               ),
@@ -2852,14 +2787,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
-                                                                    causa: _model.dropDownMotivoMorteValue !=
-                                                                                null &&
-                                                                            _model.dropDownMotivoMorteValue !=
-                                                                                '' &&
-                                                                            _model.dropDownMotivoMorteValue !=
-                                                                                'Todos'
-                                                                        ? _model
-                                                                            .dropDownMotivoMorteValue
+                                                                    causa: _model.filtroMotivoMorteMortalidadeValues.isNotEmpty
+                                                                        ? _model.filtroMotivoMorteMortalidadeValues.join(',')
                                                                         : '',
                                                                   ),
                                                                   builder: (context,
@@ -2943,49 +2872,48 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           ),
                                                                                     ),
                                                                                   ),
-                                                                                  FlutterFlowDropDown<String>(
-                                                                                    controller: _model.dropDownMotivoMorteValueController ??= FormFieldController<String>('Todos'),
+                                                                                  _buildMultiFilterChip(
+                                                                                    context,
+                                                                                    label: 'Causa',
+                                                                                    selectedValues: _model.filtroMotivoMorteMortalidadeValues,
                                                                                     options: const [
-                                                                                      'Todos',
                                                                                       'ACIDENTE',
                                                                                       'ANIMAL PEÇONHENTO',
                                                                                       'ATAQUE AVE',
+                                                                                      'DESCONHECIDA',
                                                                                       'DOENÇA',
                                                                                       'ESTRESSE TÉRMICO',
                                                                                       'INTOXICAÇÃO',
+                                                                                      'MANTIMENTO',
+                                                                                      'NATIMORTO',
                                                                                       'NEONATO',
                                                                                       'PARTO DISTÓCICO',
-                                                                                      'PREDADOR'
+                                                                                      'PREDADOR',
                                                                                     ],
-                                                                                    onChanged: (val) => safeSetState(() => _model.dropDownMotivoMorteValue = val),
-                                                                                    width: 140.0,
-                                                                                    height: 40.0,
-                                                                                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      fontSize: 14.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                    ),
-                                                                                    hintText: 'Causa',
-                                                                                    icon: Icon(
-                                                                                      Icons.keyboard_arrow_down_rounded,
-                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                      size: 24.0,
-                                                                                    ),
-                                                                                    fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                    elevation: 2.0,
-                                                                                    borderColor: FlutterFlowTheme.of(context).customColor5,
-                                                                                    borderWidth: 0.0,
-                                                                                    borderRadius: 8.0,
-                                                                                    margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                                                                    hidesUnderline: true,
-                                                                                    isOverButton: false,
-                                                                                    isSearchable: false,
-                                                                                    isMultiSelect: false,
+                                                                                    optionLabels: const [
+                                                                                      'ACIDENTE',
+                                                                                      'ANIMAL PEÇONHENTO',
+                                                                                      'ATAQUE AVE',
+                                                                                      'DESCONHECIDA',
+                                                                                      'DOENÇA',
+                                                                                      'ESTRESSE TÉRMICO',
+                                                                                      'INTOXICAÇÃO',
+                                                                                      'MANTIMENTO',
+                                                                                      'NATIMORTO',
+                                                                                      'NEONATO',
+                                                                                      'PARTO DISTÓCICO',
+                                                                                      'PREDADOR',
+                                                                                    ],
+                                                                                    onChanged: (vals) {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroMotivoMorteMortalidadeValues = vals;
+                                                                                      });
+                                                                                    },
+                                                                                    onClear: () {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroMotivoMorteMortalidadeValues = [];
+                                                                                      });
+                                                                                    },
                                                                                   ),
                                                                                 ].divide(const SizedBox(width: 16.0)),
                                                                               ),
