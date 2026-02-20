@@ -188,7 +188,7 @@ Future<_RebanhoLookup> _fetchRebanhoLookupFromDb(String idPropriedade) async {
   while (true) {
     final res = await Supabase.instance.client
         .from('rebanho')
-      .select('idRebanho,numeroAnimal,nome,dataNascimento,raca,chip,deletado')
+        .select('idRebanho,numeroAnimal,nome,dataNascimento,raca,chip,deletado')
         .eq('idPropriedade', idPropriedade)
         .range(from, from + pageSize - 1);
 
@@ -305,7 +305,8 @@ double? _parseDoubleSafe(dynamic value) {
   if (value is int) return value.toDouble();
   final s = value.toString().trim();
   if (s.isEmpty) return null;
-  final normalized = s.contains(',') ? s.replaceAll('.', '').replaceAll(',', '.') : s;
+  final normalized =
+      s.contains(',') ? s.replaceAll('.', '').replaceAll(',', '.') : s;
   return double.tryParse(normalized);
 }
 
@@ -360,7 +361,8 @@ Map<String, dynamic> _prepareReproducaoRecord(
   // Converter campos de data de DD/MM/YYYY para YYYY-MM-DD
   for (final dateField in dateFields) {
     if (cleanData[dateField] != null) {
-      cleanData[dateField] = _convertDateFormat(cleanData[dateField].toString());
+      cleanData[dateField] =
+          _convertDateFormat(cleanData[dateField].toString());
     }
   }
 
@@ -368,7 +370,8 @@ Map<String, dynamic> _prepareReproducaoRecord(
   if (cleanData['previsao_parto'] == null &&
       cleanData['data_inseminacao'] != null &&
       cleanData['data_inseminacao'].toString().isNotEmpty) {
-    cleanData['previsao_parto'] = _addDaysToDate(cleanData['data_inseminacao'].toString(), 295);
+    cleanData['previsao_parto'] =
+        _addDaysToDate(cleanData['data_inseminacao'].toString(), 295);
   }
 
   // Resolver id_lote pelo loteNome (se faltar)
@@ -411,11 +414,19 @@ Map<String, dynamic> _prepareReproducaoRecord(
   return cleanData;
 }
 
-Future<bool> batchInsertSupabaseReproducao(
+Future<Map<String, dynamic>> batchInsertSupabaseReproducao(
   List<dynamic> records,
   String idPropriedade,
 ) async {
-  if (records.isEmpty) return true;
+  if (records.isEmpty) {
+    return {
+      'success': true,
+      'total': 0,
+      'inserted': 0,
+      'failed': 0,
+      'failedRows': <Map<String, dynamic>>[],
+    };
+  }
 
   try {
     // Configurações de performance
@@ -438,6 +449,10 @@ Future<bool> batchInsertSupabaseReproducao(
     // Cache para resolver ids
     final loteNomeToIdLote = await _fetchLoteNomeToIdLoteMap(idPropriedade);
     final rebanhoLookup = await _fetchRebanhoLookupFromDb(idPropriedade);
+
+    int totalInserted = 0;
+    int totalFailed = 0;
+    final List<Map<String, dynamic>> failedRows = [];
 
     // Processar em chunks para melhor performance
     for (int i = 0; i < records.length; i += chunkSize) {
@@ -468,13 +483,16 @@ Future<bool> batchInsertSupabaseReproducao(
               ignoreDuplicates: false,
             );
 
+        totalInserted += cleanRecords.length;
+
         print(
             'Chunk ${(i / chunkSize).floor() + 1}: ${chunk.length} registros inseridos');
       } catch (chunkError) {
         print('Erro no chunk ${(i / chunkSize).floor() + 1}: $chunkError');
 
         // Tentar inserir registro por registro em caso de erro no chunk
-        for (final record in chunk) {
+        for (int chunkIndex = 0; chunkIndex < chunk.length; chunkIndex++) {
+          final record = chunk[chunkIndex];
           try {
             final cleanData = _prepareReproducaoRecord(
               Map<String, dynamic>.from(record as Map),
@@ -486,19 +504,165 @@ Future<bool> batchInsertSupabaseReproducao(
             await Supabase.instance.client
                 .from('reproducao')
                 .upsert(cleanData, onConflict: 'id_reproducao');
+
+            totalInserted += 1;
           } catch (recordError) {
             print('Erro ao inserir registro individual: $recordError');
-            return false;
+            totalFailed += 1;
+
+            final originalData = record is Map
+                ? Map<String, dynamic>.from(record)
+                : <String, dynamic>{};
+            failedRows.add({
+              'linha': i + chunkIndex + 2,
+              'id_reproducao':
+                  (originalData['id_reproducao']?.toString() ?? '').trim(),
+              'numeroMatriz':
+                  (originalData['numMatriz']?.toString() ?? '').trim(),
+              'nomeMatriz':
+                  (originalData['nomeMatriz']?.toString() ?? '').trim(),
+              'motivo': _buildFriendlyImportError(recordError),
+              'erro': recordError.toString(),
+            });
+            continue;
           }
         }
       }
     }
 
-    return true;
+    if (totalFailed > 0) {
+      print(
+        'Importação de reprodução concluída com falhas: inseridos=$totalInserted, falhas=$totalFailed, total=${records.length}',
+      );
+      return {
+        'success': false,
+        'total': records.length,
+        'inserted': totalInserted,
+        'failed': totalFailed,
+        'failedRows': failedRows,
+      };
+    }
+
+    print(
+      'Importação de reprodução concluída: inseridos=$totalInserted, total=${records.length}',
+    );
+    return {
+      'success': true,
+      'total': records.length,
+      'inserted': totalInserted,
+      'failed': 0,
+      'failedRows': <Map<String, dynamic>>[],
+    };
   } catch (e, stack) {
     print('Erro geral no batch insert: $e');
     print(stack);
-    return false;
+    return {
+      'success': false,
+      'total': records.length,
+      'inserted': 0,
+      'failed': records.length,
+      'failedRows': <Map<String, dynamic>>[
+        {
+          'linha': null,
+          'id_reproducao': '',
+          'numeroMatriz': '',
+          'nomeMatriz': '',
+          'motivo': _buildFriendlyImportError(e),
+          'erro': e.toString(),
+        }
+      ],
+    };
+  }
+}
+
+String _buildFriendlyImportError(Object error) {
+  final raw = error.toString();
+  final lower = raw.toLowerCase();
+  final column = _extractErrorColumn(lower);
+  final keyColumn = _extractKeyColumn(lower);
+
+  if (lower.contains('date') ||
+      lower.contains('timestamp') ||
+      lower.contains('invalid input syntax for type date')) {
+    if (column != null) {
+      return 'Data inválida ou em formato não reconhecido no campo ${_labelReproducaoColumn(column)}.';
+    }
+    return 'Data inválida ou em formato não reconhecido.';
+  }
+
+  if (lower.contains('invalid input syntax for type numeric') ||
+      lower.contains('invalid input syntax for type double') ||
+      lower.contains('invalid input syntax for type integer')) {
+    if (column != null) {
+      return 'Valor numérico inválido no campo ${_labelReproducaoColumn(column)}.';
+    }
+    return 'Valor numérico inválido.';
+  }
+
+  if (lower.contains('duplicate key') || lower.contains('unique constraint')) {
+    if (keyColumn != null) {
+      return 'Registro duplicado para chave única no campo ${_labelReproducaoColumn(keyColumn)}.';
+    }
+    return 'Registro duplicado para chave única.';
+  }
+
+  if (lower.contains('null value in column') ||
+      lower.contains('not-null constraint')) {
+    if (column != null) {
+      return 'Campo obrigatório ausente: ${_labelReproducaoColumn(column)}.';
+    }
+    return 'Campo obrigatório ausente.';
+  }
+
+  if (lower.contains('violates foreign key constraint') ||
+      lower.contains('foreign key')) {
+    if (keyColumn != null) {
+      return 'Referência inválida no campo ${_labelReproducaoColumn(keyColumn)} (registro relacionado não encontrado).';
+    }
+    return 'Referência inválida (ex.: lote/matriz/reprodutor inexistente).';
+  }
+
+  return raw;
+}
+
+String? _extractErrorColumn(String lowerRaw) {
+  final match = RegExp(r'column\s+"([^"]+)"').firstMatch(lowerRaw);
+  return match?.group(1);
+}
+
+String? _extractKeyColumn(String lowerRaw) {
+  final match = RegExp(r'key\s*\(([^\)]+)\)').firstMatch(lowerRaw);
+  return match?.group(1)?.trim();
+}
+
+String _labelReproducaoColumn(String column) {
+  switch (column) {
+    case 'id_reproducao':
+      return 'ID da reprodução';
+    case 'data_inseminacao':
+      return 'Data de inseminação';
+    case 'data_partida_semen':
+      return 'Data da partida do sêmen';
+    case 'previsao_parto':
+      return 'Previsão de parto';
+    case 'data_parto':
+      return 'Data de parto';
+    case 'nascimentomatriz':
+      return 'Nascimento da matriz';
+    case 'nascimentoreprodutor':
+      return 'Nascimento do reprodutor';
+    case 'score_corporal':
+      return 'Score corporal';
+    case 'partida_semen':
+      return 'Partida do sêmen';
+    case 'id_lote':
+      return 'Lote';
+    case 'id_rebanho_matriz':
+      return 'Matriz';
+    case 'id_rebanho_reprodutor':
+      return 'Reprodutor';
+    default:
+      return column;
   }
 }
 
@@ -586,20 +750,33 @@ String? _convertDateFormat(String dateStr) {
     // Remover espaços em branco
     dateStr = dateStr.trim();
 
-    // Verificar se já está no formato YYYY-MM-DD
-    if (RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(dateStr)) {
-      return dateStr.split(' ')[0]; // Remove hora se existir
+    // Verificar se já está no formato YYYY-MM-DD (com ou sem hora)
+    final isoMatch =
+        RegExp(r'^(\d{4}-\d{2}-\d{2})(?:\s+.*)?$').firstMatch(dateStr);
+    if (isoMatch != null) {
+      final isoDate = isoMatch.group(1)!;
+      final parsedIso = DateTime.tryParse(isoDate);
+      if (parsedIso == null) {
+        print('Data ISO inválida: $dateStr');
+        return null;
+      }
+      return isoDate;
     }
 
-    // Verificar se está no formato DD/MM/YYYY
-    if (RegExp(r'^\d{2}[/\-]\d{2}[/\-]\d{4}').hasMatch(dateStr)) {
-      final parts = dateStr.split(RegExp(r'[/\-]'));
-      if (parts.length >= 3) {
-        final day = parts[0].padLeft(2, '0');
-        final month = parts[1].padLeft(2, '0');
-        final year = parts[2];
-        return '$year-$month-$day';
+    // Verificar formato DD/MM/YYYY (com ou sem hora no final)
+    final brMatch = RegExp(r'^(\d{2})[/\-](\d{2})[/\-](\d{4})(?:\s+.*)?$')
+        .firstMatch(dateStr);
+    if (brMatch != null) {
+      final day = brMatch.group(1)!;
+      final month = brMatch.group(2)!;
+      final year = brMatch.group(3)!;
+      final converted = '$year-$month-$day';
+      final parsedBr = DateTime.tryParse(converted);
+      if (parsedBr == null) {
+        print('Data BR inválida: $dateStr');
+        return null;
       }
+      return converted;
     }
 
     // Se não conseguir converter, retorna null

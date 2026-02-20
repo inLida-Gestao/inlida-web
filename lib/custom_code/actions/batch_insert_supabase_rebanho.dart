@@ -745,6 +745,7 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
           'linha': null,
           'numeroAnimal': '',
           'nome': '',
+          'motivo': _buildFriendlyImportError(e),
           'erro': e.toString(),
         }
       ],
@@ -755,34 +756,100 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
 String _buildFriendlyImportError(Object error) {
   final raw = error.toString();
   final lower = raw.toLowerCase();
+  final column = _extractErrorColumn(lower);
+  final keyColumn = _extractKeyColumn(lower);
 
   if (lower.contains('date') ||
       lower.contains('timestamp') ||
       lower.contains('invalid input syntax for type date')) {
+    if (column != null) {
+      return 'Data inválida ou em formato não reconhecido no campo ${_labelRebanhoColumn(column)}.';
+    }
     return 'Data inválida ou em formato não reconhecido.';
   }
 
   if (lower.contains('invalid input syntax for type numeric') ||
       lower.contains('invalid input syntax for type double') ||
       lower.contains('invalid input syntax for type integer')) {
+    if (column != null) {
+      return 'Valor numérico inválido no campo ${_labelRebanhoColumn(column)}.';
+    }
     return 'Valor numérico inválido em uma das colunas de peso/valor.';
   }
 
   if (lower.contains('duplicate key') || lower.contains('unique constraint')) {
+    if (keyColumn != null) {
+      return 'Registro duplicado para chave única no campo ${_labelRebanhoColumn(keyColumn)}.';
+    }
     return 'Registro duplicado para chave única.';
   }
 
   if (lower.contains('null value in column') ||
       lower.contains('not-null constraint')) {
+    if (column != null) {
+      return 'Campo obrigatório ausente: ${_labelRebanhoColumn(column)}.';
+    }
     return 'Campo obrigatório ausente.';
   }
 
   if (lower.contains('violates foreign key constraint') ||
       lower.contains('foreign key')) {
+    if (keyColumn != null) {
+      return 'Referência inválida no campo ${_labelRebanhoColumn(keyColumn)} (registro relacionado não encontrado).';
+    }
     return 'Referência inválida (ex.: lote, matriz ou reprodutor inexistente).';
   }
 
   return raw;
+}
+
+String? _extractErrorColumn(String lowerRaw) {
+  final match = RegExp(r'column\s+"([^"]+)"').firstMatch(lowerRaw);
+  return match?.group(1);
+}
+
+String? _extractKeyColumn(String lowerRaw) {
+  final match = RegExp(r'key\s*\(([^\)]+)\)').firstMatch(lowerRaw);
+  return match?.group(1)?.trim();
+}
+
+String _labelRebanhoColumn(String column) {
+  switch (column) {
+    case 'datanascimento':
+      return 'Data de nascimento';
+    case 'datadesmama':
+      return 'Data de desmama';
+    case 'dataultimapesagem':
+      return 'Data da última pesagem';
+    case 'datavenda':
+      return 'Data de venda';
+    case 'dataacao':
+      return 'Data de compra';
+    case 'data_morte':
+      return 'Data de morte';
+    case 'pesoatual':
+      return 'Peso atual';
+    case 'pesodesmama':
+      return 'Peso de desmama';
+    case 'pesonascimento':
+      return 'Peso de nascimento';
+    case 'valorcompra':
+      return 'Valor de compra';
+    case 'valorvenda':
+      return 'Valor de venda';
+    case 'loteid':
+      return 'Lote';
+    case 'rebanhoidmatriz':
+      return 'Matriz';
+    case 'rebanhoidreprodutor':
+      return 'Reprodutor';
+    case 'numeroanimal':
+      return 'Número do animal';
+    case 'idrebanho':
+      return 'ID do animal';
+    default:
+      return column;
+  }
 }
 
 // Função auxiliar para preparar registros de pesagem

@@ -58,6 +58,63 @@ class _SubMenuPainelImportarWidgetState
     await download(Stream.fromIterable(bytes), fileName);
   }
 
+  Future<void> _exportFailedRowsCsvLotes(List<dynamic> failedRows) async {
+    final buffer = StringBuffer();
+    buffer.writeln('Linha;ID_Lote;Nome;Motivo;Erro');
+
+    for (final row in failedRows) {
+      final map =
+          row is Map ? Map<String, dynamic>.from(row) : <String, dynamic>{};
+
+      final linha = (map['linha']?.toString() ?? '').trim();
+      final idLote = (map['id_lote']?.toString() ?? '').trim();
+      final nome = (map['nome']?.toString() ?? '').trim();
+      final motivo = (map['motivo']?.toString() ?? '').trim();
+      final erro = (map['erro']?.toString() ?? '').trim();
+
+      buffer.writeln(
+        '${_csvEscape(linha)};${_csvEscape(idLote)};${_csvEscape(nome)};${_csvEscape(motivo)};${_csvEscape(erro)}',
+      );
+    }
+
+    final csvContent = '\uFEFF${buffer.toString()}';
+    final bytes = utf8.encode(csvContent);
+    final now = DateTime.now();
+    final fileName =
+        'erros_importacao_lotes_${now.year.toString().padLeft(4, '0')}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}.csv';
+
+    await download(Stream.fromIterable(bytes), fileName);
+  }
+
+  Future<void> _exportFailedRowsCsvReproducao(List<dynamic> failedRows) async {
+    final buffer = StringBuffer();
+    buffer.writeln('Linha;ID_Reproducao;Numero_Matriz;Nome_Matriz;Motivo;Erro');
+
+    for (final row in failedRows) {
+      final map =
+          row is Map ? Map<String, dynamic>.from(row) : <String, dynamic>{};
+
+      final linha = (map['linha']?.toString() ?? '').trim();
+      final idReproducao = (map['id_reproducao']?.toString() ?? '').trim();
+      final numeroMatriz = (map['numeroMatriz']?.toString() ?? '').trim();
+      final nomeMatriz = (map['nomeMatriz']?.toString() ?? '').trim();
+      final motivo = (map['motivo']?.toString() ?? '').trim();
+      final erro = (map['erro']?.toString() ?? '').trim();
+
+      buffer.writeln(
+        '${_csvEscape(linha)};${_csvEscape(idReproducao)};${_csvEscape(numeroMatriz)};${_csvEscape(nomeMatriz)};${_csvEscape(motivo)};${_csvEscape(erro)}',
+      );
+    }
+
+    final csvContent = '\uFEFF${buffer.toString()}';
+    final bytes = utf8.encode(csvContent);
+    final now = DateTime.now();
+    final fileName =
+        'erros_importacao_reproducao_${now.year.toString().padLeft(4, '0')}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}.csv';
+
+    await download(Stream.fromIterable(bytes), fileName);
+  }
+
   @override
   void setState(VoidCallback callback) {
     super.setState(callback);
@@ -449,15 +506,22 @@ class _SubMenuPainelImportarWidgetState
                       _model.listaJson =
                           _model.jsonLotes!.toList().cast<dynamic>();
                       safeSetState(() {});
-                      await actions.batchInsertSupabaseLotes(
+                      final importResult =
+                          await actions.batchInsertSupabaseLotes(
                         _model.listaJson.toList(),
                         FFAppState().propriedadeSelecionada.idPropriedade,
                       );
+                      final bool success = importResult['success'] == true;
+                      final List<dynamic> failedRows =
+                          (importResult['failedRows'] as List<dynamic>? ?? [])
+                              .toList();
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Upload finalizado com sucesso',
+                            success
+                                ? 'Upload finalizado com sucesso'
+                                : 'Upload finalizado com inconsistências. Verifique os dados da planilha.',
                             style: TextStyle(
                               color: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
@@ -470,6 +534,134 @@ class _SubMenuPainelImportarWidgetState
                               FlutterFlowTheme.of(context).secondary,
                         ),
                       );
+
+                      if (failedRows.isNotEmpty && context.mounted) {
+                        await showDialog(
+                          context: context,
+                          builder: (dialogContext) {
+                            final previewRows = failedRows.take(100).toList();
+                            return AlertDialog(
+                              title:
+                                  const Text('Linhas com erro na importação'),
+                              content: SizedBox(
+                                width: 500.0,
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        failedRows.length > 100
+                                            ? 'Mostrando 100 de ${failedRows.length} erros.'
+                                            : 'Total de erros: ${failedRows.length}.',
+                                        style:
+                                            FlutterFlowTheme.of(dialogContext)
+                                                .bodyMedium,
+                                      ),
+                                      const SizedBox(height: 12.0),
+                                      ...previewRows.map((row) {
+                                        final map = row is Map
+                                            ? Map<String, dynamic>.from(row)
+                                            : <String, dynamic>{};
+                                        final linha =
+                                            map['linha']?.toString() ?? '-';
+                                        final idLote =
+                                            (map['id_lote']?.toString() ?? '')
+                                                .trim();
+                                        final nome =
+                                            (map['nome']?.toString() ?? '')
+                                                .trim();
+                                        final motivo =
+                                            (map['motivo']?.toString() ??
+                                                    map['erro']?.toString() ??
+                                                    'Erro não identificado.')
+                                                .trim();
+
+                                        final idLoteDisplay =
+                                            idLote.isEmpty ? '-' : idLote;
+                                        final nomeDisplay =
+                                            nome.isEmpty ? '-' : nome;
+
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 10.0),
+                                          child: Text(
+                                            'Linha $linha • ID Lote: $idLoteDisplay • Nome: $nomeDisplay\nMotivo: $motivo',
+                                            style: FlutterFlowTheme.of(
+                                                    dialogContext)
+                                                .bodyMedium,
+                                          ),
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () async {
+                                    try {
+                                      await _exportFailedRowsCsvLotes(
+                                          failedRows);
+                                      if (dialogContext.mounted) {
+                                        ScaffoldMessenger.of(dialogContext)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'CSV de erros exportado com sucesso.',
+                                              style: TextStyle(
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 14.0,
+                                              ),
+                                            ),
+                                            duration: const Duration(
+                                                milliseconds: 3000),
+                                            backgroundColor:
+                                                FlutterFlowTheme.of(context)
+                                                    .secondary,
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (dialogContext.mounted) {
+                                        ScaffoldMessenger.of(dialogContext)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Erro ao exportar CSV: $e',
+                                              style: TextStyle(
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 14.0,
+                                              ),
+                                            ),
+                                            duration: const Duration(
+                                                milliseconds: 4000),
+                                            backgroundColor:
+                                                FlutterFlowTheme.of(context)
+                                                    .secondary,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: const Text('Exportar CSV'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(dialogContext),
+                                  child: const Text('Fechar'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
                     }
                   } else {
                     await showDialog(
@@ -600,15 +792,22 @@ class _SubMenuPainelImportarWidgetState
                       _model.listaJson =
                           _model.jsonReproducao!.toList().cast<dynamic>();
                       safeSetState(() {});
-                      await actions.batchInsertSupabaseReproducao(
+                      final importResult =
+                          await actions.batchInsertSupabaseReproducao(
                         _model.listaJson.toList(),
                         FFAppState().propriedadeSelecionada.idPropriedade,
                       );
+                      final bool success = importResult['success'] == true;
+                      final List<dynamic> failedRows =
+                          (importResult['failedRows'] as List<dynamic>? ?? [])
+                              .toList();
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Upload finalizado com sucesso',
+                            success
+                                ? 'Upload finalizado com sucesso'
+                                : 'Upload finalizado com inconsistências. Verifique os dados da planilha.',
                             style: TextStyle(
                               color: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
@@ -621,6 +820,146 @@ class _SubMenuPainelImportarWidgetState
                               FlutterFlowTheme.of(context).secondary,
                         ),
                       );
+
+                      if (failedRows.isNotEmpty && context.mounted) {
+                        await showDialog(
+                          context: context,
+                          builder: (dialogContext) {
+                            final previewRows = failedRows.take(100).toList();
+                            return AlertDialog(
+                              title:
+                                  const Text('Linhas com erro na importação'),
+                              content: SizedBox(
+                                width: 500.0,
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        failedRows.length > 100
+                                            ? 'Mostrando 100 de ${failedRows.length} erros.'
+                                            : 'Total de erros: ${failedRows.length}.',
+                                        style:
+                                            FlutterFlowTheme.of(dialogContext)
+                                                .bodyMedium,
+                                      ),
+                                      const SizedBox(height: 12.0),
+                                      ...previewRows.map((row) {
+                                        final map = row is Map
+                                            ? Map<String, dynamic>.from(row)
+                                            : <String, dynamic>{};
+                                        final linha =
+                                            map['linha']?.toString() ?? '-';
+                                        final idReproducao =
+                                            (map['id_reproducao']?.toString() ??
+                                                    '')
+                                                .trim();
+                                        final numeroMatriz =
+                                            (map['numeroMatriz']?.toString() ??
+                                                    '')
+                                                .trim();
+                                        final nomeMatriz =
+                                            (map['nomeMatriz']?.toString() ??
+                                                    '')
+                                                .trim();
+                                        final motivo =
+                                            (map['motivo']?.toString() ??
+                                                    map['erro']?.toString() ??
+                                                    'Erro não identificado.')
+                                                .trim();
+
+                                        final idDisplay = idReproducao.isEmpty
+                                            ? '-'
+                                            : idReproducao;
+                                        final numeroDisplay =
+                                            numeroMatriz.isEmpty
+                                                ? '-'
+                                                : numeroMatriz;
+                                        final nomeDisplay = nomeMatriz.isEmpty
+                                            ? '-'
+                                            : nomeMatriz;
+
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 10.0),
+                                          child: Text(
+                                            'Linha $linha • ID Reprodução: $idDisplay\nNº Matriz: $numeroDisplay • Nome Matriz: $nomeDisplay\nMotivo: $motivo',
+                                            style: FlutterFlowTheme.of(
+                                                    dialogContext)
+                                                .bodyMedium,
+                                          ),
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () async {
+                                    try {
+                                      await _exportFailedRowsCsvReproducao(
+                                          failedRows);
+                                      if (dialogContext.mounted) {
+                                        ScaffoldMessenger.of(dialogContext)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'CSV de erros exportado com sucesso.',
+                                              style: TextStyle(
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 14.0,
+                                              ),
+                                            ),
+                                            duration: const Duration(
+                                                milliseconds: 3000),
+                                            backgroundColor:
+                                                FlutterFlowTheme.of(context)
+                                                    .secondary,
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (dialogContext.mounted) {
+                                        ScaffoldMessenger.of(dialogContext)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Erro ao exportar CSV: $e',
+                                              style: TextStyle(
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryBackground,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 14.0,
+                                              ),
+                                            ),
+                                            duration: const Duration(
+                                                milliseconds: 4000),
+                                            backgroundColor:
+                                                FlutterFlowTheme.of(context)
+                                                    .secondary,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: const Text('Exportar CSV'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(dialogContext),
+                                  child: const Text('Fechar'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
                     }
                   } else {
                     await showDialog(
