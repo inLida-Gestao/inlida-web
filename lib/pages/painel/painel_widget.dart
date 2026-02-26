@@ -1391,8 +1391,6 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         Container(
                                                                       width: double
                                                                           .infinity,
-                                                                      height:
-                                                                          625.0,
                                                                       decoration:
                                                                           BoxDecoration(
                                                                         color: FlutterFlowTheme.of(context)
@@ -1421,7 +1419,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         child:
                                                                             Column(
                                                                           mainAxisSize:
-                                                                              MainAxisSize.max,
+                                                                              MainAxisSize.min,
                                                                           children: [
                                                                             Row(
                                                                               mainAxisSize: MainAxisSize.max,
@@ -1814,7 +1812,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                   return Container(
                                                                                     decoration: const BoxDecoration(),
                                                                                     child: Column(
-                                                                                      mainAxisSize: MainAxisSize.max,
+                                                                                      mainAxisSize: MainAxisSize.min,
                                                                                       children: [
                                                                                         if ((FFAppState().propriedadeSelecionada.idPropriedade != '') &&
                                                                                             (FunctionsSupabaseRebanhoGroup.graficoQtdRebanhoPeriodoCall
@@ -3849,14 +3847,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                           'deletado',
                                                                                                           'NAO',
                                                                                                         )
-                                                                                                        .gte(
-                                                                                                          'data_inseminacao',
-                                                                                                          dataInicioFiltro,
-                                                                                                        )
-                                                                                                        .lte(
-                                                                                                          'data_inseminacao',
-                                                                                                          dataFimFiltro,
-                                                                                                        ),
+                                                                                                        .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
                                                                                                     limit: 5000,
                                                                                                   ),
                                                                                                   LotesTable().queryRows(
@@ -3927,7 +3918,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 );
                                                                                             },
                                                                                           ),
-                                                                                      FutureBuilder<List<dynamic>>(
+                                                                                      FutureBuilder<List<ReproducaoRow>>(
                                                                                             key: ValueKey('touros_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
                                                                                             future: () {
                                                                                               final dataInicioFiltro = () {
@@ -3959,40 +3950,19 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                                               }();
 
-                                                                                              return Future.wait([
-                                                                                                ReproducaoTable().queryRows(
-                                                                                                  queryFn: (q) => q
-                                                                                                      .eqOrNull(
-                                                                                                        'id_propriedade',
-                                                                                                        FFAppState().propriedadeSelecionada.idPropriedade,
-                                                                                                      )
-                                                                                                      .eqOrNull(
-                                                                                                        'deletado',
-                                                                                                        'NAO',
-                                                                                                      )
-                                                                                                      .gte(
-                                                                                                        'data_inseminacao',
-                                                                                                        dataInicioFiltro,
-                                                                                                      )
-                                                                                                      .lte(
-                                                                                                        'data_inseminacao',
-                                                                                                        dataFimFiltro,
-                                                                                                      ),
-                                                                                                  limit: 5000,
-                                                                                                ),
-                                                                                                RebanhoTable().queryRows(
-                                                                                                  queryFn: (q) => q
-                                                                                                      .eqOrNull(
-                                                                                                        'categoria',
-                                                                                                        'Touro',
-                                                                                                      )
-                                                                                                      .eqOrNull(
-                                                                                                        'deletado',
-                                                                                                        'NAO',
-                                                                                                      ),
-                                                                                                  limit: 5000,
-                                                                                                ),
-                                                                                              ]);
+                                                                                              return ReproducaoTable().queryRows(
+                                                                                                queryFn: (q) => q
+                                                                                                    .eqOrNull(
+                                                                                                      'id_propriedade',
+                                                                                                      FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                                    )
+                                                                                                    .eqOrNull(
+                                                                                                      'deletado',
+                                                                                                      'NAO',
+                                                                                                    )
+                                                                                                    .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
+                                                                                                limit: 5000,
+                                                                                              );
                                                                                             }(),
                                                                                             builder: (context, tourosSnapshot) {
                                                                                               if (!tourosSnapshot.hasData) {
@@ -4007,41 +3977,22 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                   ),
                                                                                                 );
                                                                                               }
-                                                                                              final reproRows = tourosSnapshot.data![0] as List<ReproducaoRow>;
-                                                                                              final rebanhoRows = tourosSnapshot.data![1] as List<RebanhoRow>;
+                                                                                              final reproRows = tourosSnapshot.data!;
 
-                                                                                              final tourosComReproducao = reproRows
-                                                                                                  .map((e) => e.idRebanhoReprodutor)
-                                                                                                  .withoutNulls
-                                                                                                  .map((e) => e.trim())
-                                                                                                  .where((e) => e.isNotEmpty)
-                                                                                                  .toSet();
+                                                                                              final touroMap = <String, String>{};
+                                                                                              for (final r in reproRows) {
+                                                                                                final id = r.idRebanhoReprodutor?.trim() ?? '';
+                                                                                                if (id.isEmpty) continue;
+                                                                                                if (touroMap.containsKey(id)) continue;
+                                                                                                final nome = r.nomeReprodutor?.trim() ?? '';
+                                                                                                touroMap[id] = nome.isNotEmpty ? nome : 'Touro S/N';
+                                                                                              }
 
-                                                                                                final rebanhoNomeById = <String, String>{};
-                                                                                                for (final touro in rebanhoRows) {
-                                                                                                  final idRebanho = touro.idRebanho?.trim();
-                                                                                                  if (idRebanho == null || idRebanho.isEmpty) {
-                                                                                                    continue;
-                                                                                                  }
-                                                                                                  if (rebanhoNomeById.containsKey(idRebanho)) {
-                                                                                                    continue;
-                                                                                                  }
-                                                                                                  final nome = touro.nome?.trim() ?? '';
-                                                                                                  rebanhoNomeById[idRebanho] =
-                                                                                                      nome.isNotEmpty ? nome : 'Touro S/N';
-                                                                                                }
-
-                                                                                                final touroEntries = tourosComReproducao
-                                                                                                    .where((id) => rebanhoNomeById.containsKey(id))
-                                                                                                    .map((id) => MapEntry(id, rebanhoNomeById[id]!))
-                                                                                                    .toList();
-
-                                                                                                touroEntries.sort((a, b) {
+                                                                                              final touroEntries = touroMap.entries.toList()
+                                                                                                ..sort((a, b) {
                                                                                                   final labelA = a.value.toLowerCase();
                                                                                                   final labelB = b.value.toLowerCase();
-                                                                                                  if (labelA != labelB) {
-                                                                                                    return labelA.compareTo(labelB);
-                                                                                                  }
+                                                                                                  if (labelA != labelB) return labelA.compareTo(labelB);
                                                                                                   return a.key.compareTo(b.key);
                                                                                                 });
 

@@ -376,6 +376,8 @@ class BuscarReproducaoFiltrosCall {
     String? pPesquisa = '',
     String? pReprodutor = '',
     String? pTipoReproducao = '',
+    String? pSortColumn = 'data',
+    String? pSortDirection = 'desc',
   }) async {
     final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
 
@@ -391,7 +393,9 @@ class BuscarReproducaoFiltrosCall {
   "p_matriz": "${escapeStringForJson(pMatriz)}",
   "p_reprodutor": "${escapeStringForJson(pReprodutor)}",
   "p_limite": $pLimite,
-  "p_offset": $pOffset
+  "p_offset": $pOffset,
+  "p_sort_column": "${escapeStringForJson(pSortColumn)}",
+  "p_sort_direction": "${escapeStringForJson(pSortDirection)}"
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Buscar Reproducao Filtros',

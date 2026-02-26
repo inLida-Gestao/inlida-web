@@ -34,6 +34,10 @@ class PgReproducaoModel extends FlutterFlowModel<PgReproducaoWidget> {
 
   int pageTotal = 1;
 
+  String sortColumn = 'data';
+
+  String sortDirection = 'desc';
+
   ///  State fields for stateful widgets in this page.
 
   InstantTimer? instantTimer;

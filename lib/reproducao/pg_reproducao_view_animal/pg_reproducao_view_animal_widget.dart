@@ -2707,6 +2707,47 @@ class _PgReproducaoViewAnimalWidgetState
                                           ),
                                       ].divide(const SizedBox(width: 16.0)),
                                     ),
+                                    if (_model.parida == true)
+                                      Builder(
+                                        builder: (context) {
+                                          final dataInsem = _model.reproducaoSelecionada?.dataInseminacao;
+                                          final dataParto = _model.datePicked ?? _model.reproducaoSelecionada?.dataParto;
+                                          if (dataInsem == null || dataParto == null) return const SizedBox.shrink();
+                                          final dias = dataParto.difference(dataInsem).inDays;
+                                          return Padding(
+                                            padding: const EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 0.0),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFF0F7F4),
+                                                borderRadius: BorderRadius.circular(8.0),
+                                                border: Border.all(color: const Color(0xFF1E7A4C), width: 1.0),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(Icons.calendar_today, color: Color(0xFF1E7A4C), size: 20.0),
+                                                  const SizedBox(width: 8.0),
+                                                  Text(
+                                                    'Dias entre ${_model.tipoReproducao == 'Inseminação' ? 'inseminação' : 'monta'} e parto: $dias dias',
+                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                      font: GoogleFonts.poppins(
+                                                        fontWeight: FontWeight.w600,
+                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                      ),
+                                                      fontSize: 14.0,
+                                                      letterSpacing: 0.0,
+                                                      color: const Color(0xFF1E7A4C),
+                                                      fontWeight: FontWeight.w600,
+                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
                                       children: [

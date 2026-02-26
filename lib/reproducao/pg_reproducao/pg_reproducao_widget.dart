@@ -69,6 +69,9 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
     _model.textController ??= TextEditingController();
     _model.textFieldFocusNode ??= FocusNode();
 
+    _model.paginatedDataTableController.sortColumnIndex = 1;
+    _model.paginatedDataTableController.sortAscending = false;
+
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -106,6 +109,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
               pMatriz: FFAppState().matrizSelecionada.idAnimal,
               pPesquisa: _model.textController.text,
               pReprodutor: FFAppState().reprodutorSelecionado.idAnimal,
+              pSortColumn: _model.sortColumn,
+              pSortDirection: _model.sortDirection,
             )))
           .future,
       builder: (context, snapshot) {
@@ -1068,10 +1073,6 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                     Expanded(
                                       child: Builder(
                                         builder: (context) {
-                                          final sortCol = _model.paginatedDataTableController.sortColumnIndex ?? 1;
-                                          final sortAsc = _model.paginatedDataTableController.sortColumnIndex != null
-                                              ? _model.paginatedDataTableController.sortAscending
-                                              : false;
                                           final reproducao = ((pgReproducaoBuscarReproducaoFiltrosResponse
                                                           .jsonBody
                                                           .toList()
@@ -1082,30 +1083,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                       as Iterable<
                                                           ReproducaoDTStruct?>)
                                                   .withoutNulls
-                                                  .toList()
-                                                ..sort((a, b) {
-                                                  String aKey, bKey;
-                                                  switch (sortCol) {
-                                                    case 0:
-                                                      aKey = a.tipoReproducao; bKey = b.tipoReproducao;
-                                                      break;
-                                                    case 1:
-                                                      aKey = a.dataInseminacao.isNotEmpty ? a.dataInseminacao : a.dataInicial;
-                                                      bKey = b.dataInseminacao.isNotEmpty ? b.dataInseminacao : b.dataInicial;
-                                                      break;
-                                                    case 2:
-                                                      aKey = a.statusReproducao; bKey = b.statusReproducao;
-                                                      break;
-                                                    case 4:
-                                                      aKey = a.nomeMatriz; bKey = b.nomeMatriz;
-                                                      break;
-                                                    default:
-                                                      aKey = a.dataInseminacao.isNotEmpty ? a.dataInseminacao : a.dataInicial;
-                                                      bKey = b.dataInseminacao.isNotEmpty ? b.dataInseminacao : b.dataInicial;
-                                                      break;
-                                                  }
-                                                  return sortAsc ? aKey.compareTo(bKey) : bKey.compareTo(aKey);
-                                                }));
+                                                  .toList());
                                           if (reproducao.isEmpty) {
                                             return const Center(
                                               child: EmptyRebanhoWidget(),
@@ -1118,7 +1096,19 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                 .paginatedDataTableController,
                                             data: reproducao,
                                             onSortChanged: (columnIndex, ascending) {
-                                              safeSetState(() {});
+                                              const columnMap = {
+                                                0: 'tipo_reproducao',
+                                                1: 'data',
+                                                2: 'status',
+                                                4: 'matriz',
+                                              };
+                                              final col = columnMap[columnIndex] ?? 'data';
+                                              final dir = ascending ? 'asc' : 'desc';
+                                              if (_model.sortColumn != col || _model.sortDirection != dir) {
+                                                _model.sortColumn = col;
+                                                _model.sortDirection = dir;
+                                                safeSetState(() => _model.apiRequestCompleter2 = null);
+                                              }
                                             },
                                             columnsBuilder: (onSortChanged) => [
                                               DataColumn2(
