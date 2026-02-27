@@ -1137,7 +1137,7 @@ class _PgRebanhoAddSemenWidgetState extends State<PgRebanhoAddSemenWidget> {
                                                   ),
                                                   'deletado': 'NAO',
                                                   'status': 'Sêmen',
-                                                  'categoria': 'Reprodutor',
+                                                  'categoria': 'Touro',
                                                   'tipo': 'Sêmen',
                                                   'nomeConcat':
                                                       '${_model.numAnimalTextController.text} - ${_model.nomeAnimalTextController.text}',

@@ -5535,22 +5535,33 @@ class _PainelWidgetState extends State<PainelWidget>
                             color: const Color(0xFF2F2F2F),
                           ),
                         ),
-                        if (tempSelected.isNotEmpty)
-                          TextButton(
-                            onPressed: () {
-                              setDialogState(() {
-                                tempSelected.clear();
-                              });
-                            },
-                            child: Text(
-                              'Limpar',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.w500,
-                                color: greenColor,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (tempSelected.isNotEmpty)
+                              TextButton(
+                                onPressed: () {
+                                  setDialogState(() {
+                                    tempSelected.clear();
+                                  });
+                                },
+                                child: Text(
+                                  'Limpar',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14.0,
+                                    fontWeight: FontWeight.w500,
+                                    color: greenColor,
+                                  ),
+                                ),
                               ),
+                            IconButton(
+                              onPressed: () => Navigator.of(dialogContext).pop(),
+                              icon: const Icon(Icons.close, size: 22.0, color: Color(0xFF8E8E8E)),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
                             ),
-                          ),
+                          ],
+                        ),
                       ],
                     ),
                     content: SizedBox(
@@ -5757,13 +5768,24 @@ class _PainelWidgetState extends State<PainelWidget>
                     titlePadding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
                     contentPadding: const EdgeInsets.fromLTRB(0.0, 12.0, 0.0, 0.0),
                     actionsPadding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
-                    title: Text(
-                      label,
-                      style: GoogleFonts.poppins(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF2F2F2F),
-                      ),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          label,
+                          style: GoogleFonts.poppins(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF2F2F2F),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          icon: const Icon(Icons.close, size: 22.0, color: Color(0xFF8E8E8E)),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
                     ),
                     content: SizedBox(
                       width: 340.0,

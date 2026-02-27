@@ -58,7 +58,9 @@ class _PgReproducaoViewAnimalWidgetState
       _model.score = _model.reproducao?.firstOrNull?.scoreCorporal;
       _model.partidaSemen = _model.reproducao?.firstOrNull?.partidaSemen;
       _model.parida = _model.reproducao?.firstOrNull?.parida == 'SIM';
-      _model.ressinc = _model.reproducao?.firstOrNull?.ressinc == 'SIM';
+      _model.ressinc = _model.reproducao?.firstOrNull?.ressinc;
+      _model.gnrh = _model.reproducao?.firstOrNull?.gnrh;
+      _model.cio = _model.reproducao?.firstOrNull?.cio;
 
       // Atualizar TextEditingControllers com os dados carregados
       _model.nomeInseminadorTextController?.text =
@@ -2284,43 +2286,147 @@ class _PgReproducaoViewAnimalWidgetState
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
                                       children: [
-                                        if (_model.ressinc == true)
-                                          Icon(
-                                            Icons.check_box_rounded,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            size: 24.0,
-                                          ),
-                                        if (_model.ressinc != true)
-                                          Icon(
-                                            Icons.check_box_outline_blank,
-                                            color: FlutterFlowTheme.of(context)
-                                                .alternate,
-                                            size: 24.0,
-                                          ),
-                                        Text(
-                                          'Ressincronização',
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.poppins(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.max,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Ressinc.',
+                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                  font: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                  ),
+                                                  fontSize: 16.0,
+                                                  letterSpacing: 0.0,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                 ),
-                                                fontSize: 16.0,
-                                                letterSpacing: 0.0,
-                                                fontWeight: FontWeight.w500,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
                                               ),
+                                              Container(
+                                                width: double.infinity,
+                                                height: 56.0,
+                                                decoration: BoxDecoration(
+                                                  color: FlutterFlowTheme.of(context).customColor2,
+                                                  borderRadius: BorderRadius.circular(8.0),
+                                                ),
+                                                alignment: const AlignmentDirectional(-1.0, 0.0),
+                                                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                child: Text(
+                                                  (_model.ressinc != null && _model.ressinc != 'NAO' && _model.ressinc!.isNotEmpty)
+                                                      ? _model.ressinc!
+                                                      : '-',
+                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                    font: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                    ),
+                                                    fontSize: 16.0,
+                                                    letterSpacing: 0.0,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                  ),
+                                                ),
+                                              ),
+                                            ].divide(const SizedBox(height: 8.0)),
+                                          ),
                                         ),
-                                      ].divide(const SizedBox(width: 8.0)),
+                                        const SizedBox(width: 16.0),
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.max,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'GnRH',
+                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                  font: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                  ),
+                                                  fontSize: 16.0,
+                                                  letterSpacing: 0.0,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                ),
+                                              ),
+                                              Container(
+                                                width: double.infinity,
+                                                height: 56.0,
+                                                decoration: BoxDecoration(
+                                                  color: FlutterFlowTheme.of(context).customColor2,
+                                                  borderRadius: BorderRadius.circular(8.0),
+                                                ),
+                                                alignment: const AlignmentDirectional(-1.0, 0.0),
+                                                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                child: Text(
+                                                  (_model.gnrh != null && _model.gnrh != 'NAO' && _model.gnrh!.isNotEmpty)
+                                                      ? _model.gnrh!
+                                                      : '-',
+                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                    font: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                    ),
+                                                    fontSize: 16.0,
+                                                    letterSpacing: 0.0,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                  ),
+                                                ),
+                                              ),
+                                            ].divide(const SizedBox(height: 8.0)),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16.0),
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.max,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Cio',
+                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                  font: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                  ),
+                                                  fontSize: 16.0,
+                                                  letterSpacing: 0.0,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                ),
+                                              ),
+                                              Container(
+                                                width: double.infinity,
+                                                height: 56.0,
+                                                decoration: BoxDecoration(
+                                                  color: FlutterFlowTheme.of(context).customColor2,
+                                                  borderRadius: BorderRadius.circular(8.0),
+                                                ),
+                                                alignment: const AlignmentDirectional(-1.0, 0.0),
+                                                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                child: Text(
+                                                  (_model.cio != null && _model.cio != 'NAO' && _model.cio!.isNotEmpty)
+                                                      ? _model.cio!
+                                                      : '-',
+                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                    font: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                    ),
+                                                    fontSize: 16.0,
+                                                    letterSpacing: 0.0,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                  ),
+                                                ),
+                                              ),
+                                            ].divide(const SizedBox(height: 8.0)),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     Row(
                                       mainAxisSize: MainAxisSize.max,

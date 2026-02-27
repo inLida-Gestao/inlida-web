@@ -787,6 +787,7 @@ class _CcAddSemenWidgetState extends State<CcAddSemenWidget> {
                               'idRebanho': _model.idRebanho,
                               'deletado': 'NAO',
                               'tipo': 'Sêmen',
+                              'categoria': 'Touro',
                               'nomeConcat':
                                   '${_model.numAnimalTextController.text} - ${_model.nomeAnimalTextController.text}',
                               'sexo': 'Macho',

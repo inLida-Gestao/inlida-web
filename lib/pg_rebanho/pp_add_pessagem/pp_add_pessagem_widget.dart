@@ -3,6 +3,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'pp_add_pessagem_model.dart';
 export 'pp_add_pessagem_model.dart';
@@ -464,6 +465,9 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                                       .fontStyle,
                                 ),
                             keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
                             cursorColor:
                                 FlutterFlowTheme.of(context).primaryText,
                             validator: _model.pesoAddTextControllerValidator
@@ -519,19 +523,19 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                     ),
                     FFButtonWidget(
                       onPressed: () async {
+                        final pesoInteiro = int.tryParse(_model.pesoAddTextController.text)
+                            ?? double.tryParse(_model.pesoAddTextController.text)?.toInt();
                         await HistoricoPesagensTable().insert({
                           'idRebanho': containerRebanhoRow?.idRebanho,
                           'dataPesagem':
                               supaSerialize<DateTime>(_model.datePicked),
                           'tipo': 'Atual',
-                          'peso': double.tryParse(
-                              _model.pesoAddTextController.text),
+                          'peso': pesoInteiro != null ? pesoInteiro.toDouble() : null,
                           'deletado': 'NAO',
                         });
                         await RebanhoTable().update(
                           data: {
-                            'pesoAtual': double.tryParse(
-                                _model.pesoAddTextController.text),
+                            'pesoAtual': pesoInteiro != null ? pesoInteiro.toDouble() : null,
                             'dataUltimaPesagem':
                                 supaSerialize<DateTime>(_model.datePicked),
                           },

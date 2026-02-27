@@ -19,7 +19,11 @@ class PgReproducaoViewAnimalModel
 
   ReproducaoRow? reproducaoSelecionada;
 
-  bool ressinc = false;
+  String? ressinc;
+
+  String? gnrh;
+
+  String? cio;
 
   bool parida = false;
 
