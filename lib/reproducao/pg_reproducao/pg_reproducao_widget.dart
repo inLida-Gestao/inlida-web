@@ -86,6 +86,13 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
+    // Ao aplicar filtros, invalidar o future para forçar nova busca com os valores atuais.
+    if (FFAppState().refreshReproducao == true) {
+      _model.apiRequestCompleter2 = null;
+      _model.apiRequestCompleter1 = null;
+      FFAppState().refreshReproducao = false;
+    }
+
     return FutureBuilder<ApiCallResponse>(
       future: (_model.apiRequestCompleter2 ??= Completer<ApiCallResponse>()
             ..complete(
@@ -109,6 +116,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
               pMatriz: FFAppState().matrizSelecionada.idAnimal,
               pPesquisa: _model.textController.text,
               pReprodutor: FFAppState().reprodutorSelecionado.idAnimal,
+              pTipoReproducao: FFAppState().filtroCategoriaRepro,
               pSortColumn: _model.sortColumn,
               pSortDirection: _model.sortDirection,
             )))
@@ -338,12 +346,12 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                       const Duration(
                                                           milliseconds: 250),
                                                       () async {
-                                                        safeSetState(() => _model
-                                                                .apiRequestCompleter2 =
-                                                            null);
-                                                        safeSetState(() => _model
-                                                                .apiRequestCompleter1 =
-                                                            null);
+                                                        _model.apiRequestCompleter2 =
+                                                            null;
+                                                        _model.apiRequestCompleter1 =
+                                                            null;
+                                                        FFAppState().refreshReproducao = true;
+                                                        safeSetState(() {});
                                                       },
                                                     ),
                                                     autofocus: false,
@@ -479,12 +487,11 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                 _model
                                                                     .textController
                                                                     ?.clear();
-                                                                safeSetState(() =>
-                                                                    _model.apiRequestCompleter2 =
-                                                                        null);
-                                                                safeSetState(() =>
-                                                                    _model.apiRequestCompleter1 =
-                                                                        null);
+                                                                _model.apiRequestCompleter2 =
+                                                                    null;
+                                                                _model.apiRequestCompleter1 =
+                                                                    null;
+                                                                FFAppState().refreshReproducao = true;
                                                                 safeSetState(
                                                                     () {});
                                                               },
@@ -1083,6 +1090,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                       as Iterable<
                                                           ReproducaoDTStruct?>)
                                                   .withoutNulls
+                                                  .where((e) => e.ressinc != 'SIM')
                                                   .toList());
                                           if (reproducao.isEmpty) {
                                             return const Center(
@@ -2402,12 +2410,16 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                         pInseminador: FFAppState()
                                                             .filtroInseminador,
                                                         pMatriz: FFAppState()
-                                                            .filtroIDMatriz,
+                                                            .matrizSelecionada
+                                                            .idAnimal,
                                                         pPesquisa: _model
                                                             .textController
                                                             .text,
                                                         pReprodutor: FFAppState()
-                                                            .filtroIDReprodutor,
+                                                            .reprodutorSelecionado
+                                                            .idAnimal,
+                                                        pTipoReproducao: FFAppState()
+                                                            .filtroCategoriaRepro,
                                                       )))
                                                 .future,
                                             builder: (context, snapshot) {

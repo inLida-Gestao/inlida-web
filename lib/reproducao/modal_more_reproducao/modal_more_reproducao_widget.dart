@@ -73,18 +73,18 @@ class _ModalMoreReproducaoWidgetState extends State<ModalMoreReproducaoWidget> {
           children: [
             FFButtonWidget(
               onPressed: () async {
+                // Usar apenas id_reproducao (UUID/identificador único) para evitar carregar
+                // registro errado: o "id" numérico da lista pode não ser o PK da tabela.
+                final idReproducao = widget.reproducaoID?.trim() ?? '';
+                if (idReproducao.isEmpty) return;
                 context.pushNamed(
                   PgReproducaoViewAnimalWidget.routeName,
                   queryParameters: {
-                    'reproducaoDbId': serializeParam(
-                      widget.reproducaoDbId,
-                      ParamType.int,
-                    ),
                     'idReproducao': serializeParam(
-                      widget.reproducaoID,
+                      idReproducao,
                       ParamType.String,
                     ),
-                  }.withoutNulls,
+                  },
                 );
               },
               text: 'Visualizar',

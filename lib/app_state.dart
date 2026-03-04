@@ -43,6 +43,8 @@ class FFAppState extends ChangeNotifier {
     'Doramectina',
     'Eprinomectina',
     'Ivermectina',
+    'Levamisol',
+    'Moxidectina',
   ];
 
   static const List<String> _kProtocoloReprodutivoOptions = <String>[
@@ -707,6 +709,7 @@ class FFAppState extends ChangeNotifier {
   bool get refreshReproducao => _refreshReproducao;
   set refreshReproducao(bool value) {
     _refreshReproducao = value;
+    notifyListeners();
   }
 
   String _filtroStatusLote = '';

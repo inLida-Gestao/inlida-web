@@ -94,6 +94,61 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
         }));
   }
 
+  /// Carrega os animais do lote a partir do id_animais cadastrado no lote (mesma fonte da tela de edição).
+  Future<List<RebanhoDTStruct>> _loadAnimaisDoLote() async {
+    if (widget.idLote == null || widget.idLote!.isEmpty) return [];
+    final lotes = await LotesTable().queryRows(
+      queryFn: (q) => q.eqOrNull('id_lote', widget.idLote),
+    );
+    final idAnimais = functions.converterJSONparaLista(lotes.firstOrNull?.idAnimais) ?? [];
+    final list = <RebanhoDTStruct>[];
+    for (final idRebanho in idAnimais) {
+      if (idRebanho.trim().isEmpty) continue;
+      final rows = await RebanhoTable().queryRows(
+        queryFn: (q) => q.eqOrNull('idRebanho', idRebanho),
+      );
+      final row = rows.firstOrNull;
+      if (row == null) continue;
+      list.add(RebanhoDTStruct(
+        id: row.id,
+        createdAt: row.createdAt.toString(),
+        idPropriedade: row.idPropriedade,
+        numeroAnimal: row.numeroAnimal,
+        chip: row.chip,
+        codRegistro: row.codRegistro,
+        nome: row.nome,
+        sexo: row.sexo,
+        categoria: row.categoria,
+        dataNascimento: row.dataNascimento?.toString(),
+        pesoNascimento: row.pesoNascimento,
+        porte: row.porte,
+        raca: row.raca,
+        loteID: row.loteID,
+        dataEntradaLote: row.dataEntradaLote?.toString(),
+        rebanhoIdMatriz: row.rebanhoIdMatriz,
+        rebanhoIdReprodutor: row.rebanhoIdReprodutor,
+        dataDesmama: row.dataDesmama?.toString(),
+        pesoDesmama: row.pesoDesmama,
+        pesoAtual: row.pesoAtual,
+        status: row.status,
+        origem: row.origem,
+        anotacoes: row.anotacoes,
+        idRebanho: row.idRebanho,
+        deletado: row.deletado,
+        updatedAt: row.updatedAt?.toString(),
+        loteNome: row.loteNome,
+        tipo: row.tipo,
+        dataAcao: row.dataAcao?.toString(),
+        valorCompra: row.valorCompra,
+        dataUltimaPesagem: row.dataUltimaPesagem?.toString(),
+        nomeConcat: row.nomeConcat,
+        dataVenda: row.dataVenda?.toString(),
+        valorVenda: row.valorVenda,
+      ));
+    }
+    return list;
+  }
+
   @override
   void dispose() {
     _model.dispose();
@@ -105,29 +160,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
-    return FutureBuilder<ApiCallResponse>(
-      future: (_model.apiRequestCompleter ??= Completer<ApiCallResponse>()
-            ..complete(
-                FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
-              pCategoria: FFAppState().filtroCategoria,
-              pDataNascimento: dateTimeFormat(
-                "yyyy-MM-dd",
-                FFAppState().filtroDataNacimento,
-                locale: FFLocalizations.of(context).languageCode,
-              ),
-              pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
-              pLoteNome: FFAppState().filtroLoteNome.isNotEmpty
-                  ? FFAppState().filtroLoteNome
-                  : '',
-              pOrigem: FFAppState().filtroOrigem,
-              pRaca: FFAppState().filtroRaca,
-              pSexo: FFAppState().filtroSexo,
-              pLimite: FFAppConstants.limit,
-              pOffset: functions.calcDeslocamento(
-                  _model.pageNumAdd, FFAppConstants.limit),
-              pPesquisa: _model.pesquisaTextController.text,
-            )))
-          .future,
+    return FutureBuilder<List<RebanhoDTStruct>>(
+      future: _loadAnimaisDoLote(),
       builder: (context, snapshot) {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
@@ -146,7 +180,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
             ),
           );
         }
-        final pgViewLoteBuscarRebanhoFiltrosResponse = snapshot.data!;
+        final animaisNesteLote = snapshot.data ?? <RebanhoDTStruct>[];
 
         return GestureDetector(
           onTap: () {
@@ -1271,7 +1305,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                       children: [
                                                                         Text(
                                                                           'Animais neste lote (${valueOrDefault<String>(
-                                                                            (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.length.toString(),
+                                                                            animaisNesteLote.length.toString(),
                                                                             '0',
                                                                           )})',
                                                                           style: FlutterFlowTheme.of(context)
@@ -1324,9 +1358,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                         ),
                                                                       ],
                                                                     ),
-                                                                    if ((pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList()
-                                                                                as Iterable<RebanhoDTStruct?>)
-                                                                            .withoutNulls.isEmpty)
+                                                                    if (animaisNesteLote.isEmpty)
                                                                       InkWell(
                                                                         splashColor:
                                                                             Colors.transparent,
@@ -1403,7 +1435,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                         builder:
                                                                             (context) {
                                                                           final animais =
-                                                                              (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.take(3).toList().toList() ?? [];
+                                                                              animaisNesteLote.take(3).toList();
 
                                                                           return ListView
                                                                               .builder(
@@ -1595,13 +1627,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                 MainAxisSize
                                                                     .max,
                                                             children: [
-                                                              if ((pgViewLoteBuscarRebanhoFiltrosResponse
-                                                                          .jsonBody
-                                                                          .toList()
-                                                                          .map<RebanhoDTStruct?>(
-                                                                              RebanhoDTStruct.maybeFromMap)
-                                                                          .toList() as Iterable<RebanhoDTStruct?>)
-                                                                      .withoutNulls.isNotEmpty)
+                                                              if (animaisNesteLote.isNotEmpty)
                                                                 Row(
                                                                   mainAxisSize:
                                                                       MainAxisSize
@@ -1667,8 +1693,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                 valueOrDefault<String>(
                                                                                   formatNumber(
                                                                                     valueOrDefault<double>(
-                                                                                          functions.somarTotal((pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>)
-                                                                                              .withoutNulls
+                                                                                          functions.somarTotal(animaisNesteLote
                                                                                               .map((e) => valueOrDefault<double>(
                                                                                                     e.pesoAtual,
                                                                                                     0.0,
@@ -1758,8 +1783,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                 valueOrDefault<String>(
                                                                                   formatNumber(
                                                                                     valueOrDefault<double>(
-                                                                                          functions.somarTotal((pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>)
-                                                                                              .withoutNulls
+                                                                                          functions.somarTotal(animaisNesteLote
                                                                                               .map((e) => valueOrDefault<double>(
                                                                                                     e.pesoAtual,
                                                                                                     0.0,
@@ -1768,7 +1792,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                           0.0,
                                                                                         ) /
                                                                                         valueOrDefault<int>(
-                                                                                          (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.length,
+                                                                                          animaisNesteLote.length,
                                                                                           0,
                                                                                         ),
                                                                                     formatType: FormatType.compact,
@@ -1866,7 +1890,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                         child:
                                                                             Text(
                                                                           'Total: ${valueOrDefault<String>(
-                                                                            (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.length.toString(),
+                                                                            animaisNesteLote.length.toString(),
                                                                             '0',
                                                                           )} animais',
                                                                           style: FlutterFlowTheme.of(context)
@@ -1913,7 +1937,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                   ),
                                                                                   Text(
                                                                                     valueOrDefault<String>(
-                                                                                      (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => e.categoria == 'Vaca Multipara').toList().length.toString(),
+                                                                                      animaisNesteLote.where((e) => e.categoria == 'Vaca Multipara').toList().length.toString(),
                                                                                       '0',
                                                                                     ),
                                                                                     style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -1955,7 +1979,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                   ),
                                                                                   Text(
                                                                                     valueOrDefault<String>(
-                                                                                      (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => e.categoria == 'Vaca Primipara').toList().length.toString(),
+                                                                                      animaisNesteLote.where((e) => e.categoria == 'Vaca Primipara').toList().length.toString(),
                                                                                       '0',
                                                                                     ),
                                                                                     style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -1997,7 +2021,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                   ),
                                                                                   Text(
                                                                                     valueOrDefault<String>(
-                                                                                      (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => e.categoria == 'Bezerro').toList().length.toString(),
+                                                                                      animaisNesteLote.where((e) => e.categoria == 'Bezerro').toList().length.toString(),
                                                                                       '0',
                                                                                     ),
                                                                                     style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -2039,7 +2063,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                   ),
                                                                                   Text(
                                                                                     valueOrDefault<String>(
-                                                                                      (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => e.categoria == 'Bezerra').toList().length.toString(),
+                                                                                      animaisNesteLote.where((e) => e.categoria == 'Bezerra').toList().length.toString(),
                                                                                       '0',
                                                                                     ),
                                                                                     style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -2081,7 +2105,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                   ),
                                                                                   Text(
                                                                                     valueOrDefault<String>(
-                                                                                      (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => e.categoria == 'Boi Gordo').toList().length.toString(),
+                                                                                      animaisNesteLote.where((e) => e.categoria == 'Boi Gordo').toList().length.toString(),
                                                                                       '0',
                                                                                     ),
                                                                                     style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -2138,7 +2162,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                     ),
                                                                                     Text(
                                                                                       valueOrDefault<String>(
-                                                                                        (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => e.categoria == 'Garrote').toList().length.toString(),
+                                                                                        animaisNesteLote.where((e) => e.categoria == 'Garrote').toList().length.toString(),
                                                                                         '0',
                                                                                       ),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -2179,7 +2203,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                     ),
                                                                                     Text(
                                                                                       valueOrDefault<String>(
-                                                                                        (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => e.categoria == 'Touro').toList().length.toString(),
+                                                                                        animaisNesteLote.where((e) => e.categoria == 'Touro').toList().length.toString(),
                                                                                         '0',
                                                                                       ),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -2220,7 +2244,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                     ),
                                                                                     Text(
                                                                                       valueOrDefault<String>(
-                                                                                        (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => e.categoria == 'Novilha').toList().length.toString(),
+                                                                                        animaisNesteLote.where((e) => e.categoria == 'Novilha').toList().length.toString(),
                                                                                         '0',
                                                                                       ),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -2261,7 +2285,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                     ),
                                                                                     Text(
                                                                                       valueOrDefault<String>(
-                                                                                        (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => e.categoria == 'Boi Magro').toList().length.toString(),
+                                                                                        animaisNesteLote.where((e) => e.categoria == 'Boi Magro').toList().length.toString(),
                                                                                         '0',
                                                                                       ),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -2302,7 +2326,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                     ),
                                                                                     Text(
                                                                                       valueOrDefault<String>(
-                                                                                        (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => e.categoria == 'Rufião').toList().length.toString(),
+                                                                                        animaisNesteLote.where((e) => e.categoria == 'Rufião').toList().length.toString(),
                                                                                         '0',
                                                                                       ),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -2389,7 +2413,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                           children: [
                                                                             Text(
                                                                               'Animais neste lote (${valueOrDefault<String>(
-                                                                                (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.length.toString(),
+                                                                                animaisNesteLote.length.toString(),
                                                                                 '0',
                                                                               )})',
                                                                               style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -2587,7 +2611,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                               Builder(
                                                                             builder:
                                                                                 (context) {
-                                                                              final rebanhos = (pgViewLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.toList() ?? [];
+                                                                              final rebanhos = animaisNesteLote;
                                                                               if (rebanhos.isEmpty) {
                                                                                 return const Center(
                                                                                   child: EmptyWidget(),

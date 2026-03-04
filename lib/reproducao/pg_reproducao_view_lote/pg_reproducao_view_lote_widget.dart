@@ -56,12 +56,12 @@ class _PgReproducaoViewLoteWidgetState
       _model.score = _model.reproducao?.firstOrNull?.scoreCorporal;
       _model.partidaSemen = _model.reproducao?.firstOrNull?.partidaSemen;
       
-      // Buscar dados atualizados do reprodutor
-      if (_model.reproducaoSelecionada?.idRebanhoReprodutor != null) {
+      if (_model.reproducaoSelecionada?.idRebanhoReprodutor != null &&
+          _model.reproducaoSelecionada!.idRebanhoReprodutor!.isNotEmpty) {
         _model.reprodutorData = await RebanhoTable().queryRows(
           queryFn: (q) => q.eqOrNull(
-            'id',
-            int.tryParse(_model.reproducaoSelecionada!.idRebanhoReprodutor!),
+            'idRebanho',
+            _model.reproducaoSelecionada!.idRebanhoReprodutor!,
           ),
         );
       }

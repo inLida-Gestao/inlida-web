@@ -525,25 +525,37 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                       onPressed: () async {
                         final pesoInteiro = int.tryParse(_model.pesoAddTextController.text)
                             ?? double.tryParse(_model.pesoAddTextController.text)?.toInt();
+                        final idRebanho = containerRebanhoRow?.idRebanho;
                         await HistoricoPesagensTable().insert({
-                          'idRebanho': containerRebanhoRow?.idRebanho,
+                          'idRebanho': idRebanho,
                           'dataPesagem':
                               supaSerialize<DateTime>(_model.datePicked),
                           'tipo': 'Atual',
                           'peso': pesoInteiro != null ? pesoInteiro.toDouble() : null,
                           'deletado': 'NAO',
                         });
-                        await RebanhoTable().update(
-                          data: {
-                            'pesoAtual': pesoInteiro != null ? pesoInteiro.toDouble() : null,
-                            'dataUltimaPesagem':
-                                supaSerialize<DateTime>(_model.datePicked),
-                          },
-                          matchingRows: (rows) => rows.eqOrNull(
-                            'id',
-                            containerRebanhoRow?.id,
-                          ),
+                        // Atualiza ficha com a pesagem mais recente (última por data)
+                        final ultimas = await HistoricoPesagensTable().queryRows(
+                          queryFn: (q) => q
+                              .eqOrNull('idRebanho', idRebanho)
+                              .eqOrNull('deletado', 'NAO')
+                              .order('dataPesagem', ascending: false)
+                              .limit(1),
                         );
+                        if (ultimas.isNotEmpty) {
+                          final ultima = ultimas.first;
+                          await RebanhoTable().update(
+                            data: {
+                              'pesoAtual': ultima.peso,
+                              'dataUltimaPesagem':
+                                  supaSerialize<DateTime>(ultima.dataPesagem),
+                            },
+                            matchingRows: (rows) => rows.eqOrNull(
+                              'idRebanho',
+                              idRebanho,
+                            ),
+                          );
+                        }
                         FFAppState().refreshPesagem = true;
                         safeSetState(() {});
                         ScaffoldMessenger.of(context).showSnackBar(

@@ -17,6 +17,7 @@ import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6334,6 +6335,9 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                       keyboardType:
                                                                           TextInputType
                                                                               .number,
+                                                                      inputFormatters: [
+                                                                        FilteringTextInputFormatter.digitsOnly,
+                                                                      ],
                                                                       cursorColor:
                                                                           FlutterFlowTheme.of(context)
                                                                               .primaryText,
@@ -6383,11 +6387,13 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                   );
                                                                   return;
                                                                 }
+                                                                final idRebanhoEdit =
+                                                                    pgRebanhoEditRebanhoRow
+                                                                        ?.idRebanho;
                                                                 await HistoricoPesagensTable()
                                                                     .insert({
                                                                   'idRebanho':
-                                                                      pgRebanhoEditRebanhoRow
-                                                                          ?.idRebanho,
+                                                                      idRebanhoEdit,
                                                                   'dataPesagem':
                                                                       supaSerialize<
                                                                               DateTime>(
@@ -6402,26 +6408,42 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                   'deletado':
                                                                       'NAO',
                                                                 });
-                                                                await RebanhoTable()
-                                                                    .update(
-                                                                  data: {
-                                                                    'pesoAtual':
-                                                                        double.tryParse(_model
-                                                                            .pesoAddTextController
-                                                                            .text),
-                                                                    'dataUltimaPesagem': supaSerialize<
-                                                                            DateTime>(
-                                                                        _model
-                                                                            .datePicked9),
-                                                                  },
-                                                                  matchingRows:
-                                                                      (rows) =>
-                                                                          rows.eqOrNull(
-                                                                    'id',
-                                                                    pgRebanhoEditRebanhoRow
-                                                                        ?.id,
-                                                                  ),
+                                                                // Atualiza ficha com a pesagem mais recente (última por data)
+                                                                final ultimasEdit =
+                                                                    await HistoricoPesagensTable()
+                                                                        .queryRows(
+                                                                  queryFn: (q) => q
+                                                                      .eqOrNull(
+                                                                          'idRebanho',
+                                                                          idRebanhoEdit)
+                                                                      .eqOrNull(
+                                                                          'deletado',
+                                                                          'NAO')
+                                                                      .order('dataPesagem',
+                                                                          ascending: false)
+                                                                      .limit(1),
                                                                 );
+                                                                if (ultimasEdit.isNotEmpty) {
+                                                                  final ultimaEdit =
+                                                                      ultimasEdit.first;
+                                                                  await RebanhoTable()
+                                                                      .update(
+                                                                    data: {
+                                                                      'pesoAtual':
+                                                                          ultimaEdit.peso,
+                                                                      'dataUltimaPesagem':
+                                                                          supaSerialize<
+                                                                                  DateTime>(
+                                                                              ultimaEdit.dataPesagem),
+                                                                    },
+                                                                    matchingRows:
+                                                                        (rows) =>
+                                                                            rows.eqOrNull(
+                                                                      'idRebanho',
+                                                                      idRebanhoEdit,
+                                                                    ),
+                                                                  );
+                                                                }
                                                                 safeSetState(
                                                                     () {
                                                                   _model
@@ -6553,14 +6575,24 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                   containerPesagemHistoricoPesagensRowList =
                                                                   snapshot
                                                                       .data!;
+                                                              // Remove duplicatas: mesmo peso na mesma data exibido apenas uma vez
+                                                              final seenKey = <String>{};
+                                                              final pesagens =
+                                                                  containerPesagemHistoricoPesagensRowList
+                                                                      .where((p) {
+                                                                final dateKey = p.dataPesagem != null
+                                                                    ? p.dataPesagem!.toIso8601String().substring(0, 10)
+                                                                    : '';
+                                                                final key = '${dateKey}_${p.peso ?? ''}';
+                                                                if (seenKey.contains(key)) return false;
+                                                                seenKey.add(key);
+                                                                return true;
+                                                              }).toList();
 
                                                               return Container(
                                                                 child: Builder(
                                                                   builder:
                                                                       (context) {
-                                                                    final pesagens =
-                                                                        containerPesagemHistoricoPesagensRowList
-                                                                            .toList();
                                                                     if (pesagens
                                                                         .isEmpty) {
                                                                       return const Center(

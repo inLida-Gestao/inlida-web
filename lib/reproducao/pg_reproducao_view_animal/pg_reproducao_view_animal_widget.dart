@@ -48,13 +48,16 @@ class _PgReproducaoViewAnimalWidgetState
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       await action_blocks.countReproducoes(context);
-      _model.reproducao = await ReproducaoTable().queryRows(
-        queryFn: (q) => widget.reproducaoDbId != null
-            ? q.eqOrNull('id', widget.reproducaoDbId)
-            : q.eqOrNull('id_reproducao', widget.idReproducao),
-      );
+      // Buscar apenas por id_reproducao (identificador único). Não usar o id numérico
+      // da lista: na view pode não ser o PK da tabela e carrega registro errado.
+      final idReproducao = widget.idReproducao?.trim();
+      if (idReproducao != null && idReproducao.isNotEmpty) {
+        _model.reproducao = await ReproducaoTable().queryRows(
+          queryFn: (q) => q.eqOrNull('id_reproducao', idReproducao),
+        );
+      }
       _model.reproducaoSelecionada = _model.reproducao?.firstOrNull;
-      _model.tipoReproducao = _model.reproducao!.firstOrNull!.tipoReproducao!;
+      _model.tipoReproducao = _model.reproducao?.firstOrNull?.tipoReproducao ?? _model.tipoReproducao;
       _model.score = _model.reproducao?.firstOrNull?.scoreCorporal;
       _model.partidaSemen = _model.reproducao?.firstOrNull?.partidaSemen;
       _model.parida = _model.reproducao?.firstOrNull?.parida == 'SIM';
@@ -98,22 +101,24 @@ class _PgReproducaoViewAnimalWidgetState
         locale: FFLocalizations.of(context).languageCode,
       );
 
-      // Buscar dados atualizados da matriz
-      if (_model.reproducaoSelecionada?.idRebanhoMatriz != null) {
+      // id_rebanho_matriz é texto que corresponde a rebanho."idRebanho" (text),
+      // não ao rebanho.id (bigint PK).
+      if (_model.reproducaoSelecionada?.idRebanhoMatriz != null &&
+          _model.reproducaoSelecionada!.idRebanhoMatriz!.isNotEmpty) {
         _model.matrizData = await RebanhoTable().queryRows(
           queryFn: (q) => q.eqOrNull(
-            'id',
-            int.tryParse(_model.reproducaoSelecionada!.idRebanhoMatriz!),
+            'idRebanho',
+            _model.reproducaoSelecionada!.idRebanhoMatriz!,
           ),
         );
       }
-      
-      // Buscar dados atualizados do reprodutor
-      if (_model.reproducaoSelecionada?.idRebanhoReprodutor != null) {
+
+      if (_model.reproducaoSelecionada?.idRebanhoReprodutor != null &&
+          _model.reproducaoSelecionada!.idRebanhoReprodutor!.isNotEmpty) {
         _model.reprodutorData = await RebanhoTable().queryRows(
           queryFn: (q) => q.eqOrNull(
-            'id',
-            int.tryParse(_model.reproducaoSelecionada!.idRebanhoReprodutor!),
+            'idRebanho',
+            _model.reproducaoSelecionada!.idRebanhoReprodutor!,
           ),
         );
       }

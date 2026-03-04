@@ -5200,7 +5200,6 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
-                                                                    // Customize what your widget looks like when it's loading.
                                                                     if (!snapshot
                                                                         .hasData) {
                                                                       return Center(

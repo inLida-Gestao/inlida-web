@@ -585,13 +585,14 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
             columns: const [
               DataColumn(label: Text('Status')),
               DataColumn(label: Text('Número')),
+              DataColumn(label: Text('Chip')),
               DataColumn(label: Text('Nome')),
+              DataColumn(label: Text('Sexo')),
               DataColumn(label: Text('Data Nasc.')),
               DataColumn(label: Text('Raça')),
-              DataColumn(label: Text('Sexo')),
               DataColumn(label: Text('Data Pesagem')),
-              DataColumn(label: Text('Tipo')),
               DataColumn(label: Text('Peso (kg)'), numeric: true),
+              DataColumn(label: Text('Tipo')),
             ],
             rows: _model.previewRows.map((row) {
               final found = row['_status'] == 'found';
@@ -631,20 +632,22 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
                   ),
                   DataCell(Text(
                       (row['numeroAnimal'] ?? '').toString())),
+                  DataCell(Text(
+                      (row['chip'] ?? '').toString())),
                   DataCell(
                       Text((row['nome'] ?? '').toString())),
+                  DataCell(
+                      Text((row['sexo'] ?? '').toString())),
                   DataCell(Text(
                       (row['dataNascimento'] ?? '').toString())),
                   DataCell(
                       Text((row['raca'] ?? '').toString())),
-                  DataCell(
-                      Text((row['sexo'] ?? '').toString())),
                   DataCell(Text(
                       (row['dataPesagem'] ?? '').toString())),
-                  DataCell(
-                      Text((row['tipo'] ?? '').toString())),
                   DataCell(Text(
                       row['peso'] != null ? row['peso'].toString() : '')),
+                  DataCell(
+                      Text((row['tipo'] ?? '').toString())),
                 ],
               );
             }).toList(),

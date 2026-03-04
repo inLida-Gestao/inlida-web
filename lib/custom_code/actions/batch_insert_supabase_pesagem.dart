@@ -13,12 +13,14 @@ class _PesagemRebanhoLookup {
   final Map<String, _AnimalInfo> byNumeroNomeDataRaca;
   final Map<String, _AnimalInfo> byNumeroData;
   final Map<String, _AnimalInfo> byNumero;
+  final Map<String, _AnimalInfo> byChip;
 
   const _PesagemRebanhoLookup({
     required this.byFiveFields,
     required this.byNumeroNomeDataRaca,
     required this.byNumeroData,
     required this.byNumero,
+    required this.byChip,
   });
 }
 
@@ -218,12 +220,13 @@ Future<_PesagemRebanhoLookup> _fetchPesagemRebanhoLookup(
   final byNumeroNomeDataRaca = <String, _AnimalInfo>{};
   final byNumeroData = <String, _AnimalInfo>{};
   final byNumero = <String, _AnimalInfo>{};
+  final byChip = <String, _AnimalInfo>{};
 
   while (true) {
     final res = await Supabase.instance.client
         .from('rebanho')
         .select(
-            'idRebanho,numeroAnimal,nome,dataNascimento,raca,sexo,deletado')
+            'idRebanho,numeroAnimal,chip,nome,dataNascimento,raca,sexo,deletado')
         .eq('idPropriedade', idPropriedade)
         .range(from, from + pageSize - 1);
 
@@ -242,6 +245,7 @@ Future<_PesagemRebanhoLookup> _fetchPesagemRebanhoLookup(
       final nome = _asNonEmptyString(row['nome']);
       final raca = _asNonEmptyString(row['raca']);
       final sexo = _asNonEmptyString(row['sexo']);
+      final chip = _asNonEmptyString(row['chip']);
       final dataNasc = _normalizeDateKey(row['dataNascimento']);
 
       final info = _AnimalInfo(
@@ -287,6 +291,10 @@ Future<_PesagemRebanhoLookup> _fetchPesagemRebanhoLookup(
       if (numero != null) {
         byNumero.putIfAbsent(numero.trim(), () => info);
       }
+
+      if (chip != null) {
+        byChip.putIfAbsent(chip.trim(), () => info);
+      }
     }
 
     if (rows.length < pageSize) break;
@@ -298,6 +306,7 @@ Future<_PesagemRebanhoLookup> _fetchPesagemRebanhoLookup(
     byNumeroNomeDataRaca: byNumeroNomeDataRaca,
     byNumeroData: byNumeroData,
     byNumero: byNumero,
+    byChip: byChip,
   );
 }
 
@@ -307,6 +316,7 @@ _AnimalInfo? _resolveAnimal({
   String? nome,
   String? raca,
   String? sexo,
+  String? chip,
   dynamic dataNascimento,
 }) {
   final dataNasc = _normalizeDateKey(dataNascimento);
@@ -350,6 +360,11 @@ _AnimalInfo? _resolveAnimal({
     if (resolved != null) return resolved;
   }
 
+  if (chip != null) {
+    final resolved = lookup.byChip[chip.trim()];
+    if (resolved != null) return resolved;
+  }
+
   return null;
 }
 
@@ -370,6 +385,7 @@ Future<List<Map<String, dynamic>>> previewPesagemImport(
         : <String, dynamic>{};
 
     final numero = _asNonEmptyString(record['numeroAnimal']);
+    final chip = _asNonEmptyString(record['chip']);
     final nome = _asNonEmptyString(record['nome']);
     final raca = _asNonEmptyString(record['raca']);
     final sexo = _asNonEmptyString(record['sexo']);
@@ -381,6 +397,7 @@ Future<List<Map<String, dynamic>>> previewPesagemImport(
       nome: nome,
       raca: raca,
       sexo: sexo,
+      chip: chip,
       dataNascimento: dataNasc,
     );
 

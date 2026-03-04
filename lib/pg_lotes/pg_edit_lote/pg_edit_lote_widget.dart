@@ -71,129 +71,56 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
       _model.switchValue = isAtivo;
       safeSetState(() {});
 
-      _model.rebanhosLote =
-          await FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
-        pLoteNome: widget.loteNome,
-        pLimite: 5000,
-        pOffset: 0,
-        pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
-      );
-
-      while (_model.index <
-          ((_model.rebanhosLote?.jsonBody ?? '')
-                  .toList()
-                  .map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap)
-                  .toList() as Iterable<RebanhoDTStruct?>)
-              .withoutNulls
-              .length) {
+      // Carregar animais do lote a partir do id_animais cadastrado no lote (fonte de verdade)
+      final idAnimaisList = functions.converterJSONparaLista(
+            _model.loteEdit?.firstOrNull?.idAnimais) ?? <String>[];
+      for (final idRebanho in idAnimaisList) {
+        if (idRebanho.trim().isEmpty) continue;
         _model.rebanhoSelecionado = await RebanhoTable().queryRows(
-          queryFn: (q) => q.eqOrNull(
-            'idRebanho',
-            (((_model.rebanhosLote?.jsonBody ?? '')
-                        .toList()
-                        .map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap)
-                        .toList() as Iterable<RebanhoDTStruct?>)
-                    .withoutNulls
-                    .elementAtOrNull(_model.index))
-                ?.idRebanho,
-          ),
+          queryFn: (q) => q.eqOrNull('idRebanho', idRebanho),
         );
-        _model.addToAnimaisSelecionados(RebanhoDTStruct(
-          id: _model.rebanhoSelecionado?.firstOrNull?.id,
-          createdAt:
-              _model.rebanhoSelecionado?.firstOrNull?.createdAt.toString(),
-          idPropriedade: _model.rebanhoSelecionado?.firstOrNull?.idPropriedade,
-          numeroAnimal: _model.rebanhoSelecionado?.firstOrNull?.numeroAnimal,
-          chip: _model.rebanhoSelecionado?.firstOrNull?.chip,
-          codRegistro: _model.rebanhoSelecionado?.firstOrNull?.codRegistro,
-          nome: _model.rebanhoSelecionado?.firstOrNull?.nome,
-          sexo: _model.rebanhoSelecionado?.firstOrNull?.sexo,
-          categoria: _model.rebanhoSelecionado?.firstOrNull?.categoria,
-          dataNascimento: _model.rebanhoSelecionado?.firstOrNull?.dataNascimento
-              ?.toString(),
-          pesoNascimento:
-              _model.rebanhoSelecionado?.firstOrNull?.pesoNascimento,
-          porte: _model.rebanhoSelecionado?.firstOrNull?.porte,
-          raca: _model.rebanhoSelecionado?.firstOrNull?.raca,
-          loteID: _model.rebanhoSelecionado?.firstOrNull?.loteID,
-          dataEntradaLote: _model
-              .rebanhoSelecionado?.firstOrNull?.dataEntradaLote
-              ?.toString(),
-          rebanhoIdMatriz:
-              _model.rebanhoSelecionado?.firstOrNull?.rebanhoIdMatriz,
-          rebanhoIdReprodutor:
-              _model.rebanhoSelecionado?.firstOrNull?.rebanhoIdReprodutor,
-          dataDesmama:
-              _model.rebanhoSelecionado?.firstOrNull?.dataDesmama?.toString(),
-          pesoDesmama: _model.rebanhoSelecionado?.firstOrNull?.pesoNascimento,
-          pesoAtual: _model.rebanhoSelecionado?.firstOrNull?.pesoAtual,
-          status: _model.rebanhoSelecionado?.firstOrNull?.status,
-          origem: _model.rebanhoSelecionado?.firstOrNull?.origem,
-          anotacoes: _model.rebanhoSelecionado?.firstOrNull?.anotacoes,
-          idRebanho: _model.rebanhoSelecionado?.firstOrNull?.idRebanho,
-          deletado: _model.rebanhoSelecionado?.firstOrNull?.deletado,
-          updatedAt:
-              _model.rebanhoSelecionado?.firstOrNull?.updatedAt?.toString(),
-          loteNome: _model.rebanhoSelecionado?.firstOrNull?.loteNome,
-          tipo: _model.rebanhoSelecionado?.firstOrNull?.tipo,
-          dataAcao:
-              _model.rebanhoSelecionado?.firstOrNull?.dataAcao?.toString(),
-          valorCompra: _model.rebanhoSelecionado?.firstOrNull?.valorCompra,
-          dataUltimaPesagem: _model
-              .rebanhoSelecionado?.firstOrNull?.dataUltimaPesagem
-              ?.toString(),
-          nomeConcat: _model.rebanhoSelecionado?.firstOrNull?.nomeConcat,
-        ));
-        _model.addToAnimaisDentroLote(RebanhoDTStruct(
-          id: _model.rebanhoSelecionado?.firstOrNull?.id,
-          createdAt:
-              _model.rebanhoSelecionado?.firstOrNull?.createdAt.toString(),
-          idPropriedade: _model.rebanhoSelecionado?.firstOrNull?.idPropriedade,
-          numeroAnimal: _model.rebanhoSelecionado?.firstOrNull?.numeroAnimal,
-          chip: _model.rebanhoSelecionado?.firstOrNull?.chip,
-          codRegistro: _model.rebanhoSelecionado?.firstOrNull?.codRegistro,
-          nome: _model.rebanhoSelecionado?.firstOrNull?.nome,
-          sexo: _model.rebanhoSelecionado?.firstOrNull?.sexo,
-          categoria: _model.rebanhoSelecionado?.firstOrNull?.categoria,
-          dataNascimento: _model.rebanhoSelecionado?.firstOrNull?.dataNascimento
-              ?.toString(),
-          pesoNascimento:
-              _model.rebanhoSelecionado?.firstOrNull?.pesoNascimento,
-          porte: _model.rebanhoSelecionado?.firstOrNull?.porte,
-          raca: _model.rebanhoSelecionado?.firstOrNull?.raca,
-          loteID: _model.rebanhoSelecionado?.firstOrNull?.loteID,
-          dataEntradaLote: _model
-              .rebanhoSelecionado?.firstOrNull?.dataEntradaLote
-              ?.toString(),
-          rebanhoIdMatriz:
-              _model.rebanhoSelecionado?.firstOrNull?.rebanhoIdMatriz,
-          rebanhoIdReprodutor:
-              _model.rebanhoSelecionado?.firstOrNull?.rebanhoIdReprodutor,
-          dataDesmama:
-              _model.rebanhoSelecionado?.firstOrNull?.dataDesmama?.toString(),
-          pesoDesmama: _model.rebanhoSelecionado?.firstOrNull?.pesoNascimento,
-          pesoAtual: _model.rebanhoSelecionado?.firstOrNull?.pesoAtual,
-          status: _model.rebanhoSelecionado?.firstOrNull?.status,
-          origem: _model.rebanhoSelecionado?.firstOrNull?.origem,
-          anotacoes: _model.rebanhoSelecionado?.firstOrNull?.anotacoes,
-          idRebanho: _model.rebanhoSelecionado?.firstOrNull?.idRebanho,
-          deletado: _model.rebanhoSelecionado?.firstOrNull?.deletado,
-          updatedAt:
-              _model.rebanhoSelecionado?.firstOrNull?.updatedAt?.toString(),
-          loteNome: _model.rebanhoSelecionado?.firstOrNull?.loteNome,
-          tipo: _model.rebanhoSelecionado?.firstOrNull?.tipo,
-          dataAcao:
-              _model.rebanhoSelecionado?.firstOrNull?.dataAcao?.toString(),
-          valorCompra: _model.rebanhoSelecionado?.firstOrNull?.valorCompra,
-          dataUltimaPesagem: _model
-              .rebanhoSelecionado?.firstOrNull?.dataUltimaPesagem
-              ?.toString(),
-          nomeConcat: _model.rebanhoSelecionado?.firstOrNull?.nomeConcat,
-        ));
-        safeSetState(() {});
-        _model.index = _model.index + 1;
-        safeSetState(() {});
+        final row = _model.rebanhoSelecionado?.firstOrNull;
+        if (row == null) continue;
+        final struct = RebanhoDTStruct(
+          id: row.id,
+          createdAt: row.createdAt.toString(),
+          idPropriedade: row.idPropriedade,
+          numeroAnimal: row.numeroAnimal,
+          chip: row.chip,
+          codRegistro: row.codRegistro,
+          nome: row.nome,
+          sexo: row.sexo,
+          categoria: row.categoria,
+          dataNascimento: row.dataNascimento?.toString(),
+          pesoNascimento: row.pesoNascimento,
+          porte: row.porte,
+          raca: row.raca,
+          loteID: row.loteID,
+          dataEntradaLote: row.dataEntradaLote?.toString(),
+          rebanhoIdMatriz: row.rebanhoIdMatriz,
+          rebanhoIdReprodutor: row.rebanhoIdReprodutor,
+          dataDesmama: row.dataDesmama?.toString(),
+          pesoDesmama: row.pesoDesmama,
+          pesoAtual: row.pesoAtual,
+          status: row.status,
+          origem: row.origem,
+          anotacoes: row.anotacoes,
+          idRebanho: row.idRebanho,
+          deletado: row.deletado,
+          updatedAt: row.updatedAt?.toString(),
+          loteNome: row.loteNome,
+          tipo: row.tipo,
+          dataAcao: row.dataAcao?.toString(),
+          valorCompra: row.valorCompra,
+          dataUltimaPesagem: row.dataUltimaPesagem?.toString(),
+          nomeConcat: row.nomeConcat,
+          dataVenda: row.dataVenda?.toString(),
+          valorVenda: row.valorVenda,
+        );
+        _model.addToAnimaisSelecionados(struct);
+        _model.addToAnimaisDentroLote(struct);
       }
+      safeSetState(() {});
     });
 
     _model.tabBarController = TabController(
@@ -3501,102 +3428,52 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                         );
                                                         _model.index = 0;
                                                         safeSetState(() {});
-                                                        if (_model
-                                                                .animaisDentroLote.isNotEmpty) {
-                                                          while (_model.index <
-                                                              _model
-                                                                  .animaisDentroLote
-                                                                  .length) {
-                                                            await RebanhoTable()
-                                                                .update(
+                                                        // Primeiro remove do lote os animais retirados (para não incluí-los na atualização em massa)
+                                                        if (_model.animaisRetiradosLote.isNotEmpty) {
+                                                          while (_model.index < _model.animaisRetiradosLote.length) {
+                                                            await RebanhoTable().update(
                                                               data: {
-                                                                'loteID': widget
-                                                                    .loteNome,
-                                                                'loteNome': _model
-                                                                    .nomeLoteTextController
-                                                                    .text,
-                                                                'updated_at':
-                                                                    supaSerialize<
-                                                                            DateTime>(
-                                                                        getCurrentTimestamp),
-                                                                'dataEntradaLote':
-                                                                    supaSerialize<
-                                                                            DateTime>(
-                                                                        getCurrentTimestamp),
-                                                                'dataVenda': supaSerialize<
-                                                                    DateTime>(_model
-                                                                        .datePicked ?? functions.converterParaData(_model
-                                                                        .animaisDentroLote
-                                                                        .elementAtOrNull(
-                                                                            _model.index)
-                                                                        ?.dataVenda)),
-                                                                'valorVenda':
-                                                                    FFAppState()
-                                                                        .valueDouble2,
-                                                                'status': _model.switchValue == true
-                                                                    ? 'Na propriedade'
-                                                                    : (_model.dropDownLotesValue ??
-                                                                                containerLotesRow?.motivo) ==
-                                                                            'Lote vendido'
-                                                                        ? 'Vendido'
-                                                                        : 'Inativo',
+                                                                'loteID': 'null',
+                                                                'loteNome': 'null',
+                                                                'updated_at': supaSerialize<DateTime>(getCurrentTimestamp),
                                                               },
-                                                              matchingRows:
-                                                                  (rows) => rows
-                                                                      .eqOrNull(
+                                                              matchingRows: (rows) => rows.eqOrNull(
                                                                 'idRebanho',
-                                                                _model
-                                                                    .animaisDentroLote
-                                                                    .elementAtOrNull(
-                                                                        _model
-                                                                            .index)
-                                                                    ?.idRebanho,
+                                                                _model.animaisRetiradosLote.elementAtOrNull(_model.index)?.idRebanho,
                                                               ),
                                                             );
-                                                            _model.index =
-                                                                _model.index +
-                                                                    1;
+                                                            _model.index = _model.index + 1;
                                                             safeSetState(() {});
                                                           }
                                                           _model.index = 0;
                                                           safeSetState(() {});
                                                         }
-                                                        if (_model
-                                                                .animaisRetiradosLote.isNotEmpty) {
-                                                          while (_model.index <
-                                                              _model
-                                                                  .animaisRetiradosLote
-                                                                  .length) {
-                                                            await RebanhoTable()
-                                                                .update(
-                                                              data: {
-                                                                'loteID':
-                                                                    'null',
-                                                                'loteNome':
-                                                                    'null',
-                                                                'updated_at':
-                                                                    supaSerialize<
-                                                                            DateTime>(
-                                                                        getCurrentTimestamp),
-                                                              },
-                                                              matchingRows:
-                                                                  (rows) => rows
-                                                                      .eqOrNull(
-                                                                'idRebanho',
-                                                                _model
-                                                                    .animaisRetiradosLote
-                                                                    .elementAtOrNull(
-                                                                        _model
-                                                                            .index)
-                                                                    ?.idRebanho,
-                                                              ),
-                                                            );
-                                                            _model.index =
-                                                                _model.index +
-                                                                    1;
-                                                            safeSetState(() {});
-                                                          }
-                                                        }
+                                                        // Atualiza todos os animais que ainda pertencem a este lote (por loteID),
+                                                        // para que ao desativar/reativar o status seja aplicado a todos de forma consistente
+                                                        final novoLoteNome = _model.nomeLoteTextController.text.isNotEmpty
+                                                            ? _model.nomeLoteTextController.text
+                                                            : containerLotesRow?.nome ?? widget.loteNome;
+                                                        final novoStatus = _model.switchValue == true
+                                                            ? 'Na propriedade'
+                                                            : ((_model.dropDownLotesValue ?? containerLotesRow?.motivo) == 'Lote vendido')
+                                                                ? 'Vendido'
+                                                                : 'Inativo';
+                                                        await RebanhoTable().update(
+                                                          data: {
+                                                            'loteID': novoLoteNome,
+                                                            'loteNome': novoLoteNome,
+                                                            'updated_at': supaSerialize<DateTime>(getCurrentTimestamp),
+                                                            'dataEntradaLote': supaSerialize<DateTime>(getCurrentTimestamp),
+                                                            'dataVenda': _model.switchValue == true
+                                                                ? null
+                                                                : supaSerialize<DateTime>(_model.datePicked ?? containerLotesRow?.dataMotivo),
+                                                            'valorVenda': _model.switchValue == true
+                                                                ? null
+                                                                : FFAppState().valueDouble2,
+                                                            'status': novoStatus,
+                                                          },
+                                                          matchingRows: (rows) => rows.eqOrNull('loteID', widget.loteNome),
+                                                        );
                                                         _model.animaisDentroLote =
                                                             [];
                                                         _model.animaisSelecionados =

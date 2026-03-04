@@ -4346,6 +4346,27 @@ class _PgRebanhoAddNascimentoWidgetState
                                       ),
                                       FFButtonWidget(
                                         onPressed: () async {
+                                          if ((_model.dropDownStatusValue ?? '')
+                                              .isEmpty) {
+                                            await showDialog(
+                                              context: context,
+                                              builder: (alertDialogContext) {
+                                                return AlertDialog(
+                                                  content: const Text(
+                                                      'O campo status é obrigatório'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              alertDialogContext),
+                                                      child: const Text('Ok'),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                            return;
+                                          }
                                           _model.idRebanho = null;
                                           safeSetState(() {});
                                           _model.idRebanho =
@@ -4373,8 +4394,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                             'categoria': _model
                                                         .dropDownSexoValue ==
                                                     'Macho'
-                                                ? _model.dDCatRebanhoMachoValue
-                                                : _model.dDCatRebanhoFemeaValue,
+                                                ? (_model.dDCatRebanhoMachoValue ?? 'Bezerro')
+                                                : (_model.dDCatRebanhoFemeaValue ?? 'Bezerra'),
                                             'dataNascimento':
                                                 supaSerialize<DateTime>(
                                                     _model.datePicked1),
@@ -4402,7 +4423,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                 .toList()
                                                 .firstOrNull
                                                 ?.nome,
-                                            'tipo': 'Nascimento',
+                                            'tipo': 'animal',
+                                            'origem': 'Nascimento',
                                             'nomeConcat':
                                                 '${_model.numAnimalTextController.text} - ${_model.nomeAnimalTextController.text} - ${dateTimeFormat(
                                               "d/M/y",

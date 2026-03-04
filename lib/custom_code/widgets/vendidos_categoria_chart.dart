@@ -44,8 +44,8 @@ class VendidosCategoriaChart extends StatelessWidget {
     return const [];
   }
 
-  // paleta fixa por categoria (ajuste as cores se quiser ficar 1:1 com o print)
   static const Map<String, Color> _catColor = {
+    'todos': Color(0xFF10B981),
     'touro': Color(0xFFB45309),
     'vaca multipara': Color(0xFFA3A300),
     'bezerro': Color(0xFF22C55E),
@@ -73,34 +73,19 @@ class VendidosCategoriaChart extends StatelessWidget {
       );
     }
 
-    // chaves conhecidas
     const reserved = {'bucket_ini', 'bucket_fim', 'label', 'total', 'todos'};
-    // coleta categorias dinamicamente
     final first = data.first;
     final cats = <String>[
       for (final k in first.keys)
         if (!reserved.contains(k.toString().toLowerCase()))
           k.toString().toLowerCase()
     ];
-
-    // ordena por nome para estabilidade
     cats.sort();
 
-    // calcula total se não vier
     final hasTodos = first.keys.map((e) => e.toLowerCase()).contains('todos');
-    final totals = hasTodos
-        ? null
-        : data.map((row) {
-            int sum = 0;
-            for (final c in cats) {
-              final v = row[c] ?? row[c.toLowerCase()] ?? 0;
-              sum += (v is num ? v.toInt() : int.tryParse('$v') ?? 0);
-            }
-            return sum;
-          }).toList();
 
-    // série de colunas empilhadas
     final List<CartesianSeries<Map<String, dynamic>, String>> series = [];
+
     for (final c in cats) {
       series.add(
         StackedColumnSeries<Map<String, dynamic>, String>(
@@ -117,6 +102,29 @@ class VendidosCategoriaChart extends StatelessWidget {
           },
           legendIconType: LegendIconType.rectangle,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(2)),
+        ),
+      );
+    }
+
+    if (hasTodos) {
+      series.add(
+        LineSeries<Map<String, dynamic>, String>(
+          name: 'Todos',
+          color: _catColor['todos']!,
+          width: 3,
+          dataSource: data,
+          xValueMapper: (p, _) => (p['label'] ?? '').toString(),
+          yValueMapper: (p, _) {
+            final v = p['todos'] ?? p['Todos'];
+            if (v is num) return v.toDouble();
+            return double.tryParse('$v') ?? 0.0;
+          },
+          markerSettings: MarkerSettings(
+            isVisible: true,
+            color: _catColor['todos']!,
+          ),
+          legendIconType: LegendIconType.rectangle,
+          enableTooltip: true,
         ),
       );
     }

@@ -7,106 +7,179 @@ import '/flutter_flow/flutter_flow_util.dart';
 
 import 'dart:convert';
 import 'package:csv/csv.dart';
+import 'package:excel/excel.dart' as xl;
 
 Future<List<dynamic>> parseCsvToJsonPesagem(FFUploadedFile? csvFile) async {
-  if (csvFile == null || csvFile.bytes == null) return [];
+  if (csvFile == null || csvFile.bytes == null || csvFile.bytes!.isEmpty) {
+    return [];
+  }
 
   try {
     List<int> bytes = csvFile.bytes!;
+    final fileName = csvFile.originalFilename.toLowerCase();
 
-    if (bytes.length >= 3 &&
-        bytes[0] == 0xEF &&
-        bytes[1] == 0xBB &&
-        bytes[2] == 0xBF) {
-      bytes = bytes.sublist(3);
+    List<List<dynamic>> rows;
+
+    if (_isXlsxFile(bytes, fileName)) {
+      rows = _parseXlsx(bytes);
+    } else {
+      rows = _parseCsv(bytes);
     }
 
-    String csvString = _decodeWithBestEncoding(bytes);
-    csvString = csvString.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
-
-    String firstLine = csvString.split('\n').first;
-    String delimiter = _detectDelimiter(firstLine);
-
-    final converter = CsvToListConverter(
-      fieldDelimiter: delimiter,
-      eol: '\n',
-      shouldParseNumbers: false,
-      allowInvalid: true,
-    );
-
-    final List<List<dynamic>> rows = converter.convert(csvString);
     if (rows.isEmpty) return [];
 
-    const dbColumnsInOrder = [
-      'numeroAnimal',
-      'nome',
-      'dataNascimento',
-      'raca',
-      'sexo',
-      'dataPesagem',
-      'tipo',
-      'peso',
-    ];
+    return _processRows(rows);
+  } catch (e, stack) {
+    print('Erro no processamento pesagem: $e');
+    print(stack);
+    return [];
+  }
+}
 
-    const dateColumns = ['dataNascimento', 'dataPesagem'];
-    const numericColumns = ['peso'];
+bool _isXlsxFile(List<int> bytes, String fileName) {
+  if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) return true;
+  // ZIP magic number (XLSX is a ZIP file)
+  if (bytes.length >= 4 &&
+      bytes[0] == 0x50 &&
+      bytes[1] == 0x4B &&
+      bytes[2] == 0x03 &&
+      bytes[3] == 0x04) {
+    return true;
+  }
+  return false;
+}
 
-    final headerRow = rows.first;
-    final headerStrings = headerRow
-        .map((e) => e == null ? '' : e.toString())
-        .map(_cleanText)
-        .toList();
-    final normalizedHeaders = headerStrings.map(_normalizeHeader).toList();
+List<List<dynamic>> _parseXlsx(List<int> bytes) {
+  final excel = xl.Excel.decodeBytes(bytes);
+  final sheetName = excel.tables.keys.first;
+  final sheet = excel.tables[sheetName];
+  if (sheet == null || sheet.rows.isEmpty) return [];
 
-    final bool looksLikeHeader = normalizedHeaders.any((h) =>
-        h == 'numero' ||
-        h == 'numero_animal' ||
-        h == 'nome' ||
-        h == 'data_nascimento' ||
-        h == 'raca' ||
-        h == 'sexo' ||
-        h == 'data_pesagem' ||
-        h == 'tipo' ||
-        h == 'peso');
+  final rows = <List<dynamic>>[];
+  for (final row in sheet.rows) {
+    final cells = <dynamic>[];
+    for (final cell in row) {
+      if (cell == null || cell.value == null) {
+        cells.add('');
+      } else {
+        final val = cell.value;
+        if (val is xl.DateCellValue) {
+          final dt = val.asDateTimeLocal();
+          cells.add(
+              '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}');
+        } else if (val is xl.DoubleCellValue) {
+          cells.add(val.value.toString());
+        } else if (val is xl.IntCellValue) {
+          cells.add(val.value.toString());
+        } else {
+          cells.add(val.toString());
+        }
+      }
+    }
+    rows.add(cells);
+  }
+  return rows;
+}
 
-    final bool looksLikeDbExport = headerStrings.any(
-        (h) => const {'numeroAnimal', 'dataPesagem', 'dataNascimento', 'peso'}
-            .contains(h));
+List<List<dynamic>> _parseCsv(List<int> bytes) {
+  List<int> cleanBytes = bytes;
 
-    final bool useHeaderMapping =
-        (looksLikeHeader || looksLikeDbExport) &&
-            normalizedHeaders.any((h) => h.isNotEmpty);
+  if (cleanBytes.length >= 3 &&
+      cleanBytes[0] == 0xEF &&
+      cleanBytes[1] == 0xBB &&
+      cleanBytes[2] == 0xBF) {
+    cleanBytes = cleanBytes.sublist(3);
+  }
 
-    if (useHeaderMapping) {
-      final mapping = _buildPesagemHeaderMapping(headerStrings);
+  String csvString = _decodeWithBestEncoding(cleanBytes);
+  csvString = csvString.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 
-      final out = <dynamic>[];
-      for (final row in rows.skip(1)) {
-        if (_isCsvRowEmpty(row)) continue;
+  String firstLine = csvString.split('\n').first;
+  String delimiter = _detectDelimiter(firstLine);
 
-        final map = <String, dynamic>{};
+  final converter = CsvToListConverter(
+    fieldDelimiter: delimiter,
+    eol: '\n',
+    shouldParseNumbers: false,
+    allowInvalid: true,
+  );
 
-        mapping.forEach((dbColumn, index) {
-          final raw = (index < row.length && row[index] != null)
-              ? row[index].toString()
-              : '';
-          final value = _cleanText(raw);
-          final cleaned = _cleanCellToNull(value, dbColumn, numericColumns);
-          if (cleaned == null) {
-            map[dbColumn] = null;
-            return;
-          }
+  return converter.convert(csvString);
+}
 
-          if (dateColumns.contains(dbColumn)) {
-            map[dbColumn] = cleaned;
-          } else if (numericColumns.contains(dbColumn)) {
-            map[dbColumn] = _parseNumberPtBr(cleaned);
-          } else {
-            map[dbColumn] = cleaned;
-          }
-        });
+List<dynamic> _processRows(List<List<dynamic>> rows) {
+  const dbColumnsInOrder = [
+    'numeroAnimal',
+    'chip',
+    'nome',
+    'sexo',
+    'dataNascimento',
+    'raca',
+    'dataPesagem',
+    'peso',
+    'tipo',
+  ];
+
+  const dateColumns = ['dataNascimento', 'dataPesagem'];
+  const numericColumns = ['peso'];
+
+  final headerRow = rows.first;
+  final headerStrings = headerRow
+      .map((e) => e == null ? '' : e.toString())
+      .map(_cleanText)
+      .toList();
+  final normalizedHeaders = headerStrings.map(_normalizeHeader).toList();
+
+  final bool looksLikeHeader = normalizedHeaders.any((h) =>
+      h == 'numero' ||
+      h == 'numero_animal' ||
+      h == 'nome' ||
+      h == 'chip' ||
+      h == 'data_nascimento' ||
+      h == 'raca' ||
+      h == 'sexo' ||
+      h == 'data_pesagem' ||
+      h == 'tipo' ||
+      h == 'peso');
+
+  final bool looksLikeDbExport = headerStrings.any((h) =>
+      const {'numeroAnimal', 'chip', 'dataPesagem', 'dataNascimento', 'peso'}
+          .contains(h));
+
+  final bool useHeaderMapping = (looksLikeHeader || looksLikeDbExport) &&
+      normalizedHeaders.any((h) => h.isNotEmpty);
+
+  if (useHeaderMapping) {
+    final mapping = _buildPesagemHeaderMapping(headerStrings);
+
+    final out = <dynamic>[];
+    for (final row in rows.skip(1)) {
+      if (_isCsvRowEmpty(row)) continue;
+
+      final map = <String, dynamic>{};
+
+      mapping.forEach((dbColumn, index) {
+        final raw = (index < row.length && row[index] != null)
+            ? row[index].toString()
+            : '';
+        final value = _cleanText(raw);
+        final cleaned = _cleanCellToNull(value, dbColumn, numericColumns);
+        if (cleaned == null) {
+          map[dbColumn] = null;
+          return;
+        }
+
+        if (dateColumns.contains(dbColumn)) {
+          map[dbColumn] = cleaned;
+        } else if (numericColumns.contains(dbColumn)) {
+          map[dbColumn] = _parseNumberPtBr(cleaned);
+        } else {
+          map[dbColumn] = cleaned;
+        }
+      });
 
         if (_isAllValuesMissing(map.values)) continue;
+        if (!_hasMinimumPesagemData(map)) continue;
         out.add(map);
       }
 
@@ -140,15 +213,11 @@ Future<List<dynamic>> parseCsvToJsonPesagem(FFUploadedFile? csvFile) async {
       }
 
       if (_isAllValuesMissing(map.values)) continue;
+      if (!_hasMinimumPesagemData(map)) continue;
       out.add(map);
     }
 
-    return out;
-  } catch (e, stack) {
-    print('Erro no processamento CSV pesagem: $e');
-    print(stack);
-    return [];
-  }
+  return out;
 }
 
 Map<String, int> _buildPesagemHeaderMapping(List<String> headerStrings) {
@@ -156,6 +225,8 @@ Map<String, int> _buildPesagemHeaderMapping(List<String> headerStrings) {
     'numero': 'numeroAnimal',
     'numero_animal': 'numeroAnimal',
     'num': 'numeroAnimal',
+    'chip': 'chip',
+    'brinco': 'chip',
     'nome': 'nome',
     'nome_animal': 'nome',
     'data_nascimento': 'dataNascimento',
@@ -174,6 +245,7 @@ Map<String, int> _buildPesagemHeaderMapping(List<String> headerStrings) {
 
   const dbColumnSet = {
     'numeroAnimal',
+    'chip',
     'nome',
     'dataNascimento',
     'raca',
@@ -203,6 +275,20 @@ Map<String, int> _buildPesagemHeaderMapping(List<String> headerStrings) {
   }
 
   return out;
+}
+
+bool _hasMinimumPesagemData(Map<String, dynamic> map) {
+  final hasIdentification = _hasValue(map['numeroAnimal']) ||
+      _hasValue(map['chip']) ||
+      _hasValue(map['nome']);
+  final hasPesagem = _hasValue(map['peso']) || _hasValue(map['dataPesagem']);
+  return hasIdentification && hasPesagem;
+}
+
+bool _hasValue(dynamic value) {
+  if (value == null) return false;
+  final s = value.toString().trim().toLowerCase();
+  return s.isNotEmpty && s != 'null' && s != 'undefined';
 }
 
 bool _isCsvRowEmpty(List<dynamic> row) {

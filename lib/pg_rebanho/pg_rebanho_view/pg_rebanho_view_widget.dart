@@ -5784,14 +5784,24 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                             List<HistoricoPesagensRow>
                                                                 containerPesagemHistoricoPesagensRowList =
                                                                 snapshot.data!;
+                                                            // Remove duplicatas: mesmo peso na mesma data exibido apenas uma vez
+                                                            final seenKey = <String>{};
+                                                            final pesagens =
+                                                                containerPesagemHistoricoPesagensRowList
+                                                                    .where((p) {
+                                                              final dateKey = p.dataPesagem != null
+                                                                  ? p.dataPesagem!.toIso8601String().substring(0, 10)
+                                                                  : '';
+                                                              final key = '${dateKey}_${p.peso ?? ''}';
+                                                              if (seenKey.contains(key)) return false;
+                                                              seenKey.add(key);
+                                                              return true;
+                                                            }).toList();
 
                                                             return Container(
                                                               child: Builder(
                                                                 builder:
                                                                     (context) {
-                                                                  final pesagens =
-                                                                      containerPesagemHistoricoPesagensRowList
-                                                                          .toList();
                                                                   if (pesagens
                                                                       .isEmpty) {
                                                                     return const Center(

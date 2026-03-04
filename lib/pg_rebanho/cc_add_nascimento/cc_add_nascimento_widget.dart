@@ -3138,6 +3138,27 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                       ),
                       FFButtonWidget(
                         onPressed: () async {
+                          if ((_model.dropDownStatusValue ?? '')
+                              .isEmpty) {
+                            await showDialog(
+                              context: context,
+                              builder: (alertDialogContext) {
+                                return AlertDialog(
+                                  content: const Text(
+                                      'O campo status é obrigatório'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(
+                                              alertDialogContext),
+                                      child: const Text('Ok'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                            return;
+                          }
                           _model.idRebanho = null;
                           safeSetState(() {});
                           _model.idRebanho = random_data.randomString(
@@ -3159,8 +3180,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                             'nome': _model.nomeAnimalTextController.text,
                             'sexo': _model.dropDownSexoValue,
                             'categoria': _model.dropDownSexoValue == 'Macho'
-                                ? _model.dDCatRebanhoMachoValue
-                                : _model.dDCatRebanhoFemeaValue,
+                                ? (_model.dDCatRebanhoMachoValue ?? 'Bezerro')
+                                : (_model.dDCatRebanhoFemeaValue ?? 'Bezerra'),
                             'dataNascimento':
                                 supaSerialize<DateTime>(_model.datePicked1),
                             'pesoNascimento': double.tryParse(
@@ -3184,7 +3205,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                 .toList()
                                 .firstOrNull
                                 ?.nome,
-                            'tipo': 'Nascimento',
+                            'tipo': 'animal',
+                            'origem': 'Nascimento',
                             'nomeConcat':
                                 '${_model.numAnimalTextController.text} - ${_model.nomeAnimalTextController.text} - ${dateTimeFormat(
                               "d/M/y",
