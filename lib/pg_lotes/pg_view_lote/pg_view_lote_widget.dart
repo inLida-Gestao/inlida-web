@@ -110,12 +110,14 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
     final hasIdAnimais = idAnimais.any((id) => id.trim().isNotEmpty);
 
     if (hasIdAnimais) {
-      // Fonte de verdade: lista de IDs cadastrada no lote
+      // Fonte de verdade: lista de IDs cadastrada no lote (só não-deletados, para bater com a lista principal)
       final list = <RebanhoDTStruct>[];
       for (final idRebanho in idAnimais) {
         if (idRebanho.trim().isEmpty) continue;
         final rows = await RebanhoTable().queryRows(
-          queryFn: (q) => q.eqOrNull('idRebanho', idRebanho),
+          queryFn: (q) => q
+              .eqOrNull('idRebanho', idRebanho)
+              .eqOrNull('deletado', 'NAO'),
         );
         final row = rows.firstOrNull;
         if (row == null) continue;
@@ -124,14 +126,15 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
       return list;
     }
 
-    // Fallback: animais que têm loteID = este lote e mesma propriedade (não mostrar de outra fazenda)
+    // Fallback: animais que têm loteID = este lote e mesma propriedade, não deletados (alinhado à lista)
     final idPropriedadeLote = lote.idPropriedade;
     if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) return [];
 
     final rows = await RebanhoTable().queryRows(
       queryFn: (q) => q
           .eqOrNull('loteID', widget.idLote)
-          .eqOrNull('idPropriedade', idPropriedadeLote),
+          .eqOrNull('idPropriedade', idPropriedadeLote)
+          .eqOrNull('deletado', 'NAO'),
     );
     return rows.map((row) => _rowToStruct(row)).toList();
   }
