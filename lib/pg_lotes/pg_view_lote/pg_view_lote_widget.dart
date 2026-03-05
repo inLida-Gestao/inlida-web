@@ -94,59 +94,85 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
         }));
   }
 
-  /// Carrega os animais do lote a partir do id_animais cadastrado no lote (mesma fonte da tela de edição).
+  /// Carrega os animais do lote.
+  /// Prioridade: id_animais do lote (fonte de verdade quando populado).
+  /// Fallback: rebanho com loteID = este lote e idPropriedade = propriedade do lote
+  /// (evita animais de outra fazenda e cobre lotes onde id_animais não foi sincronizado).
   Future<List<RebanhoDTStruct>> _loadAnimaisDoLote() async {
     if (widget.idLote == null || widget.idLote!.isEmpty) return [];
     final lotes = await LotesTable().queryRows(
       queryFn: (q) => q.eqOrNull('id_lote', widget.idLote),
     );
-    final idAnimais = functions.converterJSONparaLista(lotes.firstOrNull?.idAnimais) ?? [];
-    final list = <RebanhoDTStruct>[];
-    for (final idRebanho in idAnimais) {
-      if (idRebanho.trim().isEmpty) continue;
-      final rows = await RebanhoTable().queryRows(
-        queryFn: (q) => q.eqOrNull('idRebanho', idRebanho),
-      );
-      final row = rows.firstOrNull;
-      if (row == null) continue;
-      list.add(RebanhoDTStruct(
-        id: row.id,
-        createdAt: row.createdAt.toString(),
-        idPropriedade: row.idPropriedade,
-        numeroAnimal: row.numeroAnimal,
-        chip: row.chip,
-        codRegistro: row.codRegistro,
-        nome: row.nome,
-        sexo: row.sexo,
-        categoria: row.categoria,
-        dataNascimento: row.dataNascimento?.toString(),
-        pesoNascimento: row.pesoNascimento,
-        porte: row.porte,
-        raca: row.raca,
-        loteID: row.loteID,
-        dataEntradaLote: row.dataEntradaLote?.toString(),
-        rebanhoIdMatriz: row.rebanhoIdMatriz,
-        rebanhoIdReprodutor: row.rebanhoIdReprodutor,
-        dataDesmama: row.dataDesmama?.toString(),
-        pesoDesmama: row.pesoDesmama,
-        pesoAtual: row.pesoAtual,
-        status: row.status,
-        origem: row.origem,
-        anotacoes: row.anotacoes,
-        idRebanho: row.idRebanho,
-        deletado: row.deletado,
-        updatedAt: row.updatedAt?.toString(),
-        loteNome: row.loteNome,
-        tipo: row.tipo,
-        dataAcao: row.dataAcao?.toString(),
-        valorCompra: row.valorCompra,
-        dataUltimaPesagem: row.dataUltimaPesagem?.toString(),
-        nomeConcat: row.nomeConcat,
-        dataVenda: row.dataVenda?.toString(),
-        valorVenda: row.valorVenda,
-      ));
+    final lote = lotes.firstOrNull;
+    if (lote == null) return [];
+
+    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
+    final hasIdAnimais = idAnimais.any((id) => id.trim().isNotEmpty);
+
+    if (hasIdAnimais) {
+      // Fonte de verdade: lista de IDs cadastrada no lote
+      final list = <RebanhoDTStruct>[];
+      for (final idRebanho in idAnimais) {
+        if (idRebanho.trim().isEmpty) continue;
+        final rows = await RebanhoTable().queryRows(
+          queryFn: (q) => q.eqOrNull('idRebanho', idRebanho),
+        );
+        final row = rows.firstOrNull;
+        if (row == null) continue;
+        list.add(_rowToStruct(row));
+      }
+      return list;
     }
-    return list;
+
+    // Fallback: animais que têm loteID = este lote e mesma propriedade (não mostrar de outra fazenda)
+    final idPropriedadeLote = lote.idPropriedade;
+    if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) return [];
+
+    final rows = await RebanhoTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('loteID', widget.idLote)
+          .eqOrNull('idPropriedade', idPropriedadeLote),
+    );
+    return rows.map((row) => _rowToStruct(row)).toList();
+  }
+
+  RebanhoDTStruct _rowToStruct(RebanhoRow row) {
+    return RebanhoDTStruct(
+      id: row.id,
+      createdAt: row.createdAt.toString(),
+      idPropriedade: row.idPropriedade,
+      numeroAnimal: row.numeroAnimal,
+      chip: row.chip,
+      codRegistro: row.codRegistro,
+      nome: row.nome,
+      sexo: row.sexo,
+      categoria: row.categoria,
+      dataNascimento: row.dataNascimento?.toString(),
+      pesoNascimento: row.pesoNascimento,
+      porte: row.porte,
+      raca: row.raca,
+      loteID: row.loteID,
+      dataEntradaLote: row.dataEntradaLote?.toString(),
+      rebanhoIdMatriz: row.rebanhoIdMatriz,
+      rebanhoIdReprodutor: row.rebanhoIdReprodutor,
+      dataDesmama: row.dataDesmama?.toString(),
+      pesoDesmama: row.pesoDesmama,
+      pesoAtual: row.pesoAtual,
+      status: row.status,
+      origem: row.origem,
+      anotacoes: row.anotacoes,
+      idRebanho: row.idRebanho,
+      deletado: row.deletado,
+      updatedAt: row.updatedAt?.toString(),
+      loteNome: row.loteNome,
+      tipo: row.tipo,
+      dataAcao: row.dataAcao?.toString(),
+      valorCompra: row.valorCompra,
+      dataUltimaPesagem: row.dataUltimaPesagem?.toString(),
+      nomeConcat: row.nomeConcat,
+      dataVenda: row.dataVenda?.toString(),
+      valorVenda: row.valorVenda,
+    );
   }
 
   @override
