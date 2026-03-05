@@ -126,17 +126,41 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
       return list;
     }
 
-    // Fallback: animais que têm loteID = este lote e mesma propriedade, não deletados (alinhado à lista)
+    // Fallback: animais com loteID = id_lote OU loteNome = nome do lote (mesma propriedade, não deletados).
+    // A lista principal pode contar por loteNome; sem isso animais com só loteNome preenchido não apareciam.
     final idPropriedadeLote = lote.idPropriedade;
+    final nomeLote = lote.nome;
     if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) return [];
 
-    final rows = await RebanhoTable().queryRows(
+    final byLoteID = await RebanhoTable().queryRows(
       queryFn: (q) => q
           .eqOrNull('loteID', widget.idLote)
           .eqOrNull('idPropriedade', idPropriedadeLote)
           .eqOrNull('deletado', 'NAO'),
     );
-    return rows.map((row) => _rowToStruct(row)).toList();
+    final byLoteNome = (nomeLote != null && nomeLote.trim().isNotEmpty)
+        ? await RebanhoTable().queryRows(
+            queryFn: (q) => q
+                .eqOrNull('loteNome', nomeLote.trim())
+                .eqOrNull('idPropriedade', idPropriedadeLote)
+                .eqOrNull('deletado', 'NAO'),
+          )
+        : <RebanhoRow>[];
+    final idsSeen = <String>{};
+    final list = <RebanhoDTStruct>[];
+    for (final row in byLoteID) {
+      final id = row.idRebanho;
+      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+        list.add(_rowToStruct(row));
+      }
+    }
+    for (final row in byLoteNome) {
+      final id = row.idRebanho;
+      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+        list.add(_rowToStruct(row));
+      }
+    }
+    return list;
   }
 
   RebanhoDTStruct _rowToStruct(RebanhoRow row) {

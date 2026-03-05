@@ -6941,6 +6941,30 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                             ),
                                             FFButtonWidget(
                                               onPressed: () async {
+                                                // Resolver id_lote do lote selecionado (dropdown usa nome do lote)
+                                                String? idLoteNovo;
+                                                if (_model.dropDownLotesValue !=
+                                                        null &&
+                                                    _model
+                                                        .dropDownLotesValue!
+                                                        .isNotEmpty) {
+                                                  final lotesRows =
+                                                      await LotesTable()
+                                                          .queryRows(
+                                                    queryFn: (q) => q
+                                                        .eqOrNull('nome',
+                                                            _model
+                                                                .dropDownLotesValue)
+                                                        .eqOrNull(
+                                                            'id_propriedade',
+                                                            FFAppState()
+                                                                .propriedadeSelecionada
+                                                                .idPropriedade),
+                                                  );
+                                                  idLoteNovo =
+                                                      lotesRows.firstOrNull
+                                                          ?.idLote;
+                                                }
                                                 await RebanhoTable().update(
                                                   data: {
                                                     'numeroAnimal': _model
@@ -6998,6 +7022,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         .text,
                                                     'loteNome': _model
                                                         .dropDownLotesValue,
+                                                    'loteID': idLoteNovo,
                                                     'dataAcao': supaSerialize<
                                                         DateTime>(_model.datePicked8 ?? pgRebanhoEditRebanhoRow
                                                             ?.dataAcao),
@@ -7081,51 +7106,89 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                     widget.rebanhoId,
                                                   ),
                                                 );
-                                                if ((_model.dropDownLotesValue !=
-                                                            null &&
-                                                        _model.dropDownLotesValue !=
-                                                            '') &&
-                                                    (pgRebanhoEditRebanhoRow
-                                                                ?.loteID ==
-                                                            null ||
-                                                        pgRebanhoEditRebanhoRow
-                                                                ?.loteID ==
-                                                            '')) {
-                                                  _model.loteSelecionado =
+                                                // Sincronizar id_animais do(s) lote(s): remover do lote antigo e incluir no novo
+                                                final idRebanhoAnimal =
+                                                    pgRebanhoEditRebanhoRow
+                                                        ?.idRebanho;
+                                                final loteAntigoId =
+                                                    pgRebanhoEditRebanhoRow
+                                                        ?.loteID;
+                                                if (loteAntigoId != null &&
+                                                    loteAntigoId.isNotEmpty &&
+                                                    loteAntigoId !=
+                                                        idLoteNovo) {
+                                                  final lotesAntigos =
                                                       await LotesTable()
                                                           .queryRows(
                                                     queryFn: (q) => q.eqOrNull(
-                                                      'id_lote',
-                                                      _model.dropDownLotesValue,
-                                                    ),
+                                                        'id_lote', loteAntigoId),
                                                   );
-                                                  _model.animaisLote = _model
-                                                      .loteSelecionado!
-                                                      .map((e) => e.idAnimais)
-                                                      .withoutNulls
-                                                      .toList()
-                                                      .cast<String>();
-                                                  safeSetState(() {});
-                                                  _model.addToAnimaisLote(
-                                                      pgRebanhoEditRebanhoRow!
-                                                          .idRebanho!);
-                                                  safeSetState(() {});
-                                                  await LotesTable().update(
-                                                    data: {
-                                                      'id_animais': functions
-                                                          .converterListaParaJSON(
-                                                              _model.animaisLote
-                                                                  .toList()),
-                                                      'updated_at': supaSerialize<
-                                                              DateTime>(
-                                                          getCurrentTimestamp),
-                                                    },
-                                                    matchingRows: (rows) =>
-                                                        rows.eqOrNull(
-                                                      'id_lote',
-                                                      _model.dropDownLotesValue,
-                                                    ),
+                                                  final loteAntigo =
+                                                      lotesAntigos.firstOrNull;
+                                                  if (loteAntigo != null &&
+                                                      idRebanhoAnimal != null) {
+                                                    final listaAntiga =
+                                                        functions.converterJSONparaLista(
+                                                                loteAntigo
+                                                                    .idAnimais) ??
+                                                            [];
+                                                    listaAntiga
+                                                        .remove(idRebanhoAnimal);
+                                                    await LotesTable().update(
+                                                      data: {
+                                                        'id_animais': functions
+                                                            .converterListaParaJSON(
+                                                                listaAntiga),
+                                                        'updated_at':
+                                                            supaSerialize<
+                                                                DateTime>(
+                                                                getCurrentTimestamp),
+                                                      },
+                                                      matchingRows: (rows) =>
+                                                          rows.eqOrNull(
+                                                              'id_lote',
+                                                              loteAntigoId),
+                                                    );
+                                                  }
+                                                }
+                                                if (idLoteNovo != null &&
+                                                    idRebanhoAnimal != null) {
+                                                  final lotesNovo =
+                                                      await LotesTable()
+                                                          .queryRows(
+                                                    queryFn: (q) => q.eqOrNull(
+                                                        'id_lote', idLoteNovo),
                                                   );
+                                                  final loteNovo =
+                                                      lotesNovo.firstOrNull;
+                                                  if (loteNovo != null) {
+                                                    final listaNova =
+                                                        functions.converterJSONparaLista(
+                                                                loteNovo
+                                                                    .idAnimais) ??
+                                                            [];
+                                                    if (!listaNova.contains(
+                                                        idRebanhoAnimal)) {
+                                                      listaNova.add(
+                                                          idRebanhoAnimal);
+                                                      await LotesTable()
+                                                          .update(
+                                                        data: {
+                                                          'id_animais': functions
+                                                              .converterListaParaJSON(
+                                                                  listaNova),
+                                                          'updated_at':
+                                                              supaSerialize<
+                                                                  DateTime>(
+                                                                  getCurrentTimestamp),
+                                                        },
+                                                        matchingRows: (rows) =>
+                                                            rows.eqOrNull(
+                                                                'id_lote',
+                                                                idLoteNovo),
+                                                      );
+                                                    }
+                                                  }
                                                 }
                                                 FFAppState().refreshRebanho =
                                                     true;
