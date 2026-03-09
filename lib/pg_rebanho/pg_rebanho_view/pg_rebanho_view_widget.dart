@@ -6354,50 +6354,18 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                 ),
                                                                                 Column(
                                                                                   mainAxisSize: MainAxisSize.max,
-                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                                                  crossAxisAlignment: CrossAxisAlignment.center,
                                                                                   children: [
                                                                                     Text(
-                                                                                      'Inseminação: ${valueOrDefault<String>(
+                                                                                      valueOrDefault<String>(
                                                                                         dateTimeFormat(
                                                                                           "d/M/y",
                                                                                           reproducaoItem.dataInseminacao,
                                                                                           locale: FFLocalizations.of(context).languageCode,
                                                                                         ),
                                                                                         'S/D',
-                                                                                      )}',
-                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                            font: GoogleFonts.poppins(
-                                                                                              fontWeight: FontWeight.w500,
-                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                            ),
-                                                                                            fontSize: 12.0,
-                                                                                            letterSpacing: 0.0,
-                                                                                            fontWeight: FontWeight.w500,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                          ),
-                                                                                    ),
-                                                                                    Text(
-                                                                                      '${valueOrDefault<String>(
-                                                                                        dateTimeFormat(
-                                                                                          "d/M/y",
-                                                                                          functions.converterParaData(valueOrDefault<String>(
-                                                                                            reproducaoItem.dataInicial?.toString(),
-                                                                                            'S/D',
-                                                                                          )),
-                                                                                          locale: FFLocalizations.of(context).languageCode,
-                                                                                        ),
-                                                                                        'S/D',
-                                                                                      )} - ${valueOrDefault<String>(
-                                                                                        dateTimeFormat(
-                                                                                          "d/M/y",
-                                                                                          functions.converterParaData(valueOrDefault<String>(
-                                                                                            reproducaoItem.dataFinal?.toString(),
-                                                                                            'S/D',
-                                                                                          )),
-                                                                                          locale: FFLocalizations.of(context).languageCode,
-                                                                                        ),
-                                                                                        'S/D',
-                                                                                      )}',
+                                                                                      ),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                             font: GoogleFonts.poppins(
                                                                                               fontWeight: FontWeight.w500,
@@ -7039,50 +7007,18 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                 ),
                                                                                 Column(
                                                                                   mainAxisSize: MainAxisSize.max,
-                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                                                  crossAxisAlignment: CrossAxisAlignment.center,
                                                                                   children: [
                                                                                     Text(
-                                                                                      'Inseminação: ${valueOrDefault<String>(
+                                                                                      valueOrDefault<String>(
                                                                                         dateTimeFormat(
                                                                                           "d/M/y",
                                                                                           reproducaoItem.dataInseminacao,
                                                                                           locale: FFLocalizations.of(context).languageCode,
                                                                                         ),
                                                                                         'S/D',
-                                                                                      )}',
-                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                            font: GoogleFonts.poppins(
-                                                                                              fontWeight: FontWeight.w500,
-                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                            ),
-                                                                                            fontSize: 12.0,
-                                                                                            letterSpacing: 0.0,
-                                                                                            fontWeight: FontWeight.w500,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                          ),
-                                                                                    ),
-                                                                                    Text(
-                                                                                      '${valueOrDefault<String>(
-                                                                                        dateTimeFormat(
-                                                                                          "d/M/y",
-                                                                                          functions.converterParaData(valueOrDefault<String>(
-                                                                                            reproducaoItem.dataInicial?.toString(),
-                                                                                            'S/D',
-                                                                                          )),
-                                                                                          locale: FFLocalizations.of(context).languageCode,
-                                                                                        ),
-                                                                                        'S/D',
-                                                                                      )} - ${valueOrDefault<String>(
-                                                                                        dateTimeFormat(
-                                                                                          "d/M/y",
-                                                                                          functions.converterParaData(valueOrDefault<String>(
-                                                                                            reproducaoItem.dataFinal?.toString(),
-                                                                                            'S/D',
-                                                                                          )),
-                                                                                          locale: FFLocalizations.of(context).languageCode,
-                                                                                        ),
-                                                                                        'S/D',
-                                                                                      )}',
+                                                                                      ),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                             font: GoogleFonts.poppins(
                                                                                               fontWeight: FontWeight.w500,
