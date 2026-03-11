@@ -55,7 +55,6 @@ class SupabaseAuthManager extends AuthManager with EmailSignInManager {
     );
   }
 
-  @override
   Future updatePassword({
     required String newPassword,
     required BuildContext context,

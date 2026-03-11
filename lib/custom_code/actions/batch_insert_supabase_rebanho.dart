@@ -13,11 +13,13 @@ class _RebanhoParentLookup {
   final Map<String, String> byNumero;
   final Map<String, String> byNumeroData;
   final Map<String, String> byComposite;
+  final Map<String, String> byAnimalIdentity;
 
   const _RebanhoParentLookup({
     required this.byNumero,
     required this.byNumeroData,
     required this.byComposite,
+    required this.byAnimalIdentity,
   });
 }
 
@@ -70,6 +72,44 @@ String _composeNumeroDataKey({
   required String dataNascimento,
 }) {
   return '${_normalizeNumeroKey(numero)}|$dataNascimento';
+}
+
+String _normalizeIdentityText(String value) {
+  return _normalizeLoteNome(_fixEncoding(value));
+}
+
+String? _composeAnimalIdentityKeyFromData(Map<String, dynamic> data) {
+  final numero = _asNonEmptyString(data['numeroAnimal']);
+  if (numero == null) {
+    return null;
+  }
+
+  final nome = _asNonEmptyString(data['nome']);
+  final dataNascimento = _normalizeDateKey(data['dataNascimento']) ?? '';
+  final sexo = _asNonEmptyString(data['sexo']);
+  final raca = _asNonEmptyString(data['raca']);
+
+  final normalizedNome = nome == null ? '' : _normalizeIdentityText(nome);
+  final normalizedSexo = sexo == null ? '' : _normalizeIdentityText(sexo);
+  final normalizedRaca = raca == null ? '' : _normalizeIdentityText(raca);
+
+  return '${_normalizeNumeroKey(_fixEncoding(numero))}|$normalizedNome|$dataNascimento|$normalizedSexo|$normalizedRaca';
+}
+
+bool _resolveExistingAnimalId(
+  Map<String, dynamic> data,
+  _RebanhoParentLookup lookup,
+) {
+  final identityKey = _composeAnimalIdentityKeyFromData(data);
+  if (identityKey == null) return false;
+
+  final resolvedId = lookup.byAnimalIdentity[identityKey];
+  if (resolvedId != null && resolvedId.isNotEmpty) {
+    data['idRebanho'] = resolvedId;
+    return true;
+  }
+
+  return false;
 }
 
 void _ensureIdRebanhoForRecords(List<dynamic> records) {
@@ -131,6 +171,7 @@ _RebanhoParentLookup _buildLookupFromImportedRecords(List<dynamic> records) {
     byNumero: byNumero,
     byNumeroData: byNumeroData,
     byComposite: byComposite,
+    byAnimalIdentity: const <String, String>{},
   );
 }
 
@@ -141,11 +182,12 @@ Future<_RebanhoParentLookup> _fetchLookupFromDb(String idPropriedade) async {
   final byNumero = <String, String>{};
   final byNumeroData = <String, String>{};
   final byComposite = <String, String>{};
+  final byAnimalIdentity = <String, String>{};
 
   while (true) {
     final res = await Supabase.instance.client
         .from('rebanho')
-        .select('idRebanho,numeroAnimal,nome,dataNascimento,raca,deletado')
+      .select('idRebanho,numeroAnimal,nome,dataNascimento,sexo,raca,deletado')
         .eq('idPropriedade', idPropriedade)
         .range(from, from + pageSize - 1);
 
@@ -185,6 +227,11 @@ Future<_RebanhoParentLookup> _fetchLookupFromDb(String idPropriedade) async {
         );
         byComposite.putIfAbsent(key, () => id);
       }
+
+      final identityKey = _composeAnimalIdentityKeyFromData(row);
+      if (identityKey != null) {
+        byAnimalIdentity.putIfAbsent(identityKey, () => id);
+      }
     }
 
     if (rows.length < pageSize) break;
@@ -195,6 +242,7 @@ Future<_RebanhoParentLookup> _fetchLookupFromDb(String idPropriedade) async {
     byNumero: byNumero,
     byNumeroData: byNumeroData,
     byComposite: byComposite,
+    byAnimalIdentity: byAnimalIdentity,
   );
 }
 
@@ -224,6 +272,7 @@ Future<_RebanhoParentLookup> _buildParentLookup(
     byNumero: mergedByNumero,
     byNumeroData: mergedByNumeroData,
     byComposite: mergedByComposite,
+    byAnimalIdentity: db.byAnimalIdentity,
   );
 }
 
@@ -415,8 +464,11 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
       'success': true,
       'total': 0,
       'inserted': 0,
+      'created': 0,
+      'updated': 0,
       'failed': 0,
       'failedRows': <Map<String, dynamic>>[],
+      'updatedRows': <Map<String, dynamic>>[],
     };
   }
 
@@ -454,8 +506,11 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
     ];
 
     int totalInserted = 0;
+    int totalCreated = 0;
+    int totalUpdated = 0;
     int totalFailed = 0;
     final List<Map<String, dynamic>> failedRows = [];
+    final List<Map<String, dynamic>> updatedRows = [];
 
     // Processar em chunks para melhor performance
     for (int i = 0; i < records.length; i += chunkSize) {
@@ -467,6 +522,9 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
         // Preparar dados para inserção
         final List<Map<String, dynamic>> cleanRecords = [];
         final List<Map<String, dynamic>> pesagensToInsert = [];
+        int chunkCreated = 0;
+        int chunkUpdated = 0;
+        final List<Map<String, dynamic>> chunkUpdatedRows = [];
 
         for (final record in chunk) {
           final Map<String, dynamic> data = Map<String, dynamic>.from(record);
@@ -484,9 +542,6 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
               data['idRebanho'] == 'null') {
             data['idRebanho'] = _generateIdReproducao();
           }
-
-          // Armazenar o idRebanho para uso posterior
-          final String idRebanho = data['idRebanho'];
 
           // Garantir que id_propriedade está presente
           data['idPropriedade'] = idPropriedade;
@@ -516,10 +571,15 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
           // Resolver rebanhoIdMatriz/rebanhoIdReprodutor a partir dos campos-chave
           _fillParentIdsFromKeys(data, parentLookup);
 
+          // Reaproveitar idRebanho existente quando a identidade do animal já
+          // existir no banco ou em outro registro do mesmo CSV.
+          final matchedExisting = _resolveExistingAnimalId(data, parentLookup);
+
           // Capturar valores de peso ANTES de limpar
           final pesoAtual = data['pesoAtual'];
           final pesoNascimento = data['pesoNascimento'];
           final pesoDesmama = data['pesoDesmama'];
+          final String idRebanho = data['idRebanho'];
 
           // Limpar valores "null" string e vazios para null real
           final Map<String, dynamic> cleanData = {};
@@ -549,6 +609,19 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
             }
           }
 
+          if (matchedExisting) {
+            chunkUpdated += 1;
+            chunkUpdatedRows.add({
+              'linha': i + (cleanRecords.length) + 2,
+              'numeroAnimal':
+                  (cleanData['numeroAnimal']?.toString() ?? '').trim(),
+              'nome': (cleanData['nome']?.toString() ?? '').trim(),
+              'motivo': 'Animal existente encontrado e atualizado.',
+            });
+          } else {
+            chunkCreated += 1;
+          }
+
           cleanRecords.add(cleanData);
 
           // Preparar registros de pesagem
@@ -574,6 +647,9 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
             );
 
         totalInserted += cleanRecords.length;
+        totalCreated += chunkCreated;
+        totalUpdated += chunkUpdated;
+        updatedRows.addAll(chunkUpdatedRows);
 
         print(
             'Chunk ${(i / chunkSize).floor() + 1}: ${chunk.length} registros inseridos');
@@ -606,7 +682,6 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
               data['idRebanho'] = _generateIdReproducao();
             }
 
-            final String idRebanho = data['idRebanho'];
             data['idPropriedade'] = idPropriedade;
 
             // Resolver loteID pelo nome do lote (quando loteID não vier na planilha)
@@ -634,10 +709,16 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
             // Resolver rebanhoIdMatriz/rebanhoIdReprodutor a partir dos campos-chave
             _fillParentIdsFromKeys(data, parentLookup);
 
+            // Reaproveitar idRebanho existente quando a identidade do animal já
+            // existir no banco ou em outro registro do mesmo CSV.
+            final matchedExisting =
+              _resolveExistingAnimalId(data, parentLookup);
+
             // Capturar valores de peso
             final pesoAtual = data['pesoAtual'];
             final pesoNascimento = data['pesoNascimento'];
             final pesoDesmama = data['pesoDesmama'];
+            final String idRebanho = data['idRebanho'];
 
             final Map<String, dynamic> cleanData = {};
             data.forEach((key, value) {
@@ -664,6 +745,19 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
                 cleanData[dateField] =
                     _convertDateFormat(cleanData[dateField].toString());
               }
+            }
+
+            if (matchedExisting) {
+              totalUpdated += 1;
+              updatedRows.add({
+                'linha': i + chunkIndex + 2,
+                'numeroAnimal':
+                    (cleanData['numeroAnimal']?.toString() ?? '').trim(),
+                'nome': (cleanData['nome']?.toString() ?? '').trim(),
+                'motivo': 'Animal existente encontrado e atualizado.',
+              });
+            } else {
+              totalCreated += 1;
             }
 
             await Supabase.instance.client
@@ -718,8 +812,11 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
         'success': false,
         'total': records.length,
         'inserted': totalInserted,
+        'created': totalCreated,
+        'updated': totalUpdated,
         'failed': totalFailed,
         'failedRows': failedRows,
+        'updatedRows': updatedRows,
       };
     }
 
@@ -729,8 +826,11 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
       'success': true,
       'total': records.length,
       'inserted': totalInserted,
+      'created': totalCreated,
+      'updated': totalUpdated,
       'failed': 0,
       'failedRows': <Map<String, dynamic>>[],
+      'updatedRows': updatedRows,
     };
   } catch (e, stack) {
     print('Erro geral no batch insert: $e');
@@ -739,6 +839,8 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
       'success': false,
       'total': records.length,
       'inserted': 0,
+      'created': 0,
+      'updated': 0,
       'failed': records.length,
       'failedRows': <Map<String, dynamic>>[
         {
@@ -749,6 +851,7 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
           'erro': e.toString(),
         }
       ],
+      'updatedRows': <Map<String, dynamic>>[],
     };
   }
 }
@@ -864,43 +967,65 @@ void _preparePesagemRecords(
   String? dataDesmama,
   String? dataUltimaPesagem,
 ) {
-  final hoje = DateTime.now().toIso8601String().split('T')[0];
+  _addPesagemRecord(
+    pesagensToInsert: pesagensToInsert,
+    idRebanho: idRebanho,
+    idPropriedade: idPropriedade,
+    tipo: 'Nascimento',
+    peso: pesoNascimento,
+    dataPesagem: dataNascimento,
+  );
 
-  // Peso de Nascimento
-  if (_isValidPeso(pesoNascimento)) {
-    pesagensToInsert.add({
-      'idRebanho': idRebanho,
-      'id_propriedade': idPropriedade,
-      'tipo': 'Nascimento',
-      'peso': _parsePeso(pesoNascimento),
-      'dataPesagem': dataNascimento ?? hoje,
-      'deletado': null,
-    });
+  _addPesagemRecord(
+    pesagensToInsert: pesagensToInsert,
+    idRebanho: idRebanho,
+    idPropriedade: idPropriedade,
+    tipo: 'Desmama',
+    peso: pesoDesmama,
+    dataPesagem: dataDesmama,
+  );
+
+  _addPesagemRecord(
+    pesagensToInsert: pesagensToInsert,
+    idRebanho: idRebanho,
+    idPropriedade: idPropriedade,
+    tipo: 'Atual',
+    peso: pesoAtual,
+    dataPesagem: _resolveCurrentPesagemDate(dataUltimaPesagem),
+  );
+}
+
+String? _resolveCurrentPesagemDate(String? dataUltimaPesagem) {
+  if (_isValidDate(dataUltimaPesagem)) {
+    return dataUltimaPesagem;
   }
 
-  // Peso de Desmama
-  if (_isValidPeso(pesoDesmama)) {
-    pesagensToInsert.add({
-      'idRebanho': idRebanho,
-      'id_propriedade': idPropriedade,
-      'tipo': 'Desmama',
-      'peso': _parsePeso(pesoDesmama),
-      'dataPesagem': dataDesmama ?? hoje,
-      'deletado': null,
-    });
+  final now = DateTime.now();
+  final month = now.month.toString().padLeft(2, '0');
+  final day = now.day.toString().padLeft(2, '0');
+  return '${now.year}-$month-$day';
+}
+
+void _addPesagemRecord({
+  required List<Map<String, dynamic>> pesagensToInsert,
+  required String idRebanho,
+  required String idPropriedade,
+  required String tipo,
+  required dynamic peso,
+  required String? dataPesagem,
+}) {
+  if (!_isValidPeso(peso) || !_isValidDate(dataPesagem)) {
+    return;
   }
 
-  // Peso Atual
-  if (_isValidPeso(pesoAtual)) {
-    pesagensToInsert.add({
-      'idRebanho': idRebanho,
-      'id_propriedade': idPropriedade,
-      'tipo': 'Atual',
-      'peso': _parsePeso(pesoAtual),
-      'dataPesagem': dataUltimaPesagem ?? hoje,
-      'deletado': null,
-    });
-  }
+  pesagensToInsert.add({
+    'idRebanho': idRebanho,
+    'id_propriedade': idPropriedade,
+    'tipo': tipo,
+    'peso': _parsePeso(peso),
+    'dataPesagem': dataPesagem,
+    'deletado': null,
+  });
 }
 
 // Função auxiliar para inserir pesagens
@@ -934,6 +1059,15 @@ bool _isValidPeso(dynamic peso) {
   } catch (e) {
     return false;
   }
+}
+
+bool _isValidDate(String? dateValue) {
+  if (dateValue == null) return false;
+  final trimmed = dateValue.trim()
+      .replaceAll('null', '')
+      .replaceAll('undefined', '');
+  if (trimmed.isEmpty) return false;
+  return DateTime.tryParse(trimmed) != null;
 }
 
 // Função auxiliar para converter peso para número

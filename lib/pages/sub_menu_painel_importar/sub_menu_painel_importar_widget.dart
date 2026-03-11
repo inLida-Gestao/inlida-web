@@ -228,6 +228,12 @@ class _SubMenuPainelImportarWidgetState
                         FFAppState().propriedadeSelecionada.idPropriedade,
                       );
                       final bool success = importResult['success'] == true;
+                      final int created =
+                          (importResult['created'] as num?)?.toInt() ?? 0;
+                      final int updated =
+                          (importResult['updated'] as num?)?.toInt() ?? 0;
+                      final int failed =
+                          (importResult['failed'] as num?)?.toInt() ?? 0;
                       final List<dynamic> failedRows =
                           (importResult['failedRows'] as List<dynamic>? ?? [])
                               .toList();
@@ -236,8 +242,8 @@ class _SubMenuPainelImportarWidgetState
                         SnackBar(
                           content: Text(
                             success
-                                ? 'Upload finalizado com sucesso'
-                                : 'Upload finalizado com inconsistências. Verifique os dados da planilha.',
+                                ? 'Upload finalizado. Criados: $created • Atualizados: $updated • Falhas: $failed'
+                                : 'Upload finalizado com inconsistências. Criados: $created • Atualizados: $updated • Falhas: $failed',
                             style: TextStyle(
                               color: FlutterFlowTheme.of(context)
                                   .secondaryBackground,

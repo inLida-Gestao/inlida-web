@@ -1404,17 +1404,12 @@ class _CadastroWidgetState extends State<CadastroWidget> {
                                                 safeSetState(() => _model
                                                     .checkboxValue = newValue!);
                                               },
-                                              side:
-                                                  (FlutterFlowTheme.of(context)
-                                                              .primaryText !=
-                                                          null)
-                                                      ? BorderSide(
-                                                          width: 2,
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .primaryText,
-                                                        )
-                                                      : null,
+                                              side: BorderSide(
+                                                width: 2,
+                                                color: FlutterFlowTheme.of(
+                                                  context,
+                                                ).primaryText,
+                                              ),
                                               activeColor:
                                                   FlutterFlowTheme.of(context)
                                                       .primary,

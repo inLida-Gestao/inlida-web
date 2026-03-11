@@ -1967,12 +1967,10 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                         safeSetState(() {});
                                                                                       }
                                                                                     },
-                                                                                    side: (FlutterFlowTheme.of(context).primaryText != null)
-                                                                                        ? BorderSide(
-                                                                                            width: 2,
-                                                                                            color: FlutterFlowTheme.of(context).primaryText,
-                                                                                          )
-                                                                                        : null,
+                                                                                    side: BorderSide(
+                                                                                      width: 2,
+                                                                                      color: FlutterFlowTheme.of(context).primaryText,
+                                                                                    ),
                                                                                     activeColor: FlutterFlowTheme.of(context).primary,
                                                                                     checkColor: FlutterFlowTheme.of(context).secondaryBackground,
                                                                                   ),
@@ -1995,7 +1993,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             child:
                                                                                 Builder(
                                                                               builder: (context) {
-                                                                                final animais = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') || (e.status != 'Fora da propriedade')).toList().toList() ?? [];
+                                                                                final animais = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') || (e.status != 'Fora da propriedade')).toList().toList();
 
                                                                                 return ListView.builder(
                                                                                   padding: EdgeInsets.zero,

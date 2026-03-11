@@ -404,7 +404,7 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
   Widget _buildUploadSection(BuildContext context) {
     final hasFile = _model.uploadedFile.bytes != null &&
         _model.uploadedFile.bytes!.isNotEmpty;
-    final fileName = _model.uploadedFile.originalFilename ?? '';
+    final fileName = _model.uploadedFile.originalFilename;
 
     return InkWell(
       onTap: (_model.isProcessing || _model.isImporting)
