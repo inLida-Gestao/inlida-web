@@ -8,7 +8,6 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/reproducao/modal_add_reproducao/modal_add_reproducao_widget.dart';
 import '/reproducao/modal_more_reproducao/modal_more_reproducao_widget.dart';
 import '/reproducao/pp_filtro_reproducao/pp_filtro_reproducao_widget.dart';
@@ -50,20 +49,13 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
       await action_blocks.countReproducoes(context);
       safeSetState(() {});
       safeSetState(() {});
-      _model.instantTimer = InstantTimer.periodic(
-        duration: const Duration(milliseconds: 150),
-        callback: (timer) async {
-          if (FFAppState().refreshReproducao == true) {
-            safeSetState(() => _model.apiRequestCompleter2 = null);
-            safeSetState(() => _model.apiRequestCompleter1 = null);
-            FFAppState().refreshReproducao = false;
-            safeSetState(() {});
-            safeSetState(() {});
-            safeSetState(() {});
-          }
-        },
-        startImmediately: true,
-      );
+      _model.disposeRefreshListener = FFAppState().onRefresh('refreshReproducao', () {
+        FFAppState().refreshReproducao = false;
+        safeSetState(() {
+          _model.apiRequestCompleter2 = null;
+          _model.apiRequestCompleter1 = null;
+        });
+      });
     });
 
     _model.textController ??= TextEditingController();
@@ -86,25 +78,38 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
-    // Ao aplicar filtros, invalidar o future para forçar nova busca com os valores atuais.
-    if (FFAppState().refreshReproducao == true) {
-      _model.apiRequestCompleter2 = null;
-      _model.apiRequestCompleter1 = null;
-      FFAppState().refreshReproducao = false;
-    }
-
     return FutureBuilder<ApiCallResponse>(
       future: (_model.apiRequestCompleter2 ??= Completer<ApiCallResponse>()
             ..complete(
                 FunctionsSupabaseRebanhoGroup.buscarReproducaoFiltrosCall.call(
-              pDataPrevisaoParto: dateTimeFormat(
+              pDataPrevisaoPartoDe: dateTimeFormat(
                 "yyyy-MM-dd",
-                FFAppState().filtroDataParto,
+                FFAppState().filtroDataPartoDe,
                 locale: FFLocalizations.of(context).languageCode,
               ),
-              pDataReproducao: dateTimeFormat(
+              pDataPrevisaoPartoAte: dateTimeFormat(
                 "yyyy-MM-dd",
-                FFAppState().filtroDataReproducao,
+                FFAppState().filtroDataPartoAte,
+                locale: FFLocalizations.of(context).languageCode,
+              ),
+              pDataReproducaoDe: dateTimeFormat(
+                "yyyy-MM-dd",
+                FFAppState().filtroDataReproducaoDe,
+                locale: FFLocalizations.of(context).languageCode,
+              ),
+              pDataReproducaoAte: dateTimeFormat(
+                "yyyy-MM-dd",
+                FFAppState().filtroDataReproducaoAte,
+                locale: FFLocalizations.of(context).languageCode,
+              ),
+              pDataDiagnosticoDe: dateTimeFormat(
+                "yyyy-MM-dd",
+                FFAppState().filtroDataDiagnosticoDe,
+                locale: FFLocalizations.of(context).languageCode,
+              ),
+              pDataDiagnosticoAte: dateTimeFormat(
+                "yyyy-MM-dd",
+                FFAppState().filtroDataDiagnosticoAte,
                 locale: FFLocalizations.of(context).languageCode,
               ),
               pLoteNome: FFAppState().filtroLoteNome,
@@ -135,6 +140,39 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                     FlutterFlowTheme.of(context).primary,
                   ),
                 ),
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: FlutterFlowTheme.of(context).error,
+                    size: 48.0,
+                  ),
+                  const SizedBox(height: 16.0),
+                  Text(
+                    'Erro ao carregar dados',
+                    style: FlutterFlowTheme.of(context).titleMedium,
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Verifique sua conexão e tente novamente.',
+                    style: FlutterFlowTheme.of(context).bodySmall,
+                  ),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton.icon(
+                    onPressed: () => safeSetState(() => _model.apiRequestCompleter2 = null),
+                    icon: const Icon(Icons.refresh_rounded, size: 18.0),
+                    label: const Text('Tentar novamente'),
+                  ),
+                ],
               ),
             ),
           );
@@ -787,6 +825,25 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                   ),
                                                 );
                                               }
+                                              if (snapshot.hasError) {
+                                                return Center(
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.error_outline_rounded,
+                                                        color: FlutterFlowTheme.of(context).error,
+                                                        size: 36.0,
+                                                      ),
+                                                      const SizedBox(height: 8.0),
+                                                      Text(
+                                                        'Erro ao carregar',
+                                                        style: FlutterFlowTheme.of(context).bodySmall,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              }
                                               final containerCountInseminacaoResponse =
                                                   snapshot.data!;
 
@@ -940,6 +997,25 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                             .primary,
                                                       ),
                                                     ),
+                                                  ),
+                                                );
+                                              }
+                                              if (snapshot.hasError) {
+                                                return Center(
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.error_outline_rounded,
+                                                        color: FlutterFlowTheme.of(context).error,
+                                                        size: 36.0,
+                                                      ),
+                                                      const SizedBox(height: 8.0),
+                                                      Text(
+                                                        'Erro ao carregar',
+                                                        style: FlutterFlowTheme.of(context).bodySmall,
+                                                      ),
+                                                    ],
                                                   ),
                                                 );
                                               }
@@ -2382,21 +2458,61 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                           FunctionsSupabaseRebanhoGroup
                                                               .countReproducaoFiltrosCall
                                                               .call(
-                                                        pDataPrevisaoParto:
+                                                        pDataPrevisaoPartoDe:
                                                             dateTimeFormat(
                                                           "yyyy-MM-dd",
                                                           FFAppState()
-                                                              .filtroDataParto,
+                                                              .filtroDataPartoDe,
                                                           locale:
                                                               FFLocalizations.of(
                                                                       context)
                                                                   .languageCode,
                                                         ),
-                                                        pDataReproducao:
+                                                        pDataPrevisaoPartoAte:
                                                             dateTimeFormat(
                                                           "yyyy-MM-dd",
                                                           FFAppState()
-                                                              .filtroDataReproducao,
+                                                              .filtroDataPartoAte,
+                                                          locale:
+                                                              FFLocalizations.of(
+                                                                      context)
+                                                                  .languageCode,
+                                                        ),
+                                                        pDataReproducaoDe:
+                                                            dateTimeFormat(
+                                                          "yyyy-MM-dd",
+                                                          FFAppState()
+                                                              .filtroDataReproducaoDe,
+                                                          locale:
+                                                              FFLocalizations.of(
+                                                                      context)
+                                                                  .languageCode,
+                                                        ),
+                                                        pDataReproducaoAte:
+                                                            dateTimeFormat(
+                                                          "yyyy-MM-dd",
+                                                          FFAppState()
+                                                              .filtroDataReproducaoAte,
+                                                          locale:
+                                                              FFLocalizations.of(
+                                                                      context)
+                                                                  .languageCode,
+                                                        ),
+                                                        pDataDiagnosticoDe:
+                                                            dateTimeFormat(
+                                                          "yyyy-MM-dd",
+                                                          FFAppState()
+                                                              .filtroDataDiagnosticoDe,
+                                                          locale:
+                                                              FFLocalizations.of(
+                                                                      context)
+                                                                  .languageCode,
+                                                        ),
+                                                        pDataDiagnosticoAte:
+                                                            dateTimeFormat(
+                                                          "yyyy-MM-dd",
+                                                          FFAppState()
+                                                              .filtroDataDiagnosticoAte,
                                                           locale:
                                                               FFLocalizations.of(
                                                                       context)
@@ -2439,6 +2555,25 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                             .primary,
                                                       ),
                                                     ),
+                                                  ),
+                                                );
+                                              }
+                                              if (snapshot.hasError) {
+                                                return Center(
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.error_outline_rounded,
+                                                        color: FlutterFlowTheme.of(context).error,
+                                                        size: 36.0,
+                                                      ),
+                                                      const SizedBox(height: 8.0),
+                                                      Text(
+                                                        'Erro ao carregar',
+                                                        style: FlutterFlowTheme.of(context).bodySmall,
+                                                      ),
+                                                    ],
                                                   ),
                                                 );
                                               }

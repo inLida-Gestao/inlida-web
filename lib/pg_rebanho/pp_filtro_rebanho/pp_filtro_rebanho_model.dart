@@ -12,12 +12,18 @@ class PpFiltroRebanhoModel extends FlutterFlowModel<PpFiltroRebanhoWidget> {
   // State field(s) for DropDownStatus widget.
   String? dropDownStatusValue;
   FormFieldController<String>? dropDownStatusValueController;
-  // State field(s) for dataNascimento widget.
-  FocusNode? dataNascimentoFocusNode;
-  TextEditingController? dataNascimentoTextController;
+  // State field(s) for dataNascimentoDe widget.
+  FocusNode? dataNascimentoDeFocusNode;
+  TextEditingController? dataNascimentoDeTextController;
   String? Function(BuildContext, String?)?
-      dataNascimentoTextControllerValidator;
-  DateTime? datePicked;
+      dataNascimentoDeTextControllerValidator;
+  DateTime? datePickedDe;
+  // State field(s) for dataNascimentoAte widget.
+  FocusNode? dataNascimentoAteFocusNode;
+  TextEditingController? dataNascimentoAteTextController;
+  String? Function(BuildContext, String?)?
+      dataNascimentoAteTextControllerValidator;
+  DateTime? datePickedAte;
   // State field(s) for DropDownLote widget.
   String? dropDownLoteValue;
   FormFieldController<String>? dropDownLoteValueController;
@@ -39,7 +45,9 @@ class PpFiltroRebanhoModel extends FlutterFlowModel<PpFiltroRebanhoWidget> {
 
   @override
   void dispose() {
-    dataNascimentoFocusNode?.dispose();
-    dataNascimentoTextController?.dispose();
+    dataNascimentoDeFocusNode?.dispose();
+    dataNascimentoDeTextController?.dispose();
+    dataNascimentoAteFocusNode?.dispose();
+    dataNascimentoAteTextController?.dispose();
   }
 }

@@ -160,10 +160,13 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
             ..complete(
                 FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
               pCategoria: FFAppState().filtroCategoria,
-              pDataNascimento: dateTimeFormat(
+              pDataNascimentoDe: dateTimeFormat(
                 "yyyy-MM-dd",
-                FFAppState().filtroDataNacimento,
-                locale: FFLocalizations.of(context).languageCode,
+                FFAppState().filtroDataNacimentoDe,
+              ),
+              pDataNascimentoAte: dateTimeFormat(
+                "yyyy-MM-dd",
+                FFAppState().filtroDataNacimentoAte,
               ),
               pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
               pLoteNome: FFAppState().filtroLoteNome.isNotEmpty
@@ -193,6 +196,39 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                     FlutterFlowTheme.of(context).primary,
                   ),
                 ),
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: FlutterFlowTheme.of(context).error,
+                    size: 48.0,
+                  ),
+                  const SizedBox(height: 16.0),
+                  Text(
+                    'Erro ao carregar dados',
+                    style: FlutterFlowTheme.of(context).titleMedium,
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Verifique sua conexão e tente novamente.',
+                    style: FlutterFlowTheme.of(context).bodySmall,
+                  ),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton.icon(
+                    onPressed: () => safeSetState(() => _model.apiRequestCompleter = null),
+                    icon: const Icon(Icons.refresh_rounded, size: 18.0),
+                    label: const Text('Tentar novamente'),
+                  ),
+                ],
               ),
             ),
           );
@@ -267,11 +303,13 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                         .buscarRebanhoFiltrosCall
                                         .call(
                                       pCategoria: FFAppState().filtroCategoria,
-                                      pDataNascimento: dateTimeFormat(
+                                      pDataNascimentoDe: dateTimeFormat(
                                         "yyyy-MM-dd",
-                                        FFAppState().filtroDataNacimento,
-                                        locale: FFLocalizations.of(context)
-                                            .languageCode,
+                                        FFAppState().filtroDataNacimentoDe,
+                                      ),
+                                      pDataNascimentoAte: dateTimeFormat(
+                                        "yyyy-MM-dd",
+                                        FFAppState().filtroDataNacimentoAte,
                                       ),
                                       pIdPropriedade: FFAppState()
                                           .propriedadeSelecionada
@@ -302,6 +340,25 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                     .primary,
                                               ),
                                             ),
+                                          ),
+                                        );
+                                      }
+                                      if (snapshot.hasError) {
+                                        return Center(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.error_outline_rounded,
+                                                color: FlutterFlowTheme.of(context).error,
+                                                size: 36.0,
+                                              ),
+                                              const SizedBox(height: 8.0),
+                                              Text(
+                                                'Erro ao carregar',
+                                                style: FlutterFlowTheme.of(context).bodySmall,
+                                              ),
+                                            ],
                                           ),
                                         );
                                       }
@@ -1281,7 +1338,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                           children: [
                                                                             Text(
                                                                               'Animais neste lote (${valueOrDefault<String>(
-                                                                                _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimento == null) && (_model.filtroRightLoteNome == '')) || ((e.numeroAnimal.contains(_model.pesquisaDentroTextController.text) || e.nome.toLowerCase().contains(_model.pesquisaDentroTextController.text.toLowerCase()) || e.chip.contains(_model.pesquisaDentroTextController.text)) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimento == null) || (functions.converterParaData(e.dataNascimento) == _model.filtroRightDataNacimento)) && ((_model.filtroRightLoteNome == '') || (e.loteNome == _model.filtroRightLoteNome)))).toList().length.toString(),
+                                                                                _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimentoDe == null) && (_model.filtroRightDataNacimentoAte == null) && (_model.filtroRightLoteNome == '')) || ((e.numeroAnimal.contains(_model.pesquisaDentroTextController.text) || e.nome.toLowerCase().contains(_model.pesquisaDentroTextController.text.toLowerCase()) || e.chip.contains(_model.pesquisaDentroTextController.text)) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimentoDe == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isBefore(_model.filtroRightDataNacimentoDe!))) && ((_model.filtroRightDataNacimentoAte == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isAfter(_model.filtroRightDataNacimentoAte!))) && ((_model.filtroRightLoteNome == '') || (e.loteNome == _model.filtroRightLoteNome)))).toList().length.toString(),
                                                                                 '0',
                                                                               )})',
                                                                               style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -1400,7 +1457,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             child:
                                                                                 Builder(
                                                                               builder: (context) {
-                                                                                final animais = _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimento == null) && (_model.filtroRightLoteNome == '')) || ((e.numeroAnimal.contains(_model.pesquisaDentroTextController.text) || e.nome.toLowerCase().contains(_model.pesquisaDentroTextController.text.toLowerCase()) || e.chip.contains(_model.pesquisaDentroTextController.text)) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimento == null) || (functions.converterParaData(e.dataNascimento) == _model.filtroRightDataNacimento)) && ((_model.filtroRightLoteNome == '') || (e.loteNome == _model.filtroRightLoteNome)))).toList().take(4).toList();
+                                                                                final animais = _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimentoDe == null) && (_model.filtroRightDataNacimentoAte == null) && (_model.filtroRightLoteNome == '')) || ((e.numeroAnimal.contains(_model.pesquisaDentroTextController.text) || e.nome.toLowerCase().contains(_model.pesquisaDentroTextController.text.toLowerCase()) || e.chip.contains(_model.pesquisaDentroTextController.text)) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimentoDe == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isBefore(_model.filtroRightDataNacimentoDe!))) && ((_model.filtroRightDataNacimentoAte == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isAfter(_model.filtroRightDataNacimentoAte!))) && ((_model.filtroRightLoteNome == '') || (e.loteNome == _model.filtroRightLoteNome)))).toList().take(4).toList();
 
                                                                                 return ListView.builder(
                                                                                   padding: EdgeInsets.zero,
@@ -2198,10 +2255,13 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                 future: FunctionsSupabaseRebanhoGroup.countRebanhoFiltrosCall.call(
                                                                                   pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
                                                                                   pCategoria: FFAppState().filtroCategoria,
-                                                                                  pDataNascimento: dateTimeFormat(
+                                                                                  pDataNascimentoDe: dateTimeFormat(
                                                                                     "yyyy-MM-dd",
-                                                                                    FFAppState().filtroDataNacimento,
-                                                                                    locale: FFLocalizations.of(context).languageCode,
+                                                                                    FFAppState().filtroDataNacimentoDe,
+                                                                                  ),
+                                                                                  pDataNascimentoAte: dateTimeFormat(
+                                                                                    "yyyy-MM-dd",
+                                                                                    FFAppState().filtroDataNacimentoAte,
                                                                                   ),
                                                                                   pLoteID: FFAppState().filtroLoteId,
                                                                                   pOrigem: FFAppState().filtroOrigem,
@@ -2222,6 +2282,25 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                             FlutterFlowTheme.of(context).primary,
                                                                                           ),
                                                                                         ),
+                                                                                      ),
+                                                                                    );
+                                                                                  }
+                                                                                  if (snapshot.hasError) {
+                                                                                    return Center(
+                                                                                      child: Column(
+                                                                                        mainAxisSize: MainAxisSize.min,
+                                                                                        children: [
+                                                                                          Icon(
+                                                                                            Icons.error_outline_rounded,
+                                                                                            color: FlutterFlowTheme.of(context).error,
+                                                                                            size: 36.0,
+                                                                                          ),
+                                                                                          const SizedBox(height: 8.0),
+                                                                                          Text(
+                                                                                            'Erro ao carregar',
+                                                                                            style: FlutterFlowTheme.of(context).bodySmall,
+                                                                                          ),
+                                                                                        ],
                                                                                       ),
                                                                                     );
                                                                                   }
@@ -2730,7 +2809,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                 final savedRaca = FFAppState().filtroRaca;
                                                                                 final savedOrigem = FFAppState().filtroOrigem;
                                                                                 final savedStatus = FFAppState().filtroStatusRebanho;
-                                                                                final savedData = FFAppState().filtroDataNacimento;
+                                                                                final savedDataDe = FFAppState().filtroDataNacimentoDe;
+                                                                                final savedDataAte = FFAppState().filtroDataNacimentoAte;
                                                                                 final savedLoteId = FFAppState().filtroLoteId;
                                                                                 final savedLoteNome = FFAppState().filtroLoteNome;
                                                                                 // Pre-set global state with right-side values
@@ -2739,7 +2819,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                 FFAppState().filtroRaca = _model.filtroRightRaca;
                                                                                 FFAppState().filtroOrigem = _model.filtroRightOrigem;
                                                                                 FFAppState().filtroStatusRebanho = _model.filtroRightStatusRebanho;
-                                                                                FFAppState().filtroDataNacimento = _model.filtroRightDataNacimento;
+                                                                                FFAppState().filtroDataNacimentoDe = _model.filtroRightDataNacimentoDe;
+                                                                                FFAppState().filtroDataNacimentoAte = _model.filtroRightDataNacimentoAte;
                                                                                 FFAppState().filtroLoteId = _model.filtroRightLoteId;
                                                                                 FFAppState().filtroLoteNome = _model.filtroRightLoteNome;
                                                                                 await showDialog(
@@ -2766,7 +2847,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                 _model.filtroRightRaca = FFAppState().filtroRaca;
                                                                                 _model.filtroRightOrigem = FFAppState().filtroOrigem;
                                                                                 _model.filtroRightStatusRebanho = FFAppState().filtroStatusRebanho;
-                                                                                _model.filtroRightDataNacimento = FFAppState().filtroDataNacimento;
+                                                                                _model.filtroRightDataNacimentoDe = FFAppState().filtroDataNacimentoDe;
+                                                                                _model.filtroRightDataNacimentoAte = FFAppState().filtroDataNacimentoAte;
                                                                                 _model.filtroRightLoteId = FFAppState().filtroLoteId;
                                                                                 _model.filtroRightLoteNome = FFAppState().filtroLoteNome;
                                                                                 // Restore left-side global filter state
@@ -2775,7 +2857,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                 FFAppState().filtroRaca = savedRaca;
                                                                                 FFAppState().filtroOrigem = savedOrigem;
                                                                                 FFAppState().filtroStatusRebanho = savedStatus;
-                                                                                FFAppState().filtroDataNacimento = savedData;
+                                                                                FFAppState().filtroDataNacimentoDe = savedDataDe;
+                                                                                FFAppState().filtroDataNacimentoAte = savedDataAte;
                                                                                 FFAppState().filtroLoteId = savedLoteId;
                                                                                 FFAppState().filtroLoteNome = savedLoteNome;
                                                                                 safeSetState(() {});
@@ -2983,7 +3066,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             child:
                                                                                 Builder(
                                                                               builder: (context) {
-                                                                                final animais = _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimento == null) && (_model.filtroRightLoteNome == '')) || ((e.numeroAnimal.trim().toLowerCase().contains(_model.pesquisaDentroTextController.text.trim().toLowerCase())) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimento == null) || (functions.converterParaData(e.dataNascimento) == _model.filtroRightDataNacimento)) && ((_model.filtroRightLoteNome == '') || (e.loteNome == _model.filtroRightLoteNome)))).toList().take(_model.mostrarAdicionados).toList();
+                                                                                final animais = _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimentoDe == null) && (_model.filtroRightDataNacimentoAte == null) && (_model.filtroRightLoteNome == '')) || ((e.numeroAnimal.trim().toLowerCase().contains(_model.pesquisaDentroTextController.text.trim().toLowerCase())) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimentoDe == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isBefore(_model.filtroRightDataNacimentoDe!))) && ((_model.filtroRightDataNacimentoAte == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isAfter(_model.filtroRightDataNacimentoAte!))) && ((_model.filtroRightLoteNome == '') || (e.loteNome == _model.filtroRightLoteNome)))).toList().take(_model.mostrarAdicionados).toList();
 
                                                                                 return ListView.builder(
                                                                                   padding: EdgeInsets.zero,

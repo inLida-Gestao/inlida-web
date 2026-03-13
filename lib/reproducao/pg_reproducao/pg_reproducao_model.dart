@@ -5,7 +5,6 @@ import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
 import '/flutter_flow/flutter_flow_data_table.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/instant_timer.dart';
 import 'dart:async';
 import 'pg_reproducao_widget.dart' show PgReproducaoWidget;
 import 'package:flutter/material.dart';
@@ -40,7 +39,7 @@ class PgReproducaoModel extends FlutterFlowModel<PgReproducaoWidget> {
 
   ///  State fields for stateful widgets in this page.
 
-  InstantTimer? instantTimer;
+  VoidCallback? disposeRefreshListener;
   Completer<ApiCallResponse>? apiRequestCompleter2;
   Completer<ApiCallResponse>? apiRequestCompleter1;
   // Model for header component.
@@ -63,7 +62,7 @@ class PgReproducaoModel extends FlutterFlowModel<PgReproducaoWidget> {
 
   @override
   void dispose() {
-    instantTimer?.cancel();
+    disposeRefreshListener?.call();
     headerModel.dispose();
     sideBarModel.dispose();
     textFieldFocusNode?.dispose();

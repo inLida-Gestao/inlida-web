@@ -5,7 +5,6 @@ import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
 import '/flutter_flow/flutter_flow_data_table.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/instant_timer.dart';
 import 'dart:async';
 import 'propriedades_widget.dart' show PropriedadesWidget;
 import 'package:flutter/material.dart';
@@ -29,7 +28,7 @@ class PropriedadesModel extends FlutterFlowModel<PropriedadesWidget> {
   List<PropriedadesRow>? propriedadesUser;
   // Stores action output result for [Backend Call - Query Rows] action in Propriedades widget.
   List<RebanhoRow>? qtdAnimais;
-  InstantTimer? instantTimer;
+  VoidCallback? disposeRefreshListener;
   Completer<ApiCallResponse>? apiRequestCompleter2;
   Completer<ApiCallResponse>? apiRequestCompleter1;
   // Model for header component.
@@ -52,7 +51,7 @@ class PropriedadesModel extends FlutterFlowModel<PropriedadesWidget> {
 
   @override
   void dispose() {
-    instantTimer?.cancel();
+    disposeRefreshListener?.call();
     headerModel.dispose();
     sideBarModel.dispose();
     textFieldFocusNode?.dispose();

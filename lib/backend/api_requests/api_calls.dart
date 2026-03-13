@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
+import '/backend/supabase/supabase_config.dart';
 import 'api_manager.dart';
 
 export 'api_manager.dart' show ApiCallResponse;
@@ -13,13 +14,10 @@ const _kPrivateApiFunctionName = 'ffPrivateApiCall';
 /// Start Functions Supabase Rebanho Group Code
 
 class FunctionsSupabaseRebanhoGroup {
-  static String getBaseUrl() =>
-      'https://eqrtgsqnxxnfjjzlxpuj.supabase.co/rest/v1/rpc';
+  static String getBaseUrl() => SupabaseConfig.baseRpcUrl;
   static Map<String, String> headers = {
-    'apikey':
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-    'Authorization':
-        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+    'apikey': SupabaseConfig.anonKey,
+    'Authorization': 'Bearer ${SupabaseConfig.anonKey}',
   };
   static QTDRebanhoPropriedadesCall qTDRebanhoPropriedadesCall =
       QTDRebanhoPropriedadesCall();
@@ -70,6 +68,10 @@ class FunctionsSupabaseRebanhoGroup {
   static ValidarAcessoUserCall validarAcessoUserCall = ValidarAcessoUserCall();
   static CountRebanhosComLoteCall countRebanhosComLoteCall =
       CountRebanhosComLoteCall();
+  static BuscarPiquetesFiltrosCall buscarPiquetesFiltrosCall =
+      BuscarPiquetesFiltrosCall();
+  static ContarPiquetesFiltrosCall contarPiquetesFiltrosCall =
+      ContarPiquetesFiltrosCall();
 }
 
 class QTDRebanhoPropriedadesCall {
@@ -211,7 +213,8 @@ class RebanhoPropriedadeCall {
 class CountRebanhoFiltrosCall {
   Future<ApiCallResponse> call({
     String? pCategoria = '',
-    String? pDataNascimento = '',
+    String? pDataNascimentoDe = '',
+    String? pDataNascimentoAte = '',
     String? pIdPropriedade = '',
     String? pLoteID = '',
     String? pOrigem = '',
@@ -225,7 +228,8 @@ class CountRebanhoFiltrosCall {
     final ffApiRequestBody = '''
 {
   "p_categoria": "${escapeStringForJson(pCategoria)}",
-  "p_data_nascimento": "${escapeStringForJson(pDataNascimento)}",
+  "p_data_nascimento_de": "${escapeStringForJson(pDataNascimentoDe)}",
+  "p_data_nascimento_ate": "${escapeStringForJson(pDataNascimentoAte)}",
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_lote_id": "${escapeStringForJson(pLoteID)}",
   "p_origem": "${escapeStringForJson(pOrigem)}",
@@ -260,7 +264,8 @@ class CountRebanhoFiltrosCall {
 class BuscarRebanhoFiltrosCall {
   Future<ApiCallResponse> call({
     String? pCategoria = '',
-    String? pDataNascimento = '',
+    String? pDataNascimentoDe = '',
+    String? pDataNascimentoAte = '',
     String? pIdPropriedade = '',
     String? pLoteNome = '',
     String? pOrigem = '',
@@ -276,7 +281,8 @@ class BuscarRebanhoFiltrosCall {
     final ffApiRequestBody = '''
 {
   "p_categoria": "${escapeStringForJson(pCategoria)}",
-  "p_data_nascimento": "${escapeStringForJson(pDataNascimento)}",
+  "p_data_nascimento_de": "${escapeStringForJson(pDataNascimentoDe)}",
+  "p_data_nascimento_ate": "${escapeStringForJson(pDataNascimentoAte)}",
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_limite": $pLimite,
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
@@ -313,7 +319,8 @@ class BuscarRebanhoFiltrosCall {
 class BuscarRebanhoExportCall {
   Future<ApiCallResponse> call({
     String? pCategoria = '',
-    String? pDataNascimento = '',
+    String? pDataNascimentoDe = '',
+    String? pDataNascimentoAte = '',
     String? pIdPropriedade = '',
     String? pLoteNome = '',
     String? pOrigem = '',
@@ -329,7 +336,8 @@ class BuscarRebanhoExportCall {
     final ffApiRequestBody = '''
 {
   "p_categoria": "${escapeStringForJson(pCategoria)}",
-  "p_data_nascimento": "${escapeStringForJson(pDataNascimento)}",
+  "p_data_nascimento_de": "${escapeStringForJson(pDataNascimentoDe)}",
+  "p_data_nascimento_ate": "${escapeStringForJson(pDataNascimentoAte)}",
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_limite": $pLimite,
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
@@ -365,8 +373,12 @@ class BuscarRebanhoExportCall {
 
 class BuscarReproducaoFiltrosCall {
   Future<ApiCallResponse> call({
-    String? pDataPrevisaoParto = '',
-    String? pDataReproducao = '',
+    String? pDataPrevisaoPartoDe = '',
+    String? pDataPrevisaoPartoAte = '',
+    String? pDataReproducaoDe = '',
+    String? pDataReproducaoAte = '',
+    String? pDataDiagnosticoDe = '',
+    String? pDataDiagnosticoAte = '',
     String? pLoteNome = '',
     String? pIdPropriedade = '',
     String? pInseminador = '',
@@ -384,8 +396,12 @@ class BuscarReproducaoFiltrosCall {
     final ffApiRequestBody = '''
 {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
-  "p_data_reproducao": "${escapeStringForJson(pDataReproducao)}",
-  "p_data_previsao_parto": "${escapeStringForJson(pDataPrevisaoParto)}",
+  "p_data_reproducao_de": "${escapeStringForJson(pDataReproducaoDe)}",
+  "p_data_reproducao_ate": "${escapeStringForJson(pDataReproducaoAte)}",
+  "p_data_previsao_parto_de": "${escapeStringForJson(pDataPrevisaoPartoDe)}",
+  "p_data_previsao_parto_ate": "${escapeStringForJson(pDataPrevisaoPartoAte)}",
+  "p_data_diagnostico_de": "${escapeStringForJson(pDataDiagnosticoDe)}",
+  "p_data_diagnostico_ate": "${escapeStringForJson(pDataDiagnosticoAte)}",
   "p_tipo_reproducao": "${escapeStringForJson(pTipoReproducao)}",
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
   "p_inseminador": "${escapeStringForJson(pInseminador)}",
@@ -422,8 +438,12 @@ class BuscarReproducaoFiltrosCall {
 
 class CountReproducaoFiltrosCall {
   Future<ApiCallResponse> call({
-    String? pDataPrevisaoParto = '',
-    String? pDataReproducao = '',
+    String? pDataPrevisaoPartoDe = '',
+    String? pDataPrevisaoPartoAte = '',
+    String? pDataReproducaoDe = '',
+    String? pDataReproducaoAte = '',
+    String? pDataDiagnosticoDe = '',
+    String? pDataDiagnosticoAte = '',
     String? pLoteNome = '',
     String? pIdPropriedade = '',
     String? pInseminador = '',
@@ -437,8 +457,12 @@ class CountReproducaoFiltrosCall {
     final ffApiRequestBody = '''
 {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
-  "p_data_reproducao": "${escapeStringForJson(pDataReproducao)}",
-  "p_data_previsao_parto": "${escapeStringForJson(pDataPrevisaoParto)}",
+  "p_data_reproducao_de": "${escapeStringForJson(pDataReproducaoDe)}",
+  "p_data_reproducao_ate": "${escapeStringForJson(pDataReproducaoAte)}",
+  "p_data_previsao_parto_de": "${escapeStringForJson(pDataPrevisaoPartoDe)}",
+  "p_data_previsao_parto_ate": "${escapeStringForJson(pDataPrevisaoPartoAte)}",
+  "p_data_diagnostico_de": "${escapeStringForJson(pDataDiagnosticoDe)}",
+  "p_data_diagnostico_ate": "${escapeStringForJson(pDataDiagnosticoAte)}",
   "p_tipo_reproducao": "${escapeStringForJson(pTipoReproducao)}",
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
   "p_inseminador": "${escapeStringForJson(pInseminador)}",
@@ -474,6 +498,8 @@ class BuscarLotesFiltrosCall {
     String? pIdPropriedade = '',
     String? pPesquisa = '',
     String? pStatus = '',
+    String? pDataCriacaoDe = '',
+    String? pDataCriacaoAte = '',
     int? pLimite = 20,
     int? pOffset = 0,
   }) async {
@@ -484,6 +510,8 @@ class BuscarLotesFiltrosCall {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
   "p_status": "${escapeStringForJson(pStatus)}",
+  "p_data_criacao_de": "${escapeStringForJson(pDataCriacaoDe)}",
+  "p_data_criacao_ate": "${escapeStringForJson(pDataCriacaoAte)}",
   "p_limite": $pLimite,
   "p_offset": $pOffset
 }''';
@@ -515,6 +543,8 @@ class CountLotesFiltrosCall {
     String? pIdPropriedade = '',
     String? pPesquisa = '',
     String? pStatus = '',
+    String? pDataCriacaoDe = '',
+    String? pDataCriacaoAte = '',
   }) async {
     final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
 
@@ -522,7 +552,9 @@ class CountLotesFiltrosCall {
 {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
-  "p_status": "${escapeStringForJson(pStatus)}"
+  "p_status": "${escapeStringForJson(pStatus)}",
+  "p_data_criacao_de": "${escapeStringForJson(pDataCriacaoDe)}",
+  "p_data_criacao_ate": "${escapeStringForJson(pDataCriacaoAte)}"
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Count Lotes Filtros ',
@@ -551,11 +583,13 @@ class BuscarSanidadeFiltrosCall {
   Future<ApiCallResponse> call({
     String? pIdPropriedade = '',
     String? pPesquisa = '',
-    String? pDataSanidade = '',
+    String? pDataSanidadeDe = '',
+    String? pDataSanidadeAte = '',
     String? pLoteId = '',
     String? pRebanhoId = '',
     String? pSexo = '',
-    String? pDataNascimento = '',
+    String? pDataNascimentoDe = '',
+    String? pDataNascimentoAte = '',
     String? pRaca = '',
     String? pTratamento = '',
     String? pProtocolo = '',
@@ -570,17 +604,19 @@ class BuscarSanidadeFiltrosCall {
 {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
-  "p_data_sanidade": "${escapeStringForJson(pDataSanidade)}",
-"p_lote_id": "${escapeStringForJson(pLoteId)}",
-"p_rebanho_id": "${escapeStringForJson(pRebanhoId)}",
-"p_sexo": "${escapeStringForJson(pSexo)}",
-"p_data_nascimento": "${escapeStringForJson(pDataNascimento)}",
-"p_raca": "${escapeStringForJson(pRaca)}",
-"p_categoria": "${escapeStringForJson(pRaca)}",
-"p_tratamento": "${escapeStringForJson(pTratamento)}",
-"p_protocolo": "${escapeStringForJson(pProtocolo)}",
-"p_antiparasitarios": "${escapeStringForJson(pAntiparasitarios)}",
-"p_vacinacao": "${escapeStringForJson(pVacinacao)}",
+  "p_data_sanidade_de": "${escapeStringForJson(pDataSanidadeDe)}",
+  "p_data_sanidade_ate": "${escapeStringForJson(pDataSanidadeAte)}",
+  "p_lote_id": "${escapeStringForJson(pLoteId)}",
+  "p_rebanho_id": "${escapeStringForJson(pRebanhoId)}",
+  "p_sexo": "${escapeStringForJson(pSexo)}",
+  "p_data_nascimento_de": "${escapeStringForJson(pDataNascimentoDe)}",
+  "p_data_nascimento_ate": "${escapeStringForJson(pDataNascimentoAte)}",
+  "p_raca": "${escapeStringForJson(pRaca)}",
+  "p_categoria": "${escapeStringForJson(pRaca)}",
+  "p_tratamento": "${escapeStringForJson(pTratamento)}",
+  "p_protocolo": "${escapeStringForJson(pProtocolo)}",
+  "p_antiparasitarios": "${escapeStringForJson(pAntiparasitarios)}",
+  "p_vacinacao": "${escapeStringForJson(pVacinacao)}",
   "p_limite": $pLimite,
   "p_offset": $pOffset
 }''';
@@ -611,11 +647,13 @@ class CountSanidadeVacinacaoCall {
   Future<ApiCallResponse> call({
     String? pIdPropriedade = '',
     String? pPesquisa = '',
-    String? pDataSanidade = '',
+    String? pDataSanidadeDe = '',
+    String? pDataSanidadeAte = '',
     String? pLoteId = '',
     String? pRebanhoId = '',
     String? pSexo = '',
-    String? pDataNascimento = '',
+    String? pDataNascimentoDe = '',
+    String? pDataNascimentoAte = '',
     String? pRaca = '',
     String? pTratamento = '',
     String? pProtocolo = '',
@@ -628,11 +666,13 @@ class CountSanidadeVacinacaoCall {
 {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
-  "p_data_sanidade": "${escapeStringForJson(pDataSanidade)}",
+  "p_data_sanidade_de": "${escapeStringForJson(pDataSanidadeDe)}",
+  "p_data_sanidade_ate": "${escapeStringForJson(pDataSanidadeAte)}",
   "p_lote_id": "${escapeStringForJson(pLoteId)}",
   "p_rebanho_id": "${escapeStringForJson(pRebanhoId)}",
   "p_sexo": "${escapeStringForJson(pSexo)}",
-  "p_data_nascimento": "${escapeStringForJson(pDataNascimento)}",
+  "p_data_nascimento_de": "${escapeStringForJson(pDataNascimentoDe)}",
+  "p_data_nascimento_ate": "${escapeStringForJson(pDataNascimentoAte)}",
   "p_raca": "${escapeStringForJson(pRaca)}",
   "p_categoria": "${escapeStringForJson(pRaca)}",
   "p_tratamento": "${escapeStringForJson(pTratamento)}",
@@ -667,11 +707,13 @@ class CountSanidadeAntiparasitarioCall {
   Future<ApiCallResponse> call({
     String? pIdPropriedade = '',
     String? pPesquisa = '',
-    String? pDataSanidade = '',
+    String? pDataSanidadeDe = '',
+    String? pDataSanidadeAte = '',
     String? pLoteId = '',
     String? pRebanhoId = '',
     String? pSexo = '',
-    String? pDataNascimento = '',
+    String? pDataNascimentoDe = '',
+    String? pDataNascimentoAte = '',
     String? pRaca = '',
     String? pTratamento = '',
     String? pProtocolo = '',
@@ -684,11 +726,13 @@ class CountSanidadeAntiparasitarioCall {
 {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
-  "p_data_sanidade": "${escapeStringForJson(pDataSanidade)}",
+  "p_data_sanidade_de": "${escapeStringForJson(pDataSanidadeDe)}",
+  "p_data_sanidade_ate": "${escapeStringForJson(pDataSanidadeAte)}",
   "p_lote_id": "${escapeStringForJson(pLoteId)}",
   "p_rebanho_id": "${escapeStringForJson(pRebanhoId)}",
   "p_sexo": "${escapeStringForJson(pSexo)}",
-  "p_data_nascimento": "${escapeStringForJson(pDataNascimento)}",
+  "p_data_nascimento_de": "${escapeStringForJson(pDataNascimentoDe)}",
+  "p_data_nascimento_ate": "${escapeStringForJson(pDataNascimentoAte)}",
   "p_raca": "${escapeStringForJson(pRaca)}",
   "p_categoria": "${escapeStringForJson(pRaca)}",
   "p_tratamento": "${escapeStringForJson(pTratamento)}",
@@ -723,11 +767,13 @@ class CountSanidadeTratamentoCall {
   Future<ApiCallResponse> call({
     String? pIdPropriedade = '',
     String? pPesquisa = '',
-    String? pDataSanidade = '',
+    String? pDataSanidadeDe = '',
+    String? pDataSanidadeAte = '',
     String? pLoteId = '',
     String? pRebanhoId = '',
     String? pSexo = '',
-    String? pDataNascimento = '',
+    String? pDataNascimentoDe = '',
+    String? pDataNascimentoAte = '',
     String? pRaca = '',
     String? pTratamento = '',
     String? pProtocolo = '',
@@ -740,11 +786,13 @@ class CountSanidadeTratamentoCall {
 {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
-  "p_data_sanidade": "${escapeStringForJson(pDataSanidade)}",
+  "p_data_sanidade_de": "${escapeStringForJson(pDataSanidadeDe)}",
+  "p_data_sanidade_ate": "${escapeStringForJson(pDataSanidadeAte)}",
   "p_lote_id": "${escapeStringForJson(pLoteId)}",
   "p_rebanho_id": "${escapeStringForJson(pRebanhoId)}",
   "p_sexo": "${escapeStringForJson(pSexo)}",
-  "p_data_nascimento": "${escapeStringForJson(pDataNascimento)}",
+  "p_data_nascimento_de": "${escapeStringForJson(pDataNascimentoDe)}",
+  "p_data_nascimento_ate": "${escapeStringForJson(pDataNascimentoAte)}",
   "p_raca": "${escapeStringForJson(pRaca)}",
   "p_categoria": "${escapeStringForJson(pRaca)}",
   "p_tratamento": "${escapeStringForJson(pTratamento)}",
@@ -779,11 +827,13 @@ class CountSanidadeProtocoloReprodutivoCall {
   Future<ApiCallResponse> call({
     String? pIdPropriedade = '',
     String? pPesquisa = '',
-    String? pDataSanidade = '',
+    String? pDataSanidadeDe = '',
+    String? pDataSanidadeAte = '',
     String? pLoteId = '',
     String? pRebanhoId = '',
     String? pSexo = '',
-    String? pDataNascimento = '',
+    String? pDataNascimentoDe = '',
+    String? pDataNascimentoAte = '',
     String? pRaca = '',
     String? pTratamento = '',
     String? pProtocolo = '',
@@ -796,11 +846,13 @@ class CountSanidadeProtocoloReprodutivoCall {
 {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
-  "p_data_sanidade": "${escapeStringForJson(pDataSanidade)}",
+  "p_data_sanidade_de": "${escapeStringForJson(pDataSanidadeDe)}",
+  "p_data_sanidade_ate": "${escapeStringForJson(pDataSanidadeAte)}",
   "p_lote_id": "${escapeStringForJson(pLoteId)}",
   "p_rebanho_id": "${escapeStringForJson(pRebanhoId)}",
   "p_sexo": "${escapeStringForJson(pSexo)}",
-  "p_data_nascimento": "${escapeStringForJson(pDataNascimento)}",
+  "p_data_nascimento_de": "${escapeStringForJson(pDataNascimentoDe)}",
+  "p_data_nascimento_ate": "${escapeStringForJson(pDataNascimentoAte)}",
   "p_raca": "${escapeStringForJson(pRaca)}",
   "p_categoria": "${escapeStringForJson(pRaca)}",
   "p_tratamento": "${escapeStringForJson(pTratamento)}",
@@ -835,11 +887,13 @@ class CountSanidadeFiltrosCall {
   Future<ApiCallResponse> call({
     String? pIdPropriedade = '',
     String? pPesquisa = '',
-    String? pDataSanidade = '',
+    String? pDataSanidadeDe = '',
+    String? pDataSanidadeAte = '',
     String? pLoteId = '',
     String? pRebanhoId = '',
     String? pSexo = '',
-    String? pDataNascimento = '',
+    String? pDataNascimentoDe = '',
+    String? pDataNascimentoAte = '',
     String? pRaca = '',
     String? pTratamento = '',
     String? pProtocolo = '',
@@ -852,11 +906,13 @@ class CountSanidadeFiltrosCall {
 {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
-  "p_data_sanidade": "${escapeStringForJson(pDataSanidade)}",
+  "p_data_sanidade_de": "${escapeStringForJson(pDataSanidadeDe)}",
+  "p_data_sanidade_ate": "${escapeStringForJson(pDataSanidadeAte)}",
   "p_lote_id": "${escapeStringForJson(pLoteId)}",
   "p_rebanho_id": "${escapeStringForJson(pRebanhoId)}",
   "p_sexo": "${escapeStringForJson(pSexo)}",
-  "p_data_nascimento": "${escapeStringForJson(pDataNascimento)}",
+  "p_data_nascimento_de": "${escapeStringForJson(pDataNascimentoDe)}",
+  "p_data_nascimento_ate": "${escapeStringForJson(pDataNascimentoAte)}",
   "p_raca": "${escapeStringForJson(pRaca)}",
   "p_categoria": "${escapeStringForJson(pRaca)}",
   "p_tratamento": "${escapeStringForJson(pTratamento)}",
@@ -2566,6 +2622,92 @@ class ReproducaoDiagnosticosPeriodoCall {
         response,
         r'''$.items[:].porcentagem''',
       ));
+}
+
+class BuscarPiquetesFiltrosCall {
+  Future<ApiCallResponse> call({
+    String? pIdPropriedade = '',
+    String? pPesquisa = '',
+    String? pForrageira = '',
+    double? pAreaMin = 0,
+    double? pAreaMax = 9999,
+    int? pLimite = 20,
+    int? pOffset = 0,
+  }) async {
+    final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
+
+    final ffApiRequestBody = '''
+{
+  "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
+  "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
+  "p_forrageira": "${escapeStringForJson(pForrageira)}",
+  "p_area_min": $pAreaMin,
+  "p_area_max": $pAreaMax,
+  "p_limite": $pLimite,
+  "p_offset": $pOffset
+}''';
+    return ApiManager.instance.makeApiCall(
+      callName: 'Buscar Piquetes Filtros',
+      apiUrl: '$baseUrl/buscar_piquetes_filtros',
+      callType: ApiCallType.POST,
+      headers: {
+        'apikey':
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization':
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+}
+
+class ContarPiquetesFiltrosCall {
+  Future<ApiCallResponse> call({
+    String? pIdPropriedade = '',
+    String? pPesquisa = '',
+    String? pForrageira = '',
+    double? pAreaMin = 0,
+    double? pAreaMax = 9999,
+  }) async {
+    final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
+
+    final ffApiRequestBody = '''
+{
+  "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
+  "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
+  "p_forrageira": "${escapeStringForJson(pForrageira)}",
+  "p_area_min": $pAreaMin,
+  "p_area_max": $pAreaMax
+}''';
+    return ApiManager.instance.makeApiCall(
+      callName: 'Contar Piquetes Filtros',
+      apiUrl: '$baseUrl/contar_piquetes_filtros',
+      callType: ApiCallType.POST,
+      headers: {
+        'apikey':
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization':
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
 }
 
 String? escapeStringForJson(String? input) {

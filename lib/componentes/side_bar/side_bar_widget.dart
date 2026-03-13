@@ -637,6 +637,10 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                     ),
                   ),
                 ),
+                // TODO: Piquete menu item hidden temporarily
+                // InkWell(
+                //   ...PgPiqueteWidget...
+                // ),
               ].divide(const SizedBox(height: 16.0)),
             ),
             if (responsiveVisibility(

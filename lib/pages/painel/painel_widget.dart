@@ -12,7 +12,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/pages/pp_instrucoes_importacao/pp_instrucoes_importacao_widget.dart';
 import '/pages/sub_menu_painel_exportar/sub_menu_painel_exportar_widget.dart';
 import '/pages/sub_menu_painel_importar/sub_menu_painel_importar_widget.dart';
@@ -50,6 +49,9 @@ class _PainelWidgetState extends State<PainelWidget>
   void initState() {
     super.initState();
     _model = createModel(context, () => PainelModel());
+
+    // Sincronizar sidebar imediatamente ao entrar no Painel.
+    FFAppState().navegacao = 'painel';
 
     // Defaults do gráfico "Rebanho por período": sempre iniciar no ano atual.
     final currentYear = DateTime.now().year;
@@ -91,20 +93,11 @@ class _PainelWidgetState extends State<PainelWidget>
           ),
         );
       } else {
-        FFAppState().navegacao = 'painel';
-        safeSetState(() {});
-        _model.instantTimer = InstantTimer.periodic(
-          duration: const Duration(milliseconds: 250),
-          callback: (timer) async {
-            if (FFAppState().refreshPainel == true) {
-              safeSetState(() => _model.apiRequestCompleter1 = null);
-              safeSetState(() => _model.apiRequestCompleter2 = null);
-              FFAppState().refreshPainel = false;
-              safeSetState(() {});
-            }
-          },
-          startImmediately: true,
-        );
+        _model.disposeRefreshListener = FFAppState().onRefresh('refreshPainel', () {
+          FFAppState().refreshPainel = false;
+          safeSetState(() => _model.apiRequestCompleter1 = null);
+          safeSetState(() => _model.apiRequestCompleter2 = null);
+        });
       }
 
       navigate();
@@ -131,6 +124,12 @@ class _PainelWidgetState extends State<PainelWidget>
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+
+    if (FFAppState().refreshPainel == true) {
+      _model.apiRequestCompleter1 = null;
+      _model.apiRequestCompleter2 = null;
+      FFAppState().refreshPainel = false;
+    }
 
     return GestureDetector(
       onTap: () {
@@ -1353,6 +1352,25 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                     ),
                                                                                   );
                                                                                 }
+                                                                                if (snapshot.hasError) {
+                                                                                  return Center(
+                                                                                    child: Column(
+                                                                                      mainAxisSize: MainAxisSize.min,
+                                                                                      children: [
+                                                                                        Icon(
+                                                                                          Icons.error_outline_rounded,
+                                                                                          color: FlutterFlowTheme.of(context).error,
+                                                                                          size: 36.0,
+                                                                                        ),
+                                                                                        const SizedBox(height: 8.0),
+                                                                                        Text(
+                                                                                          'Erro ao carregar',
+                                                                                          style: FlutterFlowTheme.of(context).bodySmall,
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
+                                                                                  );
+                                                                                }
                                                                                 final textCountRebanhoFiltrosResponse = snapshot.data!;
 
                                                                                 return Text(
@@ -1464,6 +1482,25 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             FlutterFlowTheme.of(context).primary,
                                                                                           ),
                                                                                         ),
+                                                                                      ),
+                                                                                    );
+                                                                                  }
+                                                                                  if (snapshot.hasError) {
+                                                                                    return Center(
+                                                                                      child: Column(
+                                                                                        mainAxisSize: MainAxisSize.min,
+                                                                                        children: [
+                                                                                          Icon(
+                                                                                            Icons.error_outline_rounded,
+                                                                                            color: FlutterFlowTheme.of(context).error,
+                                                                                            size: 36.0,
+                                                                                          ),
+                                                                                          const SizedBox(height: 8.0),
+                                                                                          Text(
+                                                                                            'Erro ao carregar',
+                                                                                            style: FlutterFlowTheme.of(context).bodySmall,
+                                                                                          ),
+                                                                                        ],
                                                                                       ),
                                                                                     );
                                                                                   }
@@ -1804,6 +1841,25 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             FlutterFlowTheme.of(context).primary,
                                                                                           ),
                                                                                         ),
+                                                                                      ),
+                                                                                    );
+                                                                                  }
+                                                                                  if (snapshot.hasError) {
+                                                                                    return Center(
+                                                                                      child: Column(
+                                                                                        mainAxisSize: MainAxisSize.min,
+                                                                                        children: [
+                                                                                          Icon(
+                                                                                            Icons.error_outline_rounded,
+                                                                                            color: FlutterFlowTheme.of(context).error,
+                                                                                            size: 36.0,
+                                                                                          ),
+                                                                                          const SizedBox(height: 8.0),
+                                                                                          Text(
+                                                                                            'Erro ao carregar',
+                                                                                            style: FlutterFlowTheme.of(context).bodySmall,
+                                                                                          ),
+                                                                                        ],
                                                                                       ),
                                                                                     );
                                                                                   }
@@ -2662,18 +2718,35 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                 children: [
                                                                                   Flexible(
-                                                                                    child: Text(
-                                                                                      'Nascimentos no período (cabeça)',
-                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                            font: GoogleFonts.poppins(
-                                                                                              fontWeight: FontWeight.w600,
-                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                            ),
-                                                                                            fontSize: 18.0,
-                                                                                            letterSpacing: 0.0,
-                                                                                            fontWeight: FontWeight.w600,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                    child: Row(
+                                                                                      children: [
+                                                                                        Flexible(
+                                                                                          child: Text(
+                                                                                            'Nascimentos no período (cabeça)',
+                                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                  font: GoogleFonts.poppins(
+                                                                                                    fontWeight: FontWeight.w600,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                  ),
+                                                                                                  fontSize: 18.0,
+                                                                                                  letterSpacing: 0.0,
+                                                                                                  fontWeight: FontWeight.w600,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                ),
                                                                                           ),
+                                                                                        ),
+                                                                                        const SizedBox(width: 12.0),
+                                                                                        _buildTotalBadge(
+                                                                                          context,
+                                                                                          _sumField(
+                                                                                            SupabaseEdgeGroup.nascimentosPeriodoCall.items(
+                                                                                                  containerNascimentosPeriodoResponse.jsonBody,
+                                                                                                ) ??
+                                                                                                containerNascimentosPeriodoResponse.jsonBody,
+                                                                                            'total',
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
                                                                                     ),
                                                                                   ),
                                                                                   _buildMultiFilterChip(
@@ -2830,18 +2903,35 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                 children: [
                                                                                   Flexible(
-                                                                                    child: Text(
-                                                                                      'Mortalidade de bezerros no Período (cabeça)',
-                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                            font: GoogleFonts.poppins(
-                                                                                              fontWeight: FontWeight.w600,
-                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                            ),
-                                                                                            fontSize: 18.0,
-                                                                                            letterSpacing: 0.0,
-                                                                                            fontWeight: FontWeight.w600,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                    child: Row(
+                                                                                      children: [
+                                                                                        Flexible(
+                                                                                          child: Text(
+                                                                                            'Mortalidade de bezerros no Período (cabeça)',
+                                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                  font: GoogleFonts.poppins(
+                                                                                                    fontWeight: FontWeight.w600,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                  ),
+                                                                                                  fontSize: 18.0,
+                                                                                                  letterSpacing: 0.0,
+                                                                                                  fontWeight: FontWeight.w600,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                ),
                                                                                           ),
+                                                                                        ),
+                                                                                        const SizedBox(width: 12.0),
+                                                                                        _buildTotalBadge(
+                                                                                          context,
+                                                                                          _sumField(
+                                                                                            SupabaseEdgeGroup.mortalidadePeriodoCall.items(
+                                                                                                  containerMortalidadePeriodoResponse.jsonBody,
+                                                                                                ) ??
+                                                                                                containerMortalidadePeriodoResponse.jsonBody,
+                                                                                            'total',
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
                                                                                     ),
                                                                                   ),
                                                                                   _buildMultiFilterChip(
@@ -3047,18 +3137,35 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             crossAxisAlignment:
                                                                                 CrossAxisAlignment.center,
                                                                             children: [
-                                                                              Text(
-                                                                                'Desmamas no período (cabeça)',
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      fontSize: 18.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              Row(
+                                                                                mainAxisSize: MainAxisSize.max,
+                                                                                mainAxisAlignment: MainAxisAlignment.start,
+                                                                                children: [
+                                                                                  Text(
+                                                                                    'Desmamas no período (cabeça)',
+                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                          fontSize: 18.0,
+                                                                                          letterSpacing: 0.0,
+                                                                                          fontWeight: FontWeight.w600,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                        ),
+                                                                                  ),
+                                                                                  const SizedBox(width: 12.0),
+                                                                                  _buildTotalBadge(
+                                                                                    context,
+                                                                                    _sumField(
+                                                                                      SupabaseEdgeGroup.desmamaPeriodoCall.items(
+                                                                                            containerDesmamaPeriodoResponse.jsonBody,
+                                                                                          ) ??
+                                                                                          containerDesmamaPeriodoResponse.jsonBody,
+                                                                                      'total',
                                                                                     ),
+                                                                                  ),
+                                                                                ],
                                                                               ),
                                                                               Expanded(
                                                                                 child: Padding(
@@ -3197,18 +3304,38 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                 children: [
                                                                                   Flexible(
-                                                                                    child: Text(
-                                                                                      'Projeção de desmamas no período (cabeça)',
-                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                            font: GoogleFonts.poppins(
-                                                                                              fontWeight: FontWeight.w600,
-                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                            ),
-                                                                                            fontSize: 18.0,
-                                                                                            letterSpacing: 0.0,
-                                                                                            fontWeight: FontWeight.w600,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                    child: Row(
+                                                                                      children: [
+                                                                                        Flexible(
+                                                                                          child: Text(
+                                                                                            'Projeção de desmamas no período (cabeça)',
+                                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                  font: GoogleFonts.poppins(
+                                                                                                    fontWeight: FontWeight.w600,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                  ),
+                                                                                                  fontSize: 18.0,
+                                                                                                  letterSpacing: 0.0,
+                                                                                                  fontWeight: FontWeight.w600,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                ),
                                                                                           ),
+                                                                                        ),
+                                                                                        const SizedBox(width: 12.0),
+                                                                                        _buildTotalBadge(
+                                                                                          context,
+                                                                                          _sumProjecaoDesmamas(
+                                                                                            SupabaseEdgeGroup.projecaoDesmamasCall.items(
+                                                                                                  containerProjecaoDesmamasResponse.jsonBody,
+                                                                                                ) ??
+                                                                                                containerProjecaoDesmamasResponse.jsonBody,
+                                                                                            _model.ddMesesValue ?? '6',
+                                                                                            _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2
+                                                                                                ? 'Todos'
+                                                                                                : _model.filtroSexoProjDesmamaValues.first,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
                                                                                     ),
                                                                                   ),
                                                                                   _buildMultiFilterChip(
@@ -3784,18 +3911,28 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             crossAxisAlignment:
                                                                                 CrossAxisAlignment.start,
                                                                             children: [
-                                                                              Text(
-                                                                                'Taxa de concepção',
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      fontSize: 18.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              Row(
+                                                                                children: [
+                                                                                  Text(
+                                                                                    'Taxa de concepção',
+                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                          fontSize: 18.0,
+                                                                                          letterSpacing: 0.0,
+                                                                                          fontWeight: FontWeight.w600,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                        ),
+                                                                                  ),
+                                                                                  const SizedBox(width: 12.0),
+                                                                                  if (containerTaxaPrenhezGetResponse != null && containerTaxaPrenhezGetResponse.succeeded)
+                                                                                    _buildTotalBadge(
+                                                                                      context,
+                                                                                      _countItems(containerTaxaPrenhezGetResponse.bodyText),
                                                                                     ),
+                                                                                ],
                                                                               ),
                                                                               Padding(
                                                                                 padding: const EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
@@ -4250,6 +4387,33 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             crossAxisAlignment:
                                                                                 CrossAxisAlignment.center,
                                                                             children: [
+                                                                              Row(
+                                                                                children: [
+                                                                                  Text(
+                                                                                    'Partos por categoria no período',
+                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                          fontSize: 18.0,
+                                                                                          letterSpacing: 0.0,
+                                                                                          fontWeight: FontWeight.w600,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                        ),
+                                                                                  ),
+                                                                                  const SizedBox(width: 12.0),
+                                                                                  _buildTotalBadge(
+                                                                                    context,
+                                                                                    _sumPartosCategorias(
+                                                                                      getJsonField(
+                                                                                        containerReproducaoPartosCategoriaResponse.jsonBody,
+                                                                                        r'''$.items''',
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
                                                                               Expanded(
                                                                                 child: Container(
                                                                                   width: double.infinity,
@@ -4358,18 +4522,34 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             crossAxisAlignment:
                                                                                 CrossAxisAlignment.center,
                                                                             children: [
-                                                                              Text(
-                                                                                'Projeção de partos por categoria no período',
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      fontSize: 18.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              Row(
+                                                                                children: [
+                                                                                  Flexible(
+                                                                                    child: Text(
+                                                                                      'Projeção de partos por categoria no período',
+                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                            fontSize: 18.0,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
                                                                                     ),
+                                                                                  ),
+                                                                                  const SizedBox(width: 12.0),
+                                                                                  _buildTotalBadge(
+                                                                                    context,
+                                                                                    _sumPartosCategorias(
+                                                                                      getJsonField(
+                                                                                        containerReproducaoProjecaoPartosResponse.jsonBody,
+                                                                                        r'''$.items''',
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
                                                                               ),
                                                                               Container(
                                                                                 width: double.infinity,
@@ -4522,18 +4702,34 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                 children: [
                                                                                   Flexible(
-                                                                                    child: Text(
-                                                                                      'Diagnósticos reprodutivos por categoria',
-                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                            font: GoogleFonts.poppins(
-                                                                                              fontWeight: FontWeight.w600,
-                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                            ),
-                                                                                            fontSize: 18.0,
-                                                                                            letterSpacing: 0.0,
-                                                                                            fontWeight: FontWeight.w600,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                    child: Row(
+                                                                                      children: [
+                                                                                        Flexible(
+                                                                                          child: Text(
+                                                                                            'Diagnósticos reprodutivos por categoria',
+                                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                  font: GoogleFonts.poppins(
+                                                                                                    fontWeight: FontWeight.w600,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                  ),
+                                                                                                  fontSize: 18.0,
+                                                                                                  letterSpacing: 0.0,
+                                                                                                  fontWeight: FontWeight.w600,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                ),
                                                                                           ),
+                                                                                        ),
+                                                                                        const SizedBox(width: 12.0),
+                                                                                        _buildTotalBadge(
+                                                                                          context,
+                                                                                          _sumPartosCategorias(
+                                                                                            getJsonField(
+                                                                                              containerReproducaoDiagnosticosCategoriaResponse.jsonBody,
+                                                                                              r'''$.items''',
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
                                                                                     ),
                                                                                   ),
                                                                                   _buildSingleFilterChip(
@@ -4700,6 +4896,16 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           fontWeight: FontWeight.w600,
                                                                                           fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                         ),
+                                                                                  ),
+                                                                                  const SizedBox(width: 12.0),
+                                                                                  _buildTotalBadge(
+                                                                                    context,
+                                                                                    _sumDiagnosticosPeriodo(
+                                                                                      getJsonField(
+                                                                                        containerReproducaoDiagnosticosPeriodoResponse.jsonBody,
+                                                                                        r'''$.items''',
+                                                                                      ),
+                                                                                    ),
                                                                                   ),
                                                                                 ],
                                                                               ),
@@ -5052,18 +5258,34 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             crossAxisAlignment:
                                                                                 CrossAxisAlignment.center,
                                                                             children: [
-                                                                              Text(
-                                                                                'Animais vendidos por categoria no período (cabeça)',
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      fontSize: 18.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              Row(
+                                                                                children: [
+                                                                                  Flexible(
+                                                                                    child: Text(
+                                                                                      'Animais vendidos por categoria no período (cabeça)',
+                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                            fontSize: 18.0,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
                                                                                     ),
+                                                                                  ),
+                                                                                  const SizedBox(width: 12.0),
+                                                                                  _buildTotalBadge(
+                                                                                    context,
+                                                                                    _sumVendidosTodos(
+                                                                                      getJsonField(
+                                                                                        containerVendidosPorCategoriasPeriodoResponse.jsonBody,
+                                                                                        r'''$.items''',
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
                                                                               ),
                                                                               Container(
                                                                                 width: double.infinity,
@@ -5176,18 +5398,33 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             crossAxisAlignment:
                                                                                 CrossAxisAlignment.center,
                                                                             children: [
-                                                                              Text(
-                                                                                'Preço médio por categoria no período (cabeça) (R\$)',
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      fontSize: 18.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              Row(
+                                                                                children: [
+                                                                                  Flexible(
+                                                                                    child: Text(
+                                                                                      'Preço médio por categoria no período (cabeça) (R\$)',
+                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                            fontSize: 18.0,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
                                                                                     ),
+                                                                                  ),
+                                                                                  const SizedBox(width: 12.0),
+                                                                                  _buildTextBadge(
+                                                                                    context,
+                                                                                    'Média: ${_avgPrecoMedio(
+                                                                                      SupabaseEdgeGroup.precoMedioCategoriaCall.items(
+                                                                                        containerPrecoMedioCategoriaResponse.jsonBody,
+                                                                                      ),
+                                                                                    )}',
+                                                                                  ),
+                                                                                ],
                                                                               ),
                                                                               Container(
                                                                                 width: double.infinity,
@@ -5268,6 +5505,229 @@ class _PainelWidgetState extends State<PainelWidget>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Soma o campo [field] de uma lista dinâmica de itens JSON.
+  int _sumField(dynamic items, String field) {
+    if (items == null) return 0;
+    List<dynamic> list;
+    if (items is List) {
+      list = items;
+    } else if (items is Map && items['items'] is List) {
+      list = items['items'] as List;
+    } else {
+      return 0;
+    }
+    int total = 0;
+    for (final e in list) {
+      if (e is Map) {
+        total += ((e[field] as num?) ?? 0).toInt();
+      }
+    }
+    return total;
+  }
+
+  /// Soma projeção de desmamas conforme filtro de idade e sexo.
+  int _sumProjecaoDesmamas(dynamic items, String filtroIdadeMeses, String filtroSexo) {
+    if (items == null) return 0;
+    List<dynamic> list;
+    if (items is List) {
+      list = items;
+    } else if (items is Map && items['items'] is List) {
+      list = items['items'] as List;
+    } else {
+      return 0;
+    }
+    final sexo = filtroSexo.toLowerCase().trim();
+    final isTodos = sexo == 'todos';
+    final isMacho = sexo == 'macho';
+    int total = 0;
+    for (final e in list) {
+      if (e is Map) {
+        final m = (e['proj_${filtroIdadeMeses}m_machos'] as num?)?.toInt() ?? 0;
+        final f = (e['proj_${filtroIdadeMeses}m_femeas'] as num?)?.toInt() ?? 0;
+        if (isTodos) {
+          total += m + f;
+        } else if (isMacho) {
+          total += m;
+        } else {
+          total += f;
+        }
+      }
+    }
+    return total;
+  }
+
+  /// Soma campos de categorias de partos (Novilha + Primípara + Multípara).
+  int _sumPartosCategorias(dynamic items) {
+    if (items == null) return 0;
+    List<dynamic> list;
+    if (items is List) {
+      list = items;
+    } else if (items is Map && items['items'] is List) {
+      list = items['items'] as List;
+    } else {
+      return 0;
+    }
+    int total = 0;
+    for (final e in list) {
+      if (e is Map) {
+        total += ((e['Novilha'] as num?) ?? 0).toInt();
+        total += ((e['Primípara'] as num?) ?? 0).toInt();
+        total += ((e['Multípara'] as num?) ?? 0).toInt();
+      }
+    }
+    return total;
+  }
+
+  /// Conta o número de itens em uma lista JSON (para taxa de concepção).
+  int _countItems(dynamic items) {
+    if (items == null) return 0;
+    if (items is List) return items.length;
+    if (items is String) {
+      try {
+        final decoded = jsonDecode(items);
+        if (decoded is List) return decoded.length;
+        if (decoded is Map && decoded['items'] is List) {
+          return (decoded['items'] as List).length;
+        }
+      } catch (_) {}
+    }
+    if (items is Map && items['items'] is List) {
+      return (items['items'] as List).length;
+    }
+    return 0;
+  }
+
+  /// Extrai o total da linha "Total" nos diagnósticos realizados no período.
+  int _sumDiagnosticosPeriodo(dynamic items) {
+    if (items == null) return 0;
+    List<dynamic> list;
+    if (items is List) {
+      list = items;
+    } else if (items is Map && items['items'] is List) {
+      list = items['items'] as List;
+    } else {
+      return 0;
+    }
+    // Procura a linha "Total" ou soma todos os totais excluindo a linha Total
+    int sum = 0;
+    for (final e in list) {
+      if (e is Map) {
+        final situacao = (e['situacao'] as String?) ?? '';
+        if (situacao == 'Total') {
+          return ((e['total'] as num?) ?? 0).toInt();
+        }
+        sum += ((e['total'] as num?) ?? 0).toInt();
+      }
+    }
+    return sum;
+  }
+
+  /// Soma o campo 'todos' (ou 'Todos') de uma lista de itens vendidos.
+  int _sumVendidosTodos(dynamic items) {
+    if (items == null) return 0;
+    List<dynamic> list;
+    if (items is List) {
+      list = items;
+    } else if (items is Map && items['items'] is List) {
+      list = items['items'] as List;
+    } else {
+      return 0;
+    }
+    int total = 0;
+    for (final e in list) {
+      if (e is Map) {
+        final v = e['todos'] ?? e['Todos'] ?? e['total'];
+        if (v is num) {
+          total += v.toInt();
+        }
+      }
+    }
+    return total;
+  }
+
+  /// Calcula a média do campo 'todos' para preço médio e formata como R$.
+  String _avgPrecoMedio(dynamic items) {
+    if (items == null) return 'R\$ 0,00';
+    List<dynamic> list;
+    if (items is List) {
+      list = items;
+    } else if (items is Map && items['items'] is List) {
+      list = items['items'] as List;
+    } else {
+      return 'R\$ 0,00';
+    }
+    double soma = 0;
+    int count = 0;
+    for (final e in list) {
+      if (e is Map) {
+        final v = e['todos'] ?? e['Todos'];
+        if (v is num && v > 0) {
+          soma += v.toDouble();
+          count++;
+        }
+      }
+    }
+    if (count == 0) return 'R\$ 0,00';
+    final media = soma / count;
+    return 'R\$ ${media.toStringAsFixed(2).replaceAll('.', ',')}';
+  }
+
+  Widget _buildTextBadge(BuildContext context, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).primaryBackground,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: FlutterFlowTheme.of(context).alternate,
+          width: 1.0,
+        ),
+      ),
+      child: Text(
+        text,
+        style: FlutterFlowTheme.of(context).bodyMedium.override(
+              font: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+              ),
+              fontSize: 14.0,
+              letterSpacing: 0.0,
+              fontWeight: FontWeight.w600,
+              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+              color: FlutterFlowTheme.of(context).primaryText,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildTotalBadge(BuildContext context, int total) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).primaryBackground,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: FlutterFlowTheme.of(context).alternate,
+          width: 1.0,
+        ),
+      ),
+      child: Text(
+        'Total: $total',
+        style: FlutterFlowTheme.of(context).bodyMedium.override(
+              font: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+              ),
+              fontSize: 14.0,
+              letterSpacing: 0.0,
+              fontWeight: FontWeight.w600,
+              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+              color: FlutterFlowTheme.of(context).primaryText,
+            ),
       ),
     );
   }

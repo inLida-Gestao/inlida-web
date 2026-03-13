@@ -4,7 +4,6 @@ import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
 import '/flutter_flow/flutter_flow_data_table.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/instant_timer.dart';
 import 'dart:async';
 import '/index.dart';
 import 'pg_rebanho_view_widget.dart' show PgRebanhoViewWidget;
@@ -32,7 +31,7 @@ class PgRebanhoViewModel extends FlutterFlowModel<PgRebanhoViewWidget> {
 
   ///  State fields for stateful widgets in this page.
 
-  InstantTimer? instantTimer;
+  VoidCallback? disposeRefreshListener;
   Completer<List<HistoricoPesagensRow>>? requestCompleter;
   // Model for header component.
   late HeaderModel headerModel;
@@ -167,7 +166,7 @@ class PgRebanhoViewModel extends FlutterFlowModel<PgRebanhoViewWidget> {
 
   @override
   void dispose() {
-    instantTimer?.cancel();
+    disposeRefreshListener?.call();
     headerModel.dispose();
     sideBarModel.dispose();
     tabBarController?.dispose();

@@ -65,10 +65,7 @@ Future<bool> exportSanidadeExcel(String nameExcel, String idPropriedade) async {
     Sheet sheet = excel['Sheet1'];
 
     const template = <String, String>{
-      'ID_Sanidade': 'id_sanidade',
       'Data_sanidade': 'data_sanidade',
-      'ID_Rebanho': 'id_rebanho',
-      'ID_Lote': 'id_lote',
       'Porcentagem_lote': 'porcentagem_lote',
       'Vacinacao': 'vacinacao',
       'Vacinacao_outros': 'vacinacao_outros',

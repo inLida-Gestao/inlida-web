@@ -8,7 +8,6 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/pg_lotes/cc_add_lote/cc_add_lote_widget.dart';
 import '/pg_lotes/pp_filtro_lote/pp_filtro_lote_widget.dart';
 import '/pg_lotes/sub_menu_lotes/sub_menu_lotes_widget.dart';
@@ -48,24 +47,11 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      await Future.wait([
-        Future(() async {
-          await action_blocks.countLotes(context);
-        }),
-        Future(() async {
-          _model.instantTimer = InstantTimer.periodic(
-            duration: const Duration(milliseconds: 250),
-            callback: (timer) async {
-              if (FFAppState().refreshLotes == true) {
-                safeSetState(() => _model.apiRequestCompleter = null);
-                FFAppState().refreshLotes = false;
-                safeSetState(() {});
-              }
-            },
-            startImmediately: true,
-          );
-        }),
-      ]);
+      await action_blocks.countLotes(context);
+      _model.disposeRefreshListener = FFAppState().onRefresh('refreshLotes', () {
+        FFAppState().refreshLotes = false;
+        safeSetState(() => _model.apiRequestCompleter = null);
+      });
     });
 
     _model.textController ??= TextEditingController();
@@ -85,11 +71,6 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
-    if (FFAppState().refreshLotes == true) {
-      _model.apiRequestCompleter = null;
-      FFAppState().refreshLotes = false;
-    }
-
     return FutureBuilder<ApiCallResponse>(
       future: (_model.apiRequestCompleter ??= Completer<ApiCallResponse>()
             ..complete(
@@ -100,6 +81,8 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
               pOffset: functions.calcDeslocamento(
                   _model.pageNum, FFAppConstants.limit),
               pStatus: FFAppState().filtroStatusLote,
+              pDataCriacaoDe: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataCriacaoLoteDe),
+              pDataCriacaoAte: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataCriacaoLoteAte),
             )))
           .future,
       builder: (context, snapshot) {
@@ -116,6 +99,39 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                     FlutterFlowTheme.of(context).primary,
                   ),
                 ),
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: FlutterFlowTheme.of(context).error,
+                    size: 48.0,
+                  ),
+                  const SizedBox(height: 16.0),
+                  Text(
+                    'Erro ao carregar dados',
+                    style: FlutterFlowTheme.of(context).titleMedium,
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Verifique sua conexão e tente novamente.',
+                    style: FlutterFlowTheme.of(context).bodySmall,
+                  ),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton.icon(
+                    onPressed: () => safeSetState(() => _model.apiRequestCompleter = null),
+                    icon: const Icon(Icons.refresh_rounded, size: 18.0),
+                    label: const Text('Tentar novamente'),
+                  ),
+                ],
               ),
             ),
           );
@@ -604,6 +620,25 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                               .primary,
                                                         ),
                                                       ),
+                                                    ),
+                                                  );
+                                                }
+                                                if (snapshot.hasError) {
+                                                  return Center(
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.error_outline_rounded,
+                                                          color: FlutterFlowTheme.of(context).error,
+                                                          size: 36.0,
+                                                        ),
+                                                        const SizedBox(height: 8.0),
+                                                        Text(
+                                                          'Erro ao carregar',
+                                                          style: FlutterFlowTheme.of(context).bodySmall,
+                                                        ),
+                                                      ],
                                                     ),
                                                   );
                                                 }
@@ -1443,6 +1478,8 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                   _model.textController.text,
                                               pStatus:
                                                   FFAppState().filtroStatusLote,
+                                              pDataCriacaoDe: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataCriacaoLoteDe),
+                                              pDataCriacaoAte: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataCriacaoLoteAte),
                                             ),
                                             builder: (context, snapshot) {
                                               // Customize what your widget looks like when it's loading.
@@ -1461,6 +1498,25 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                             .primary,
                                                       ),
                                                     ),
+                                                  ),
+                                                );
+                                              }
+                                              if (snapshot.hasError) {
+                                                return Center(
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.error_outline_rounded,
+                                                        color: FlutterFlowTheme.of(context).error,
+                                                        size: 36.0,
+                                                      ),
+                                                      const SizedBox(height: 8.0),
+                                                      Text(
+                                                        'Erro ao carregar',
+                                                        style: FlutterFlowTheme.of(context).bodySmall,
+                                                      ),
+                                                    ],
                                                   ),
                                                 );
                                               }

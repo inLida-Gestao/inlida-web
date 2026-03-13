@@ -91,6 +91,17 @@ Future countLotes(BuildContext context) async {
   ]);
 }
 
+Future countPiquetes(BuildContext context) async {
+  final result =
+      await FunctionsSupabaseRebanhoGroup.contarPiquetesFiltrosCall.call(
+    pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+  );
+  FFAppState().qtdPiquetes = valueOrDefault<int>(
+    result.jsonBody is num ? (result.jsonBody as num).toInt() : 0,
+    0,
+  );
+}
+
 Future countSanidades(BuildContext context) async {
   ApiCallResponse? apiResult19o;
 

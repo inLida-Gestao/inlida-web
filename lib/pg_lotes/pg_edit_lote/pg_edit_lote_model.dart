@@ -55,7 +55,8 @@ class PgEditLoteModel extends FlutterFlowModel<PgEditLoteWidget> {
   String filtroRightRaca = '';
   String filtroRightOrigem = '';
   String filtroRightStatusRebanho = '';
-  DateTime? filtroRightDataNacimento;
+  DateTime? filtroRightDataNacimentoDe;
+  DateTime? filtroRightDataNacimentoAte;
   String filtroRightLoteId = '';
   String filtroRightLoteNome = '';
 

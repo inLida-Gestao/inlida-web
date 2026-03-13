@@ -4,7 +4,6 @@ import '/componentes/side_bar/side_bar_widget.dart';
 import '/flutter_flow/flutter_flow_data_table.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/form_field_controller.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/index.dart';
 import 'dart:async';
 import 'pg_rebanho_edit_widget.dart' show PgRebanhoEditWidget;
@@ -35,7 +34,7 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
 
   ///  State fields for stateful widgets in this page.
 
-  InstantTimer? instantTimer;
+  VoidCallback? disposeRefreshListener;
   // Model for header component.
   late HeaderModel headerModel;
   // Model for sideBar component.
@@ -180,7 +179,7 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
 
   @override
   void dispose() {
-    instantTimer?.cancel();
+    disposeRefreshListener?.call();
     headerModel.dispose();
     sideBarModel.dispose();
     tabBarController?.dispose();

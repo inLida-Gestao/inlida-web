@@ -9,7 +9,6 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/propriedades/add_propriedade/add_propriedade_widget.dart';
 import '/propriedades/filtro_propriedades/filtro_propriedades_widget.dart';
 import '/propriedades/sub_menu_prop/sub_menu_prop_widget.dart';
@@ -69,18 +68,13 @@ class _PropriedadesWidgetState extends State<PropriedadesWidget> {
         0,
       );
       safeSetState(() {});
-      _model.instantTimer = InstantTimer.periodic(
-        duration: const Duration(milliseconds: 250),
-        callback: (timer) async {
-          if (FFAppState().refreshPropriedades == true) {
-            safeSetState(() => _model.apiRequestCompleter2 = null);
-            safeSetState(() => _model.apiRequestCompleter1 = null);
-            FFAppState().refreshPropriedades = false;
-            safeSetState(() {});
-          }
-        },
-        startImmediately: true,
-      );
+      _model.disposeRefreshListener = FFAppState().onRefresh('refreshPropriedades', () {
+        FFAppState().refreshPropriedades = false;
+        safeSetState(() {
+          _model.apiRequestCompleter2 = null;
+          _model.apiRequestCompleter1 = null;
+        });
+      });
     });
 
     _model.textController ??= TextEditingController();
@@ -122,6 +116,39 @@ class _PropriedadesWidgetState extends State<PropriedadesWidget> {
                     FlutterFlowTheme.of(context).primary,
                   ),
                 ),
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: FlutterFlowTheme.of(context).error,
+                    size: 48.0,
+                  ),
+                  const SizedBox(height: 16.0),
+                  Text(
+                    'Erro ao carregar dados',
+                    style: FlutterFlowTheme.of(context).titleMedium,
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Verifique sua conexão e tente novamente.',
+                    style: FlutterFlowTheme.of(context).bodySmall,
+                  ),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton.icon(
+                    onPressed: () => safeSetState(() => _model.apiRequestCompleter2 = null),
+                    icon: const Icon(Icons.refresh_rounded, size: 18.0),
+                    label: const Text('Tentar novamente'),
+                  ),
+                ],
               ),
             ),
           );
@@ -1336,6 +1363,25 @@ class _PropriedadesWidgetState extends State<PropriedadesWidget> {
                                                     ),
                                                   );
                                                 }
+                                                if (snapshot.hasError) {
+                                                  return Center(
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.error_outline_rounded,
+                                                          color: FlutterFlowTheme.of(context).error,
+                                                          size: 36.0,
+                                                        ),
+                                                        const SizedBox(height: 8.0),
+                                                        Text(
+                                                          'Erro ao carregar',
+                                                          style: FlutterFlowTheme.of(context).bodySmall,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }
                                                 final containerAnimaisCadQTDRebanhoPropriedadeResponse =
                                                     snapshot.data!;
 
@@ -1940,6 +1986,25 @@ class _PropriedadesWidgetState extends State<PropriedadesWidget> {
                                                                   .primary,
                                                             ),
                                                           ),
+                                                        ),
+                                                      );
+                                                    }
+                                                    if (snapshot.hasError) {
+                                                      return Center(
+                                                        child: Column(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            Icon(
+                                                              Icons.error_outline_rounded,
+                                                              color: FlutterFlowTheme.of(context).error,
+                                                              size: 36.0,
+                                                            ),
+                                                            const SizedBox(height: 8.0),
+                                                            Text(
+                                                              'Erro ao carregar',
+                                                              style: FlutterFlowTheme.of(context).bodySmall,
+                                                            ),
+                                                          ],
                                                         ),
                                                       );
                                                     }

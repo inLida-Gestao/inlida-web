@@ -152,6 +152,95 @@ class FFAppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- Refresh callback system ---
+  final Map<String, List<VoidCallback>> _refreshCallbacks = {};
+
+  /// Register a callback to be called when a specific refresh flag is set.
+  /// Returns a dispose function that removes the callback.
+  VoidCallback onRefresh(String key, VoidCallback callback) {
+    _refreshCallbacks.putIfAbsent(key, () => []);
+    _refreshCallbacks[key]!.add(callback);
+    return () => _refreshCallbacks[key]?.remove(callback);
+  }
+
+  void _notifyRefresh(String key) {
+    final callbacks = _refreshCallbacks[key];
+    if (callbacks != null) {
+      for (final cb in List.of(callbacks)) {
+        cb();
+      }
+    }
+  }
+
+  /// Chamado quando o usuário troca a propriedade no dropdown.
+  /// Atualiza a propriedade, reseta filtros e seta todas as flags de refresh
+  /// atomicamente, notificando os listeners uma única vez.
+  void onPropriedadeChanged(PropriedadesDTStruct novaProp) {
+    // 1. Atualizar propriedade selecionada com persistência
+    _propriedadeSelecionada = novaProp;
+    prefs.setString('ff_propriedadeSelecionada', novaProp.serialize());
+
+    // 2. Resetar todos os filtros para valores padrão
+    _filtroCategoria = '';
+    _filtroSexo = '';
+    _filtroStatusRebanho = '';
+    _filtroRaca = '';
+    _filtroOrigem = '';
+    _filtroLoteNome = '';
+    _filtroLoteId = '';
+    _filtroDataNacimentoDe = null;
+    _filtroDataNacimentoAte = null;
+    _filtroStatusLote = '';
+    _filtroDataCriacaoLoteDe = null;
+    _filtroDataCriacaoLoteAte = null;
+    _filtroCidadeProp = '';
+    _filtroUFProp = '';
+    _filtroCategoriaRepro = '';
+    _filtroInseminador = '';
+    _filtroIDMatriz = '';
+    _filtroIDReprodutor = '';
+    _filtroDataReproducaoDe = null;
+    _filtroDataReproducaoAte = null;
+    _filtroDataPartoDe = null;
+    _filtroDataPartoAte = null;
+    _filtroDataDiagnosticoDe = null;
+    _filtroDataDiagnosticoAte = null;
+    _filtroPiqueteForrageira = '';
+    _filtroAreaMin = 0;
+    _filtroAreaMax = 9999;
+    _filtroDataSanidadeDe = null;
+    _filtroDataSanidadeAte = null;
+    _filtroLoteSanidade = '';
+    _filtroAnimalSanidade = '';
+    _filtroSexoSanidade = '';
+    _filtroRacaSanidade = '';
+    _filtroCategoriaSanidade = '';
+    _filtroTratamentoSanidade = '';
+    _filtroProtocolo = '';
+    _filtroAntiparasitario = '';
+    _filtroVacinacao = '';
+    _filtroNascimentoSanidadeDe = null;
+    _filtroNascimentoSanidadeAte = null;
+
+    // 3. Setar TODAS as flags de refresh (usando campos privados
+    // para evitar o notifyListeners extra do setter de refreshReproducao)
+    _refreshRebanho = true;
+    _notifyRefresh('refreshRebanho');
+    _refreshReproducao = true;
+    _notifyRefresh('refreshReproducao');
+    _refreshLotes = true;
+    _notifyRefresh('refreshLotes');
+    _refreshPiquete = true;
+    _notifyRefresh('refreshPiquete');
+    _refreshSanidade = true;
+    _notifyRefresh('refreshSanidade');
+    _refreshPainel = true;
+    _notifyRefresh('refreshPainel');
+
+    // 4. Notificar todos os listeners uma única vez
+    notifyListeners();
+  }
+
   late SharedPreferences prefs;
 
   bool _listEquals(List<String> a, List<String> b) {
@@ -234,6 +323,7 @@ class FFAppState extends ChangeNotifier {
   bool get refreshPropriedades => _refreshPropriedades;
   set refreshPropriedades(bool value) {
     _refreshPropriedades = value;
+    if (value) _notifyRefresh('refreshPropriedades');
   }
 
   List<UsersDTStruct> _usersPropriedade = [];
@@ -275,6 +365,7 @@ class FFAppState extends ChangeNotifier {
   bool get refreshEditProp => _refreshEditProp;
   set refreshEditProp(bool value) {
     _refreshEditProp = value;
+    if (value) _notifyRefresh('refreshEditProp');
   }
 
   String _propriedadeEdit = '';
@@ -341,6 +432,7 @@ class FFAppState extends ChangeNotifier {
   bool get refreshRebanho => _refreshRebanho;
   set refreshRebanho(bool value) {
     _refreshRebanho = value;
+    if (value) _notifyRefresh('refreshRebanho');
   }
 
   List<String> _raca = [
@@ -545,10 +637,16 @@ class FFAppState extends ChangeNotifier {
     _filtroCategoria = value;
   }
 
-  DateTime? _filtroDataNacimento;
-  DateTime? get filtroDataNacimento => _filtroDataNacimento;
-  set filtroDataNacimento(DateTime? value) {
-    _filtroDataNacimento = value;
+  DateTime? _filtroDataNacimentoDe;
+  DateTime? get filtroDataNacimentoDe => _filtroDataNacimentoDe;
+  set filtroDataNacimentoDe(DateTime? value) {
+    _filtroDataNacimentoDe = value;
+  }
+
+  DateTime? _filtroDataNacimentoAte;
+  DateTime? get filtroDataNacimentoAte => _filtroDataNacimentoAte;
+  set filtroDataNacimentoAte(DateTime? value) {
+    _filtroDataNacimentoAte = value;
   }
 
   String _filtroLoteId = '';
@@ -637,6 +735,7 @@ class FFAppState extends ChangeNotifier {
   bool get refreshPesagem => _refreshPesagem;
   set refreshPesagem(bool value) {
     _refreshPesagem = value;
+    if (value) _notifyRefresh('refreshPesagem');
   }
 
   int _qtdReproducoes = 0;
@@ -663,16 +762,40 @@ class FFAppState extends ChangeNotifier {
     _loading = value;
   }
 
-  DateTime? _filtroDataReproducao;
-  DateTime? get filtroDataReproducao => _filtroDataReproducao;
-  set filtroDataReproducao(DateTime? value) {
-    _filtroDataReproducao = value;
+  DateTime? _filtroDataReproducaoDe;
+  DateTime? get filtroDataReproducaoDe => _filtroDataReproducaoDe;
+  set filtroDataReproducaoDe(DateTime? value) {
+    _filtroDataReproducaoDe = value;
   }
 
-  DateTime? _filtroDataParto;
-  DateTime? get filtroDataParto => _filtroDataParto;
-  set filtroDataParto(DateTime? value) {
-    _filtroDataParto = value;
+  DateTime? _filtroDataReproducaoAte;
+  DateTime? get filtroDataReproducaoAte => _filtroDataReproducaoAte;
+  set filtroDataReproducaoAte(DateTime? value) {
+    _filtroDataReproducaoAte = value;
+  }
+
+  DateTime? _filtroDataPartoDe;
+  DateTime? get filtroDataPartoDe => _filtroDataPartoDe;
+  set filtroDataPartoDe(DateTime? value) {
+    _filtroDataPartoDe = value;
+  }
+
+  DateTime? _filtroDataPartoAte;
+  DateTime? get filtroDataPartoAte => _filtroDataPartoAte;
+  set filtroDataPartoAte(DateTime? value) {
+    _filtroDataPartoAte = value;
+  }
+
+  DateTime? _filtroDataDiagnosticoDe;
+  DateTime? get filtroDataDiagnosticoDe => _filtroDataDiagnosticoDe;
+  set filtroDataDiagnosticoDe(DateTime? value) {
+    _filtroDataDiagnosticoDe = value;
+  }
+
+  DateTime? _filtroDataDiagnosticoAte;
+  DateTime? get filtroDataDiagnosticoAte => _filtroDataDiagnosticoAte;
+  set filtroDataDiagnosticoAte(DateTime? value) {
+    _filtroDataDiagnosticoAte = value;
   }
 
   String _filtroCategoriaRepro = '';
@@ -709,6 +832,7 @@ class FFAppState extends ChangeNotifier {
   bool get refreshReproducao => _refreshReproducao;
   set refreshReproducao(bool value) {
     _refreshReproducao = value;
+    if (value) _notifyRefresh('refreshReproducao');
     notifyListeners();
   }
 
@@ -718,16 +842,66 @@ class FFAppState extends ChangeNotifier {
     _filtroStatusLote = value;
   }
 
+  DateTime? _filtroDataCriacaoLoteDe;
+  DateTime? get filtroDataCriacaoLoteDe => _filtroDataCriacaoLoteDe;
+  set filtroDataCriacaoLoteDe(DateTime? value) {
+    _filtroDataCriacaoLoteDe = value;
+  }
+
+  DateTime? _filtroDataCriacaoLoteAte;
+  DateTime? get filtroDataCriacaoLoteAte => _filtroDataCriacaoLoteAte;
+  set filtroDataCriacaoLoteAte(DateTime? value) {
+    _filtroDataCriacaoLoteAte = value;
+  }
+
   bool _refreshLotes = false;
   bool get refreshLotes => _refreshLotes;
   set refreshLotes(bool value) {
     _refreshLotes = value;
+    if (value) _notifyRefresh('refreshLotes');
   }
 
-  DateTime? _filtroDataSanidade;
-  DateTime? get filtroDataSanidade => _filtroDataSanidade;
-  set filtroDataSanidade(DateTime? value) {
-    _filtroDataSanidade = value;
+  bool _refreshPiquete = false;
+  bool get refreshPiquete => _refreshPiquete;
+  set refreshPiquete(bool value) {
+    _refreshPiquete = value;
+    if (value) _notifyRefresh('refreshPiquete');
+  }
+
+  String _filtroPiqueteForrageira = '';
+  String get filtroPiqueteForrageira => _filtroPiqueteForrageira;
+  set filtroPiqueteForrageira(String value) {
+    _filtroPiqueteForrageira = value;
+  }
+
+  double _filtroAreaMin = 0;
+  double get filtroAreaMin => _filtroAreaMin;
+  set filtroAreaMin(double value) {
+    _filtroAreaMin = value;
+  }
+
+  double _filtroAreaMax = 9999;
+  double get filtroAreaMax => _filtroAreaMax;
+  set filtroAreaMax(double value) {
+    _filtroAreaMax = value;
+  }
+
+  int _qtdPiquetes = 0;
+  int get qtdPiquetes => _qtdPiquetes;
+  set qtdPiquetes(int value) {
+    _qtdPiquetes = value;
+  }
+
+  DateTime? _filtroDataSanidadeDe;
+  DateTime? get filtroDataSanidadeDe => _filtroDataSanidadeDe;
+  set filtroDataSanidadeDe(DateTime? value) {
+    _filtroDataSanidadeDe = value;
+  }
+
+  DateTime? _filtroDataSanidadeAte;
+  DateTime? get filtroDataSanidadeAte => _filtroDataSanidadeAte;
+  set filtroDataSanidadeAte(DateTime? value) {
+    _filtroDataSanidadeAte = value;
   }
 
   String _filtroLoteSanidade = '';
@@ -784,10 +958,16 @@ class FFAppState extends ChangeNotifier {
     _filtroVacinacao = value;
   }
 
-  DateTime? _filtroNascimentoSanidade;
-  DateTime? get filtroNascimentoSanidade => _filtroNascimentoSanidade;
-  set filtroNascimentoSanidade(DateTime? value) {
-    _filtroNascimentoSanidade = value;
+  DateTime? _filtroNascimentoSanidadeDe;
+  DateTime? get filtroNascimentoSanidadeDe => _filtroNascimentoSanidadeDe;
+  set filtroNascimentoSanidadeDe(DateTime? value) {
+    _filtroNascimentoSanidadeDe = value;
+  }
+
+  DateTime? _filtroNascimentoSanidadeAte;
+  DateTime? get filtroNascimentoSanidadeAte => _filtroNascimentoSanidadeAte;
+  set filtroNascimentoSanidadeAte(DateTime? value) {
+    _filtroNascimentoSanidadeAte = value;
   }
 
   List<String> _vacinacao = _kVacinacaoOptions.toList();
@@ -934,6 +1114,7 @@ class FFAppState extends ChangeNotifier {
   bool get refreshSanidade => _refreshSanidade;
   set refreshSanidade(bool value) {
     _refreshSanidade = value;
+    if (value) _notifyRefresh('refreshSanidade');
   }
 
   double _valueDouble2 = 0.0;
@@ -958,6 +1139,7 @@ class FFAppState extends ChangeNotifier {
   bool get refreshPainel => _refreshPainel;
   set refreshPainel(bool value) {
     _refreshPainel = value;
+    if (value) _notifyRefresh('refreshPainel');
   }
 
   List<AnosStruct> _anos = [];
@@ -1056,6 +1238,7 @@ class FFAppState extends ChangeNotifier {
   bool get refreshAnimalSelecionado => _refreshAnimalSelecionado;
   set refreshAnimalSelecionado(bool value) {
     _refreshAnimalSelecionado = value;
+    if (value) _notifyRefresh('refreshAnimalSelecionado');
   }
 
   int _qtdSanidades = 0;
@@ -1070,12 +1253,6 @@ class FFAppState extends ChangeNotifier {
     _qtdVacinacao = value;
   }
 
-  /// pra atualizar app - Emerson
-  String _nada = '';
-  String get nada => _nada;
-  set nada(String value) {
-    _nada = value;
-  }
 
   List<RebanhoExportStruct> _rebanhoExport = [];
   List<RebanhoExportStruct> get rebanhoExport => _rebanhoExport;

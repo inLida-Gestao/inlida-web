@@ -88,7 +88,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
             ..complete(
                 FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
               pCategoria: '',
-              pDataNascimento: '',
+              pDataNascimentoDe: '',
+              pDataNascimentoAte: '',
               pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
               pLoteNome: '',
               pOrigem: '',
@@ -114,6 +115,39 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                     FlutterFlowTheme.of(context).primary,
                   ),
                 ),
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: FlutterFlowTheme.of(context).error,
+                    size: 48.0,
+                  ),
+                  const SizedBox(height: 16.0),
+                  Text(
+                    'Erro ao carregar dados',
+                    style: FlutterFlowTheme.of(context).titleMedium,
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Verifique sua conexão e tente novamente.',
+                    style: FlutterFlowTheme.of(context).bodySmall,
+                  ),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton.icon(
+                    onPressed: () => safeSetState(() => _model.apiRequestCompleter = null),
+                    icon: const Icon(Icons.refresh_rounded, size: 18.0),
+                    label: const Text('Tentar novamente'),
+                  ),
+                ],
               ),
             ),
           );
@@ -2113,7 +2147,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                               .propriedadeSelecionada
                                                                               .idPropriedade,
                                                                           pCategoria: '',
-                                                                          pDataNascimento: '',
+                                                                          pDataNascimentoDe: '',
+                                                                          pDataNascimentoAte: '',
                                                                           pLoteID:
                                                                               '',
                                                                           pOrigem: '',
@@ -2954,8 +2989,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                         final animais = _model
                                                                             .animaisDentroLote
                                                                             .where((e) =>
-                                                                                ((_model.pesquisaTextController2.text == '') && (FFAppState().filtroCategoria == '') && (FFAppState().filtroSexo == '') && (FFAppState().filtroRaca == '') && (FFAppState().filtroOrigem == '') && (FFAppState().filtroStatusRebanho == '') && (FFAppState().filtroDataNacimento == null)) ||
-                                                                                ((e.numeroAnimal.contains(_model.pesquisaTextController2.text) || e.nome.toLowerCase().contains(_model.pesquisaTextController2.text.toLowerCase()) || e.chip.contains(_model.pesquisaTextController2.text)) && ((FFAppState().filtroSexo == '') || (e.sexo == FFAppState().filtroSexo)) && ((FFAppState().filtroCategoria == '') || (e.categoria == FFAppState().filtroCategoria)) && ((FFAppState().filtroRaca == '') || (e.raca == FFAppState().filtroRaca)) && ((FFAppState().filtroOrigem == '') || (e.origem == FFAppState().filtroOrigem)) && ((FFAppState().filtroStatusRebanho == '') || (e.status == FFAppState().filtroStatusRebanho)) && ((FFAppState().filtroDataNacimento == null) && (functions.converterParaData(e.dataNascimento) == FFAppState().filtroDataNacimento))))
+                                                                                ((_model.pesquisaTextController2.text == '') && (FFAppState().filtroCategoria == '') && (FFAppState().filtroSexo == '') && (FFAppState().filtroRaca == '') && (FFAppState().filtroOrigem == '') && (FFAppState().filtroStatusRebanho == '') && (FFAppState().filtroDataNacimentoDe == null) && (FFAppState().filtroDataNacimentoAte == null)) ||
+                                                                                ((e.numeroAnimal.contains(_model.pesquisaTextController2.text) || e.nome.toLowerCase().contains(_model.pesquisaTextController2.text.toLowerCase()) || e.chip.contains(_model.pesquisaTextController2.text)) && ((FFAppState().filtroSexo == '') || (e.sexo == FFAppState().filtroSexo)) && ((FFAppState().filtroCategoria == '') || (e.categoria == FFAppState().filtroCategoria)) && ((FFAppState().filtroRaca == '') || (e.raca == FFAppState().filtroRaca)) && ((FFAppState().filtroOrigem == '') || (e.origem == FFAppState().filtroOrigem)) && ((FFAppState().filtroStatusRebanho == '') || (e.status == FFAppState().filtroStatusRebanho)) && ((FFAppState().filtroDataNacimentoDe == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isBefore(FFAppState().filtroDataNacimentoDe!))) && ((FFAppState().filtroDataNacimentoAte == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isAfter(FFAppState().filtroDataNacimentoAte!)))))
                                                                             .toList()
                                                                             .take(_model.mostrarAdicionados)
                                                                             .toList();

@@ -9,10 +9,27 @@ class PpFiltroLoteModel extends FlutterFlowModel<PpFiltroLoteWidget> {
   // State field(s) for DDStatusLote widget.
   String? dDStatusLoteValue;
   FormFieldController<String>? dDStatusLoteValueController;
+  // State field(s) for dataCriacaoDe widget.
+  FocusNode? dataCriacaoDeFocusNode;
+  TextEditingController? dataCriacaoDeTextController;
+  String? Function(BuildContext, String?)?
+      dataCriacaoDeTextControllerValidator;
+  DateTime? datePickedDe;
+  // State field(s) for dataCriacaoAte widget.
+  FocusNode? dataCriacaoAteFocusNode;
+  TextEditingController? dataCriacaoAteTextController;
+  String? Function(BuildContext, String?)?
+      dataCriacaoAteTextControllerValidator;
+  DateTime? datePickedAte;
 
   @override
   void initState(BuildContext context) {}
 
   @override
-  void dispose() {}
+  void dispose() {
+    dataCriacaoDeFocusNode?.dispose();
+    dataCriacaoDeTextController?.dispose();
+    dataCriacaoAteFocusNode?.dispose();
+    dataCriacaoAteTextController?.dispose();
+  }
 }

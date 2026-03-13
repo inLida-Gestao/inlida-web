@@ -111,6 +111,25 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                         ),
                       );
                     }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.error_outline_rounded,
+                              color: FlutterFlowTheme.of(context).error,
+                              size: 36.0,
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              'Erro ao carregar',
+                              style: FlutterFlowTheme.of(context).bodySmall,
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                     final containerBuscarPropriedadesDoUsuarioResponse =
                         snapshot.data!;
 
@@ -178,6 +197,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                                 onChanged: (val) async {
                                   safeSetState(
                                       () => _model.dropDownValue = val);
+                                  // 1. Buscar dados da propriedade
                                   _model.propriedade =
                                       await PropriedadesTable().queryRows(
                                     queryFn: (q) => q.eqOrNull(
@@ -185,56 +205,52 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                                       _model.dropDownValue,
                                     ),
                                   );
-                                  FFAppState().propriedadeSelecionada =
-                                      PropriedadesDTStruct(
-                                    idPropriedade: _model.propriedade
-                                        ?.firstOrNull?.idPropriedade,
-                                    nome: _model.propriedade?.firstOrNull?.nome,
+                                  // 2. Atualizar propriedade, resetar filtros
+                                  //    e setar TODAS as flags de refresh de uma vez
+                                  FFAppState().onPropriedadeChanged(
+                                    PropriedadesDTStruct(
+                                      idPropriedade: _model.propriedade
+                                          ?.firstOrNull?.idPropriedade,
+                                      nome: _model.propriedade?.firstOrNull?.nome,
+                                    ),
                                   );
-                                  FFAppState().update(() {});
-                                    _model.qtdAnimais =
+                                  // 3. Executar contagens assíncronas (pages já
+                                  //    estão atualizando em paralelo)
+                                  _model.qtdAnimais =
                                       await FunctionsSupabaseRebanhoGroup
-                                        .countRebanhoFiltrosCall
-                                        .call(
+                                          .countRebanhoFiltrosCall
+                                          .call(
                                     pIdPropriedade: FFAppState()
-                                      .propriedadeSelecionada
-                                      .idPropriedade,
+                                        .propriedadeSelecionada
+                                        .idPropriedade,
                                     pStatus: 'Na Propriedade',
-                                    );
-                                    final qtdAnimaisLower =
+                                  );
+                                  final qtdAnimaisLower =
                                       await FunctionsSupabaseRebanhoGroup
-                                        .countRebanhoFiltrosCall
-                                        .call(
+                                          .countRebanhoFiltrosCall
+                                          .call(
                                     pIdPropriedade: FFAppState()
-                                      .propriedadeSelecionada
-                                      .idPropriedade,
+                                        .propriedadeSelecionada
+                                        .idPropriedade,
                                     pStatus: 'Na propriedade',
-                                    );
-                                    final qtdUpper = valueOrDefault<int>(
+                                  );
+                                  final qtdUpper = valueOrDefault<int>(
                                     (_model.qtdAnimais?.jsonBody ?? ''),
                                     0,
-                                    );
-                                    final qtdLower = valueOrDefault<int>(
-                                      (qtdAnimaisLower.jsonBody ?? ''),
-                                      0,
-                                    );
-                                    final qtdTotal =
-                                      qtdUpper == qtdLower ? qtdUpper : (qtdUpper + qtdLower);
-
-                                    FFAppState().qtdAnimaisNaPropriedade =
+                                  );
+                                  final qtdLower = valueOrDefault<int>(
+                                    (qtdAnimaisLower.jsonBody ?? ''),
+                                    0,
+                                  );
+                                  final qtdTotal = qtdUpper == qtdLower
+                                      ? qtdUpper
+                                      : (qtdUpper + qtdLower);
+                                  FFAppState().qtdAnimaisNaPropriedade =
                                       qtdTotal;
-                                  safeSetState(() {});
                                   await action_blocks.countReproducoes(context);
                                   await action_blocks.countLotes(context);
-                                  FFAppState().refreshRebanho = true;
-                                  FFAppState().refreshReproducao = true;
-                                  FFAppState().refreshLotes = true;
-                                  FFAppState().refreshPainel = true;
+                                  // 4. Propagar valores de contagem
                                   FFAppState().update(() {});
-                                  _model.updatePage(() {});
-                                  FFAppState().nada = 'nada';
-                                  FFAppState().update(() {});
-
                                   safeSetState(() {});
                                 },
                                 width: 418.0,

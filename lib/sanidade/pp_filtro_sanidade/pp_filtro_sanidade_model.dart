@@ -1,3 +1,4 @@
+import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/form_field_controller.dart';
 import 'pp_filtro_sanidade_widget.dart' show PpFiltroSanidadeWidget;
@@ -6,11 +7,19 @@ import 'package:flutter/material.dart';
 class PpFiltroSanidadeModel extends FlutterFlowModel<PpFiltroSanidadeWidget> {
   ///  State fields for stateful widgets in this component.
 
-  // State field(s) for dataSanidade widget.
-  FocusNode? dataSanidadeFocusNode;
-  TextEditingController? dataSanidadeTextController;
-  String? Function(BuildContext, String?)? dataSanidadeTextControllerValidator;
-  DateTime? datePicked1;
+  // Cached future for lotes query to avoid refetching on every rebuild.
+  Future<List<LotesRow>>? lotesFuture;
+
+  // State field(s) for dataSanidadeDe widget.
+  FocusNode? dataSanidadeDeFocusNode;
+  TextEditingController? dataSanidadeDeTextController;
+  String? Function(BuildContext, String?)? dataSanidadeDeTextControllerValidator;
+  DateTime? datePickedSanidadeDe;
+  // State field(s) for dataSanidadeAte widget.
+  FocusNode? dataSanidadeAteFocusNode;
+  TextEditingController? dataSanidadeAteTextController;
+  String? Function(BuildContext, String?)? dataSanidadeAteTextControllerValidator;
+  DateTime? datePickedSanidadeAte;
   // State field(s) for DropDownLote widget.
   String? dropDownLoteValue;
   FormFieldController<String>? dropDownLoteValueController;
@@ -20,12 +29,18 @@ class PpFiltroSanidadeModel extends FlutterFlowModel<PpFiltroSanidadeWidget> {
   // State field(s) for DropDownSexo widget.
   String? dropDownSexoValue;
   FormFieldController<String>? dropDownSexoValueController;
-  // State field(s) for dataNascimento widget.
-  FocusNode? dataNascimentoFocusNode;
-  TextEditingController? dataNascimentoTextController;
+  // State field(s) for dataNascimentoDe widget.
+  FocusNode? dataNascimentoDeFocusNode;
+  TextEditingController? dataNascimentoDeTextController;
   String? Function(BuildContext, String?)?
-      dataNascimentoTextControllerValidator;
-  DateTime? datePicked2;
+      dataNascimentoDeTextControllerValidator;
+  DateTime? datePickedNascDe;
+  // State field(s) for dataNascimentoAte widget.
+  FocusNode? dataNascimentoAteFocusNode;
+  TextEditingController? dataNascimentoAteTextController;
+  String? Function(BuildContext, String?)?
+      dataNascimentoAteTextControllerValidator;
+  DateTime? datePickedNascAte;
   // State field(s) for DropDownRaca widget.
   String? dropDownRacaValue;
   FormFieldController<String>? dropDownRacaValueController;
@@ -53,10 +68,14 @@ class PpFiltroSanidadeModel extends FlutterFlowModel<PpFiltroSanidadeWidget> {
 
   @override
   void dispose() {
-    dataSanidadeFocusNode?.dispose();
-    dataSanidadeTextController?.dispose();
+    dataSanidadeDeFocusNode?.dispose();
+    dataSanidadeDeTextController?.dispose();
+    dataSanidadeAteFocusNode?.dispose();
+    dataSanidadeAteTextController?.dispose();
 
-    dataNascimentoFocusNode?.dispose();
-    dataNascimentoTextController?.dispose();
+    dataNascimentoDeFocusNode?.dispose();
+    dataNascimentoDeTextController?.dispose();
+    dataNascimentoAteFocusNode?.dispose();
+    dataNascimentoAteTextController?.dispose();
   }
 }

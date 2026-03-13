@@ -29,6 +29,7 @@ export 'tables/teste.dart';
 export 'tables/anuncios.dart';
 export 'tables/users.dart';
 export 'tables/piquete.dart';
+export 'tables/forrageiras.dart';
 export 'tables/users_propriedades.dart';
 export 'tables/sanidade_change_tracker.dart';
 export 'tables/historico_pesagens.dart';

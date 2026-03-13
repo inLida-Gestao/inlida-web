@@ -5,7 +5,6 @@ import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
 import '/flutter_flow/flutter_flow_data_table.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/pg_rebanho/cc_add_animal/cc_add_animal_widget.dart';
 import '/pg_rebanho/cc_add_nascimento/cc_add_nascimento_widget.dart';
 import '/pg_rebanho/cc_add_semen/cc_add_semen_widget.dart';
@@ -66,7 +65,7 @@ class PgRebanhoModel extends FlutterFlowModel<PgRebanhoWidget> {
   ApiCallResponse? qtdAnimais2;
   // Stores action output result for [Backend Call - API (Count Rebanho Filtros)] action in pgRebanho widget.
   ApiCallResponse? countRebanhos;
-  InstantTimer? instantTimer;
+  VoidCallback? disposeRefreshListener;
   // Stores action output result for [Backend Call - API (Buscar Rebanho Filtros)] action in pgRebanho widget.
   ApiCallResponse? buscaRebanhos;
   // Model for header component.
@@ -101,7 +100,7 @@ class PgRebanhoModel extends FlutterFlowModel<PgRebanhoWidget> {
 
   @override
   void dispose() {
-    instantTimer?.cancel();
+    disposeRefreshListener?.call();
     headerModel.dispose();
     sideBarModel.dispose();
     textFieldFocusNode?.dispose();

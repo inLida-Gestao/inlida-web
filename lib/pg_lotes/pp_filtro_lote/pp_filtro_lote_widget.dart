@@ -31,7 +31,29 @@ class _PpFiltroLoteWidgetState extends State<PpFiltroLoteWidget> {
     super.initState();
     _model = createModel(context, () => PpFiltroLoteModel());
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+    _model.dataCriacaoDeTextController ??= TextEditingController();
+    _model.dataCriacaoDeFocusNode ??= FocusNode();
+    _model.dataCriacaoAteTextController ??= TextEditingController();
+    _model.dataCriacaoAteFocusNode ??= FocusNode();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {
+          _model.dataCriacaoDeTextController?.text = valueOrDefault<String>(
+            dateTimeFormat(
+              "d/M/y",
+              FFAppState().filtroDataCriacaoLoteDe,
+              locale: FFLocalizations.of(context).languageCode,
+            ),
+            'dd/mm/aaaa',
+          );
+          _model.dataCriacaoAteTextController?.text = valueOrDefault<String>(
+            dateTimeFormat(
+              "d/M/y",
+              FFAppState().filtroDataCriacaoLoteAte,
+              locale: FFLocalizations.of(context).languageCode,
+            ),
+            'dd/mm/aaaa',
+          );
+        }));
   }
 
   @override
@@ -171,6 +193,597 @@ class _PpFiltroLoteWidgetState extends State<PpFiltroLoteWidget> {
                   ),
                 ].divide(const SizedBox(width: 24.0)),
               ),
+              Column(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Data de criação',
+                    style:
+                        FlutterFlowTheme.of(context).bodyMedium.override(
+                              font: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .fontStyle,
+                              ),
+                              fontSize: 16.0,
+                              letterSpacing: 0.0,
+                              fontWeight: FontWeight.w600,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'De',
+                              style: FlutterFlowTheme.of(context)
+                                  .bodySmall
+                                  .override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w500,
+                                      fontStyle:
+                                          FlutterFlowTheme.of(
+                                                  context)
+                                              .bodySmall
+                                              .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w500,
+                                    fontStyle:
+                                        FlutterFlowTheme.of(
+                                                context)
+                                            .bodySmall
+                                            .fontStyle,
+                                  ),
+                            ),
+                            Stack(
+                              children: [
+                                TextFormField(
+                                  controller: _model
+                                      .dataCriacaoDeTextController,
+                                  focusNode: _model
+                                      .dataCriacaoDeFocusNode,
+                                  autofocus: false,
+                                  readOnly: true,
+                                  obscureText: false,
+                                  decoration: InputDecoration(
+                                    isDense: false,
+                                    hintText: 'dd/mm/aaaa',
+                                    hintStyle:
+                                        FlutterFlowTheme.of(
+                                                context)
+                                            .labelMedium
+                                            .override(
+                                              font: GoogleFonts
+                                                  .poppins(
+                                                fontWeight:
+                                                    FontWeight.w600,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(
+                                                            context)
+                                                        .labelMedium
+                                                        .fontStyle,
+                                              ),
+                                              color: const Color(
+                                                  0xFFBEBEBE),
+                                              fontSize: 16.0,
+                                              letterSpacing: 0.0,
+                                              fontWeight:
+                                                  FontWeight.w600,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(
+                                                          context)
+                                                      .labelMedium
+                                                      .fontStyle,
+                                            ),
+                                    enabledBorder:
+                                        OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Color(0x00000000),
+                                        width: 1.0,
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                              8.0),
+                                    ),
+                                    focusedBorder:
+                                        OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Color(0x00000000),
+                                        width: 1.0,
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                              8.0),
+                                    ),
+                                    errorBorder:
+                                        OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            FlutterFlowTheme.of(
+                                                    context)
+                                                .error,
+                                        width: 1.0,
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                              8.0),
+                                    ),
+                                    focusedErrorBorder:
+                                        OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            FlutterFlowTheme.of(
+                                                    context)
+                                                .error,
+                                        width: 1.0,
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                              8.0),
+                                    ),
+                                    filled: true,
+                                    fillColor:
+                                        FlutterFlowTheme.of(
+                                                context)
+                                            .customColor2,
+                                    suffixIcon: Icon(
+                                      Icons.calendar_today,
+                                      color:
+                                          FlutterFlowTheme.of(
+                                                  context)
+                                              .secondaryText,
+                                    ),
+                                  ),
+                                  style: FlutterFlowTheme.of(
+                                          context)
+                                      .bodyMedium
+                                      .override(
+                                        font: GoogleFonts.poppins(
+                                          fontWeight:
+                                              FontWeight.w600,
+                                          fontStyle:
+                                              FlutterFlowTheme.of(
+                                                      context)
+                                                  .bodyMedium
+                                                  .fontStyle,
+                                        ),
+                                        fontSize: 16.0,
+                                        letterSpacing: 0.0,
+                                        fontWeight:
+                                            FontWeight.w600,
+                                        fontStyle:
+                                            FlutterFlowTheme.of(
+                                                    context)
+                                                .bodyMedium
+                                                .fontStyle,
+                                      ),
+                                  cursorColor:
+                                      FlutterFlowTheme.of(context)
+                                          .primaryText,
+                                  validator: _model
+                                      .dataCriacaoDeTextControllerValidator
+                                      .asValidator(context),
+                                ),
+                                InkWell(
+                                  splashColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  highlightColor:
+                                      Colors.transparent,
+                                  onTap: () async {
+                                    final datePickedDeDate =
+                                        await showDatePicker(
+                                      context: context,
+                                      initialDate:
+                                          getCurrentTimestamp,
+                                      firstDate: DateTime(1900),
+                                      lastDate: DateTime(2050),
+                                      builder: (context, child) {
+                                        return Theme(
+                                          data:
+                                              ThemeData.light(
+                                            useMaterial3: false,
+                                          ),
+                                          child:
+                                              wrapInMaterialDatePickerTheme(
+                                            context,
+                                            child!,
+                                            headerBackgroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .primary,
+                                            headerForegroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .info,
+                                            headerTextStyle:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .headlineLarge
+                                                    .override(
+                                                      font: GoogleFonts
+                                                          .poppins(
+                                                        fontWeight:
+                                                            FontWeight
+                                                                .w600,
+                                                        fontStyle: FlutterFlowTheme.of(
+                                                                context)
+                                                            .headlineLarge
+                                                            .fontStyle,
+                                                      ),
+                                                      fontSize:
+                                                          32.0,
+                                                      letterSpacing:
+                                                          0.0,
+                                                      fontWeight:
+                                                          FontWeight
+                                                              .w600,
+                                                      fontStyle: FlutterFlowTheme.of(
+                                                              context)
+                                                          .headlineLarge
+                                                          .fontStyle,
+                                                    ),
+                                            pickerBackgroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .secondaryBackground,
+                                            pickerForegroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .primaryText,
+                                            selectedDateTimeBackgroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .primary,
+                                            selectedDateTimeForegroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .info,
+                                            actionButtonForegroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .primaryText,
+                                            iconSize: 24.0,
+                                          ),
+                                        );
+                                      },
+                                    );
+
+                                    if (datePickedDeDate != null) {
+                                      safeSetState(() {
+                                        _model.datePickedDe =
+                                            DateTime(
+                                          datePickedDeDate.year,
+                                          datePickedDeDate.month,
+                                          datePickedDeDate.day,
+                                        );
+                                      });
+                                    }
+                                    safeSetState(() {
+                                      _model.dataCriacaoDeTextController
+                                              ?.text =
+                                          dateTimeFormat(
+                                        "d/M/y",
+                                        _model.datePickedDe,
+                                        locale:
+                                            FFLocalizations.of(
+                                                    context)
+                                                .languageCode,
+                                      );
+                                    });
+                                    FFAppState()
+                                            .filtroDataCriacaoLoteDe =
+                                        _model.datePickedDe;
+                                    safeSetState(() {});
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 56.0,
+                                    decoration:
+                                        const BoxDecoration(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ].divide(const SizedBox(height: 4.0)),
+                        ),
+                      ),
+                      const SizedBox(width: 12.0),
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Até',
+                              style: FlutterFlowTheme.of(context)
+                                  .bodySmall
+                                  .override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w500,
+                                      fontStyle:
+                                          FlutterFlowTheme.of(
+                                                  context)
+                                              .bodySmall
+                                              .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w500,
+                                    fontStyle:
+                                        FlutterFlowTheme.of(
+                                                context)
+                                            .bodySmall
+                                            .fontStyle,
+                                  ),
+                            ),
+                            Stack(
+                              children: [
+                                TextFormField(
+                                  controller: _model
+                                      .dataCriacaoAteTextController,
+                                  focusNode: _model
+                                      .dataCriacaoAteFocusNode,
+                                  autofocus: false,
+                                  readOnly: true,
+                                  obscureText: false,
+                                  decoration: InputDecoration(
+                                    isDense: false,
+                                    hintText: 'dd/mm/aaaa',
+                                    hintStyle:
+                                        FlutterFlowTheme.of(
+                                                context)
+                                            .labelMedium
+                                            .override(
+                                              font: GoogleFonts
+                                                  .poppins(
+                                                fontWeight:
+                                                    FontWeight.w600,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(
+                                                            context)
+                                                        .labelMedium
+                                                        .fontStyle,
+                                              ),
+                                              color: const Color(
+                                                  0xFFBEBEBE),
+                                              fontSize: 16.0,
+                                              letterSpacing: 0.0,
+                                              fontWeight:
+                                                  FontWeight.w600,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(
+                                                          context)
+                                                      .labelMedium
+                                                      .fontStyle,
+                                            ),
+                                    enabledBorder:
+                                        OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Color(0x00000000),
+                                        width: 1.0,
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                              8.0),
+                                    ),
+                                    focusedBorder:
+                                        OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Color(0x00000000),
+                                        width: 1.0,
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                              8.0),
+                                    ),
+                                    errorBorder:
+                                        OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            FlutterFlowTheme.of(
+                                                    context)
+                                                .error,
+                                        width: 1.0,
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                              8.0),
+                                    ),
+                                    focusedErrorBorder:
+                                        OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            FlutterFlowTheme.of(
+                                                    context)
+                                                .error,
+                                        width: 1.0,
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                              8.0),
+                                    ),
+                                    filled: true,
+                                    fillColor:
+                                        FlutterFlowTheme.of(
+                                                context)
+                                            .customColor2,
+                                    suffixIcon: Icon(
+                                      Icons.calendar_today,
+                                      color:
+                                          FlutterFlowTheme.of(
+                                                  context)
+                                              .secondaryText,
+                                    ),
+                                  ),
+                                  style: FlutterFlowTheme.of(
+                                          context)
+                                      .bodyMedium
+                                      .override(
+                                        font: GoogleFonts.poppins(
+                                          fontWeight:
+                                              FontWeight.w600,
+                                          fontStyle:
+                                              FlutterFlowTheme.of(
+                                                      context)
+                                                  .bodyMedium
+                                                  .fontStyle,
+                                        ),
+                                        fontSize: 16.0,
+                                        letterSpacing: 0.0,
+                                        fontWeight:
+                                            FontWeight.w600,
+                                        fontStyle:
+                                            FlutterFlowTheme.of(
+                                                    context)
+                                                .bodyMedium
+                                                .fontStyle,
+                                      ),
+                                  cursorColor:
+                                      FlutterFlowTheme.of(context)
+                                          .primaryText,
+                                  validator: _model
+                                      .dataCriacaoAteTextControllerValidator
+                                      .asValidator(context),
+                                ),
+                                InkWell(
+                                  splashColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  highlightColor:
+                                      Colors.transparent,
+                                  onTap: () async {
+                                    final datePickedAteDate =
+                                        await showDatePicker(
+                                      context: context,
+                                      initialDate:
+                                          getCurrentTimestamp,
+                                      firstDate: DateTime(1900),
+                                      lastDate: DateTime(2050),
+                                      builder: (context, child) {
+                                        return Theme(
+                                          data:
+                                              ThemeData.light(
+                                            useMaterial3: false,
+                                          ),
+                                          child:
+                                              wrapInMaterialDatePickerTheme(
+                                            context,
+                                            child!,
+                                            headerBackgroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .primary,
+                                            headerForegroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .info,
+                                            headerTextStyle:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .headlineLarge
+                                                    .override(
+                                                      font: GoogleFonts
+                                                          .poppins(
+                                                        fontWeight:
+                                                            FontWeight
+                                                                .w600,
+                                                        fontStyle: FlutterFlowTheme.of(
+                                                                context)
+                                                            .headlineLarge
+                                                            .fontStyle,
+                                                      ),
+                                                      fontSize:
+                                                          32.0,
+                                                      letterSpacing:
+                                                          0.0,
+                                                      fontWeight:
+                                                          FontWeight
+                                                              .w600,
+                                                      fontStyle: FlutterFlowTheme.of(
+                                                              context)
+                                                          .headlineLarge
+                                                          .fontStyle,
+                                                    ),
+                                            pickerBackgroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .secondaryBackground,
+                                            pickerForegroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .primaryText,
+                                            selectedDateTimeBackgroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .primary,
+                                            selectedDateTimeForegroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .info,
+                                            actionButtonForegroundColor:
+                                                FlutterFlowTheme.of(
+                                                        context)
+                                                    .primaryText,
+                                            iconSize: 24.0,
+                                          ),
+                                        );
+                                      },
+                                    );
+
+                                    if (datePickedAteDate != null) {
+                                      safeSetState(() {
+                                        _model.datePickedAte =
+                                            DateTime(
+                                          datePickedAteDate.year,
+                                          datePickedAteDate.month,
+                                          datePickedAteDate.day,
+                                        );
+                                      });
+                                    }
+                                    safeSetState(() {
+                                      _model.dataCriacaoAteTextController
+                                              ?.text =
+                                          dateTimeFormat(
+                                        "d/M/y",
+                                        _model.datePickedAte,
+                                        locale:
+                                            FFLocalizations.of(
+                                                    context)
+                                                .languageCode,
+                                      );
+                                    });
+                                    FFAppState()
+                                            .filtroDataCriacaoLoteAte =
+                                        _model.datePickedAte;
+                                    safeSetState(() {});
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 56.0,
+                                    decoration:
+                                        const BoxDecoration(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ].divide(const SizedBox(height: 4.0)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ].divide(const SizedBox(height: 8.0)),
+              ),
               Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -178,11 +791,35 @@ class _PpFiltroLoteWidgetState extends State<PpFiltroLoteWidget> {
                   FFButtonWidget(
                     onPressed: () async {
                       FFAppState().filtroStatusLote = '';
+                      FFAppState().filtroDataCriacaoLoteDe = null;
+                      FFAppState().filtroDataCriacaoLoteAte = null;
                       FFAppState().refreshLotes = true;
                       safeSetState(() {});
                       safeSetState(() {
                         _model.dDStatusLoteValueController?.reset();
                         _model.dDStatusLoteValue = null;
+                      });
+                      safeSetState(() {
+                        _model.dataCriacaoDeTextController?.text =
+                            valueOrDefault<String>(
+                          dateTimeFormat(
+                            "d/M/y",
+                            FFAppState().filtroDataCriacaoLoteDe,
+                            locale:
+                                FFLocalizations.of(context).languageCode,
+                          ),
+                          'dd/mm/aaaa',
+                        );
+                        _model.dataCriacaoAteTextController?.text =
+                            valueOrDefault<String>(
+                          dateTimeFormat(
+                            "d/M/y",
+                            FFAppState().filtroDataCriacaoLoteAte,
+                            locale:
+                                FFLocalizations.of(context).languageCode,
+                          ),
+                          'dd/mm/aaaa',
+                        );
                       });
                       Navigator.pop(context);
                     },

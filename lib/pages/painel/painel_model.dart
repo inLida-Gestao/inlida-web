@@ -5,7 +5,6 @@ import '/components/empty_widget.dart';
 import '/components/loading_widget.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/form_field_controller.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/index.dart';
 import 'dart:async';
 import 'painel_widget.dart' show PainelWidget;
@@ -21,7 +20,7 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   // Stores action output result for [Backend Call - API (Validar acesso user)] action in Painel widget.
   ApiCallResponse? acessoUser;
   Completer<ApiCallResponse>? apiRequestCompleter2;
-  InstantTimer? instantTimer;
+  VoidCallback? disposeRefreshListener;
   Completer<ApiCallResponse>? apiRequestCompleter1;
   // Model for header component.
   late HeaderModel headerModel;
@@ -104,7 +103,7 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
 
   @override
   void dispose() {
-    instantTimer?.cancel();
+    disposeRefreshListener?.call();
     headerModel.dispose();
     sideBarModel.dispose();
     tabBarController?.dispose();

@@ -18,3 +18,4 @@ export 'reproducao_d_t_struct.dart';
 export 'sanidade_struct.dart';
 export 'totalitens_struct.dart';
 export 'users_d_t_struct.dart';
+export 'piquete_d_t_struct.dart';

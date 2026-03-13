@@ -3071,10 +3071,13 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                               future: FunctionsSupabaseRebanhoGroup.countRebanhoFiltrosCall.call(
                                                                                 pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
                                                                                 pCategoria: FFAppState().filtroCategoria,
-                                                                                pDataNascimento: dateTimeFormat(
+                                                                                pDataNascimentoDe: dateTimeFormat(
                                                                                   "yyyy-MM-dd",
-                                                                                  FFAppState().filtroDataNacimento,
-                                                                                  locale: FFLocalizations.of(context).languageCode,
+                                                                                  FFAppState().filtroDataNacimentoDe,
+                                                                                ),
+                                                                                pDataNascimentoAte: dateTimeFormat(
+                                                                                  "yyyy-MM-dd",
+                                                                                  FFAppState().filtroDataNacimentoAte,
                                                                                 ),
                                                                                 pLoteID: FFAppState().filtroLoteId,
                                                                                 pOrigem: FFAppState().filtroOrigem,
@@ -3095,6 +3098,25 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                           FlutterFlowTheme.of(context).primary,
                                                                                         ),
                                                                                       ),
+                                                                                    ),
+                                                                                  );
+                                                                                }
+                                                                                if (snapshot.hasError) {
+                                                                                  return Center(
+                                                                                    child: Column(
+                                                                                      mainAxisSize: MainAxisSize.min,
+                                                                                      children: [
+                                                                                        Icon(
+                                                                                          Icons.error_outline_rounded,
+                                                                                          color: FlutterFlowTheme.of(context).error,
+                                                                                          size: 36.0,
+                                                                                        ),
+                                                                                        const SizedBox(height: 8.0),
+                                                                                        Text(
+                                                                                          'Erro ao carregar',
+                                                                                          style: FlutterFlowTheme.of(context).bodySmall,
+                                                                                        ),
+                                                                                      ],
                                                                                     ),
                                                                                   );
                                                                                 }

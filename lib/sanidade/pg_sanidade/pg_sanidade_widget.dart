@@ -9,7 +9,6 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/sanidade/pp_filtro_sanidade/pp_filtro_sanidade_widget.dart';
 import '/sanidade/modal_add_sanidade/modal_add_sanidade_widget.dart';
 import '/sanidade/cc_edit_sanidade_animal/cc_edit_sanidade_animal_widget.dart';
@@ -39,8 +38,6 @@ class PgSanidadeWidget extends StatefulWidget {
 class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     with TickerProviderStateMixin {
   late PgSanidadeModel _model;
-
-  bool _sanidadeRefreshScheduled = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -101,20 +98,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
 
       safeSetState(() {});
 
-      _model.instantTimer = InstantTimer.periodic(
-        duration: const Duration(milliseconds: 250),
-        callback: (timer) async {
-          if (FFAppState().refreshSanidade == true ||
-              FFAppState().refreshReproducao == true) {
-            safeSetState(() => _model.apiRequestCompleter2 = null);
-            safeSetState(() => _model.apiRequestCompleter1 = null);
-            FFAppState().refreshSanidade = false;
-            FFAppState().refreshReproducao = false;
-            safeSetState(() {});
-          }
-        },
-        startImmediately: true,
-      );
+      _model.disposeRefreshListener = FFAppState().onRefresh('refreshSanidade', () {
+        FFAppState().refreshSanidade = false;
+        safeSetState(() {
+          _model.apiRequestCompleter2 = null;
+          _model.apiRequestCompleter1 = null;
+        });
+      });
+      _model.disposeRefreshListener2 = FFAppState().onRefresh('refreshReproducao', () {
+        FFAppState().refreshReproducao = false;
+        safeSetState(() {
+          _model.apiRequestCompleter2 = null;
+          _model.apiRequestCompleter1 = null;
+        });
+      });
     });
 
     _model.textController ??= TextEditingController();
@@ -603,23 +600,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
-    if (FFAppState().refreshSanidade && !_sanidadeRefreshScheduled) {
-      _sanidadeRefreshScheduled = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        if (!FFAppState().refreshSanidade) {
-          _sanidadeRefreshScheduled = false;
-          return;
-        }
-        FFAppState().refreshSanidade = false;
-        safeSetState(() {
-          _model.apiRequestCompleter2 = null;
-          _model.apiRequestCompleter1 = null;
-        });
-        _sanidadeRefreshScheduled = false;
-      });
-    }
-
     final bool isCompact = MediaQuery.sizeOf(context).width < 1200.0;
     final double pagePadH = isCompact ? 16.0 : 32.0;
     final double pagePadV = isCompact ? 24.0 : 34.0;
@@ -643,17 +623,27 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                 FunctionsSupabaseRebanhoGroup.buscarSanidadeFiltrosCall.call(
               pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
               pPesquisa: _model.textController.text,
-              pDataSanidade: dateTimeFormat(
+              pDataSanidadeDe: dateTimeFormat(
                 "yyyy-MM-dd",
-                FFAppState().filtroDataSanidade,
+                FFAppState().filtroDataSanidadeDe,
+                locale: FFLocalizations.of(context).languageCode,
+              ),
+              pDataSanidadeAte: dateTimeFormat(
+                "yyyy-MM-dd",
+                FFAppState().filtroDataSanidadeAte,
                 locale: FFLocalizations.of(context).languageCode,
               ),
               pLoteId: FFAppState().filtroLoteSanidade,
               pRebanhoId: FFAppState().filtroAnimalSanidade,
               pSexo: FFAppState().filtroSexoSanidade,
-              pDataNascimento: dateTimeFormat(
+              pDataNascimentoDe: dateTimeFormat(
                 "yyyy-MM-dd",
-                FFAppState().filtroNascimentoSanidade,
+                FFAppState().filtroNascimentoSanidadeDe,
+                locale: FFLocalizations.of(context).languageCode,
+              ),
+              pDataNascimentoAte: dateTimeFormat(
+                "yyyy-MM-dd",
+                FFAppState().filtroNascimentoSanidadeAte,
                 locale: FFLocalizations.of(context).languageCode,
               ),
               pRaca: FFAppState().filtroRacaSanidade,
@@ -680,6 +670,39 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                     FlutterFlowTheme.of(context).primary,
                   ),
                 ),
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: FlutterFlowTheme.of(context).error,
+                    size: 48.0,
+                  ),
+                  const SizedBox(height: 16.0),
+                  Text(
+                    'Erro ao carregar dados',
+                    style: FlutterFlowTheme.of(context).titleMedium,
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Verifique sua conexão e tente novamente.',
+                    style: FlutterFlowTheme.of(context).bodySmall,
+                  ),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton.icon(
+                    onPressed: () => safeSetState(() => _model.apiRequestCompleter2 = null),
+                    icon: const Icon(Icons.refresh_rounded, size: 18.0),
+                    label: const Text('Tentar novamente'),
+                  ),
+                ],
               ),
             ),
           );
@@ -2466,11 +2489,19 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       pPesquisa: _model
                                                                           .textController
                                                                           .text,
-                                                                      pDataSanidade:
+                                                                      pDataSanidadeDe:
                                                                           dateTimeFormat(
                                                                         "yyyy-MM-dd",
                                                                         FFAppState()
-                                                                            .filtroDataSanidade,
+                                                                            .filtroDataSanidadeDe,
+                                                                        locale:
+                                                                            FFLocalizations.of(context).languageCode,
+                                                                      ),
+                                                                      pDataSanidadeAte:
+                                                                          dateTimeFormat(
+                                                                        "yyyy-MM-dd",
+                                                                        FFAppState()
+                                                                            .filtroDataSanidadeAte,
                                                                         locale:
                                                                             FFLocalizations.of(context).languageCode,
                                                                       ),
@@ -2482,11 +2513,19 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                               .filtroAnimalSanidade,
                                                                       pSexo: FFAppState()
                                                                           .filtroSexoSanidade,
-                                                                      pDataNascimento:
+                                                                      pDataNascimentoDe:
                                                                           dateTimeFormat(
                                                                         "yyyy-MM-dd",
                                                                         FFAppState()
-                                                                            .filtroNascimentoSanidade,
+                                                                            .filtroNascimentoSanidadeDe,
+                                                                        locale:
+                                                                            FFLocalizations.of(context).languageCode,
+                                                                      ),
+                                                                      pDataNascimentoAte:
+                                                                          dateTimeFormat(
+                                                                        "yyyy-MM-dd",
+                                                                        FFAppState()
+                                                                            .filtroNascimentoSanidadeAte,
                                                                         locale:
                                                                             FFLocalizations.of(context).languageCode,
                                                                       ),
@@ -3392,11 +3431,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 pPesquisa: _model
                                                                     .textController
                                                                     .text,
-                                                                pDataSanidade:
+                                                                pDataSanidadeDe:
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroDataSanidade,
+                                                                      .filtroDataSanidadeDe,
+                                                                  locale: FFLocalizations.of(
+                                                                          context)
+                                                                      .languageCode,
+                                                                ),
+                                                                pDataSanidadeAte:
+                                                                    dateTimeFormat(
+                                                                  "yyyy-MM-dd",
+                                                                  FFAppState()
+                                                                      .filtroDataSanidadeAte,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
@@ -3409,11 +3457,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         .filtroAnimalSanidade,
                                                                 pSexo: FFAppState()
                                                                     .filtroSexoSanidade,
-                                                                pDataNascimento:
+                                                                pDataNascimentoDe:
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroNascimentoSanidade,
+                                                                      .filtroNascimentoSanidadeDe,
+                                                                  locale: FFLocalizations.of(
+                                                                          context)
+                                                                      .languageCode,
+                                                                ),
+                                                                pDataNascimentoAte:
+                                                                    dateTimeFormat(
+                                                                  "yyyy-MM-dd",
+                                                                  FFAppState()
+                                                                      .filtroNascimentoSanidadeAte,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
@@ -4319,11 +4376,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 pPesquisa: _model
                                                                     .textController
                                                                     .text,
-                                                                pDataSanidade:
+                                                                pDataSanidadeDe:
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroDataSanidade,
+                                                                      .filtroDataSanidadeDe,
+                                                                  locale: FFLocalizations.of(
+                                                                          context)
+                                                                      .languageCode,
+                                                                ),
+                                                                pDataSanidadeAte:
+                                                                    dateTimeFormat(
+                                                                  "yyyy-MM-dd",
+                                                                  FFAppState()
+                                                                      .filtroDataSanidadeAte,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
@@ -4336,11 +4402,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         .filtroAnimalSanidade,
                                                                 pSexo: FFAppState()
                                                                     .filtroSexoSanidade,
-                                                                pDataNascimento:
+                                                                pDataNascimentoDe:
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroNascimentoSanidade,
+                                                                      .filtroNascimentoSanidadeDe,
+                                                                  locale: FFLocalizations.of(
+                                                                          context)
+                                                                      .languageCode,
+                                                                ),
+                                                                pDataNascimentoAte:
+                                                                    dateTimeFormat(
+                                                                  "yyyy-MM-dd",
+                                                                  FFAppState()
+                                                                      .filtroNascimentoSanidadeAte,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
@@ -5246,11 +5321,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 pPesquisa: _model
                                                                     .textController
                                                                     .text,
-                                                                pDataSanidade:
+                                                                pDataSanidadeDe:
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroDataSanidade,
+                                                                      .filtroDataSanidadeDe,
+                                                                  locale: FFLocalizations.of(
+                                                                          context)
+                                                                      .languageCode,
+                                                                ),
+                                                                pDataSanidadeAte:
+                                                                    dateTimeFormat(
+                                                                  "yyyy-MM-dd",
+                                                                  FFAppState()
+                                                                      .filtroDataSanidadeAte,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
@@ -5263,11 +5347,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         .filtroAnimalSanidade,
                                                                 pSexo: FFAppState()
                                                                     .filtroSexoSanidade,
-                                                                pDataNascimento:
+                                                                pDataNascimentoDe:
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroNascimentoSanidade,
+                                                                      .filtroNascimentoSanidadeDe,
+                                                                  locale: FFLocalizations.of(
+                                                                          context)
+                                                                      .languageCode,
+                                                                ),
+                                                                pDataNascimentoAte:
+                                                                    dateTimeFormat(
+                                                                  "yyyy-MM-dd",
+                                                                  FFAppState()
+                                                                      .filtroNascimentoSanidadeAte,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
@@ -6317,11 +6410,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 pPesquisa: _model
                                                                     .textController
                                                                     .text,
-                                                                pDataSanidade:
+                                                                pDataSanidadeDe:
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroDataSanidade,
+                                                                      .filtroDataSanidadeDe,
+                                                                  locale: FFLocalizations.of(
+                                                                          context)
+                                                                      .languageCode,
+                                                                ),
+                                                                pDataSanidadeAte:
+                                                                    dateTimeFormat(
+                                                                  "yyyy-MM-dd",
+                                                                  FFAppState()
+                                                                      .filtroDataSanidadeAte,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
@@ -6334,11 +6436,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         .filtroAnimalSanidade,
                                                                 pSexo: FFAppState()
                                                                     .filtroSexoSanidade,
-                                                                pDataNascimento:
+                                                                pDataNascimentoDe:
                                                                     dateTimeFormat(
                                                                   "yyyy-MM-dd",
                                                                   FFAppState()
-                                                                      .filtroNascimentoSanidade,
+                                                                      .filtroNascimentoSanidadeDe,
+                                                                  locale: FFLocalizations.of(
+                                                                          context)
+                                                                      .languageCode,
+                                                                ),
+                                                                pDataNascimentoAte:
+                                                                    dateTimeFormat(
+                                                                  "yyyy-MM-dd",
+                                                                  FFAppState()
+                                                                      .filtroNascimentoSanidadeAte,
                                                                   locale: FFLocalizations.of(
                                                                           context)
                                                                       .languageCode,
