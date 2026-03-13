@@ -118,6 +118,39 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
             ),
           );
         }
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: FlutterFlowTheme.of(context).error,
+                    size: 48.0,
+                  ),
+                  const SizedBox(height: 16.0),
+                  Text(
+                    'Erro ao carregar dados',
+                    style: FlutterFlowTheme.of(context).titleMedium,
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Verifique sua conexão e tente novamente.',
+                    style: FlutterFlowTheme.of(context).bodySmall,
+                  ),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton.icon(
+                    onPressed: () => safeSetState(() => _model.apiRequestCompleter = null),
+                    icon: const Icon(Icons.refresh_rounded, size: 18.0),
+                    label: const Text('Tentar novamente'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
         final pgAddLoteBuscarRebanhoFiltrosResponse = snapshot.data!;
 
         return GestureDetector(

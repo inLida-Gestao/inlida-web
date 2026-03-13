@@ -1,3 +1,4 @@
+import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/form_field_controller.dart';
 import 'pp_filtro_sanidade_widget.dart' show PpFiltroSanidadeWidget;
@@ -5,6 +6,9 @@ import 'package:flutter/material.dart';
 
 class PpFiltroSanidadeModel extends FlutterFlowModel<PpFiltroSanidadeWidget> {
   ///  State fields for stateful widgets in this component.
+
+  // Cached future for lotes query to avoid refetching on every rebuild.
+  Future<List<LotesRow>>? lotesFuture;
 
   // State field(s) for dataSanidade widget.
   FocusNode? dataSanidadeFocusNode;

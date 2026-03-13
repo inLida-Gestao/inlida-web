@@ -10,7 +10,6 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/pg_rebanho/cc_add_animal/cc_add_animal_widget.dart';
 import '/pg_rebanho/cc_add_nascimento/cc_add_nascimento_widget.dart';
 import '/pg_rebanho/cc_add_semen/cc_add_semen_widget.dart';
@@ -127,47 +126,40 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
 
       _model.pageTotal = (_model.countRebanhos?.jsonBody ?? '');
       safeSetState(() {});
-      _model.instantTimer = InstantTimer.periodic(
-        duration: const Duration(milliseconds: 250),
-        callback: (timer) async {
-          if (FFAppState().refreshRebanho == true) {
-            _model.buscaRebanhos = await FunctionsSupabaseRebanhoGroup
-                .buscarRebanhoFiltrosCall
-                .call(
-              pCategoria: FFAppState().filtroCategoria,
-              pDataNascimento: dateTimeFormat(
-                "yyyy-MM-dd",
-                FFAppState().filtroDataNacimento,
-                locale: FFLocalizations.of(context).languageCode,
-              ),
-              pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
-              pLoteNome: FFAppState().filtroLoteNome,
-              pOrigem: FFAppState().filtroOrigem,
-              pRaca: FFAppState().filtroRaca,
-              pSexo: FFAppState().filtroSexo,
-              pStatus: FFAppState().filtroStatusRebanho,
-              pPesquisa: _model.textController.text,
-              pLimite: 10000,
-              pOffset: 0,
-            );
+      _model.disposeRefreshListener = FFAppState().onRefresh('refreshRebanho', () async {
+        FFAppState().refreshRebanho = false;
+        _model.buscaRebanhos = await FunctionsSupabaseRebanhoGroup
+            .buscarRebanhoFiltrosCall
+            .call(
+          pCategoria: FFAppState().filtroCategoria,
+          pDataNascimento: dateTimeFormat(
+            "yyyy-MM-dd",
+            FFAppState().filtroDataNacimento,
+            locale: FFLocalizations.of(context).languageCode,
+          ),
+          pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+          pLoteNome: FFAppState().filtroLoteNome,
+          pOrigem: FFAppState().filtroOrigem,
+          pRaca: FFAppState().filtroRaca,
+          pSexo: FFAppState().filtroSexo,
+          pStatus: FFAppState().filtroStatusRebanho,
+          pPesquisa: _model.textController.text,
+          pLimite: 10000,
+          pOffset: 0,
+        );
 
-            if ((_model.buscaRebanhos?.succeeded ?? true)) {
-              _model.rebanhosPage = ((_model.buscaRebanhos?.jsonBody ?? '')
-                      .toList()
-                      .map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap)
-                      .toList() as Iterable<RebanhoDTStruct?>)
-                  .withoutNulls
+        if ((_model.buscaRebanhos?.succeeded ?? true)) {
+          _model.rebanhosPage = ((_model.buscaRebanhos?.jsonBody ?? '')
                   .toList()
-                  .cast<RebanhoDTStruct>();
-              safeSetState(() {});
-              safeSetState(() {});
-            }
-            FFAppState().refreshRebanho = false;
-            safeSetState(() {});
-          }
-        },
-        startImmediately: true,
-      );
+                  .map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap)
+                  .toList() as Iterable<RebanhoDTStruct?>)
+              .withoutNulls
+              .toList()
+              .cast<RebanhoDTStruct>();
+          safeSetState(() {});
+        }
+        safeSetState(() {});
+      });
     });
 
     _model.textController ??= TextEditingController();
@@ -1761,6 +1753,25 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
                                                             .primary,
                                                       ),
                                                     ),
+                                                  ),
+                                                );
+                                              }
+                                              if (snapshot.hasError) {
+                                                return Center(
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.error_outline_rounded,
+                                                        color: FlutterFlowTheme.of(context).error,
+                                                        size: 36.0,
+                                                      ),
+                                                      const SizedBox(height: 8.0),
+                                                      Text(
+                                                        'Erro ao carregar',
+                                                        style: FlutterFlowTheme.of(context).bodySmall,
+                                                      ),
+                                                    ],
                                                   ),
                                                 );
                                               }

@@ -80,6 +80,25 @@ class _ExcluirPropriedadeWidgetState extends State<ExcluirPropriedadeWidget> {
               ),
             );
           }
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: FlutterFlowTheme.of(context).error,
+                    size: 36.0,
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Erro ao carregar',
+                    style: FlutterFlowTheme.of(context).bodySmall,
+                  ),
+                ],
+              ),
+            );
+          }
           final containerQTDRebanhoPropriedadeResponse = snapshot.data!;
 
           return Container(

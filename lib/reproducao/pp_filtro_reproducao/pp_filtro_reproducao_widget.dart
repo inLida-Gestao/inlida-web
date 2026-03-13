@@ -42,6 +42,9 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
     _model.dataNascimentoTextController2 ??= TextEditingController();
     _model.dataNascimentoFocusNode2 ??= FocusNode();
 
+    _model.dataDiagnosticoTextController ??= TextEditingController();
+    _model.dataDiagnosticoFocusNode ??= FocusNode();
+
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {
           _model.dataNascimentoTextController1?.text = valueOrDefault<String>(
             dateTimeFormat(
@@ -55,6 +58,14 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
             dateTimeFormat(
               "d/M/y",
               FFAppState().filtroDataParto,
+              locale: FFLocalizations.of(context).languageCode,
+            ),
+            'dd/mm/aaaa',
+          );
+          _model.dataDiagnosticoTextController?.text = valueOrDefault<String>(
+            dateTimeFormat(
+              "d/M/y",
+              FFAppState().filtroDataDiagnostico,
               locale: FFLocalizations.of(context).languageCode,
             ),
             'dd/mm/aaaa',
@@ -632,6 +643,251 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                           ].divide(const SizedBox(height: 8.0)),
                         ),
                       ),
+                    ].divide(const SizedBox(width: 24.0)),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Data do diagnóstico',
+                              style: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    fontSize: 16.0,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                            ),
+                            Stack(
+                              children: [
+                                TextFormField(
+                                  controller:
+                                      _model.dataDiagnosticoTextController,
+                                  focusNode: _model.dataDiagnosticoFocusNode,
+                                  autofocus: false,
+                                  readOnly: true,
+                                  obscureText: false,
+                                  decoration: InputDecoration(
+                                    isDense: false,
+                                    labelStyle: FlutterFlowTheme.of(context)
+                                        .labelMedium
+                                        .override(
+                                          font: GoogleFonts.poppins(
+                                            fontWeight:
+                                                FlutterFlowTheme.of(context)
+                                                    .labelMedium
+                                                    .fontWeight,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .labelMedium
+                                                    .fontStyle,
+                                          ),
+                                          fontSize: 16.0,
+                                          letterSpacing: 0.0,
+                                          fontWeight:
+                                              FlutterFlowTheme.of(context)
+                                                  .labelMedium
+                                                  .fontWeight,
+                                          fontStyle:
+                                              FlutterFlowTheme.of(context)
+                                                  .labelMedium
+                                                  .fontStyle,
+                                        ),
+                                    hintText: 'dd/mm/aaaa',
+                                    hintStyle: FlutterFlowTheme.of(context)
+                                        .labelMedium
+                                        .override(
+                                          font: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w600,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .labelMedium
+                                                    .fontStyle,
+                                          ),
+                                          color: const Color(0xFFBEBEBE),
+                                          fontSize: 16.0,
+                                          letterSpacing: 0.0,
+                                          fontWeight: FontWeight.w600,
+                                          fontStyle:
+                                              FlutterFlowTheme.of(context)
+                                                  .labelMedium
+                                                  .fontStyle,
+                                        ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Color(0x00000000),
+                                        width: 1.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                        color: Color(0x00000000),
+                                        width: 1.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            FlutterFlowTheme.of(context).error,
+                                        width: 1.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            FlutterFlowTheme.of(context).error,
+                                        width: 1.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    filled: true,
+                                    fillColor: FlutterFlowTheme.of(context)
+                                        .customColor2,
+                                    suffixIcon: Icon(
+                                      Icons.calendar_today,
+                                      color: FlutterFlowTheme.of(context)
+                                          .secondaryText,
+                                    ),
+                                  ),
+                                  style: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .override(
+                                        font: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontStyle:
+                                              FlutterFlowTheme.of(context)
+                                                  .bodyMedium
+                                                  .fontStyle,
+                                        ),
+                                        fontSize: 16.0,
+                                        letterSpacing: 0.0,
+                                        fontWeight: FontWeight.w600,
+                                        fontStyle: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .fontStyle,
+                                      ),
+                                  cursorColor:
+                                      FlutterFlowTheme.of(context).primaryText,
+                                  validator: _model
+                                      .dataDiagnosticoTextControllerValidator
+                                      .asValidator(context),
+                                ),
+                                InkWell(
+                                  splashColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  onTap: () async {
+                                    final datePicked3Date =
+                                        await showDatePicker(
+                                      context: context,
+                                      initialDate: getCurrentTimestamp,
+                                      firstDate: DateTime(1900),
+                                      lastDate: DateTime(2050),
+                                      builder: (context, child) {
+                                        return wrapInMaterialDatePickerTheme(
+                                          context,
+                                          child!,
+                                          headerBackgroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .primary,
+                                          headerForegroundColor:
+                                              FlutterFlowTheme.of(context).info,
+                                          headerTextStyle: FlutterFlowTheme.of(
+                                                  context)
+                                              .headlineLarge
+                                              .override(
+                                                font: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .headlineLarge
+                                                          .fontStyle,
+                                                ),
+                                                fontSize: 32.0,
+                                                letterSpacing: 0.0,
+                                                fontWeight: FontWeight.w600,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .headlineLarge
+                                                        .fontStyle,
+                                              ),
+                                          pickerBackgroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .secondaryBackground,
+                                          pickerForegroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .primaryText,
+                                          selectedDateTimeBackgroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .primary,
+                                          selectedDateTimeForegroundColor:
+                                              FlutterFlowTheme.of(context).info,
+                                          actionButtonForegroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .primaryText,
+                                          iconSize: 24.0,
+                                        );
+                                      },
+                                    );
+
+                                    if (datePicked3Date != null) {
+                                      safeSetState(() {
+                                        _model.datePicked3 = DateTime(
+                                          datePicked3Date.year,
+                                          datePicked3Date.month,
+                                          datePicked3Date.day,
+                                        );
+                                      });
+                                    } else if (_model.datePicked3 != null) {
+                                      safeSetState(() {
+                                        _model.datePicked3 =
+                                            getCurrentTimestamp;
+                                      });
+                                    }
+                                    safeSetState(() {
+                                      _model.dataDiagnosticoTextController
+                                          ?.text = dateTimeFormat(
+                                        "d/M/y",
+                                        _model.datePicked3,
+                                        locale: FFLocalizations.of(context)
+                                            .languageCode,
+                                      );
+                                    });
+                                    FFAppState().filtroDataDiagnostico =
+                                        _model.datePicked3;
+                                    safeSetState(() {});
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 56.0,
+                                    decoration: const BoxDecoration(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ].divide(const SizedBox(height: 8.0)),
+                        ),
+                      ),
+                      const Expanded(child: SizedBox()),
                     ].divide(const SizedBox(width: 24.0)),
                   ),
                   Row(
@@ -1317,6 +1573,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                         onPressed: () async {
                           FFAppState().filtroDataReproducao = null;
                           FFAppState().filtroDataParto = null;
+                          FFAppState().filtroDataDiagnostico = null;
                           FFAppState().filtroCategoriaRepro = '';
                           FFAppState().filtroLoteNome = '';
                           FFAppState().filtroInseminador = '';
@@ -1352,6 +1609,17 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                               dateTimeFormat(
                                 "d/M/y",
                                 FFAppState().filtroDataParto,
+                                locale:
+                                    FFLocalizations.of(context).languageCode,
+                              ),
+                              'dd/mm/aaaa',
+                            );
+
+                            _model.dataDiagnosticoTextController?.text =
+                                valueOrDefault<String>(
+                              dateTimeFormat(
+                                "d/M/y",
+                                FFAppState().filtroDataDiagnostico,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),

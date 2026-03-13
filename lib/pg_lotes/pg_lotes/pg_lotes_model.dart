@@ -4,7 +4,6 @@ import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
 import '/flutter_flow/flutter_flow_data_table.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/pg_lotes/cc_add_lote/cc_add_lote_widget.dart';
 import '/index.dart';
 import 'dart:async';
@@ -33,7 +32,7 @@ class PgLotesModel extends FlutterFlowModel<PgLotesWidget> {
 
   ///  State fields for stateful widgets in this page.
 
-  InstantTimer? instantTimer;
+  VoidCallback? disposeRefreshListener;
   Completer<ApiCallResponse>? apiRequestCompleter;
   // Model for header component.
   late HeaderModel headerModel;
@@ -58,7 +57,7 @@ class PgLotesModel extends FlutterFlowModel<PgLotesWidget> {
 
   @override
   void dispose() {
-    instantTimer?.cancel();
+    disposeRefreshListener?.call();
     headerModel.dispose();
     sideBarModel.dispose();
     textFieldFocusNode?.dispose();

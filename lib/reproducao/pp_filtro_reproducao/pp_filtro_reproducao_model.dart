@@ -19,6 +19,12 @@ class PpFiltroReproducaoModel
   String? Function(BuildContext, String?)?
       dataNascimentoTextController2Validator;
   DateTime? datePicked2;
+  // State field(s) for dataDiagnostico widget.
+  FocusNode? dataDiagnosticoFocusNode;
+  TextEditingController? dataDiagnosticoTextController;
+  String? Function(BuildContext, String?)?
+      dataDiagnosticoTextControllerValidator;
+  DateTime? datePicked3;
   // State field(s) for DDCatRebanho widget.
   String? dDCatRebanhoValue;
   FormFieldController<String>? dDCatRebanhoValueController;
@@ -39,5 +45,8 @@ class PpFiltroReproducaoModel
 
     dataNascimentoFocusNode2?.dispose();
     dataNascimentoTextController2?.dispose();
+
+    dataDiagnosticoFocusNode?.dispose();
+    dataDiagnosticoTextController?.dispose();
   }
 }

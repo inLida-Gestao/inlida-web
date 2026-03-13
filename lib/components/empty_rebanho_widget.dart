@@ -7,7 +7,9 @@ import 'empty_rebanho_model.dart';
 export 'empty_rebanho_model.dart';
 
 class EmptyRebanhoWidget extends StatefulWidget {
-  const EmptyRebanhoWidget({super.key});
+  const EmptyRebanhoWidget({super.key, this.message});
+
+  final String? message;
 
   @override
   State<EmptyRebanhoWidget> createState() => _EmptyRebanhoWidgetState();
@@ -63,7 +65,7 @@ class _EmptyRebanhoWidgetState extends State<EmptyRebanhoWidget> {
           Opacity(
             opacity: 0.5,
             child: Text(
-              'Nenhuma propriedade selecionada',
+              widget.message ?? 'Nenhuma propriedade selecionada',
               style: FlutterFlowTheme.of(context).bodyMedium.override(
                     font: GoogleFonts.poppins(
                       fontWeight: FontWeight.w500,

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
+import '/backend/supabase/supabase_config.dart';
 import 'api_manager.dart';
 
 export 'api_manager.dart' show ApiCallResponse;
@@ -13,13 +14,10 @@ const _kPrivateApiFunctionName = 'ffPrivateApiCall';
 /// Start Functions Supabase Rebanho Group Code
 
 class FunctionsSupabaseRebanhoGroup {
-  static String getBaseUrl() =>
-      'https://eqrtgsqnxxnfjjzlxpuj.supabase.co/rest/v1/rpc';
+  static String getBaseUrl() => SupabaseConfig.baseRpcUrl;
   static Map<String, String> headers = {
-    'apikey':
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-    'Authorization':
-        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+    'apikey': SupabaseConfig.anonKey,
+    'Authorization': 'Bearer ${SupabaseConfig.anonKey}',
   };
   static QTDRebanhoPropriedadesCall qTDRebanhoPropriedadesCall =
       QTDRebanhoPropriedadesCall();
@@ -70,6 +68,10 @@ class FunctionsSupabaseRebanhoGroup {
   static ValidarAcessoUserCall validarAcessoUserCall = ValidarAcessoUserCall();
   static CountRebanhosComLoteCall countRebanhosComLoteCall =
       CountRebanhosComLoteCall();
+  static BuscarPiquetesFiltrosCall buscarPiquetesFiltrosCall =
+      BuscarPiquetesFiltrosCall();
+  static ContarPiquetesFiltrosCall contarPiquetesFiltrosCall =
+      ContarPiquetesFiltrosCall();
 }
 
 class QTDRebanhoPropriedadesCall {
@@ -367,6 +369,7 @@ class BuscarReproducaoFiltrosCall {
   Future<ApiCallResponse> call({
     String? pDataPrevisaoParto = '',
     String? pDataReproducao = '',
+    String? pDataDiagnostico = '',
     String? pLoteNome = '',
     String? pIdPropriedade = '',
     String? pInseminador = '',
@@ -386,6 +389,7 @@ class BuscarReproducaoFiltrosCall {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_data_reproducao": "${escapeStringForJson(pDataReproducao)}",
   "p_data_previsao_parto": "${escapeStringForJson(pDataPrevisaoParto)}",
+  "p_data_diagnostico": "${escapeStringForJson(pDataDiagnostico)}",
   "p_tipo_reproducao": "${escapeStringForJson(pTipoReproducao)}",
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
   "p_inseminador": "${escapeStringForJson(pInseminador)}",
@@ -424,6 +428,7 @@ class CountReproducaoFiltrosCall {
   Future<ApiCallResponse> call({
     String? pDataPrevisaoParto = '',
     String? pDataReproducao = '',
+    String? pDataDiagnostico = '',
     String? pLoteNome = '',
     String? pIdPropriedade = '',
     String? pInseminador = '',
@@ -439,6 +444,7 @@ class CountReproducaoFiltrosCall {
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_data_reproducao": "${escapeStringForJson(pDataReproducao)}",
   "p_data_previsao_parto": "${escapeStringForJson(pDataPrevisaoParto)}",
+  "p_data_diagnostico": "${escapeStringForJson(pDataDiagnostico)}",
   "p_tipo_reproducao": "${escapeStringForJson(pTipoReproducao)}",
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
   "p_inseminador": "${escapeStringForJson(pInseminador)}",
@@ -2566,6 +2572,92 @@ class ReproducaoDiagnosticosPeriodoCall {
         response,
         r'''$.items[:].porcentagem''',
       ));
+}
+
+class BuscarPiquetesFiltrosCall {
+  Future<ApiCallResponse> call({
+    String? pIdPropriedade = '',
+    String? pPesquisa = '',
+    String? pForrageira = '',
+    double? pAreaMin = 0,
+    double? pAreaMax = 9999,
+    int? pLimite = 20,
+    int? pOffset = 0,
+  }) async {
+    final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
+
+    final ffApiRequestBody = '''
+{
+  "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
+  "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
+  "p_forrageira": "${escapeStringForJson(pForrageira)}",
+  "p_area_min": $pAreaMin,
+  "p_area_max": $pAreaMax,
+  "p_limite": $pLimite,
+  "p_offset": $pOffset
+}''';
+    return ApiManager.instance.makeApiCall(
+      callName: 'Buscar Piquetes Filtros',
+      apiUrl: '$baseUrl/buscar_piquetes_filtros',
+      callType: ApiCallType.POST,
+      headers: {
+        'apikey':
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization':
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+}
+
+class ContarPiquetesFiltrosCall {
+  Future<ApiCallResponse> call({
+    String? pIdPropriedade = '',
+    String? pPesquisa = '',
+    String? pForrageira = '',
+    double? pAreaMin = 0,
+    double? pAreaMax = 9999,
+  }) async {
+    final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
+
+    final ffApiRequestBody = '''
+{
+  "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
+  "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
+  "p_forrageira": "${escapeStringForJson(pForrageira)}",
+  "p_area_min": $pAreaMin,
+  "p_area_max": $pAreaMax
+}''';
+    return ApiManager.instance.makeApiCall(
+      callName: 'Contar Piquetes Filtros',
+      apiUrl: '$baseUrl/contar_piquetes_filtros',
+      callType: ApiCallType.POST,
+      headers: {
+        'apikey':
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization':
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
 }
 
 String? escapeStringForJson(String? input) {

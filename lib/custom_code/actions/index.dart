@@ -13,6 +13,7 @@ export 'batch_insert_supabase_lotes.dart' show batchInsertSupabaseLotes;
 export 'export_rebanho_excel.dart' show exportRebanhoExcel;
 export 'export_reproducao_excel.dart' show exportReproducaoExcel;
 export 'export_sanidade_excel.dart' show exportSanidadeExcel;
+export 'export_pesagem_excel.dart' show exportPesagemExcel;
 export 'parse_csv_to_json_pesagem.dart' show parseCsvToJsonPesagem;
 export 'batch_insert_supabase_pesagem.dart'
     show previewPesagemImport, batchInsertSupabasePesagem;

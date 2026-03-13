@@ -277,6 +277,48 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           ),
         ),
         FFRoute(
+          name: PgPiqueteWidget.routeName,
+          path: PgPiqueteWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => const PgPiqueteWidget(),
+        ),
+        FFRoute(
+          name: PgAddPiqueteWidget.routeName,
+          path: PgAddPiqueteWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => const PgAddPiqueteWidget(),
+        ),
+        FFRoute(
+          name: PgViewPiqueteWidget.routeName,
+          path: PgViewPiqueteWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => PgViewPiqueteWidget(
+            idPiquete: params.getParam(
+              'idPiquete',
+              ParamType.String,
+            ),
+            piqueteNome: params.getParam(
+              'piqueteNome',
+              ParamType.String,
+            ),
+          ),
+        ),
+        FFRoute(
+          name: PgEditPiqueteWidget.routeName,
+          path: PgEditPiqueteWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => PgEditPiqueteWidget(
+            idPiquete: params.getParam(
+              'idPiquete',
+              ParamType.String,
+            ),
+            piqueteNome: params.getParam(
+              'piqueteNome',
+              ParamType.String,
+            ),
+          ),
+        ),
+        FFRoute(
           name: PgSanidadeWidget.routeName,
           path: PgSanidadeWidget.routePath,
           requireAuth: true,

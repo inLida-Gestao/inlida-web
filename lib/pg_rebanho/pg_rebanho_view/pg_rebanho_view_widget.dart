@@ -8,7 +8,6 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/pg_rebanho/modal_more/modal_more_widget.dart';
 import '/pg_rebanho/pp_add_pessagem/pp_add_pessagem_widget.dart';
 import '/reproducao/modal_more_reproducao/modal_more_reproducao_widget.dart';
@@ -52,17 +51,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.instantTimer = InstantTimer.periodic(
-        duration: const Duration(milliseconds: 250),
-        callback: (timer) async {
-          if (FFAppState().refreshPesagem == true) {
-            safeSetState(() => _model.requestCompleter = null);
-            FFAppState().refreshPesagem = false;
-            safeSetState(() {});
-          }
-        },
-        startImmediately: true,
-      );
+      _model.disposeRefreshListener = FFAppState().onRefresh('refreshPesagem', () {
+        FFAppState().refreshPesagem = false;
+        safeSetState(() => _model.requestCompleter = null);
+      });
     });
 
     _model.tabBarController = TabController(

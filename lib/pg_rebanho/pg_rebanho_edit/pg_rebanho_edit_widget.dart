@@ -11,7 +11,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
-import '/flutter_flow/instant_timer.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
@@ -53,16 +52,10 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.instantTimer = InstantTimer.periodic(
-        duration: const Duration(milliseconds: 200),
-        callback: (timer) async {
-          if (FFAppState().refreshAnimalSelecionado == true) {
-            safeSetState(() {});
-            safeSetState(() {});
-          }
-        },
-        startImmediately: true,
-      );
+      _model.disposeRefreshListener = FFAppState().onRefresh('refreshAnimalSelecionado', () {
+        FFAppState().refreshAnimalSelecionado = false;
+        safeSetState(() {});
+      });
     });
 
     _model.tabBarController = TabController(

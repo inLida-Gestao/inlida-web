@@ -68,6 +68,18 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
     _model.dataNascimentoTextController ??= TextEditingController();
     _model.dataNascimentoFocusNode ??= FocusNode();
 
+    _model.lotesFuture ??= LotesTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull(
+            'id_propriedade',
+            FFAppState().propriedadeSelecionada.idPropriedade,
+          )
+          .eqOrNull(
+            'deletado',
+            'NAO',
+          ),
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {
           _model.dataSanidadeTextController?.text = valueOrDefault<String>(
             dateTimeFormat(
@@ -99,17 +111,7 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
     return Align(
       alignment: const AlignmentDirectional(0.0, 0.0),
       child: FutureBuilder<List<LotesRow>>(
-        future: LotesTable().queryRows(
-          queryFn: (q) => q
-              .eqOrNull(
-                'id_propriedade',
-                FFAppState().propriedadeSelecionada.idPropriedade,
-              )
-              .eqOrNull(
-                'deletado',
-                'NAO',
-              ),
-        ),
+        future: _model.lotesFuture,
         builder: (context, snapshot) {
           // Customize what your widget looks like when it's loading.
           if (!snapshot.hasData) {
@@ -460,17 +462,26 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                           .fontStyle,
                                     ),
                               ),
-                              FlutterFlowDropDown<String>(
+                              Builder(builder: (context) {
+                                final loteIds = List<String>.from(
+                                    containerLotesRowList
+                                        .map((e) => e.idLote)
+                                        .withoutNulls
+                                        .toList());
+                                final savedLote =
+                                    FFAppState().filtroLoteSanidade;
+                                final initialValue =
+                                    (savedLote.isNotEmpty &&
+                                            loteIds.contains(savedLote))
+                                        ? savedLote
+                                        : null;
+                                return FlutterFlowDropDown<String>(
                                 controller:
                                     _model.dropDownLoteValueController ??=
                                         FormFieldController<String>(
-                                  _model.dropDownLoteValue ??=
-                                      FFAppState().filtroLoteSanidade,
+                                  _model.dropDownLoteValue ??= initialValue,
                                 ),
-                                options: List<String>.from(containerLotesRowList
-                                    .map((e) => e.idLote)
-                                    .withoutNulls
-                                    .toList()),
+                                options: loteIds,
                                 optionLabels: containerLotesRowList
                                     .map((e) => e.nome)
                                     .withoutNulls
@@ -517,7 +528,8 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                 isOverButton: false,
                                 isSearchable: false,
                                 isMultiSelect: false,
-                              ),
+                              );
+                              }),
                             ].divide(const SizedBox(height: 8.0)),
                           ),
                         ),

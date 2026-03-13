@@ -48,3 +48,10 @@ export '/pg_rebanho/pg_rebanho_add_nascimento/pg_rebanho_add_nascimento_widget.d
     show PgRebanhoAddNascimentoWidget;
 export '/pg_rebanho/pg_rebanho_add_semen/pg_rebanho_add_semen_widget.dart'
     show PgRebanhoAddSemenWidget;
+export '/pg_piquete/pg_piquete/pg_piquete_widget.dart' show PgPiqueteWidget;
+export '/pg_piquete/pg_add_piquete/pg_add_piquete_widget.dart'
+    show PgAddPiqueteWidget;
+export '/pg_piquete/pg_view_piquete/pg_view_piquete_widget.dart'
+    show PgViewPiqueteWidget;
+export '/pg_piquete/pg_edit_piquete/pg_edit_piquete_widget.dart'
+    show PgEditPiqueteWidget;
