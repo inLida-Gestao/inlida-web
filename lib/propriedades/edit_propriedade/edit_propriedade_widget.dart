@@ -541,9 +541,17 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                   'SE',
                                                   'TO'
                                                 ],
-                                                onChanged: (val) =>
-                                                    safeSetState(() => _model
-                                                        .dropDownUFValue = val),
+                                                onChanged: (val) {
+                                                  safeSetState(() {
+                                                    _model.dropDownUFValue = val;
+                                                    _model.dropDownCidadeSupabaseStream =
+                                                        null;
+                                                    _model.dropDownCidadeValueController
+                                                        ?.reset();
+                                                    _model.dropDownCidadeValue =
+                                                        null;
+                                                  });
+                                                },
                                                 width: 206.0,
                                                 height: 56.0,
                                                 textStyle: FlutterFlowTheme.of(
