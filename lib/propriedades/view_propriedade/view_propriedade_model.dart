@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/form_field_controller.dart';
@@ -28,6 +30,7 @@ class ViewPropriedadeModel extends FlutterFlowModel<ViewPropriedadeWidget> {
   String? dropDownUFValue;
   FormFieldController<String>? dropDownUFValueController;
   // State field(s) for DropDownCidade widget.
+  Completer<List<CidadesRow>>? requestCompleter;
   String? dropDownCidadeValue;
   FormFieldController<String>? dropDownCidadeValueController;
   // State field(s) for areaPastagem widget.

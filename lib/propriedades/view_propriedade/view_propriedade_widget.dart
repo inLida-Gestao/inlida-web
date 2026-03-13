@@ -1,4 +1,5 @@
-import '/backend/api_requests/api_calls.dart';
+import 'dart:async';
+
 import '/backend/supabase/supabase.dart';
 import '/components/empty_users_widget.dart';
 import '/components/funcao_user_widget.dart';
@@ -541,9 +542,16 @@ class _ViewPropriedadeWidgetState extends State<ViewPropriedadeWidget>
                                                 'SE',
                                                 'TO'
                                               ],
-                                              onChanged: (val) => safeSetState(
-                                                  () => _model.dropDownUFValue =
-                                                      val),
+                                              onChanged: (val) {
+                                                safeSetState(() {
+                                                  _model.dropDownUFValue = val;
+                                                  _model.requestCompleter = null;
+                                                  _model.dropDownCidadeValueController
+                                                      ?.reset();
+                                                  _model.dropDownCidadeValue =
+                                                      null;
+                                                });
+                                              },
                                               width: 206.0,
                                               height: 56.0,
                                               textStyle:
@@ -629,13 +637,24 @@ class _ViewPropriedadeWidgetState extends State<ViewPropriedadeWidget>
                                                             .fontStyle,
                                                   ),
                                             ),
-                                            FutureBuilder<ApiCallResponse>(
-                                              future: BuscaCidadesCall.call(
-                                                uf: valueOrDefault<String>(
-                                                  _model.dropDownUFValue,
-                                                  'SP',
-                                                ),
-                                              ),
+                                            FutureBuilder<List<CidadesRow>>(
+                                              future: (_model.requestCompleter ??=
+                                                      Completer<
+                                                          List<CidadesRow>>()
+                                                        ..complete(CidadesTable()
+                                                            .queryRows(
+                                                          queryFn: (q) =>
+                                                              q.eqOrNull(
+                                                            'UF',
+                                                            valueOrDefault<
+                                                                String>(
+                                                              _model
+                                                                  .dropDownUFValue,
+                                                              'SP',
+                                                            ),
+                                                          ),
+                                                        )))
+                                                  .future,
                                               builder: (context, snapshot) {
                                                 // Customize what your widget looks like when it's loading.
                                                 if (!snapshot.hasData) {
@@ -656,26 +675,8 @@ class _ViewPropriedadeWidgetState extends State<ViewPropriedadeWidget>
                                                     ),
                                                   );
                                                 }
-                                                if (snapshot.hasError) {
-                                                  return Center(
-                                                    child: Column(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        Icon(
-                                                          Icons.error_outline_rounded,
-                                                          color: FlutterFlowTheme.of(context).error,
-                                                          size: 36.0,
-                                                        ),
-                                                        const SizedBox(height: 8.0),
-                                                        Text(
-                                                          'Erro ao carregar',
-                                                          style: FlutterFlowTheme.of(context).bodySmall,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  );
-                                                }
-                                                final dropDownCidadeBuscaCidadesResponse =
+                                                List<CidadesRow>
+                                                    dropDownCidadeCidadesRowList =
                                                     snapshot.data!;
 
                                                 return FlutterFlowDropDown<
@@ -689,10 +690,10 @@ class _ViewPropriedadeWidgetState extends State<ViewPropriedadeWidget>
                                                             ?.cidade,
                                                   ),
                                                   options:
-                                                      BuscaCidadesCall.cidades(
-                                                    dropDownCidadeBuscaCidadesResponse
-                                                        .jsonBody,
-                                                  )!,
+                                                      dropDownCidadeCidadesRowList
+                                                          .map((e) => e.cidade)
+                                                          .withoutNulls
+                                                          .toList(),
                                                   onChanged: (val) =>
                                                       safeSetState(() => _model
                                                               .dropDownCidadeValue =
