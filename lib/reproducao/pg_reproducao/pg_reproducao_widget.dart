@@ -1156,7 +1156,10 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                     Expanded(
                                       child: Builder(
                                         builder: (context) {
-                                          final reproducao = ((pgReproducaoBuscarReproducaoFiltrosResponse
+                                          final selectedProperty = FFAppState().propriedadeSelecionada.idPropriedade;
+                                          final reproducao = selectedProperty.isEmpty
+                                            ? <ReproducaoDTStruct>[]
+                                            : ((pgReproducaoBuscarReproducaoFiltrosResponse
                                                           .jsonBody
                                                           .toList()
                                                           .map<ReproducaoDTStruct?>(
@@ -1166,7 +1169,9 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                       as Iterable<
                                                           ReproducaoDTStruct?>)
                                                   .withoutNulls
-                                                  .where((e) => e.ressinc != 'SIM')
+                                                  .where((e) =>
+                                                    e.ressinc != 'SIM' &&
+                                                    e.idPropriedade == selectedProperty)
                                                   .toList());
                                           if (reproducao.isEmpty) {
                                             return const Center(

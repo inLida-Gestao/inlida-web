@@ -1010,6 +1010,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                       Expanded(
                                         child: Builder(
                                           builder: (context) {
+                                            final selectedProperty = FFAppState().propriedadeSelecionada.idPropriedade;
                                             final lote =
                                                 (pgLotesBuscarLotesFiltrosResponse
                                                                 .jsonBody
@@ -1022,8 +1023,10 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                                 LotesStruct?>)
                                                         .withoutNulls
                                                   .where((e) =>
-                                                    e.deletado !=
-                                                    'SIM')
+                                                    e.deletado != 'SIM' &&
+                                                    e.hasIdPropriedade() &&
+                                                    e.idPropriedade.isNotEmpty &&
+                                                    e.idPropriedade == selectedProperty)
                                                   .toList();
                                             if (lote.isEmpty) {
                                               return const Center(

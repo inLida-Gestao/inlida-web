@@ -121,7 +121,8 @@ BEGIN
   SELECT v.*
   FROM view_reproducao_detalhada v
   WHERE
-    (p_id_propriedade = '' OR v.id_propriedade = p_id_propriedade)
+    p_id_propriedade <> ''
+    AND v.id_propriedade = p_id_propriedade
     AND (v.deletado IS NULL OR v.deletado <> 'SIM')
     -- Data reproducao (intervalo)
     AND (p_data_reproducao_de = '' OR COALESCE(v.data_inseminacao, v.data_inicial)::date >= p_data_reproducao_de::date)
@@ -185,7 +186,8 @@ BEGIN
   SELECT COUNT(*) INTO total
   FROM view_reproducao_detalhada v
   WHERE
-    (p_id_propriedade = '' OR v.id_propriedade = p_id_propriedade)
+    p_id_propriedade <> ''
+    AND v.id_propriedade = p_id_propriedade
     AND (v.deletado IS NULL OR v.deletado <> 'SIM')
     AND (p_data_reproducao_de = '' OR COALESCE(v.data_inseminacao, v.data_inicial)::date >= p_data_reproducao_de::date)
     AND (p_data_reproducao_ate = '' OR COALESCE(v.data_inseminacao, v.data_inicial)::date <= p_data_reproducao_ate::date)
@@ -563,6 +565,7 @@ AS $function$
     ON rc.nome_lote = l.nome
    AND rc.id_propriedade_ref = l.id_propriedade
   WHERE l.deletado = 'NAO'
+    AND l.id_propriedade IS NOT NULL
     AND l.id_propriedade = p_id_propriedade
     AND (p_pesquisa = '' OR l.nome ILIKE '%' || p_pesquisa || '%')
     AND (p_status = '' OR l.ativo = p_status)
@@ -591,7 +594,8 @@ LANGUAGE sql
 AS $function$
   SELECT COUNT(*)::INTEGER
   FROM public.lotes
-  WHERE id_propriedade = p_id_propriedade
+  WHERE id_propriedade IS NOT NULL
+    AND id_propriedade = p_id_propriedade
     AND (p_pesquisa = '' OR nome ILIKE '%' || p_pesquisa || '%')
     AND (p_status = '' OR ativo = p_status)
     AND (p_data_criacao_de = '' OR created_at::date >= TO_DATE(p_data_criacao_de, 'YYYY-MM-DD'))
