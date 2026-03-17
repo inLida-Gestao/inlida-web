@@ -133,15 +133,14 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
   void initState() {
     super.initState();
     if (isMultiSelect) {
-      _lastMultiValue = multiSelectController.value != null 
-          ? List<T>.from(multiSelectController.value!) 
+      _lastMultiValue = multiSelectController.value != null
+          ? List<T>.from(multiSelectController.value!)
           : null;
       _listener = () {
         final currentValue = multiSelectController.value;
         // Só chama onChanged se o valor realmente mudou
-        final currentList = currentValue != null 
-            ? List<T>.from(currentValue) 
-            : null;
+        final currentList =
+            currentValue != null ? List<T>.from(currentValue) : null;
         if (!_listsEqual(_lastMultiValue, currentList)) {
           _lastMultiValue = currentList;
           widget.onMultiSelectChanged!(currentValue);
@@ -218,7 +217,7 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
 
   Widget _buildLegacyDropdown() {
     return DropdownButtonFormField<T>(
-      value: currentValue,
+      initialValue: currentValue,
       hint: _createHintText(),
       items: _createMenuItems(),
       elevation: widget.elevation.toInt(),

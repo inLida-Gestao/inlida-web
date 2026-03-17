@@ -63,7 +63,7 @@ void main() {
   test('batch insert não corrompe palavras com Â legítimo', () async {
     // Este teste é indireto: garante que o parser preserve "Ângulo" (UTF-8 normal)
     // e que não gere replacement char.
-    final csv = 'anotacoes\nÂngulo\n';
+    const csv = 'anotacoes\nÂngulo\n';
 
     final file = FFUploadedFile(
       name: 'reproducao_utf8.csv',

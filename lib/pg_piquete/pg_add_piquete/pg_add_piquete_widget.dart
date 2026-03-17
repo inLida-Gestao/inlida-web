@@ -82,8 +82,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
         hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
               font: GoogleFonts.poppins(
                 fontWeight: FontWeight.w500,
-                fontStyle:
-                    FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
               ),
               letterSpacing: 0.0,
             ),
@@ -243,24 +242,25 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                                                   _model.nomePiqueteFocusNode,
                                               decoration: _inputDecoration(
                                                   context, 'Nome do piquete'),
-                                              style: FlutterFlowTheme.of(
-                                                      context)
-                                                  .bodyMedium
-                                                  .override(
-                                                    font: GoogleFonts.poppins(
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontStyle,
-                                                    ),
-                                                    letterSpacing: 0.0,
-                                                  ),
+                                              style:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        letterSpacing: 0.0,
+                                                      ),
                                               validator: _model
                                                   .nomePiqueteTextControllerValidator
                                                   .asValidator(context),
@@ -278,54 +278,47 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                                               controller:
                                                   _model.areaTextController,
                                               focusNode: _model.areaFocusNode,
-                                              keyboardType:
-                                                  const TextInputType
-                                                      .numberWithOptions(
-                                                decimal: true),
+                                              keyboardType: const TextInputType
+                                                  .numberWithOptions(
+                                                  decimal: true),
                                               inputFormatters: [
                                                 FilteringTextInputFormatter
-                                                    .allow(RegExp(
-                                                        r'[0-9.,]')),
-                                                TextInputFormatter
-                                                    .withFunction(
-                                                        (oldValue,
-                                                            newValue) {
-                                                  String text = newValue
-                                                      .text
-                                                      .replaceAll(
-                                                          ',', '.');
+                                                    .allow(RegExp(r'[0-9.,]')),
+                                                TextInputFormatter.withFunction(
+                                                    (oldValue, newValue) {
+                                                  String text = newValue.text
+                                                      .replaceAll(',', '.');
                                                   if ('.'
-                                                          .allMatches(
-                                                              text)
+                                                          .allMatches(text)
                                                           .length >
                                                       1) {
                                                     return oldValue;
                                                   }
-                                                  return newValue
-                                                      .copyWith(
-                                                          text: text);
+                                                  return newValue.copyWith(
+                                                      text: text);
                                                 }),
                                               ],
                                               decoration: _inputDecoration(
                                                   context, 'Ex: 5.0'),
-                                              style: FlutterFlowTheme.of(
-                                                      context)
-                                                  .bodyMedium
-                                                  .override(
-                                                    font: GoogleFonts.poppins(
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontStyle,
-                                                    ),
-                                                    letterSpacing: 0.0,
-                                                  ),
+                                              style:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        letterSpacing: 0.0,
+                                                      ),
                                               validator: _model
                                                   .areaTextControllerValidator
                                                   .asValidator(context),
@@ -340,16 +333,16 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                                             Text('Forrageira',
                                                 style: _labelStyle(context)),
                                             FutureBuilder<List<ForrageirasRow>>(
-                                              future: ForrageirasTable()
-                                                  .queryRows(
-                                                queryFn: (q) => q.order(
-                                                    'nome',
+                                              future:
+                                                  ForrageirasTable().queryRows(
+                                                queryFn: (q) => q.order('nome',
                                                     ascending: true),
                                               ),
                                               builder: (context, snapshot) {
-                                                final opts = (snapshot.data ?? [])
-                                                    .map((f) => f.nome)
-                                                    .toList();
+                                                final opts =
+                                                    (snapshot.data ?? [])
+                                                        .map((f) => f.nome)
+                                                        .toList();
                                                 return FlutterFlowDropDown<
                                                     String>(
                                                   multiSelectController: _model
@@ -358,36 +351,36 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                                                           String>(null),
                                                   options: opts,
                                                   onMultiSelectChanged: (val) =>
-                                                      safeSetState(() =>
-                                                          _model.dDForrageiraValue =
-                                                              val),
+                                                      safeSetState(() => _model
+                                                              .dDForrageiraValue =
+                                                          val),
                                                   height: 56.0,
-                                                  textStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .override(
-                                                            font: GoogleFonts
-                                                                .poppins(
-                                                              fontWeight: FlutterFlowTheme.of(
+                                                  textStyle: FlutterFlowTheme
+                                                          .of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
                                                                       context)
                                                                   .bodyMedium
                                                                   .fontWeight,
-                                                              fontStyle: FlutterFlowTheme.of(
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
                                                                       context)
                                                                   .bodyMedium
                                                                   .fontStyle,
-                                                            ),
-                                                            letterSpacing: 0.0,
-                                                          ),
+                                                        ),
+                                                        letterSpacing: 0.0,
+                                                      ),
                                                   hintText: 'Selecionar',
                                                   icon: Icon(
                                                     Icons
                                                         .keyboard_arrow_down_rounded,
-                                                    color:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .secondaryText,
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .secondaryText,
                                                     size: 24.0,
                                                   ),
                                                   fillColor:
@@ -399,8 +392,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                                                   borderRadius: 8.0,
                                                   margin:
                                                       const EdgeInsetsDirectional
-                                                          .fromSTEB(12.0, 0.0,
-                                                              12.0, 0.0),
+                                                          .fromSTEB(
+                                                          12.0, 0.0, 12.0, 0.0),
                                                   hidesUnderline: true,
                                                   isOverButton: false,
                                                   isSearchable: false,
@@ -425,24 +418,25 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                                               maxLines: 4,
                                               decoration: _inputDecoration(
                                                   context, 'Anotações...'),
-                                              style: FlutterFlowTheme.of(
-                                                      context)
-                                                  .bodyMedium
-                                                  .override(
-                                                    font: GoogleFonts.poppins(
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontStyle,
-                                                    ),
-                                                    letterSpacing: 0.0,
-                                                  ),
+                                              style:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        letterSpacing: 0.0,
+                                                      ),
                                               validator: _model
                                                   .anotacoesTextControllerValidator
                                                   .asValidator(context),
@@ -525,8 +519,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                                   children: [
                                     FFButtonWidget(
                                       onPressed: () async {
-                                        if (_model.nomePiqueteTextController.text
-                                            .isEmpty) {
+                                        if (_model.nomePiqueteTextController
+                                            .text.isEmpty) {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
                                             SnackBar(
@@ -590,9 +584,9 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                                             content: Text(
                                               'Piquete adicionado com sucesso!',
                                               style: TextStyle(
-                                                color: FlutterFlowTheme.of(
-                                                        context)
-                                                    .primaryText,
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .primaryText,
                                               ),
                                             ),
                                             duration: const Duration(
@@ -699,7 +693,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                 // Sex icon row
                 Row(
                   children: [
-                    Icon(Icons.pets, size: 20.0, color: const Color(0xFF474747)),
+                    const Icon(Icons.pets,
+                        size: 20.0, color: Color(0xFF474747)),
                     const SizedBox(width: 2.0),
                     Icon(sexoIcon, size: 20.0, color: sexoColor),
                   ],
@@ -777,8 +772,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                 // Lote
                 Row(
                   children: [
-                    Icon(Icons.workspaces_outline,
-                        size: 17.0, color: const Color(0xFF5F5F5F)),
+                    const Icon(Icons.workspaces_outline,
+                        size: 17.0, color: Color(0xFF5F5F5F)),
                     const SizedBox(width: 4.0),
                     Flexible(
                       child: Text(
@@ -990,9 +985,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                         pCategoria: '',
                         pDataNascimentoDe: '',
                         pDataNascimentoAte: '',
-                        pIdPropriedade: FFAppState()
-                            .propriedadeSelecionada
-                            .idPropriedade,
+                        pIdPropriedade:
+                            FFAppState().propriedadeSelecionada.idPropriedade,
                         pLoteNome: '',
                         pOrigem: '',
                         pRaca: '',
@@ -1001,8 +995,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                         pLimite: pageSize,
                         pOffset: functions.calcDeslocamento(
                             _model.pageNumAnimais, pageSize),
-                        pPesquisa:
-                            _model.pesquisaAnimaisTextController.text,
+                        pPesquisa: _model.pesquisaAnimaisTextController.text,
                       )))
                 .future,
             builder: (context, snapshot) {
@@ -1028,10 +1021,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
               final animais = snapshot.hasData
                   ? (snapshot.data!.jsonBody
                           .toList()
-                          .map<RebanhoDTStruct?>(
-                              RebanhoDTStruct.maybeFromMap)
-                          .toList()
-                      as Iterable<RebanhoDTStruct?>)
+                          .map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap)
+                          .toList() as Iterable<RebanhoDTStruct?>)
                       .withoutNulls
                       .where((a) => !_model.animaisSelecionados
                           .any((s) => s.idRebanho == a.idRebanho))
@@ -1041,10 +1032,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
 
               return _buildAnimalPanelCard(
                 context: context,
-                title:
-                    'Animais fora deste piquete ($totalFora)',
-                searchController:
-                    _model.pesquisaAnimaisTextController!,
+                title: 'Animais fora deste piquete ($totalFora)',
+                searchController: _model.pesquisaAnimaisTextController!,
                 searchFocusNode: _model.pesquisaAnimaisFocusNode!,
                 onSearchChanged: () {
                   _model.apiRequestCompleterAnimais = null;
@@ -1061,23 +1050,19 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                           child: Checkbox(
                             value: animais.isNotEmpty &&
                                 animais.every((a) =>
-                                    _model.checkboxAnimaisMap[a] ==
-                                        true),
+                                    _model.checkboxAnimaisMap[a] == true),
                             onChanged: (val) {
                               safeSetState(() {
                                 for (final a in animais) {
-                                  _model.checkboxAnimaisMap[a] =
-                                      val ?? false;
+                                  _model.checkboxAnimaisMap[a] = val ?? false;
                                 }
                               });
                             },
                             activeColor: const Color(0xFF28A365),
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(3.0),
+                              borderRadius: BorderRadius.circular(3.0),
                             ),
-                            side: const BorderSide(
-                                color: Color(0xFFBEBEBE)),
+                            side: const BorderSide(color: Color(0xFFBEBEBE)),
                             materialTapTargetSize:
                                 MaterialTapTargetSize.shrinkWrap,
                             visualDensity: VisualDensity.compact,
@@ -1099,9 +1084,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                         safeSetState(() {
                           final toAdd = _model.animaisChecked;
                           for (final a in toAdd) {
-                            if (!_model.animaisSelecionados.any(
-                                (s) =>
-                                    s.idRebanho == a.idRebanho)) {
+                            if (!_model.animaisSelecionados
+                                .any((s) => s.idRebanho == a.idRebanho)) {
                               _model.animaisSelecionados.add(a);
                             }
                             _model.checkboxAnimaisMap.remove(a);
@@ -1113,8 +1097,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                             horizontal: 16.0, vertical: 8.0),
                         decoration: BoxDecoration(
                           color: const Color(0xFF28A365),
-                          borderRadius:
-                              BorderRadius.circular(6.0),
+                          borderRadius: BorderRadius.circular(6.0),
                         ),
                         child: Text(
                           'Adicionar',
@@ -1133,8 +1116,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: CircularProgressIndicator(
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(
+                            valueColor: AlwaysStoppedAnimation<Color>(
                               FlutterFlowTheme.of(context).primary,
                             ),
                           ),
@@ -1149,13 +1131,12 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                             return _buildAnimalItem(
                               context,
                               animal,
-                              checked: _model.checkboxAnimaisMap[
-                                      animal] ??
-                                  false,
+                              checked:
+                                  _model.checkboxAnimaisMap[animal] ?? false,
                               onChanged: (val) {
                                 safeSetState(() {
-                                  _model.checkboxAnimaisMap[
-                                      animal] = val ?? false;
+                                  _model.checkboxAnimaisMap[animal] =
+                                      val ?? false;
                                 });
                               },
                             );
@@ -1231,8 +1212,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                 onTap: () {
                   safeSetState(() {
                     final toRemove = _model.animaisSelecionados
-                        .where(
-                            (a) => _model.checkboxAnimaisMap[a] == true)
+                        .where((a) => _model.checkboxAnimaisMap[a] == true)
                         .toList();
                     for (final a in toRemove) {
                       _model.animaisSelecionados.remove(a);
@@ -1269,9 +1249,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.pets,
-                              size: 58.0,
-                              color: const Color(0xFFBEBEBE)),
+                          const Icon(Icons.pets,
+                              size: 58.0, color: Color(0xFFBEBEBE)),
                           const SizedBox(height: 16.0),
                           Text(
                             'Nenhum animal foi adicionado neste piquete.',
@@ -1286,8 +1265,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                             TextSpan(
                               children: [
                                 TextSpan(
-                                  text:
-                                      'Selecione um animal e clique no botão',
+                                  text: 'Selecione um animal e clique no botão',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12.0,
                                     fontWeight: FontWeight.w600,
@@ -1295,8 +1273,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                                   ),
                                 ),
                                 TextSpan(
-                                  text:
-                                      ' à esquerda para adicionar.',
+                                  text: ' à esquerda para adicionar.',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12.0,
                                     fontWeight: FontWeight.w600,
@@ -1320,13 +1297,10 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                         return _buildAnimalItem(
                           context,
                           animal,
-                          checked:
-                              _model.checkboxAnimaisMap[animal] ??
-                                  false,
+                          checked: _model.checkboxAnimaisMap[animal] ?? false,
                           onChanged: (val) {
                             safeSetState(() {
-                              _model.checkboxAnimaisMap[animal] =
-                                  val ?? false;
+                              _model.checkboxAnimaisMap[animal] = val ?? false;
                             });
                           },
                         );
@@ -1376,8 +1350,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Lotes icon
-                Icon(Icons.hub_outlined,
-                    size: 24.0, color: const Color(0xFF28A365)),
+                const Icon(Icons.hub_outlined,
+                    size: 24.0, color: Color(0xFF28A365)),
                 const SizedBox(height: 8.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1650,8 +1624,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                           height: 24.0,
                           child: Checkbox(
                             value: lotesDisponiveis.isNotEmpty &&
-                                lotesDisponiveis.every((l) =>
-                                    _model.checkboxLotesMap[l] == true),
+                                lotesDisponiveis.every(
+                                    (l) => _model.checkboxLotesMap[l] == true),
                             onChanged: (val) {
                               safeSetState(() {
                                 for (final l in lotesDisponiveis) {
@@ -1732,12 +1706,10 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                             return _buildLoteItem(
                               context,
                               lote,
-                              checked:
-                                  _model.checkboxLotesMap[lote] ?? false,
+                              checked: _model.checkboxLotesMap[lote] ?? false,
                               onChanged: (val) {
                                 safeSetState(() {
-                                  _model.checkboxLotesMap[lote] =
-                                      val ?? false;
+                                  _model.checkboxLotesMap[lote] = val ?? false;
                                 });
                               },
                             );
@@ -1782,8 +1754,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                 onTap: () {
                   safeSetState(() {
                     final toRemove = _model.lotesSelecionados
-                        .where(
-                            (l) => _model.checkboxLotesMap[l] == true)
+                        .where((l) => _model.checkboxLotesMap[l] == true)
                         .toList();
                     for (final l in toRemove) {
                       _model.lotesSelecionados.remove(l);
@@ -1808,8 +1779,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
         Expanded(
           child: _buildLotePanelCard(
             context: context,
-            title:
-                'Lotes neste piquete (${_model.lotesSelecionados.length})',
+            title: 'Lotes neste piquete (${_model.lotesSelecionados.length})',
             searchController: _model.pesquisaLotesTextController!,
             searchFocusNode: _model.pesquisaLotesFocusNode!,
             onSearchChanged: () => safeSetState(() {}),
@@ -1820,9 +1790,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.hub_outlined,
-                              size: 77.0,
-                              color: const Color(0xFFBEBEBE)),
+                          const Icon(Icons.hub_outlined,
+                              size: 77.0, color: Color(0xFFBEBEBE)),
                           const SizedBox(height: 16.0),
                           Text(
                             'Nenhum lote foi adicionado neste piquete.',
@@ -1837,8 +1806,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                             TextSpan(
                               children: [
                                 TextSpan(
-                                  text:
-                                      'Selecione um lote e clique no botão',
+                                  text: 'Selecione um lote e clique no botão',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12.0,
                                     fontWeight: FontWeight.w600,
@@ -1846,8 +1814,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                                   ),
                                 ),
                                 TextSpan(
-                                  text:
-                                      ' à esquerda para adicionar.',
+                                  text: ' à esquerda para adicionar.',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12.0,
                                     fontWeight: FontWeight.w600,
@@ -1871,12 +1838,10 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                         return _buildLoteItem(
                           context,
                           lote,
-                          checked:
-                              _model.checkboxLotesMap[lote] ?? false,
+                          checked: _model.checkboxLotesMap[lote] ?? false,
                           onChanged: (val) {
                             safeSetState(() {
-                              _model.checkboxLotesMap[lote] =
-                                  val ?? false;
+                              _model.checkboxLotesMap[lote] = val ?? false;
                             });
                           },
                         );

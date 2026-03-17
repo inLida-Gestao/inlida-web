@@ -47,7 +47,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       await action_blocks.countPiquetes(context);
-      _model.disposeRefreshListener = FFAppState().onRefresh('refreshPiquete', () async {
+      _model.disposeRefreshListener =
+          FFAppState().onRefresh('refreshPiquete', () async {
         FFAppState().refreshPiquete = false;
         await action_blocks.countPiquetes(context);
         safeSetState(() => _model.apiRequestCompleter = null);
@@ -126,7 +127,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                   ),
                   const SizedBox(height: 16.0),
                   ElevatedButton.icon(
-                    onPressed: () => safeSetState(() => _model.apiRequestCompleter = null),
+                    onPressed: () =>
+                        safeSetState(() => _model.apiRequestCompleter = null),
                     icon: const Icon(Icons.refresh_rounded, size: 18.0),
                     label: const Text('Tentar novamente'),
                   ),
@@ -201,9 +203,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                           .bodyMedium
                                                           .fontStyle,
                                                 ),
-                                                color: FlutterFlowTheme.of(
-                                                        context)
-                                                    .secondaryText,
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryText,
                                                 fontSize: 40.0,
                                                 letterSpacing: 0.0,
                                                 fontWeight: FontWeight.w600,
@@ -215,37 +217,52 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                         ),
                                         Flexible(
                                           child: Row(
-                                          mainAxisSize: MainAxisSize.max,
-                                          children: [
-                                            FFButtonWidget(
-                                              onPressed: () async {
-                                                context.pushNamed(
-                                                    PgAddPiqueteWidget
-                                                        .routeName);
-                                              },
-                                              text: 'Adicionar',
-                                              icon: const Icon(
-                                                Icons.add,
-                                                size: 24.0,
-                                              ),
-                                              options: FFButtonOptions(
-                                                height: 56.0,
-                                                padding:
-                                                    const EdgeInsetsDirectional
-                                                        .fromSTEB(
-                                                            24.0, 0.0, 24.0, 0.0),
-                                                iconPadding:
-                                                    const EdgeInsetsDirectional
-                                                        .fromSTEB(
-                                                            0.0, 0.0, 0.0, 0.0),
-                                                color: FlutterFlowTheme.of(
-                                                        context)
-                                                    .primary,
-                                                textStyle: FlutterFlowTheme.of(
-                                                        context)
-                                                    .titleSmall
-                                                    .override(
-                                                      font: GoogleFonts.poppins(
+                                            mainAxisSize: MainAxisSize.max,
+                                            children: [
+                                              FFButtonWidget(
+                                                onPressed: () async {
+                                                  context.pushNamed(
+                                                      PgAddPiqueteWidget
+                                                          .routeName);
+                                                },
+                                                text: 'Adicionar',
+                                                icon: const Icon(
+                                                  Icons.add,
+                                                  size: 24.0,
+                                                ),
+                                                options: FFButtonOptions(
+                                                  height: 56.0,
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
+                                                          24.0, 0.0, 24.0, 0.0),
+                                                  iconPadding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
+                                                          0.0, 0.0, 0.0, 0.0),
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .primary,
+                                                  textStyle: FlutterFlowTheme
+                                                          .of(context)
+                                                      .titleSmall
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .titleSmall
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .titleSmall
+                                                                  .fontStyle,
+                                                        ),
+                                                        color: Colors.white,
+                                                        fontSize: 18.0,
+                                                        letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
                                                                     context)
@@ -257,191 +274,197 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                                 .titleSmall
                                                                 .fontStyle,
                                                       ),
-                                                      color: Colors.white,
-                                                      fontSize: 18.0,
-                                                      letterSpacing: 0.0,
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontStyle,
-                                                    ),
-                                                elevation: 0.0,
-                                                borderRadius:
-                                                    BorderRadius.circular(6.0),
-                                                hoverColor:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondary,
+                                                  elevation: 0.0,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          6.0),
+                                                  hoverColor:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .secondary,
+                                                ),
                                               ),
-                                            ),
-                                            Flexible(
-                                              child: Container(
-                                              height: 56.0,
-                                              decoration: BoxDecoration(
-                                                color: FlutterFlowTheme.of(
-                                                        context)
-                                                    .customColor2,
-                                                borderRadius:
-                                                    BorderRadius.circular(6.0),
-                                              ),
-                                              child: Align(
-                                                alignment:
-                                                    const AlignmentDirectional(
-                                                        0.0, 0.0),
-                                                child: TextFormField(
-                                                    controller:
-                                                        _model.textController,
-                                                    focusNode: _model
-                                                        .textFieldFocusNode,
-                                                    onChanged: (_) =>
-                                                        EasyDebounce.debounce(
-                                                      '_model.textController',
-                                                      const Duration(
-                                                          milliseconds: 2000),
-                                                      () async {
-                                                        safeSetState(() =>
-                                                            _model.apiRequestCompleter =
-                                                                null);
-                                                      },
-                                                    ),
-                                                    autofocus: false,
-                                                    obscureText: false,
-                                                    decoration: InputDecoration(
-                                                      isDense: true,
-                                                      labelStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .labelMedium
-                                                              .override(
-                                                                font: GoogleFonts
-                                                                    .poppins(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .accent3,
-                                                                fontSize: 16.0,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                      hintText: 'Pesquisar',
-                                                      hintStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .labelMedium
-                                                              .override(
-                                                                font: GoogleFonts
-                                                                    .poppins(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .accent3,
-                                                                fontSize: 16.0,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                      enabledBorder:
-                                                          OutlineInputBorder(
-                                                        borderSide:
-                                                            const BorderSide(
-                                                          color:
-                                                              Color(0x00000000),
-                                                          width: 1.0,
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(6.0),
+                                              Flexible(
+                                                child: Container(
+                                                  height: 56.0,
+                                                  decoration: BoxDecoration(
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .customColor2,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            6.0),
+                                                  ),
+                                                  child: Align(
+                                                    alignment:
+                                                        const AlignmentDirectional(
+                                                            0.0, 0.0),
+                                                    child: TextFormField(
+                                                      controller:
+                                                          _model.textController,
+                                                      focusNode: _model
+                                                          .textFieldFocusNode,
+                                                      onChanged: (_) =>
+                                                          EasyDebounce.debounce(
+                                                        '_model.textController',
+                                                        const Duration(
+                                                            milliseconds: 2000),
+                                                        () async {
+                                                          safeSetState(() =>
+                                                              _model.apiRequestCompleter =
+                                                                  null);
+                                                        },
                                                       ),
-                                                      focusedBorder:
-                                                          OutlineInputBorder(
-                                                        borderSide:
-                                                            const BorderSide(
-                                                          color:
-                                                              Color(0x00000000),
-                                                          width: 1.0,
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(6.0),
-                                                      ),
-                                                      errorBorder:
-                                                          OutlineInputBorder(
-                                                        borderSide: BorderSide(
-                                                          color:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .error,
-                                                          width: 1.0,
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(6.0),
-                                                      ),
-                                                      focusedErrorBorder:
-                                                          OutlineInputBorder(
-                                                        borderSide: BorderSide(
-                                                          color:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .error,
-                                                          width: 1.0,
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(6.0),
-                                                      ),
-                                                      filled: true,
-                                                      fillColor:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .customColor2,
-                                                      prefixIcon: Icon(
-                                                        Icons.search_sharp,
-                                                        color:
+                                                      autofocus: false,
+                                                      obscureText: false,
+                                                      decoration:
+                                                          InputDecoration(
+                                                        isDense: true,
+                                                        labelStyle:
                                                             FlutterFlowTheme.of(
                                                                     context)
-                                                                .accent3,
-                                                        size: 24.0,
+                                                                .labelMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .accent3,
+                                                                  fontSize:
+                                                                      16.0,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                        hintText: 'Pesquisar',
+                                                        hintStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .labelMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .accent3,
+                                                                  fontSize:
+                                                                      16.0,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                        enabledBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              const BorderSide(
+                                                            color: Color(
+                                                                0x00000000),
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      6.0),
+                                                        ),
+                                                        focusedBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              const BorderSide(
+                                                            color: Color(
+                                                                0x00000000),
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      6.0),
+                                                        ),
+                                                        errorBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .error,
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      6.0),
+                                                        ),
+                                                        focusedErrorBorder:
+                                                            OutlineInputBorder(
+                                                          borderSide:
+                                                              BorderSide(
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .error,
+                                                            width: 1.0,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      6.0),
+                                                        ),
+                                                        filled: true,
+                                                        fillColor:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .customColor2,
+                                                        prefixIcon: Icon(
+                                                          Icons.search_sharp,
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .accent3,
+                                                          size: 24.0,
+                                                        ),
                                                       ),
-                                                    ),
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
+                                                      style: FlutterFlowTheme
+                                                              .of(context)
+                                                          .bodyMedium
+                                                          .override(
+                                                            font: GoogleFonts
+                                                                .poppins(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              fontStyle:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                            ),
+                                                            fontSize: 16.0,
+                                                            letterSpacing: 0.0,
                                                             fontWeight:
                                                                 FontWeight.w600,
                                                             fontStyle:
@@ -450,129 +473,124 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                                     .bodyMedium
                                                                     .fontStyle,
                                                           ),
-                                                          fontSize: 16.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                    cursorColor:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .primaryText,
-                                                    validator: _model
-                                                        .textControllerValidator
-                                                        .asValidator(context),
+                                                      cursorColor:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .primaryText,
+                                                      validator: _model
+                                                          .textControllerValidator
+                                                          .asValidator(context),
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                            Builder(
-                                              builder: (context) =>
-                                                  FFButtonWidget(
-                                                onPressed: () async {
-                                                  await showDialog(
-                                                    context: context,
-                                                    builder: (dialogContext) {
-                                                      return Dialog(
-                                                        elevation: 0,
-                                                        insetPadding:
-                                                            EdgeInsets.zero,
-                                                        backgroundColor:
-                                                            Colors.transparent,
-                                                        alignment: const AlignmentDirectional(
-                                                                0.0, 0.0)
-                                                            .resolve(
-                                                                Directionality.of(
-                                                                    context)),
-                                                        child: GestureDetector(
-                                                          onTap: () {
-                                                            FocusScope.of(
-                                                                    dialogContext)
-                                                                .unfocus();
-                                                            FocusManager
-                                                                .instance
-                                                                .primaryFocus
-                                                                ?.unfocus();
-                                                          },
+                                              Builder(
+                                                builder: (context) =>
+                                                    FFButtonWidget(
+                                                  onPressed: () async {
+                                                    await showDialog(
+                                                      context: context,
+                                                      builder: (dialogContext) {
+                                                        return Dialog(
+                                                          elevation: 0,
+                                                          insetPadding:
+                                                              EdgeInsets.zero,
+                                                          backgroundColor:
+                                                              Colors
+                                                                  .transparent,
+                                                          alignment: const AlignmentDirectional(
+                                                                  0.0, 0.0)
+                                                              .resolve(
+                                                                  Directionality.of(
+                                                                      context)),
                                                           child:
-                                                              const PpFiltroPiqueteWidget(),
-                                                        ),
-                                                      );
-                                                    },
-                                                  );
-                                                  safeSetState(() =>
-                                                      _model.apiRequestCompleter =
-                                                          null);
-                                                },
-                                                text: 'Filtrar',
-                                                icon: const Icon(
-                                                  Icons.filter_list,
-                                                  size: 24.0,
-                                                ),
-                                                options: FFButtonOptions(
-                                                  height: 56.0,
-                                                  padding:
-                                                      const EdgeInsetsDirectional
-                                                          .fromSTEB(16.0, 0.0,
-                                                              16.0, 0.0),
-                                                  iconPadding:
-                                                      const EdgeInsetsDirectional
-                                                          .fromSTEB(0.0, 0.0,
-                                                              0.0, 0.0),
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .secondaryBackground,
-                                                  textStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .titleSmall
-                                                          .override(
-                                                            font: GoogleFonts
-                                                                .poppins(
-                                                              fontWeight: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .titleSmall
-                                                                  .fontWeight,
-                                                              fontStyle: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .titleSmall
-                                                                  .fontStyle,
-                                                            ),
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .secondary,
-                                                            fontSize: 18.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
+                                                              GestureDetector(
+                                                            onTap: () {
+                                                              FocusScope.of(
+                                                                      dialogContext)
+                                                                  .unfocus();
+                                                              FocusManager
+                                                                  .instance
+                                                                  .primaryFocus
+                                                                  ?.unfocus();
+                                                            },
+                                                            child:
+                                                                const PpFiltroPiqueteWidget(),
+                                                          ),
+                                                        );
+                                                      },
+                                                    );
+                                                    safeSetState(() => _model
+                                                            .apiRequestCompleter =
+                                                        null);
+                                                  },
+                                                  text: 'Filtrar',
+                                                  icon: const Icon(
+                                                    Icons.filter_list,
+                                                    size: 24.0,
+                                                  ),
+                                                  options: FFButtonOptions(
+                                                    height: 56.0,
+                                                    padding:
+                                                        const EdgeInsetsDirectional
+                                                            .fromSTEB(16.0, 0.0,
+                                                            16.0, 0.0),
+                                                    iconPadding:
+                                                        const EdgeInsetsDirectional
+                                                            .fromSTEB(
+                                                            0.0, 0.0, 0.0, 0.0),
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .secondaryBackground,
+                                                    textStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .titleSmall
+                                                            .override(
+                                                              font: GoogleFonts
+                                                                  .poppins(
+                                                                fontWeight: FlutterFlowTheme.of(
                                                                         context)
                                                                     .titleSmall
                                                                     .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
+                                                                fontStyle: FlutterFlowTheme.of(
                                                                         context)
                                                                     .titleSmall
                                                                     .fontStyle,
-                                                          ),
-                                                  elevation: 0.0,
-                                                  borderSide: BorderSide(
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .secondary,
+                                                              ),
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .secondary,
+                                                              fontSize: 18.0,
+                                                              letterSpacing:
+                                                                  0.0,
+                                                              fontWeight:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontWeight,
+                                                              fontStyle:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontStyle,
+                                                            ),
+                                                    elevation: 0.0,
+                                                    borderSide: BorderSide(
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .secondary,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            6.0),
                                                   ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          6.0),
                                                 ),
                                               ),
-                                            ),
-                                          ].divide(const SizedBox(width: 24.0)),
-                                        ),
+                                            ].divide(
+                                                const SizedBox(width: 24.0)),
+                                          ),
                                         ),
                                       ].divide(const SizedBox(width: 24.0)),
                                     ),
@@ -583,9 +601,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                         Expanded(
                                           child: Container(
                                             decoration: BoxDecoration(
-                                              color: FlutterFlowTheme.of(
-                                                      context)
-                                                  .secondaryBackground,
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .secondaryBackground,
                                               boxShadow: const [
                                                 BoxShadow(
                                                   blurRadius: 4.0,
@@ -596,8 +614,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                               borderRadius:
                                                   BorderRadius.circular(8.0),
                                               border: Border.all(
-                                                color:
-                                                    const Color(0xFFEDEDED),
+                                                color: const Color(0xFFEDEDED),
                                               ),
                                             ),
                                             child: Padding(
@@ -702,23 +719,23 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                         builder: (context) {
                                           final piquete =
                                               ((pgPiqueteBuscarPiquetesFiltrosResponse
-                                                              .jsonBody
-                                                          is List
-                                                      ? pgPiqueteBuscarPiquetesFiltrosResponse
-                                                              .jsonBody
-                                                          as List
-                                                      : [])
-                                                      .map<PiqueteDTStruct?>(
-                                                          PiqueteDTStruct
-                                                              .maybeFromMap)
-                                                      .toList()
-                                                  as Iterable<PiqueteDTStruct?>)
-                                              .withoutNulls
-                                              .toList();
+                                                                  .jsonBody is List
+                                                              ? pgPiqueteBuscarPiquetesFiltrosResponse
+                                                                  .jsonBody as List
+                                                              : [])
+                                                          .map<PiqueteDTStruct?>(
+                                                              PiqueteDTStruct
+                                                                  .maybeFromMap)
+                                                          .toList()
+                                                      as Iterable<
+                                                          PiqueteDTStruct?>)
+                                                  .withoutNulls
+                                                  .toList();
                                           if (piquete.isEmpty) {
                                             return const Center(
                                               child: EmptyRebanhoWidget(
-                                                message: 'Nenhum piquete encontrado',
+                                                message:
+                                                    'Nenhum piquete encontrado',
                                               ),
                                             );
                                           }
@@ -728,16 +745,14 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                             controller: _model
                                                 .paginatedDataTableController,
                                             data: piquete,
-                                            columnsBuilder:
-                                                (onSortChanged) => [
+                                            columnsBuilder: (onSortChanged) => [
                                               DataColumn2(
-                                                label:
-                                                    DefaultTextStyle.merge(
+                                                label: DefaultTextStyle.merge(
                                                   softWrap: true,
                                                   child: Text(
                                                     'Nome',
-                                                    style: FlutterFlowTheme
-                                                            .of(context)
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
                                                         .labelLarge
                                                         .override(
                                                           font: GoogleFonts
@@ -770,13 +785,12 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                 onSort: onSortChanged,
                                               ),
                                               DataColumn2(
-                                                label:
-                                                    DefaultTextStyle.merge(
+                                                label: DefaultTextStyle.merge(
                                                   softWrap: true,
                                                   child: Text(
                                                     'Área (ha)',
-                                                    style: FlutterFlowTheme
-                                                            .of(context)
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
                                                         .labelLarge
                                                         .override(
                                                           font: GoogleFonts
@@ -809,13 +823,12 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                 onSort: onSortChanged,
                                               ),
                                               DataColumn2(
-                                                label:
-                                                    DefaultTextStyle.merge(
+                                                label: DefaultTextStyle.merge(
                                                   softWrap: true,
                                                   child: Text(
                                                     'Forrageira',
-                                                    style: FlutterFlowTheme
-                                                            .of(context)
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
                                                         .labelLarge
                                                         .override(
                                                           font: GoogleFonts
@@ -848,13 +861,12 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                 onSort: onSortChanged,
                                               ),
                                               DataColumn2(
-                                                label:
-                                                    DefaultTextStyle.merge(
+                                                label: DefaultTextStyle.merge(
                                                   softWrap: true,
                                                   child: Text(
                                                     ' ',
-                                                    style: FlutterFlowTheme
-                                                            .of(context)
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
                                                         .labelLarge
                                                         .override(
                                                           font: GoogleFonts
@@ -906,75 +918,71 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                       piqueteItem.nome,
                                                       '-',
                                                     ),
-                                                    style:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontWeight,
-                                                                fontStyle:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                              ),
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontWeight,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                            ),
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          font: GoogleFonts
+                                                              .poppins(
+                                                            fontWeight:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontWeight,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
                                                   ),
                                                   Text(
                                                     valueOrDefault<String>(
                                                       piqueteItem.area
-                                                          ?.toStringAsFixed(2),
+                                                          .toStringAsFixed(2),
                                                       '-',
                                                     ),
-                                                    style:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontWeight,
-                                                                fontStyle:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                              ),
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontWeight,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                            ),
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          font: GoogleFonts
+                                                              .poppins(
+                                                            fontWeight:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontWeight,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
                                                   ),
                                                   Text(
                                                     valueOrDefault<String>(
@@ -986,37 +994,35 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                           : '-',
                                                       '-',
                                                     ),
-                                                    style:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontWeight,
-                                                                fontStyle:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                              ),
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontWeight,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                            ),
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          font: GoogleFonts
+                                                              .poppins(
+                                                            fontWeight:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontWeight,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
                                                   ),
                                                   Row(
                                                     mainAxisSize:
@@ -1029,8 +1035,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                             FlutterFlowIconButton(
                                                           borderRadius: 8.0,
                                                           buttonSize: 40.0,
-                                                          fillColor: const Color(
-                                                              0x0028A365),
+                                                          fillColor:
+                                                              const Color(
+                                                                  0x0028A365),
                                                           icon: Icon(
                                                             Icons
                                                                 .keyboard_control,
@@ -1102,7 +1109,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                             },
                                             emptyBuilder: () => const Center(
                                               child: EmptyRebanhoWidget(
-                                                message: 'Nenhum piquete encontrado',
+                                                message:
+                                                    'Nenhum piquete encontrado',
                                               ),
                                             ),
                                             paginated: false,
@@ -1174,17 +1182,25 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                             if (snapshot.hasError) {
                                               return Center(
                                                 child: Column(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     Icon(
-                                                      Icons.error_outline_rounded,
-                                                      color: FlutterFlowTheme.of(context).error,
+                                                      Icons
+                                                          .error_outline_rounded,
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .error,
                                                       size: 36.0,
                                                     ),
                                                     const SizedBox(height: 8.0),
                                                     Text(
                                                       'Erro ao carregar',
-                                                      style: FlutterFlowTheme.of(context).bodySmall,
+                                                      style:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodySmall,
                                                     ),
                                                   ],
                                                 ),
@@ -1255,8 +1271,11 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                       child: Padding(
                                                         padding:
                                                             const EdgeInsetsDirectional
-                                                                .fromSTEB(24.0,
-                                                                    12.0, 24.0, 12.0),
+                                                                .fromSTEB(
+                                                                24.0,
+                                                                12.0,
+                                                                24.0,
+                                                                12.0),
                                                         child: Icon(
                                                           Icons
                                                               .keyboard_double_arrow_left,
@@ -1291,12 +1310,11 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                     onTap: () async {
                                                       if (_model.pageNum > 1) {
                                                         _model.pageNum =
-                                                            _model.pageNum +
-                                                                -1;
+                                                            _model.pageNum + -1;
                                                         safeSetState(() {});
-                                                        safeSetState(() =>
-                                                            _model.apiRequestCompleter =
-                                                                null);
+                                                        safeSetState(() => _model
+                                                                .apiRequestCompleter =
+                                                            null);
                                                       }
                                                     },
                                                     child: Container(
@@ -1314,8 +1332,11 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                       child: Padding(
                                                         padding:
                                                             const EdgeInsetsDirectional
-                                                                .fromSTEB(24.0,
-                                                                    12.0, 24.0, 12.0),
+                                                                .fromSTEB(
+                                                                24.0,
+                                                                12.0,
+                                                                24.0,
+                                                                12.0),
                                                         child: Icon(
                                                           Icons
                                                               .keyboard_arrow_left_sharp,
@@ -1342,7 +1363,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                     padding:
                                                         const EdgeInsetsDirectional
                                                             .fromSTEB(24.0, 0.0,
-                                                                24.0, 0.0),
+                                                            24.0, 0.0),
                                                     child: RichText(
                                                       textScaler:
                                                           MediaQuery.of(context)
@@ -1350,8 +1371,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                       text: TextSpan(
                                                         children: [
                                                           TextSpan(
-                                                            text: valueOrDefault<
-                                                                String>(
+                                                            text:
+                                                                valueOrDefault<
+                                                                    String>(
                                                               _model.pageNum
                                                                   .toString(),
                                                               '1',
@@ -1390,10 +1412,13 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                             ),
                                                           ),
                                                           TextSpan(
-                                                            text: valueOrDefault<
-                                                                String>(
-                                                              (((containerCountPiquetesFiltrosResponse
-                                                                              .jsonBody is num ? containerCountPiquetesFiltrosResponse.jsonBody as num : 0) /
+                                                            text:
+                                                                valueOrDefault<
+                                                                    String>(
+                                                              (((containerCountPiquetesFiltrosResponse.jsonBody is num
+                                                                              ? containerCountPiquetesFiltrosResponse.jsonBody
+                                                                                  as num
+                                                                              : 0) /
                                                                           FFAppConstants
                                                                               .limit)
                                                                       .ceil())
@@ -1414,8 +1439,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                                         .bodyMedium
                                                                         .fontStyle,
                                                                   ),
-                                                                  color: FlutterFlowTheme
-                                                                          .of(context)
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
                                                                       .accent3,
                                                                   fontSize:
                                                                       16.0,
@@ -1431,32 +1456,33 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                                 ),
                                                           ),
                                                         ],
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight: FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                              fontStyle: FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                            ),
+                                                        style:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
                                                       ),
                                                     ),
                                                   ),
@@ -1473,8 +1499,11 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                     onTap: () async {
                                                       if (_model.pageNum <
                                                           valueOrDefault<int>(
-                                                            ((containerCountPiquetesFiltrosResponse
-                                                                        .jsonBody is num ? containerCountPiquetesFiltrosResponse.jsonBody as num : 0) /
+                                                            ((containerCountPiquetesFiltrosResponse.jsonBody
+                                                                            is num
+                                                                        ? containerCountPiquetesFiltrosResponse.jsonBody
+                                                                            as num
+                                                                        : 0) /
                                                                     FFAppConstants
                                                                         .limit)
                                                                 .ceil(),
@@ -1483,9 +1512,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                         _model.pageNum =
                                                             _model.pageNum + 1;
                                                         safeSetState(() {});
-                                                        safeSetState(() =>
-                                                            _model.apiRequestCompleter =
-                                                                null);
+                                                        safeSetState(() => _model
+                                                                .apiRequestCompleter =
+                                                            null);
                                                       }
                                                     },
                                                     child: Container(
@@ -1503,8 +1532,11 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                       child: Padding(
                                                         padding:
                                                             const EdgeInsetsDirectional
-                                                                .fromSTEB(24.0,
-                                                                    12.0, 24.0, 12.0),
+                                                                .fromSTEB(
+                                                                24.0,
+                                                                12.0,
+                                                                24.0,
+                                                                12.0),
                                                         child: Icon(
                                                           Icons
                                                               .keyboard_arrow_right_sharp,
@@ -1513,10 +1545,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                             _model.pageNum <
                                                                     valueOrDefault<
                                                                         int>(
-                                                                      ((containerCountPiquetesFiltrosResponse
-                                                                                  .jsonBody is num ? containerCountPiquetesFiltrosResponse.jsonBody as num : 0) /
-                                                                              FFAppConstants
-                                                                                  .limit)
+                                                                      ((containerCountPiquetesFiltrosResponse.jsonBody is num ? containerCountPiquetesFiltrosResponse.jsonBody as num : 0) /
+                                                                              FFAppConstants.limit)
                                                                           .ceil(),
                                                                       1,
                                                                     )
@@ -1549,7 +1579,12 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                       _model.pageNum =
                                                           valueOrDefault<int>(
                                                         ((containerCountPiquetesFiltrosResponse
-                                                                    .jsonBody is num ? containerCountPiquetesFiltrosResponse.jsonBody as num : 0) /
+                                                                            .jsonBody
+                                                                        is num
+                                                                    ? containerCountPiquetesFiltrosResponse
+                                                                            .jsonBody
+                                                                        as num
+                                                                    : 0) /
                                                                 FFAppConstants
                                                                     .limit)
                                                             .ceil(),
@@ -1591,8 +1626,11 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                       child: Padding(
                                                         padding:
                                                             const EdgeInsetsDirectional
-                                                                .fromSTEB(24.0,
-                                                                    12.0, 24.0, 12.0),
+                                                                .fromSTEB(
+                                                                24.0,
+                                                                12.0,
+                                                                24.0,
+                                                                12.0),
                                                         child: Icon(
                                                           Icons
                                                               .keyboard_double_arrow_right_outlined,
@@ -1601,10 +1639,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                             _model.pageNum ==
                                                                     valueOrDefault<
                                                                         int>(
-                                                                      ((containerCountPiquetesFiltrosResponse
-                                                                                  .jsonBody is num ? containerCountPiquetesFiltrosResponse.jsonBody as num : 0) /
-                                                                              FFAppConstants
-                                                                                  .limit)
+                                                                      ((containerCountPiquetesFiltrosResponse.jsonBody is num ? containerCountPiquetesFiltrosResponse.jsonBody as num : 0) /
+                                                                              FFAppConstants.limit)
                                                                           .ceil(),
                                                                       1,
                                                                     )

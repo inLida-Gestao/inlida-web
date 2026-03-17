@@ -68,8 +68,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
 
       safeSetState(() {
         _model.nomePiqueteTextController?.text = p.nome ?? '';
-        _model.areaTextController?.text =
-            p.area?.toString() ?? '';
+        _model.areaTextController?.text = p.area?.toString() ?? '';
         _model.anotacoesTextController?.text = p.anotacoes ?? '';
         _model.incluirPiquete = p.incluirPiquete ?? 'animal';
         _model.dDForrageiraValue = List<String>.from(p.forrageria);
@@ -81,14 +80,12 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
       // Load selected animals
       if (p.idRebanhos.isNotEmpty) {
         // Convert to RebanhoDTStruct for consistency
-        final apiResp = await FunctionsSupabaseRebanhoGroup
-            .buscarRebanhoFiltrosCall
-            .call(
+        final apiResp =
+            await FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
           pCategoria: '',
           pDataNascimentoDe: '',
           pDataNascimentoAte: '',
-          pIdPropriedade:
-              FFAppState().propriedadeSelecionada.idPropriedade,
+          pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
           pLoteNome: '',
           pOrigem: '',
           pRaca: '',
@@ -106,9 +103,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
               .withoutNulls
               .toList();
           safeSetState(() {
-            _model.animaisSelecionados = all
-                .where((a) => p.idRebanhos.contains(a.idRebanho))
-                .toList();
+            _model.animaisSelecionados =
+                all.where((a) => p.idRebanhos.contains(a.idRebanho)).toList();
           });
         }
       }
@@ -152,8 +148,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
         hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
               font: GoogleFonts.poppins(
                 fontWeight: FontWeight.w500,
-                fontStyle:
-                    FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
               ),
               letterSpacing: 0.0,
             ),
@@ -296,8 +291,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                           offset: Offset(0.0, 2.0),
                                         )
                                       ],
-                                      borderRadius:
-                                          BorderRadius.circular(8.0),
+                                      borderRadius: BorderRadius.circular(8.0),
                                       border: Border.all(
                                         color: const Color(0xFFEDEDED),
                                       ),
@@ -315,16 +309,14 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text('Nome *',
-                                                  style:
-                                                      _labelStyle(context)),
+                                                  style: _labelStyle(context)),
                                               TextFormField(
                                                 controller: _model
                                                     .nomePiqueteTextController,
-                                                focusNode: _model
-                                                    .nomePiqueteFocusNode,
+                                                focusNode:
+                                                    _model.nomePiqueteFocusNode,
                                                 decoration: _inputDecoration(
-                                                    context,
-                                                    'Nome do piquete'),
+                                                    context, 'Nome do piquete'),
                                                 style: FlutterFlowTheme.of(
                                                         context)
                                                     .bodyMedium
@@ -356,38 +348,32 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text('Área (ha) *',
-                                                  style:
-                                                      _labelStyle(context)),
+                                                  style: _labelStyle(context)),
                                               TextFormField(
                                                 controller:
                                                     _model.areaTextController,
-                                                focusNode:
-                                                    _model.areaFocusNode,
-                                                keyboardType: const TextInputType
-                                                    .numberWithOptions(
-                                                    decimal: true),
+                                                focusNode: _model.areaFocusNode,
+                                                keyboardType:
+                                                    const TextInputType
+                                                        .numberWithOptions(
+                                                        decimal: true),
                                                 inputFormatters: [
                                                   FilteringTextInputFormatter
-                                                      .allow(RegExp(
-                                                          r'[0-9.,]')),
+                                                      .allow(
+                                                          RegExp(r'[0-9.,]')),
                                                   TextInputFormatter
                                                       .withFunction(
-                                                          (oldValue,
-                                                              newValue) {
-                                                    String text = newValue
-                                                        .text
-                                                        .replaceAll(
-                                                            ',', '.');
+                                                          (oldValue, newValue) {
+                                                    String text = newValue.text
+                                                        .replaceAll(',', '.');
                                                     if ('.'
-                                                            .allMatches(
-                                                                text)
+                                                            .allMatches(text)
                                                             .length >
                                                         1) {
                                                       return oldValue;
                                                     }
-                                                    return newValue
-                                                        .copyWith(
-                                                            text: text);
+                                                    return newValue.copyWith(
+                                                        text: text);
                                                   }),
                                                 ],
                                                 decoration: _inputDecoration(
@@ -423,8 +409,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text('Forrageira',
-                                                  style:
-                                                      _labelStyle(context)),
+                                                  style: _labelStyle(context)),
                                               FutureBuilder<
                                                   List<ForrageirasRow>>(
                                                 future: ForrageirasTable()
@@ -446,9 +431,9 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                                             String>(null),
                                                     options: opts,
                                                     onMultiSelectChanged: (val) =>
-                                                        safeSetState(() =>
-                                                            _model.dDForrageiraValue =
-                                                                val),
+                                                        safeSetState(() => _model
+                                                                .dDForrageiraValue =
+                                                            val),
                                                     height: 56.0,
                                                     textStyle:
                                                         FlutterFlowTheme.of(
@@ -473,13 +458,14 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                                     icon: Icon(
                                                       Icons
                                                           .keyboard_arrow_down_rounded,
-                                                      color: FlutterFlowTheme
-                                                              .of(context)
-                                                          .secondaryText,
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .secondaryText,
                                                       size: 24.0,
                                                     ),
-                                                    fillColor: const Color(
-                                                        0xFFF1F1F1),
+                                                    fillColor:
+                                                        const Color(0xFFF1F1F1),
                                                     elevation: 2.0,
                                                     borderColor:
                                                         Colors.transparent,
@@ -487,8 +473,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                                     borderRadius: 8.0,
                                                     margin:
                                                         const EdgeInsetsDirectional
-                                                            .fromSTEB(12.0,
-                                                                0.0, 12.0, 0.0),
+                                                            .fromSTEB(12.0, 0.0,
+                                                            12.0, 0.0),
                                                     hidesUnderline: true,
                                                     isOverButton: false,
                                                     isSearchable: false,
@@ -505,8 +491,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text('Anotações',
-                                                  style:
-                                                      _labelStyle(context)),
+                                                  style: _labelStyle(context)),
                                               TextFormField(
                                                 controller: _model
                                                     .anotacoesTextController,
@@ -546,8 +531,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text('Incluir no piquete',
-                                                  style:
-                                                      _labelStyle(context)),
+                                                  style: _labelStyle(context)),
                                               Row(
                                                 children: [
                                                   Radio<String>(
@@ -648,12 +632,11 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                               'area': double.tryParse(_model
                                                   .areaTextController.text
                                                   .replaceAll(',', '.')),
-                                              'forrageria': _model
-                                                      .dDForrageiraValue ??
-                                                  [],
+                                              'forrageria':
+                                                  _model.dDForrageiraValue ??
+                                                      [],
                                               'anotacoes': _model
-                                                  .anotacoesTextController
-                                                  .text,
+                                                  .anotacoesTextController.text,
                                               'incluir_piquete':
                                                   _model.incluirPiquete,
                                               'id_rebanhos': _model
@@ -667,8 +650,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                                   .whereType<String>()
                                                   .toList(),
                                             },
-                                            matchingRows: (rows) => rows
-                                                .eqOrNull('id_piquete',
+                                            matchingRows: (rows) =>
+                                                rows.eqOrNull('id_piquete',
                                                     widget.idPiquete),
                                           );
                                           FFAppState().refreshPiquete = true;
@@ -695,31 +678,29 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                         text: 'Salvar',
                                         options: FFButtonOptions(
                                           height: 56.0,
-                                          padding:
-                                              const EdgeInsetsDirectional
-                                                  .fromSTEB(
-                                                      32.0, 0.0, 32.0, 0.0),
+                                          padding: const EdgeInsetsDirectional
+                                              .fromSTEB(32.0, 0.0, 32.0, 0.0),
                                           color: FlutterFlowTheme.of(context)
                                               .primary,
-                                          textStyle: FlutterFlowTheme.of(
-                                                  context)
-                                              .titleSmall
-                                              .override(
-                                                font: GoogleFonts.poppins(
-                                                  fontWeight:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .titleSmall
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .titleSmall
-                                                          .fontStyle,
-                                                ),
-                                                color: Colors.white,
-                                                letterSpacing: 0.0,
-                                              ),
+                                          textStyle:
+                                              FlutterFlowTheme.of(context)
+                                                  .titleSmall
+                                                  .override(
+                                                    font: GoogleFonts.poppins(
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .titleSmall
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .titleSmall
+                                                              .fontStyle,
+                                                    ),
+                                                    color: Colors.white,
+                                                    letterSpacing: 0.0,
+                                                  ),
                                           elevation: 0.0,
                                           borderRadius:
                                               BorderRadius.circular(6.0),
@@ -814,8 +795,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                     ),
                     Text(' \u2022 ',
                         style: GoogleFonts.poppins(
-                            fontSize: 14.0,
-                            color: const Color(0xFF474747))),
+                            fontSize: 14.0, color: const Color(0xFF474747))),
                     Text(
                       animal.nome.isNotEmpty ? animal.nome : '-',
                       style: GoogleFonts.poppins(
@@ -826,8 +806,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                     ),
                     Text(' \u2022 ',
                         style: GoogleFonts.poppins(
-                            fontSize: 14.0,
-                            color: const Color(0xFF474747))),
+                            fontSize: 14.0, color: const Color(0xFF474747))),
                     Text(
                       _formatDateBR(animal.dataNascimento),
                       style: GoogleFonts.poppins(
@@ -842,9 +821,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                 Row(
                   children: [
                     Text(
-                      animal.categoria.isNotEmpty
-                          ? animal.categoria
-                          : '-',
+                      animal.categoria.isNotEmpty ? animal.categoria : '-',
                       style: GoogleFonts.poppins(
                         fontSize: 14.0,
                         fontWeight: FontWeight.w400,
@@ -928,8 +905,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
               child: Text(
                 title,
                 style: GoogleFonts.poppins(
@@ -945,8 +922,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                 color: const Color(0xFFF1F1F1),
                 borderRadius: BorderRadius.circular(6.0),
               ),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0, vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4.0),
               child: TextFormField(
                 controller: searchController,
                 focusNode: searchFocusNode,
@@ -982,8 +959,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                 borderRadius: BorderRadius.circular(24.0),
                 border: Border.all(color: const Color(0xFFBEBEBE)),
               ),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -996,8 +973,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                     ),
                   ),
                   const SizedBox(width: 8.0),
-                  const Icon(Icons.tune,
-                      size: 16.0, color: Color(0xFF5F5F5F)),
+                  const Icon(Icons.tune, size: 16.0, color: Color(0xFF5F5F5F)),
                 ],
               ),
             ),
@@ -1011,8 +987,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                 borderRadius: BorderRadius.circular(24.0),
                 border: Border.all(color: const Color(0xFFBEBEBE)),
               ),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -1078,9 +1054,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                         pCategoria: '',
                         pDataNascimentoDe: '',
                         pDataNascimentoAte: '',
-                        pIdPropriedade: FFAppState()
-                            .propriedadeSelecionada
-                            .idPropriedade,
+                        pIdPropriedade:
+                            FFAppState().propriedadeSelecionada.idPropriedade,
                         pLoteNome: '',
                         pOrigem: '',
                         pRaca: '',
@@ -1089,8 +1064,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                         pLimite: pageSize,
                         pOffset: functions.calcDeslocamento(
                             _model.pageNumAnimais, pageSize),
-                        pPesquisa:
-                            _model.pesquisaAnimaisTextController.text,
+                        pPesquisa: _model.pesquisaAnimaisTextController.text,
                       )))
                 .future,
             builder: (context, snapshot) {
@@ -1116,10 +1090,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
               final animais = snapshot.hasData
                   ? (snapshot.data!.jsonBody
                           .toList()
-                          .map<RebanhoDTStruct?>(
-                              RebanhoDTStruct.maybeFromMap)
-                          .toList()
-                      as Iterable<RebanhoDTStruct?>)
+                          .map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap)
+                          .toList() as Iterable<RebanhoDTStruct?>)
                       .withoutNulls
                       .where((a) => !_model.animaisSelecionados
                           .any((s) => s.idRebanho == a.idRebanho))
@@ -1130,17 +1102,14 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
               return _buildAnimalPanelCard(
                 context: context,
                 title: 'Animais fora deste piquete ($totalFora)',
-                searchController:
-                    _model.pesquisaAnimaisTextController!,
-                searchFocusNode:
-                    _model.pesquisaAnimaisFocusNode!,
+                searchController: _model.pesquisaAnimaisTextController!,
+                searchFocusNode: _model.pesquisaAnimaisFocusNode!,
                 onSearchChanged: () {
                   _model.apiRequestCompleterAnimais = null;
                   safeSetState(() {});
                 },
                 headerAction: Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
@@ -1150,30 +1119,22 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                           child: Checkbox(
                             value: animais.isNotEmpty &&
                                 animais.every((a) =>
-                                    _model.checkboxAnimaisMap[
-                                            a] ==
-                                        true),
+                                    _model.checkboxAnimaisMap[a] == true),
                             onChanged: (val) {
                               safeSetState(() {
                                 for (final a in animais) {
-                                  _model.checkboxAnimaisMap[a] =
-                                      val ?? false;
+                                  _model.checkboxAnimaisMap[a] = val ?? false;
                                 }
                               });
                             },
-                            activeColor:
-                                const Color(0xFF28A365),
+                            activeColor: const Color(0xFF28A365),
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(3.0),
+                              borderRadius: BorderRadius.circular(3.0),
                             ),
-                            side: const BorderSide(
-                                color: Color(0xFFBEBEBE)),
+                            side: const BorderSide(color: Color(0xFFBEBEBE)),
                             materialTapTargetSize:
-                                MaterialTapTargetSize
-                                    .shrinkWrap,
-                            visualDensity:
-                                VisualDensity.compact,
+                                MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
                           ),
                         ),
                         const SizedBox(width: 4.0),
@@ -1190,29 +1151,22 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                     GestureDetector(
                       onTap: () {
                         safeSetState(() {
-                          final toAdd =
-                              _model.animaisChecked;
+                          final toAdd = _model.animaisChecked;
                           for (final a in toAdd) {
                             if (!_model.animaisSelecionados
-                                .any((s) =>
-                                    s.idRebanho ==
-                                    a.idRebanho)) {
-                              _model.animaisSelecionados
-                                  .add(a);
+                                .any((s) => s.idRebanho == a.idRebanho)) {
+                              _model.animaisSelecionados.add(a);
                             }
-                            _model.checkboxAnimaisMap
-                                .remove(a);
+                            _model.checkboxAnimaisMap.remove(a);
                           }
                         });
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0,
-                            vertical: 8.0),
+                            horizontal: 16.0, vertical: 8.0),
                         decoration: BoxDecoration(
                           color: const Color(0xFF28A365),
-                          borderRadius:
-                              BorderRadius.circular(6.0),
+                          borderRadius: BorderRadius.circular(6.0),
                         ),
                         child: Text(
                           'Adicionar',
@@ -1229,14 +1183,10 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                 listContent: !snapshot.hasData
                     ? Center(
                         child: Padding(
-                          padding:
-                              const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(16.0),
                           child: CircularProgressIndicator(
-                            valueColor:
-                                AlwaysStoppedAnimation<
-                                    Color>(
-                              FlutterFlowTheme.of(context)
-                                  .primary,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              FlutterFlowTheme.of(context).primary,
                             ),
                           ),
                         ),
@@ -1250,14 +1200,11 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                             return _buildAnimalItem(
                               context,
                               animal,
-                              checked: _model
-                                          .checkboxAnimaisMap[
-                                      animal] ??
-                                  false,
+                              checked:
+                                  _model.checkboxAnimaisMap[animal] ?? false,
                               onChanged: (val) {
                                 safeSetState(() {
-                                  _model.checkboxAnimaisMap[
-                                          animal] =
+                                  _model.checkboxAnimaisMap[animal] =
                                       val ?? false;
                                 });
                               },
@@ -1270,10 +1217,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                     safeSetState(() {
                       final toAdd = _model.animaisChecked;
                       for (final a in toAdd) {
-                        if (!_model.animaisSelecionados.any(
-                            (s) =>
-                                s.idRebanho ==
-                                a.idRebanho)) {
+                        if (!_model.animaisSelecionados
+                            .any((s) => s.idRebanho == a.idRebanho)) {
                           _model.animaisSelecionados.add(a);
                         }
                         _model.checkboxAnimaisMap.remove(a);
@@ -1282,12 +1227,10 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                   },
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12.0),
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
                     decoration: BoxDecoration(
                       color: const Color(0xFF28A365),
-                      borderRadius:
-                          BorderRadius.circular(6.0),
+                      borderRadius: BorderRadius.circular(6.0),
                     ),
                     child: Text(
                       'Contar animais (${_model.animaisChecked.length}/$totalFora)',
@@ -1315,9 +1258,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                   safeSetState(() {
                     final toAdd = _model.animaisChecked;
                     for (final a in toAdd) {
-                      if (!_model.animaisSelecionados.any(
-                          (s) =>
-                              s.idRebanho == a.idRebanho)) {
+                      if (!_model.animaisSelecionados
+                          .any((s) => s.idRebanho == a.idRebanho)) {
                         _model.animaisSelecionados.add(a);
                       }
                       _model.checkboxAnimaisMap.remove(a);
@@ -1338,11 +1280,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
               GestureDetector(
                 onTap: () {
                   safeSetState(() {
-                    final toRemove = _model
-                        .animaisSelecionados
-                        .where((a) =>
-                            _model.checkboxAnimaisMap[a] ==
-                            true)
+                    final toRemove = _model.animaisSelecionados
+                        .where((a) => _model.checkboxAnimaisMap[a] == true)
                         .toList();
                     for (final a in toRemove) {
                       _model.animaisSelecionados.remove(a);
@@ -1369,22 +1308,18 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
             context: context,
             title:
                 'Animais neste piquete (${_model.animaisSelecionados.length})',
-            searchController:
-                _model.pesquisaAnimaisTextController!,
-            searchFocusNode:
-                _model.pesquisaAnimaisFocusNode!,
+            searchController: _model.pesquisaAnimaisTextController!,
+            searchFocusNode: _model.pesquisaAnimaisFocusNode!,
             onSearchChanged: () => safeSetState(() {}),
             listContent: _model.animaisSelecionados.isEmpty
                 ? SizedBox(
                     height: 300.0,
                     child: Center(
                       child: Column(
-                        mainAxisAlignment:
-                            MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Icon(Icons.pets,
-                              size: 58.0,
-                              color: Color(0xFFBEBEBE)),
+                              size: 58.0, color: Color(0xFFBEBEBE)),
                           const SizedBox(height: 16.0),
                           Text(
                             'Nenhum animal foi adicionado neste piquete.',
@@ -1399,25 +1334,19 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                             TextSpan(
                               children: [
                                 TextSpan(
-                                  text:
-                                      'Selecione um animal e clique no botão',
+                                  text: 'Selecione um animal e clique no botão',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12.0,
-                                    fontWeight:
-                                        FontWeight.w600,
-                                    color: const Color(
-                                        0xFF474747),
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF474747),
                                   ),
                                 ),
                                 TextSpan(
-                                  text:
-                                      ' à esquerda para adicionar.',
+                                  text: ' à esquerda para adicionar.',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12.0,
-                                    fontWeight:
-                                        FontWeight.w600,
-                                    color: const Color(
-                                        0xFF474747),
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF474747),
                                   ),
                                 ),
                               ],
@@ -1431,23 +1360,16 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                 : SizedBox(
                     height: 400.0,
                     child: ListView.builder(
-                      itemCount:
-                          _model.animaisSelecionados.length,
+                      itemCount: _model.animaisSelecionados.length,
                       itemBuilder: (context, i) {
-                        final animal =
-                            _model.animaisSelecionados[i];
+                        final animal = _model.animaisSelecionados[i];
                         return _buildAnimalItem(
                           context,
                           animal,
-                          checked: _model
-                                      .checkboxAnimaisMap[
-                                  animal] ??
-                              false,
+                          checked: _model.checkboxAnimaisMap[animal] ?? false,
                           onChanged: (val) {
                             safeSetState(() {
-                              _model.checkboxAnimaisMap[
-                                      animal] =
-                                  val ?? false;
+                              _model.checkboxAnimaisMap[animal] = val ?? false;
                             });
                           },
                         );
@@ -1497,8 +1419,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Lotes icon
-                Icon(Icons.hub_outlined,
-                    size: 24.0, color: const Color(0xFF28A365)),
+                const Icon(Icons.hub_outlined,
+                    size: 24.0, color: Color(0xFF28A365)),
                 const SizedBox(height: 8.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1771,8 +1693,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                           height: 24.0,
                           child: Checkbox(
                             value: lotesDisponiveis.isNotEmpty &&
-                                lotesDisponiveis.every((l) =>
-                                    _model.checkboxLotesMap[l] == true),
+                                lotesDisponiveis.every(
+                                    (l) => _model.checkboxLotesMap[l] == true),
                             onChanged: (val) {
                               safeSetState(() {
                                 for (final l in lotesDisponiveis) {
@@ -1853,12 +1775,10 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                             return _buildLoteItem(
                               context,
                               lote,
-                              checked:
-                                  _model.checkboxLotesMap[lote] ?? false,
+                              checked: _model.checkboxLotesMap[lote] ?? false,
                               onChanged: (val) {
                                 safeSetState(() {
-                                  _model.checkboxLotesMap[lote] =
-                                      val ?? false;
+                                  _model.checkboxLotesMap[lote] = val ?? false;
                                 });
                               },
                             );
@@ -1903,8 +1823,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                 onTap: () {
                   safeSetState(() {
                     final toRemove = _model.lotesSelecionados
-                        .where(
-                            (l) => _model.checkboxLotesMap[l] == true)
+                        .where((l) => _model.checkboxLotesMap[l] == true)
                         .toList();
                     for (final l in toRemove) {
                       _model.lotesSelecionados.remove(l);
@@ -1929,8 +1848,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
         Expanded(
           child: _buildLotePanelCard(
             context: context,
-            title:
-                'Lotes neste piquete (${_model.lotesSelecionados.length})',
+            title: 'Lotes neste piquete (${_model.lotesSelecionados.length})',
             searchController: _model.pesquisaLotesTextController!,
             searchFocusNode: _model.pesquisaLotesFocusNode!,
             onSearchChanged: () => safeSetState(() {}),
@@ -1941,9 +1859,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.hub_outlined,
-                              size: 77.0,
-                              color: const Color(0xFFBEBEBE)),
+                          const Icon(Icons.hub_outlined,
+                              size: 77.0, color: Color(0xFFBEBEBE)),
                           const SizedBox(height: 16.0),
                           Text(
                             'Nenhum lote foi adicionado neste piquete.',
@@ -1958,8 +1875,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                             TextSpan(
                               children: [
                                 TextSpan(
-                                  text:
-                                      'Selecione um lote e clique no botão',
+                                  text: 'Selecione um lote e clique no botão',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12.0,
                                     fontWeight: FontWeight.w600,
@@ -1967,8 +1883,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                                   ),
                                 ),
                                 TextSpan(
-                                  text:
-                                      ' à esquerda para adicionar.',
+                                  text: ' à esquerda para adicionar.',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12.0,
                                     fontWeight: FontWeight.w600,
@@ -1992,12 +1907,10 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                         return _buildLoteItem(
                           context,
                           lote,
-                          checked:
-                              _model.checkboxLotesMap[lote] ?? false,
+                          checked: _model.checkboxLotesMap[lote] ?? false,
                           onChanged: (val) {
                             safeSetState(() {
-                              _model.checkboxLotesMap[lote] =
-                                  val ?? false;
+                              _model.checkboxLotesMap[lote] = val ?? false;
                             });
                           },
                         );

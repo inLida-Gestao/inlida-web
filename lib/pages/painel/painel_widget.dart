@@ -93,7 +93,8 @@ class _PainelWidgetState extends State<PainelWidget>
           ),
         );
       } else {
-        _model.disposeRefreshListener = FFAppState().onRefresh('refreshPainel', () {
+        _model.disposeRefreshListener =
+            FFAppState().onRefresh('refreshPainel', () {
           FFAppState().refreshPainel = false;
           safeSetState(() => _model.apiRequestCompleter1 = null);
           safeSetState(() => _model.apiRequestCompleter2 = null);
@@ -211,259 +212,262 @@ class _PainelWidgetState extends State<PainelWidget>
                                             mainAxisSize: MainAxisSize.max,
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisSize: MainAxisSize.max,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.end,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                if ((FFAppState()
-                                                            .propriedadeSelecionada
-                                                            .idPropriedade !=
-                                                        '') &&
-                                                    (_model.tabBarCurrentIndex !=
-                                                        0))
-                                                  Container(
-                                                    decoration:
-                                                        const BoxDecoration(),
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsetsDirectional
-                                                              .fromSTEB(5.0,
-                                                              0.0, 5.0, 0.0),
-                                                      child: Row(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .max,
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Row(
-                                                                mainAxisSize:
-                                                                    MainAxisSize
-                                                                        .min,
-                                                                children: [
-                                                                  FlutterFlowDropDown<
-                                                                      String>(
-                                                                    controller: _model
-                                                                            .dDInicioAnoValueController ??=
-                                                                        FormFieldController<
-                                                                            String>(
-                                                                      _model.dDInicioAnoValue ??=
-                                                                          dateTimeFormat(
-                                                                        "yyyy",
-                                                                        getCurrentTimestamp,
-                                                                        locale:
-                                                                            FFLocalizations.of(context).languageCode,
+                                            children: [
+                                              Row(
+                                                mainAxisSize: MainAxisSize.max,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                                children: [
+                                                  if ((FFAppState()
+                                                              .propriedadeSelecionada
+                                                              .idPropriedade !=
+                                                          '') &&
+                                                      (_model.tabBarCurrentIndex !=
+                                                          0))
+                                                    Container(
+                                                      decoration:
+                                                          const BoxDecoration(),
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsetsDirectional
+                                                                .fromSTEB(5.0,
+                                                                0.0, 5.0, 0.0),
+                                                        child: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            Column(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .max,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                Row(
+                                                                  mainAxisSize:
+                                                                      MainAxisSize
+                                                                          .min,
+                                                                  children: [
+                                                                    FlutterFlowDropDown<
+                                                                        String>(
+                                                                      controller: _model
+                                                                              .dDInicioAnoValueController ??=
+                                                                          FormFieldController<
+                                                                              String>(
+                                                                        _model.dDInicioAnoValue ??=
+                                                                            dateTimeFormat(
+                                                                          "yyyy",
+                                                                          getCurrentTimestamp,
+                                                                          locale:
+                                                                              FFLocalizations.of(context).languageCode,
+                                                                        ),
                                                                       ),
-                                                                    ),
-                                                                    options:
-                                                                        functions
-                                                                            .gerarAnos()!,
-                                                                    onChanged:
-                                                                        (val) async {
-                                                                      safeSetState(() =>
-                                                                          _model.dDInicioAnoValue =
-                                                                              val);
-                                                                      safeSetState(
-                                                                          () {});
-                                                                    },
-                                                                    width:
-                                                                        156.0,
-                                                                    height:
-                                                                        48.0,
-                                                                    textStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .override(
-                                                                          font:
-                                                                              GoogleFonts.poppins(
+                                                                      options:
+                                                                          functions
+                                                                              .gerarAnos()!,
+                                                                      onChanged:
+                                                                          (val) async {
+                                                                        safeSetState(() =>
+                                                                            _model.dDInicioAnoValue =
+                                                                                val);
+                                                                        safeSetState(
+                                                                            () {});
+                                                                      },
+                                                                      width:
+                                                                          156.0,
+                                                                      height:
+                                                                          48.0,
+                                                                      textStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
+                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                            fontSize:
+                                                                                14.0,
+                                                                            letterSpacing:
+                                                                                0.0,
                                                                             fontWeight:
                                                                                 FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                             fontStyle:
                                                                                 FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
-                                                                          fontSize:
-                                                                              14.0,
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                          fontWeight: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontWeight,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontStyle,
-                                                                        ),
-                                                                    hintText:
-                                                                        'Selecionar ano',
-                                                                    icon: Icon(
-                                                                      Icons
-                                                                          .keyboard_arrow_down_rounded,
-                                                                      color: FlutterFlowTheme.of(
+                                                                      hintText:
+                                                                          'Selecionar ano',
+                                                                      icon:
+                                                                          Icon(
+                                                                        Icons
+                                                                            .keyboard_arrow_down_rounded,
+                                                                        color: FlutterFlowTheme.of(context)
+                                                                            .secondaryText,
+                                                                        size:
+                                                                            24.0,
+                                                                      ),
+                                                                      elevation:
+                                                                          2.0,
+                                                                      borderColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .customColor2,
+                                                                      borderWidth:
+                                                                          0.0,
+                                                                      borderRadius:
+                                                                          8.0,
+                                                                      margin: const EdgeInsetsDirectional
+                                                                          .fromSTEB(
+                                                                          12.0,
+                                                                          0.0,
+                                                                          12.0,
+                                                                          0.0),
+                                                                      hidesUnderline:
+                                                                          true,
+                                                                      isOverButton:
+                                                                          false,
+                                                                      isSearchable:
+                                                                          false,
+                                                                      isMultiSelect:
+                                                                          false,
+                                                                    ),
+                                                                    FlutterFlowDropDown<
+                                                                        int>(
+                                                                      controller: _model
+                                                                              .dDInicioMesValueController ??=
+                                                                          FormFieldController<
+                                                                              int>(
+                                                                        _model.dDInicioMesValue ??=
+                                                                            1,
+                                                                      ),
+                                                                      options: List<
+                                                                          int>.from([
+                                                                        1,
+                                                                        2,
+                                                                        3,
+                                                                        4,
+                                                                        5,
+                                                                        6,
+                                                                        7,
+                                                                        8,
+                                                                        9,
+                                                                        10,
+                                                                        11,
+                                                                        12
+                                                                      ]),
+                                                                      optionLabels: const [
+                                                                        '1',
+                                                                        '2',
+                                                                        '3',
+                                                                        '4',
+                                                                        '5',
+                                                                        '6',
+                                                                        '7',
+                                                                        '8',
+                                                                        '9',
+                                                                        '10',
+                                                                        '11',
+                                                                        '12'
+                                                                      ],
+                                                                      onChanged:
+                                                                          (val) async {
+                                                                        safeSetState(() =>
+                                                                            _model.dDInicioMesValue =
+                                                                                val);
+                                                                        safeSetState(
+                                                                            () {});
+                                                                      },
+                                                                      width:
+                                                                          80.0,
+                                                                      height:
+                                                                          48.0,
+                                                                      textStyle: FlutterFlowTheme.of(
                                                                               context)
-                                                                          .secondaryText,
-                                                                      size:
-                                                                          24.0,
-                                                                    ),
-                                                                    elevation:
-                                                                        2.0,
-                                                                    borderColor:
-                                                                        FlutterFlowTheme.of(context)
-                                                                            .customColor2,
-                                                                    borderWidth:
-                                                                        0.0,
-                                                                    borderRadius:
-                                                                        8.0,
-                                                                    margin: const EdgeInsetsDirectional
-                                                                        .fromSTEB(
-                                                                        12.0,
-                                                                        0.0,
-                                                                        12.0,
-                                                                        0.0),
-                                                                    hidesUnderline:
-                                                                        true,
-                                                                    isOverButton:
-                                                                        false,
-                                                                    isSearchable:
-                                                                        false,
-                                                                    isMultiSelect:
-                                                                        false,
-                                                                  ),
-                                                                  FlutterFlowDropDown<
-                                                                      int>(
-                                                                    controller: _model
-                                                                            .dDInicioMesValueController ??=
-                                                                        FormFieldController<
-                                                                            int>(
-                                                                      _model.dDInicioMesValue ??=
-                                                                          1,
-                                                                    ),
-                                                                    options: List<
-                                                                        int>.from([
-                                                                      1,
-                                                                      2,
-                                                                      3,
-                                                                      4,
-                                                                      5,
-                                                                      6,
-                                                                      7,
-                                                                      8,
-                                                                      9,
-                                                                      10,
-                                                                      11,
-                                                                      12
-                                                                    ]),
-                                                                    optionLabels: const [
-                                                                      '1',
-                                                                      '2',
-                                                                      '3',
-                                                                      '4',
-                                                                      '5',
-                                                                      '6',
-                                                                      '7',
-                                                                      '8',
-                                                                      '9',
-                                                                      '10',
-                                                                      '11',
-                                                                      '12'
-                                                                    ],
-                                                                    onChanged:
-                                                                        (val) async {
-                                                                      safeSetState(() =>
-                                                                          _model.dDInicioMesValue =
-                                                                              val);
-                                                                      safeSetState(
-                                                                          () {});
-                                                                    },
-                                                                    width: 80.0,
-                                                                    height:
-                                                                        48.0,
-                                                                    textStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .override(
-                                                                          font:
-                                                                              GoogleFonts.poppins(
+                                                                          .bodyMedium
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
+                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                            letterSpacing:
+                                                                                0.0,
                                                                             fontWeight:
                                                                                 FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                             fontStyle:
                                                                                 FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                          fontWeight: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontWeight,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontStyle,
-                                                                        ),
-                                                                    hintText:
-                                                                        'Mês',
-                                                                    icon: Icon(
-                                                                      Icons
-                                                                          .keyboard_arrow_down_rounded,
-                                                                      color: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .secondaryText,
-                                                                      size:
-                                                                          24.0,
+                                                                      hintText:
+                                                                          'Mês',
+                                                                      icon:
+                                                                          Icon(
+                                                                        Icons
+                                                                            .keyboard_arrow_down_rounded,
+                                                                        color: FlutterFlowTheme.of(context)
+                                                                            .secondaryText,
+                                                                        size:
+                                                                            24.0,
+                                                                      ),
+                                                                      elevation:
+                                                                          2.0,
+                                                                      borderColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .customColor2,
+                                                                      borderWidth:
+                                                                          0.0,
+                                                                      borderRadius:
+                                                                          8.0,
+                                                                      margin: const EdgeInsetsDirectional
+                                                                          .fromSTEB(
+                                                                          12.0,
+                                                                          0.0,
+                                                                          12.0,
+                                                                          0.0),
+                                                                      hidesUnderline:
+                                                                          true,
+                                                                      isOverButton:
+                                                                          false,
+                                                                      isSearchable:
+                                                                          false,
+                                                                      isMultiSelect:
+                                                                          false,
                                                                     ),
-                                                                    elevation:
-                                                                        2.0,
-                                                                    borderColor:
-                                                                        FlutterFlowTheme.of(context)
-                                                                            .customColor2,
-                                                                    borderWidth:
+                                                                  ].divide(
+                                                                      const SizedBox(
+                                                                          width:
+                                                                              8.0)),
+                                                                ),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          4.0)),
+                                                            ),
+                                                            Text(
+                                                              'Até',
+                                                              style: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w500,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                    letterSpacing:
                                                                         0.0,
-                                                                    borderRadius:
-                                                                        8.0,
-                                                                    margin: const EdgeInsetsDirectional
-                                                                        .fromSTEB(
-                                                                        12.0,
-                                                                        0.0,
-                                                                        12.0,
-                                                                        0.0),
-                                                                    hidesUnderline:
-                                                                        true,
-                                                                    isOverButton:
-                                                                        false,
-                                                                    isSearchable:
-                                                                        false,
-                                                                    isMultiSelect:
-                                                                        false,
-                                                                  ),
-                                                                ].divide(
-                                                                    const SizedBox(
-                                                                        width:
-                                                                            8.0)),
-                                                              ),
-                                                            ].divide(
-                                                                const SizedBox(
-                                                                    height:
-                                                                        4.0)),
-                                                          ),
-                                                          Text(
-                                                            'Até',
-                                                            style: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  font: GoogleFonts
-                                                                      .poppins(
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .w500,
@@ -472,491 +476,244 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         .bodyMedium
                                                                         .fontStyle,
                                                                   ),
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                          ),
-                                                          Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .max,
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Row(
-                                                                mainAxisSize:
-                                                                    MainAxisSize
-                                                                        .min,
-                                                                children: [
-                                                                  FlutterFlowDropDown<
-                                                                      String>(
-                                                                    controller: _model
-                                                                            .dDFimAnoValueController ??=
-                                                                        FormFieldController<
-                                                                            String>(
-                                                                      _model.dDFimAnoValue ??=
-                                                                          dateTimeFormat(
-                                                                        "yyyy",
-                                                                        getCurrentTimestamp,
-                                                                        locale:
-                                                                            FFLocalizations.of(context).languageCode,
+                                                            ),
+                                                            Column(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .max,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                Row(
+                                                                  mainAxisSize:
+                                                                      MainAxisSize
+                                                                          .min,
+                                                                  children: [
+                                                                    FlutterFlowDropDown<
+                                                                        String>(
+                                                                      controller: _model
+                                                                              .dDFimAnoValueController ??=
+                                                                          FormFieldController<
+                                                                              String>(
+                                                                        _model.dDFimAnoValue ??=
+                                                                            dateTimeFormat(
+                                                                          "yyyy",
+                                                                          getCurrentTimestamp,
+                                                                          locale:
+                                                                              FFLocalizations.of(context).languageCode,
+                                                                        ),
                                                                       ),
-                                                                    ),
-                                                                    options:
-                                                                        functions
-                                                                            .gerarAnos()!,
-                                                                    onChanged:
-                                                                        (val) async {
-                                                                      safeSetState(() =>
-                                                                          _model.dDFimAnoValue =
-                                                                              val);
-                                                                      safeSetState(
-                                                                          () {});
-                                                                    },
-                                                                    width:
-                                                                        156.0,
-                                                                    height:
-                                                                        48.0,
-                                                                    textStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .override(
-                                                                          font:
-                                                                              GoogleFonts.poppins(
+                                                                      options:
+                                                                          functions
+                                                                              .gerarAnos()!,
+                                                                      onChanged:
+                                                                          (val) async {
+                                                                        safeSetState(() =>
+                                                                            _model.dDFimAnoValue =
+                                                                                val);
+                                                                        safeSetState(
+                                                                            () {});
+                                                                      },
+                                                                      width:
+                                                                          156.0,
+                                                                      height:
+                                                                          48.0,
+                                                                      textStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
+                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                            letterSpacing:
+                                                                                0.0,
                                                                             fontWeight:
                                                                                 FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                             fontStyle:
                                                                                 FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                          fontWeight: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontWeight,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontStyle,
-                                                                        ),
-                                                                    hintText:
-                                                                        'Selecionar ano',
-                                                                    icon: Icon(
-                                                                      Icons
-                                                                          .keyboard_arrow_down_rounded,
-                                                                      color: FlutterFlowTheme.of(
+                                                                      hintText:
+                                                                          'Selecionar ano',
+                                                                      icon:
+                                                                          Icon(
+                                                                        Icons
+                                                                            .keyboard_arrow_down_rounded,
+                                                                        color: FlutterFlowTheme.of(context)
+                                                                            .secondaryText,
+                                                                        size:
+                                                                            24.0,
+                                                                      ),
+                                                                      elevation:
+                                                                          2.0,
+                                                                      borderColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .customColor2,
+                                                                      borderWidth:
+                                                                          0.0,
+                                                                      borderRadius:
+                                                                          8.0,
+                                                                      margin: const EdgeInsetsDirectional
+                                                                          .fromSTEB(
+                                                                          12.0,
+                                                                          0.0,
+                                                                          12.0,
+                                                                          0.0),
+                                                                      hidesUnderline:
+                                                                          true,
+                                                                      isOverButton:
+                                                                          false,
+                                                                      isSearchable:
+                                                                          false,
+                                                                      isMultiSelect:
+                                                                          false,
+                                                                    ),
+                                                                    FlutterFlowDropDown<
+                                                                        int>(
+                                                                      controller: _model
+                                                                              .dDFimMesValueController ??=
+                                                                          FormFieldController<
+                                                                              int>(
+                                                                        _model.dDFimMesValue ??=
+                                                                            12,
+                                                                      ),
+                                                                      options: List<
+                                                                          int>.from([
+                                                                        1,
+                                                                        2,
+                                                                        3,
+                                                                        4,
+                                                                        5,
+                                                                        6,
+                                                                        7,
+                                                                        8,
+                                                                        9,
+                                                                        10,
+                                                                        11,
+                                                                        12
+                                                                      ]),
+                                                                      optionLabels: const [
+                                                                        '1',
+                                                                        '2',
+                                                                        '3',
+                                                                        '4',
+                                                                        '5',
+                                                                        '6',
+                                                                        '7',
+                                                                        '8',
+                                                                        '9',
+                                                                        '10',
+                                                                        '11',
+                                                                        '12'
+                                                                      ],
+                                                                      onChanged:
+                                                                          (val) async {
+                                                                        safeSetState(() =>
+                                                                            _model.dDFimMesValue =
+                                                                                val);
+                                                                        safeSetState(
+                                                                            () {});
+                                                                      },
+                                                                      width:
+                                                                          80.0,
+                                                                      height:
+                                                                          48.0,
+                                                                      textStyle: FlutterFlowTheme.of(
                                                                               context)
-                                                                          .secondaryText,
-                                                                      size:
-                                                                          24.0,
-                                                                    ),
-                                                                    elevation:
-                                                                        2.0,
-                                                                    borderColor:
-                                                                        FlutterFlowTheme.of(context)
-                                                                            .customColor2,
-                                                                    borderWidth:
-                                                                        0.0,
-                                                                    borderRadius:
-                                                                        8.0,
-                                                                    margin: const EdgeInsetsDirectional
-                                                                        .fromSTEB(
-                                                                        12.0,
-                                                                        0.0,
-                                                                        12.0,
-                                                                        0.0),
-                                                                    hidesUnderline:
-                                                                        true,
-                                                                    isOverButton:
-                                                                        false,
-                                                                    isSearchable:
-                                                                        false,
-                                                                    isMultiSelect:
-                                                                        false,
-                                                                  ),
-                                                                  FlutterFlowDropDown<
-                                                                      int>(
-                                                                    controller: _model
-                                                                            .dDFimMesValueController ??=
-                                                                        FormFieldController<
-                                                                            int>(
-                                                                      _model.dDFimMesValue ??=
-                                                                          12,
-                                                                    ),
-                                                                    options: List<
-                                                                        int>.from([
-                                                                      1,
-                                                                      2,
-                                                                      3,
-                                                                      4,
-                                                                      5,
-                                                                      6,
-                                                                      7,
-                                                                      8,
-                                                                      9,
-                                                                      10,
-                                                                      11,
-                                                                      12
-                                                                    ]),
-                                                                    optionLabels: const [
-                                                                      '1',
-                                                                      '2',
-                                                                      '3',
-                                                                      '4',
-                                                                      '5',
-                                                                      '6',
-                                                                      '7',
-                                                                      '8',
-                                                                      '9',
-                                                                      '10',
-                                                                      '11',
-                                                                      '12'
-                                                                    ],
-                                                                    onChanged:
-                                                                        (val) async {
-                                                                      safeSetState(() =>
-                                                                          _model.dDFimMesValue =
-                                                                              val);
-                                                                      safeSetState(
-                                                                          () {});
-                                                                    },
-                                                                    width: 80.0,
-                                                                    height:
-                                                                        48.0,
-                                                                    textStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .override(
-                                                                          font:
-                                                                              GoogleFonts.poppins(
+                                                                          .bodyMedium
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
+                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            ),
+                                                                            letterSpacing:
+                                                                                0.0,
                                                                             fontWeight:
                                                                                 FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                             fontStyle:
                                                                                 FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                          fontWeight: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontWeight,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontStyle,
-                                                                        ),
-                                                                    hintText:
-                                                                        'Mês',
-                                                                    icon: Icon(
-                                                                      Icons
-                                                                          .keyboard_arrow_down_rounded,
-                                                                      color: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .secondaryText,
-                                                                      size:
-                                                                          24.0,
+                                                                      hintText:
+                                                                          'Mês',
+                                                                      icon:
+                                                                          Icon(
+                                                                        Icons
+                                                                            .keyboard_arrow_down_rounded,
+                                                                        color: FlutterFlowTheme.of(context)
+                                                                            .secondaryText,
+                                                                        size:
+                                                                            24.0,
+                                                                      ),
+                                                                      elevation:
+                                                                          2.0,
+                                                                      borderColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .customColor2,
+                                                                      borderWidth:
+                                                                          0.0,
+                                                                      borderRadius:
+                                                                          8.0,
+                                                                      margin: const EdgeInsetsDirectional
+                                                                          .fromSTEB(
+                                                                          12.0,
+                                                                          0.0,
+                                                                          12.0,
+                                                                          0.0),
+                                                                      hidesUnderline:
+                                                                          true,
+                                                                      isOverButton:
+                                                                          false,
+                                                                      isSearchable:
+                                                                          false,
+                                                                      isMultiSelect:
+                                                                          false,
                                                                     ),
-                                                                    elevation:
-                                                                        2.0,
-                                                                    borderColor:
-                                                                        FlutterFlowTheme.of(context)
-                                                                            .customColor2,
-                                                                    borderWidth:
-                                                                        0.0,
-                                                                    borderRadius:
-                                                                        8.0,
-                                                                    margin: const EdgeInsetsDirectional
-                                                                        .fromSTEB(
-                                                                        12.0,
-                                                                        0.0,
-                                                                        12.0,
-                                                                        0.0),
-                                                                    hidesUnderline:
-                                                                        true,
-                                                                    isOverButton:
-                                                                        false,
-                                                                    isSearchable:
-                                                                        false,
-                                                                    isMultiSelect:
-                                                                        false,
-                                                                  ),
-                                                                ].divide(
-                                                                    const SizedBox(
-                                                                        width:
-                                                                            8.0)),
-                                                              ),
-                                                            ].divide(
-                                                                const SizedBox(
-                                                                    height:
-                                                                        4.0)),
-                                                          ),
-                                                        ].divide(const SizedBox(
-                                                            width: 8.0)),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                Builder(
-                                                  builder: (context) =>
-                                                      FFButtonWidget(
-                                                    onPressed: () async {
-                                                      await showAlignedDialog(
-                                                        barrierColor:
-                                                            Colors.transparent,
-                                                        context: context,
-                                                        isGlobal: false,
-                                                        avoidOverflow: true,
-                                                        targetAnchor:
-                                                            const AlignmentDirectional(
-                                                                    1.0, 1.0)
-                                                                .resolve(
-                                                                    Directionality.of(
-                                                                        context)),
-                                                        followerAnchor:
-                                                            const AlignmentDirectional(
-                                                                    1.0, -1.0)
-                                                                .resolve(
-                                                                    Directionality.of(
-                                                                        context)),
-                                                        builder:
-                                                            (dialogContext) {
-                                                          return Material(
-                                                            color: Colors
-                                                                .transparent,
-                                                            child:
-                                                                GestureDetector(
-                                                              onTap: () {
-                                                                FocusScope.of(
-                                                                        dialogContext)
-                                                                    .unfocus();
-                                                                FocusManager
-                                                                    .instance
-                                                                    .primaryFocus
-                                                                    ?.unfocus();
-                                                              },
-                                                              child:
-                                                                  const SubMenuPainelImportarWidget(),
-                                                            ),
-                                                          );
-                                                        },
-                                                      );
-                                                    },
-                                                    text: 'Importar',
-                                                    icon: const Icon(
-                                                      Icons
-                                                          .keyboard_arrow_down_sharp,
-                                                      size: 24.0,
-                                                    ),
-                                                    options: FFButtonOptions(
-                                                      width: 150.0,
-                                                      height: 48.0,
-                                                      padding:
-                                                          const EdgeInsetsDirectional
-                                                              .fromSTEB(16.0,
-                                                              0.0, 16.0, 0.0),
-                                                      iconAlignment:
-                                                          IconAlignment.end,
-                                                      iconPadding:
-                                                          const EdgeInsetsDirectional
-                                                              .fromSTEB(0.0,
-                                                              0.0, 0.0, 0.0),
-                                                      color: FlutterFlowTheme
-                                                              .of(context)
-                                                          .secondaryBackground,
-                                                      textStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .override(
-                                                                font: GoogleFonts
-                                                                    .poppins(
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .titleSmall
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .titleSmall
-                                                                      .fontStyle,
+                                                                  ].divide(
+                                                                      const SizedBox(
+                                                                          width:
+                                                                              8.0)),
                                                                 ),
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .secondary,
-                                                                fontSize: 18.0,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmall
-                                                                    .fontWeight,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmall
-                                                                    .fontStyle,
-                                                              ),
-                                                      elevation: 0.0,
-                                                      borderSide: BorderSide(
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .secondary,
-                                                      ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6.0),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Builder(
-                                                  builder: (context) =>
-                                                      FFButtonWidget(
-                                                    onPressed: () async {
-                                                      await showAlignedDialog(
-                                                        barrierColor:
-                                                            Colors.transparent,
-                                                        context: context,
-                                                        isGlobal: false,
-                                                        avoidOverflow: true,
-                                                        targetAnchor:
-                                                            const AlignmentDirectional(
-                                                                    1.0, 1.0)
-                                                                .resolve(
-                                                                    Directionality.of(
-                                                                        context)),
-                                                        followerAnchor:
-                                                            const AlignmentDirectional(
-                                                                    1.0, -1.0)
-                                                                .resolve(
-                                                                    Directionality.of(
-                                                                        context)),
-                                                        builder:
-                                                            (dialogContext) {
-                                                          return Material(
-                                                            color: Colors
-                                                                .transparent,
-                                                            child:
-                                                                GestureDetector(
-                                                              onTap: () {
-                                                                FocusScope.of(
-                                                                        dialogContext)
-                                                                    .unfocus();
-                                                                FocusManager
-                                                                    .instance
-                                                                    .primaryFocus
-                                                                    ?.unfocus();
-                                                              },
-                                                              child:
-                                                                  const SubMenuPainelExportarWidget(),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          4.0)),
                                                             ),
-                                                          );
-                                                        },
-                                                      );
-                                                    },
-                                                    text: 'Exportar',
-                                                    icon: const Icon(
-                                                      Icons
-                                                          .keyboard_arrow_down_sharp,
-                                                      size: 24.0,
-                                                    ),
-                                                    options: FFButtonOptions(
-                                                      width: 150.0,
-                                                      height: 48.0,
-                                                      padding:
-                                                          const EdgeInsetsDirectional
-                                                              .fromSTEB(16.0,
-                                                              0.0, 16.0, 0.0),
-                                                      iconAlignment:
-                                                          IconAlignment.end,
-                                                      iconPadding:
-                                                          const EdgeInsetsDirectional
-                                                              .fromSTEB(0.0,
-                                                              0.0, 0.0, 0.0),
-                                                      color: FlutterFlowTheme
-                                                              .of(context)
-                                                          .secondaryBackground,
-                                                      textStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .override(
-                                                                font: GoogleFonts
-                                                                    .poppins(
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .titleSmall
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .titleSmall
-                                                                      .fontStyle,
-                                                                ),
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .secondary,
-                                                                fontSize: 18.0,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmall
-                                                                    .fontWeight,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmall
-                                                                    .fontStyle,
-                                                              ),
-                                                      elevation: 0.0,
-                                                      borderSide: BorderSide(
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .secondary,
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 8.0)),
+                                                        ),
                                                       ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6.0),
                                                     ),
-                                                  ),
-                                                ),
-                                                if (responsiveVisibility(
-                                                  context: context,
-                                                  phone: false,
-                                                  tablet: false,
-                                                  tabletLandscape: false,
-                                                  desktop: false,
-                                                ))
                                                   Builder(
                                                     builder: (context) =>
-                                                        InkWell(
-                                                      splashColor:
-                                                          Colors.transparent,
-                                                      focusColor:
-                                                          Colors.transparent,
-                                                      hoverColor:
-                                                          Colors.transparent,
-                                                      highlightColor:
-                                                          Colors.transparent,
-                                                      onTap: () async {
-                                                        await showDialog(
+                                                        FFButtonWidget(
+                                                      onPressed: () async {
+                                                        await showAlignedDialog(
+                                                          barrierColor: Colors
+                                                              .transparent,
                                                           context: context,
-                                                          builder:
-                                                              (dialogContext) {
-                                                            return Dialog(
-                                                              elevation: 0,
-                                                              insetPadding:
-                                                                  EdgeInsets
-                                                                      .zero,
-                                                              backgroundColor:
-                                                                  Colors
-                                                                      .transparent,
-                                                              alignment: const AlignmentDirectional(
-                                                                      0.0, 0.0)
+                                                          isGlobal: false,
+                                                          avoidOverflow: true,
+                                                          targetAnchor:
+                                                              const AlignmentDirectional(
+                                                                      1.0, 1.0)
                                                                   .resolve(
                                                                       Directionality.of(
                                                                           context)),
+                                                          followerAnchor:
+                                                              const AlignmentDirectional(
+                                                                      1.0, -1.0)
+                                                                  .resolve(
+                                                                      Directionality.of(
+                                                                          context)),
+                                                          builder:
+                                                              (dialogContext) {
+                                                            return Material(
+                                                              color: Colors
+                                                                  .transparent,
                                                               child:
                                                                   GestureDetector(
                                                                 onTap: () {
@@ -969,32 +726,277 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       ?.unfocus();
                                                                 },
                                                                 child:
-                                                                    const PpInstrucoesImportacaoWidget(),
+                                                                    const SubMenuPainelImportarWidget(),
                                                               ),
                                                             );
                                                           },
                                                         );
                                                       },
-                                                      child: Row(
-                                                        mainAxisSize:
-                                                            MainAxisSize.max,
-                                                        children: [
-                                                          FaIcon(
-                                                            FontAwesomeIcons
-                                                                .questionCircle,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .icon,
-                                                            size: 24.0,
-                                                          ),
-                                                          Text(
-                                                            'Instruções para importar',
-                                                            style: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMedium
+                                                      text: 'Importar',
+                                                      icon: const Icon(
+                                                        Icons
+                                                            .keyboard_arrow_down_sharp,
+                                                        size: 24.0,
+                                                      ),
+                                                      options: FFButtonOptions(
+                                                        width: 150.0,
+                                                        height: 48.0,
+                                                        padding:
+                                                            const EdgeInsetsDirectional
+                                                                .fromSTEB(16.0,
+                                                                0.0, 16.0, 0.0),
+                                                        iconAlignment:
+                                                            IconAlignment.end,
+                                                        iconPadding:
+                                                            const EdgeInsetsDirectional
+                                                                .fromSTEB(0.0,
+                                                                0.0, 0.0, 0.0),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
+                                                        textStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .titleSmall
                                                                 .override(
                                                                   font: GoogleFonts
                                                                       .poppins(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .titleSmall
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .titleSmall
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .secondary,
+                                                                  fontSize:
+                                                                      18.0,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontStyle,
+                                                                ),
+                                                        elevation: 0.0,
+                                                        borderSide: BorderSide(
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondary,
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(6.0),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Builder(
+                                                    builder: (context) =>
+                                                        FFButtonWidget(
+                                                      onPressed: () async {
+                                                        await showAlignedDialog(
+                                                          barrierColor: Colors
+                                                              .transparent,
+                                                          context: context,
+                                                          isGlobal: false,
+                                                          avoidOverflow: true,
+                                                          targetAnchor:
+                                                              const AlignmentDirectional(
+                                                                      1.0, 1.0)
+                                                                  .resolve(
+                                                                      Directionality.of(
+                                                                          context)),
+                                                          followerAnchor:
+                                                              const AlignmentDirectional(
+                                                                      1.0, -1.0)
+                                                                  .resolve(
+                                                                      Directionality.of(
+                                                                          context)),
+                                                          builder:
+                                                              (dialogContext) {
+                                                            return Material(
+                                                              color: Colors
+                                                                  .transparent,
+                                                              child:
+                                                                  GestureDetector(
+                                                                onTap: () {
+                                                                  FocusScope.of(
+                                                                          dialogContext)
+                                                                      .unfocus();
+                                                                  FocusManager
+                                                                      .instance
+                                                                      .primaryFocus
+                                                                      ?.unfocus();
+                                                                },
+                                                                child:
+                                                                    const SubMenuPainelExportarWidget(),
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                      text: 'Exportar',
+                                                      icon: const Icon(
+                                                        Icons
+                                                            .keyboard_arrow_down_sharp,
+                                                        size: 24.0,
+                                                      ),
+                                                      options: FFButtonOptions(
+                                                        width: 150.0,
+                                                        height: 48.0,
+                                                        padding:
+                                                            const EdgeInsetsDirectional
+                                                                .fromSTEB(16.0,
+                                                                0.0, 16.0, 0.0),
+                                                        iconAlignment:
+                                                            IconAlignment.end,
+                                                        iconPadding:
+                                                            const EdgeInsetsDirectional
+                                                                .fromSTEB(0.0,
+                                                                0.0, 0.0, 0.0),
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
+                                                        textStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .titleSmall
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .titleSmall
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .titleSmall
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .secondary,
+                                                                  fontSize:
+                                                                      18.0,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontStyle,
+                                                                ),
+                                                        elevation: 0.0,
+                                                        borderSide: BorderSide(
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondary,
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(6.0),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  if (responsiveVisibility(
+                                                    context: context,
+                                                    phone: false,
+                                                    tablet: false,
+                                                    tabletLandscape: false,
+                                                    desktop: false,
+                                                  ))
+                                                    Builder(
+                                                      builder: (context) =>
+                                                          InkWell(
+                                                        splashColor:
+                                                            Colors.transparent,
+                                                        focusColor:
+                                                            Colors.transparent,
+                                                        hoverColor:
+                                                            Colors.transparent,
+                                                        highlightColor:
+                                                            Colors.transparent,
+                                                        onTap: () async {
+                                                          await showDialog(
+                                                            context: context,
+                                                            builder:
+                                                                (dialogContext) {
+                                                              return Dialog(
+                                                                elevation: 0,
+                                                                insetPadding:
+                                                                    EdgeInsets
+                                                                        .zero,
+                                                                backgroundColor:
+                                                                    Colors
+                                                                        .transparent,
+                                                                alignment: const AlignmentDirectional(
+                                                                        0.0,
+                                                                        0.0)
+                                                                    .resolve(
+                                                                        Directionality.of(
+                                                                            context)),
+                                                                child:
+                                                                    GestureDetector(
+                                                                  onTap: () {
+                                                                    FocusScope.of(
+                                                                            dialogContext)
+                                                                        .unfocus();
+                                                                    FocusManager
+                                                                        .instance
+                                                                        .primaryFocus
+                                                                        ?.unfocus();
+                                                                  },
+                                                                  child:
+                                                                      const PpInstrucoesImportacaoWidget(),
+                                                                ),
+                                                              );
+                                                            },
+                                                          );
+                                                        },
+                                                        child: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.max,
+                                                          children: [
+                                                            FaIcon(
+                                                              FontAwesomeIcons
+                                                                  .questionCircle,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .icon,
+                                                              size: 24.0,
+                                                            ),
+                                                            Text(
+                                                              'Instruções para importar',
+                                                              style: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
+                                                                      fontWeight: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontWeight,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                    fontSize:
+                                                                        12.0,
+                                                                    letterSpacing:
+                                                                        0.0,
                                                                     fontWeight: FlutterFlowTheme.of(
                                                                             context)
                                                                         .bodyMedium
@@ -1004,30 +1006,18 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         .bodyMedium
                                                                         .fontStyle,
                                                                   ),
-                                                                  fontSize:
-                                                                      12.0,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                          ),
-                                                        ].divide(const SizedBox(
-                                                            width: 4.0)),
+                                                            ),
+                                                          ].divide(
+                                                              const SizedBox(
+                                                                  width: 4.0)),
+                                                        ),
                                                       ),
                                                     ),
-                                                  ),
-                                              ].divide(
-                                                  const SizedBox(width: 16.0)),
-                                            ),
-                                          ],
-                                        ),
+                                                ].divide(const SizedBox(
+                                                    width: 16.0)),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -2297,21 +2287,33 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       '01',
                                                                     )}-01',
                                                                     fim: () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimAnoValue,
-                                                                        '2025',
-                                                                      )) ?? 2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimMesValue?.toString(),
-                                                                        '12',
-                                                                      )) ?? 12;
+                                                                      final ano = int.tryParse(
+                                                                              valueOrDefault<String>(
+                                                                            _model.dDFimAnoValue,
+                                                                            '2025',
+                                                                          )) ??
+                                                                          2025;
+                                                                      final mes =
+                                                                          int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDFimMesValue?.toString(),
+                                                                                '12',
+                                                                              )) ??
+                                                                              12;
                                                                       // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      final ultimoDia = DateTime(
+                                                                              ano,
+                                                                              mes + 1,
+                                                                              0)
+                                                                          .day;
                                                                       return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                     }(),
-                                                                    sexo: _model.filtroSexoIdadeDesmamaValues.isEmpty || _model.filtroSexoIdadeDesmamaValues.length == 2
+                                                                    sexo: _model.filtroSexoIdadeDesmamaValues.isEmpty ||
+                                                                            _model.filtroSexoIdadeDesmamaValues.length ==
+                                                                                2
                                                                         ? 'T'
-                                                                        : _model.filtroSexoIdadeDesmamaValues.first,
+                                                                        : _model
+                                                                            .filtroSexoIdadeDesmamaValues
+                                                                            .first,
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -2403,8 +2405,14 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                     context,
                                                                                     label: 'Sexo',
                                                                                     selectedValues: _model.filtroSexoIdadeDesmamaValues,
-                                                                                    options: const ['M', 'F'],
-                                                                                    optionLabels: const ['Macho', 'Fêmea'],
+                                                                                    options: const [
+                                                                                      'M',
+                                                                                      'F'
+                                                                                    ],
+                                                                                    optionLabels: const [
+                                                                                      'Macho',
+                                                                                      'Fêmea'
+                                                                                    ],
                                                                                     onChanged: (vals) {
                                                                                       safeSetState(() {
                                                                                         _model.filtroSexoIdadeDesmamaValues = vals;
@@ -2457,21 +2465,33 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       '01',
                                                                     )}-01',
                                                                     fim: () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimAnoValue,
-                                                                        '2025',
-                                                                      )) ?? 2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimMesValue?.toString(),
-                                                                        '12',
-                                                                      )) ?? 12;
+                                                                      final ano = int.tryParse(
+                                                                              valueOrDefault<String>(
+                                                                            _model.dDFimAnoValue,
+                                                                            '2025',
+                                                                          )) ??
+                                                                          2025;
+                                                                      final mes =
+                                                                          int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDFimMesValue?.toString(),
+                                                                                '12',
+                                                                              )) ??
+                                                                              12;
                                                                       // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      final ultimoDia = DateTime(
+                                                                              ano,
+                                                                              mes + 1,
+                                                                              0)
+                                                                          .day;
                                                                       return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                     }(),
-                                                                    sexo: _model.filtroSexoPesoDesmamaValues.isEmpty || _model.filtroSexoPesoDesmamaValues.length == 2
+                                                                    sexo: _model.filtroSexoPesoDesmamaValues.isEmpty ||
+                                                                            _model.filtroSexoPesoDesmamaValues.length ==
+                                                                                2
                                                                         ? 'T'
-                                                                        : _model.filtroSexoPesoDesmamaValues.first,
+                                                                        : _model
+                                                                            .filtroSexoPesoDesmamaValues
+                                                                            .first,
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -2563,8 +2583,14 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                     context,
                                                                                     label: 'Sexo',
                                                                                     selectedValues: _model.filtroSexoPesoDesmamaValues,
-                                                                                    options: const ['M', 'F'],
-                                                                                    optionLabels: const ['Macho', 'Fêmea'],
+                                                                                    options: const [
+                                                                                      'M',
+                                                                                      'F'
+                                                                                    ],
+                                                                                    optionLabels: const [
+                                                                                      'Macho',
+                                                                                      'Fêmea'
+                                                                                    ],
                                                                                     onChanged: (vals) {
                                                                                       safeSetState(() {
                                                                                         _model.filtroSexoPesoDesmamaValues = vals;
@@ -2648,8 +2674,12 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
-                                                                    raca: _model.filtroRacaNascimentoValues.isNotEmpty
-                                                                        ? _model.filtroRacaNascimentoValues.join(',')
+                                                                    raca: _model
+                                                                            .filtroRacaNascimentoValues
+                                                                            .isNotEmpty
+                                                                        ? _model
+                                                                            .filtroRacaNascimentoValues
+                                                                            .join(',')
                                                                         : '',
                                                                   ),
                                                                   builder: (context,
@@ -2833,8 +2863,12 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
-                                                                    causa: _model.filtroMotivoMorteMortalidadeValues.isNotEmpty
-                                                                        ? _model.filtroMotivoMorteMortalidadeValues.join(',')
+                                                                    causa: _model
+                                                                            .filtroMotivoMorteMortalidadeValues
+                                                                            .isNotEmpty
+                                                                        ? _model
+                                                                            .filtroMotivoMorteMortalidadeValues
+                                                                            .join(',')
                                                                         : '',
                                                                   ),
                                                                   builder: (context,
@@ -3050,16 +3084,24 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       1,
                                                                     ).toString().padLeft(2, '0')}-01',
                                                                     fim: () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimAnoValue,
-                                                                        '2025',
-                                                                      )) ?? 2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimMesValue?.toString(),
-                                                                        '12',
-                                                                      )) ?? 12;
+                                                                      final ano = int.tryParse(
+                                                                              valueOrDefault<String>(
+                                                                            _model.dDFimAnoValue,
+                                                                            '2025',
+                                                                          )) ??
+                                                                          2025;
+                                                                      final mes =
+                                                                          int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDFimMesValue?.toString(),
+                                                                                '12',
+                                                                              )) ??
+                                                                              12;
                                                                       // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      final ultimoDia = DateTime(
+                                                                              ano,
+                                                                              mes + 1,
+                                                                              0)
+                                                                          .day;
                                                                       return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                     }(),
                                                                     idPropriedade:
@@ -3234,9 +3276,13 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .idPropriedade,
                                                                     agrupar:
                                                                         'mes',
-                                                                    sexo: _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2
+                                                                    sexo: _model.filtroSexoProjDesmamaValues.isEmpty ||
+                                                                            _model.filtroSexoProjDesmamaValues.length ==
+                                                                                2
                                                                         ? 'Todos'
-                                                                        : _model.filtroSexoProjDesmamaValues.first,
+                                                                        : _model
+                                                                            .filtroSexoProjDesmamaValues
+                                                                            .first,
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -3330,9 +3376,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 ) ??
                                                                                                 containerProjecaoDesmamasResponse.jsonBody,
                                                                                             _model.ddMesesValue ?? '6',
-                                                                                            _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2
-                                                                                                ? 'Todos'
-                                                                                                : _model.filtroSexoProjDesmamaValues.first,
+                                                                                            _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2 ? 'Todos' : _model.filtroSexoProjDesmamaValues.first,
                                                                                           ),
                                                                                         ),
                                                                                       ],
@@ -3342,8 +3386,14 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                     context,
                                                                                     label: 'Sexo',
                                                                                     selectedValues: _model.filtroSexoProjDesmamaValues,
-                                                                                    options: const ['Macho', 'Fêmea'],
-                                                                                    optionLabels: const ['Macho', 'Fêmea'],
+                                                                                    options: const [
+                                                                                      'Macho',
+                                                                                      'Fêmea'
+                                                                                    ],
+                                                                                    optionLabels: const [
+                                                                                      'Macho',
+                                                                                      'Fêmea'
+                                                                                    ],
                                                                                     onChanged: (vals) {
                                                                                       safeSetState(() {
                                                                                         _model.filtroSexoProjDesmamaValues = vals;
@@ -3359,8 +3409,16 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                     context,
                                                                                     label: 'Meses',
                                                                                     selectedValue: _model.ddMesesValue,
-                                                                                    options: const ['6', '7', '8'],
-                                                                                    optionLabels: const ['6 meses', '7 meses', '8 meses'],
+                                                                                    options: const [
+                                                                                      '6',
+                                                                                      '7',
+                                                                                      '8'
+                                                                                    ],
+                                                                                    optionLabels: const [
+                                                                                      '6 meses',
+                                                                                      '7 meses',
+                                                                                      '8 meses'
+                                                                                    ],
                                                                                     onChanged: (val) {
                                                                                       safeSetState(() {
                                                                                         _model.ddMesesValue = val;
@@ -3389,9 +3447,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 containerProjecaoDesmamasResponse.jsonBody,
                                                                                               ) ??
                                                                                               containerProjecaoDesmamasResponse.jsonBody,
-                                                                                          filtroSexo: _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2
-                                                                                              ? 'Todos'
-                                                                                              : _model.filtroSexoProjDesmamaValues.first,
+                                                                                          filtroSexo: _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2 ? 'Todos' : _model.filtroSexoProjDesmamaValues.first,
                                                                                           filtroIdadeMeses: _model.ddMesesValue,
                                                                                         )
                                                                                       : Center(
@@ -3503,17 +3559,26 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .idPropriedade,
                                                                     dataInicio:
                                                                         '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
-                                                                    dataFim: () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimAnoValue,
-                                                                        '2025',
-                                                                      )) ?? 2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimMesValue?.toString(),
-                                                                        '12',
-                                                                      )) ?? 12;
+                                                                    dataFim:
+                                                                        () {
+                                                                      final ano = int.tryParse(
+                                                                              valueOrDefault<String>(
+                                                                            _model.dDFimAnoValue,
+                                                                            '2025',
+                                                                          )) ??
+                                                                          2025;
+                                                                      final mes =
+                                                                          int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDFimMesValue?.toString(),
+                                                                                '12',
+                                                                              )) ??
+                                                                              12;
                                                                       // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      final ultimoDia = DateTime(
+                                                                              ano,
+                                                                              mes + 1,
+                                                                              0)
+                                                                          .day;
                                                                       return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                     }(),
                                                                   ),
@@ -3636,17 +3701,26 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .idPropriedade,
                                                                     dataInicio:
                                                                         '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
-                                                                    dataFim: () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimAnoValue,
-                                                                        '2025',
-                                                                      )) ?? 2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimMesValue?.toString(),
-                                                                        '12',
-                                                                      )) ?? 12;
+                                                                    dataFim:
+                                                                        () {
+                                                                      final ano = int.tryParse(
+                                                                              valueOrDefault<String>(
+                                                                            _model.dDFimAnoValue,
+                                                                            '2025',
+                                                                          )) ??
+                                                                          2025;
+                                                                      final mes =
+                                                                          int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDFimMesValue?.toString(),
+                                                                                '12',
+                                                                              )) ??
+                                                                              12;
                                                                       // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                      final ultimoDia = DateTime(
+                                                                              ano,
+                                                                              mes + 1,
+                                                                              0)
+                                                                          .day;
                                                                       return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                     }(),
                                                                   ),
@@ -3786,19 +3860,19 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   future: () {
                                                                     final taxaPrenhezKey =
                                                                         'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}';
-                                                                    if (_model.taxaPrenhezFutureKey !=
+                                                                    if (_model
+                                                                            .taxaPrenhezFutureKey !=
                                                                         taxaPrenhezKey) {
                                                                       _model.taxaPrenhezFutureKey =
                                                                           taxaPrenhezKey;
-                                                                      _model.taxaPrenhezFuture =
-                                                                          SupabaseEdgeGroup
-                                                                              .taxaPrenhezGetCall
-                                                                              .call(
-                                                                        idPropriedade:
-                                                                            FFAppState()
-                                                                                .propriedadeSelecionada
-                                                                                .idPropriedade,
-                                                                        dataInicio: () {
+                                                                      _model.taxaPrenhezFuture = SupabaseEdgeGroup
+                                                                          .taxaPrenhezGetCall
+                                                                          .call(
+                                                                        idPropriedade: FFAppState()
+                                                                            .propriedadeSelecionada
+                                                                            .idPropriedade,
+                                                                        dataInicio:
+                                                                            () {
                                                                           final ano = int.tryParse(valueOrDefault<String>(
                                                                                 _model.dDInicioAnoValue,
                                                                                 '2025',
@@ -3811,26 +3885,32 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               1;
                                                                           return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
                                                                         }(),
-                                                                        dataFim: () {
+                                                                        dataFim:
+                                                                            () {
                                                                           final ano = int.tryParse(valueOrDefault<String>(
-                                                                            _model.dDFimAnoValue,
-                                                                            '2025',
-                                                                          )) ?? 2025;
+                                                                                _model.dDFimAnoValue,
+                                                                                '2025',
+                                                                              )) ??
+                                                                              2025;
                                                                           final mes = int.tryParse(valueOrDefault<String>(
-                                                                            _model.dDFimMesValue?.toString(),
-                                                                            '12',
-                                                                          )) ?? 12;
+                                                                                _model.dDFimMesValue?.toString(),
+                                                                                '12',
+                                                                              )) ??
+                                                                              12;
                                                                           // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                          final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                          final ultimoDia =
+                                                                              DateTime(ano, mes + 1, 0).day;
                                                                           return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                         }(),
                                                                         pLoteId: _model
-                                                                            .filtroLoteTaxaConcepcaoValues.join(','),
-                                                                        pIdRebanhoReprodutor:
-                                                                            _model
-                                                                                .filtroTouroTaxaConcepcaoValues.join(','),
+                                                                            .filtroLoteTaxaConcepcaoValues
+                                                                            .join(','),
+                                                                        pIdRebanhoReprodutor: _model
+                                                                            .filtroTouroTaxaConcepcaoValues
+                                                                            .join(','),
                                                                         pInseminador: _model
-                                                                            .filtroInseminadorTaxaConcepcaoValues.join(','),
+                                                                            .filtroInseminadorTaxaConcepcaoValues
+                                                                            .join(','),
                                                                       );
                                                                     }
                                                                     return _model
@@ -3839,33 +3919,53 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   builder: (context,
                                                                       snapshot) {
                                                                     // Não mostrar loading no container inteiro, apenas no gráfico
-                                                                    final isLoading = snapshot.connectionState == ConnectionState.waiting || !snapshot.hasData;
-                                                                    final containerTaxaPrenhezGetResponse = snapshot.hasData ? snapshot.data! : null;
+                                                                    final isLoading = snapshot.connectionState ==
+                                                                            ConnectionState
+                                                                                .waiting ||
+                                                                        !snapshot
+                                                                            .hasData;
+                                                                    final containerTaxaPrenhezGetResponse = snapshot
+                                                                            .hasData
+                                                                        ? snapshot
+                                                                            .data!
+                                                                        : null;
 
-                                                                    final dataInicioStr = () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
+                                                                    final dataInicioStr =
+                                                                        () {
+                                                                      final ano = int.tryParse(
+                                                                              valueOrDefault<String>(
                                                                             _model.dDInicioAnoValue,
                                                                             '2025',
                                                                           )) ??
                                                                           2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                            _model.dDInicioMesValue?.toString(),
-                                                                            '1',
-                                                                          )) ??
-                                                                          1;
+                                                                      final mes =
+                                                                          int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDInicioMesValue?.toString(),
+                                                                                '1',
+                                                                              )) ??
+                                                                              1;
                                                                       return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
                                                                     }();
 
-                                                                    final dataFimStr = () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimAnoValue,
-                                                                        '2025',
-                                                                      )) ?? 2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimMesValue?.toString(),
-                                                                        '12',
-                                                                      )) ?? 12;
-                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                    final dataFimStr =
+                                                                        () {
+                                                                      final ano = int.tryParse(
+                                                                              valueOrDefault<String>(
+                                                                            _model.dDFimAnoValue,
+                                                                            '2025',
+                                                                          )) ??
+                                                                          2025;
+                                                                      final mes =
+                                                                          int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDFimMesValue?.toString(),
+                                                                                '12',
+                                                                              )) ??
+                                                                              12;
+                                                                      final ultimoDia = DateTime(
+                                                                              ano,
+                                                                              mes + 1,
+                                                                              0)
+                                                                          .day;
                                                                       return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                     }();
 
@@ -3942,222 +4042,52 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                     runSpacing: 8.0,
                                                                                     children: [
                                                                                       FutureBuilder<List<dynamic>>(
-                                                                                              key: ValueKey('lotes_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
-                                                                                              future: () {
-                                                                                                final dataInicioFiltro = () {
-                                                                                                  final ano = int.tryParse(valueOrDefault<String>(
-                                                                                                        _model.dDInicioAnoValue,
-                                                                                                        '2025',
-                                                                                                      )) ??
-                                                                                                      2025;
-                                                                                                  final mes = int.tryParse(valueOrDefault<String>(
-                                                                                                        _model.dDInicioMesValue?.toString(),
-                                                                                                        '1',
-                                                                                                      )) ??
-                                                                                                      1;
-                                                                                                  return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
-                                                                                                }();
+                                                                                        key: ValueKey('lotes_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
+                                                                                        future: () {
+                                                                                          final dataInicioFiltro = () {
+                                                                                            final ano = int.tryParse(valueOrDefault<String>(
+                                                                                                  _model.dDInicioAnoValue,
+                                                                                                  '2025',
+                                                                                                )) ??
+                                                                                                2025;
+                                                                                            final mes = int.tryParse(valueOrDefault<String>(
+                                                                                                  _model.dDInicioMesValue?.toString(),
+                                                                                                  '1',
+                                                                                                )) ??
+                                                                                                1;
+                                                                                            return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
+                                                                                          }();
 
-                                                                                                final dataFimFiltro = () {
-                                                                                                  final ano = int.tryParse(valueOrDefault<String>(
-                                                                                                        _model.dDFimAnoValue,
-                                                                                                        '2025',
-                                                                                                      )) ??
-                                                                                                      2025;
-                                                                                                  final mes = int.tryParse(valueOrDefault<String>(
-                                                                                                        _model.dDFimMesValue?.toString(),
-                                                                                                        '12',
-                                                                                                      )) ??
-                                                                                                      12;
-                                                                                                  final ultimoDia = DateTime(ano, mes + 1, 0).day;
-                                                                                                  return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                                                }();
+                                                                                          final dataFimFiltro = () {
+                                                                                            final ano = int.tryParse(valueOrDefault<String>(
+                                                                                                  _model.dDFimAnoValue,
+                                                                                                  '2025',
+                                                                                                )) ??
+                                                                                                2025;
+                                                                                            final mes = int.tryParse(valueOrDefault<String>(
+                                                                                                  _model.dDFimMesValue?.toString(),
+                                                                                                  '12',
+                                                                                                )) ??
+                                                                                                12;
+                                                                                            final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                                            return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                                          }();
 
-                                                                                                return Future.wait([
-                                                                                                  ReproducaoTable().queryRows(
-                                                                                                    queryFn: (q) => q
-                                                                                                        .eqOrNull(
-                                                                                                          'id_propriedade',
-                                                                                                          FFAppState().propriedadeSelecionada.idPropriedade,
-                                                                                                        )
-                                                                                                        .eqOrNull(
-                                                                                                          'deletado',
-                                                                                                          'NAO',
-                                                                                                        )
-                                                                                                        .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
-                                                                                                    limit: 5000,
-                                                                                                  ),
-                                                                                                  LotesTable().queryRows(
-                                                                                                    queryFn: (q) => q
-                                                                                                        .eqOrNull(
-                                                                                                          'id_propriedade',
-                                                                                                          FFAppState().propriedadeSelecionada.idPropriedade,
-                                                                                                        )
-                                                                                                        .eqOrNull(
-                                                                                                          'deletado',
-                                                                                                          'NAO',
-                                                                                                        ),
-                                                                                                    limit: 5000,
-                                                                                                  ),
-                                                                                                ]);
-                                                                                              }(),
-                                                                                              builder: (context, lotesSnapshot) {
-                                                                                                if (!lotesSnapshot.hasData) {
-                                                                                                  return const SizedBox(
-                                                                                                    height: 48.0,
-                                                                                                    child: Center(
-                                                                                                      child: SizedBox(
-                                                                                                        width: 20.0,
-                                                                                                        height: 20.0,
-                                                                                                        child: CircularProgressIndicator(strokeWidth: 2.0),
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                  );
-                                                                                                }
-                                                                                                final reproRows = lotesSnapshot.data![0] as List<ReproducaoRow>;
-                                                                                                final lotesRows = lotesSnapshot.data![1] as List<LotesRow>;
-
-                                                                                                final lotesComReproducao = reproRows
-                                                                                                    .map((e) => e.idLote)
-                                                                                                    .withoutNulls
-                                                                                                    .map((e) => e.trim())
-                                                                                                    .where((e) => e.isNotEmpty)
-                                                                                                    .toSet();
-
-                                                                                                final lotes = lotesRows
-                                                                                                  .where((e) {
-                                                                                                    final idLote = e.idLote?.trim();
-                                                                                                    return idLote != null &&
-                                                                                                      idLote.isNotEmpty &&
-                                                                                                      lotesComReproducao.contains(idLote);
-                                                                                                  })
-                                                                                                  .toList();
-
-                                                                                                final loteOptions = lotes.map((e) => e.idLote?.trim() ?? '').where((e) => e.isNotEmpty).toList();
-                                                                                                final loteLabels = lotes.map((e) => e.nome?.trim() ?? '').where((e) => e.isNotEmpty).toList();
-
-                                                                                                return _buildMultiFilterChip(
-                                                                                                  context,
-                                                                                                  label: 'Lote',
-                                                                                                  selectedValues: _model.filtroLoteTaxaConcepcaoValues,
-                                                                                                  options: loteOptions,
-                                                                                                  optionLabels: loteLabels,
-                                                                                                  onChanged: (vals) {
-                                                                                                    safeSetState(() {
-                                                                                                      _model.filtroLoteTaxaConcepcaoValues = vals;
-                                                                                                    });
-                                                                                                  },
-                                                                                                  onClear: () {
-                                                                                                    safeSetState(() {
-                                                                                                      _model.filtroLoteTaxaConcepcaoValues = [];
-                                                                                                    });
-                                                                                                  },
-                                                                                                );
-                                                                                            },
-                                                                                          ),
-                                                                                      FutureBuilder<List<ReproducaoRow>>(
-                                                                                            key: ValueKey('touros_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
-                                                                                            future: () {
-                                                                                              final dataInicioFiltro = () {
-                                                                                                final ano = int.tryParse(valueOrDefault<String>(
-                                                                                                      _model.dDInicioAnoValue,
-                                                                                                      '2025',
-                                                                                                    )) ??
-                                                                                                    2025;
-                                                                                                final mes = int.tryParse(valueOrDefault<String>(
-                                                                                                      _model.dDInicioMesValue?.toString(),
-                                                                                                      '1',
-                                                                                                    )) ??
-                                                                                                    1;
-                                                                                                return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
-                                                                                              }();
-
-                                                                                              final dataFimFiltro = () {
-                                                                                                final ano = int.tryParse(valueOrDefault<String>(
-                                                                                                      _model.dDFimAnoValue,
-                                                                                                      '2025',
-                                                                                                    )) ??
-                                                                                                    2025;
-                                                                                                final mes = int.tryParse(valueOrDefault<String>(
-                                                                                                      _model.dDFimMesValue?.toString(),
-                                                                                                      '12',
-                                                                                                    )) ??
-                                                                                                    12;
-                                                                                                final ultimoDia = DateTime(ano, mes + 1, 0).day;
-                                                                                                return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                                              }();
-
-                                                                                              return ReproducaoTable().queryRows(
-                                                                                                queryFn: (q) => q
-                                                                                                    .eqOrNull(
-                                                                                                      'id_propriedade',
-                                                                                                      FFAppState().propriedadeSelecionada.idPropriedade,
-                                                                                                    )
-                                                                                                    .eqOrNull(
-                                                                                                      'deletado',
-                                                                                                      'NAO',
-                                                                                                    )
-                                                                                                    .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
-                                                                                                limit: 5000,
-                                                                                              );
-                                                                                            }(),
-                                                                                            builder: (context, tourosSnapshot) {
-                                                                                              if (!tourosSnapshot.hasData) {
-                                                                                                return const SizedBox(
-                                                                                                  height: 48.0,
-                                                                                                  child: Center(
-                                                                                                    child: SizedBox(
-                                                                                                      width: 20.0,
-                                                                                                      height: 20.0,
-                                                                                                      child: CircularProgressIndicator(strokeWidth: 2.0),
-                                                                                                    ),
-                                                                                                  ),
-                                                                                                );
-                                                                                              }
-                                                                                              final reproRows = tourosSnapshot.data!;
-
-                                                                                              final touroMap = <String, String>{};
-                                                                                              for (final r in reproRows) {
-                                                                                                final id = r.idRebanhoReprodutor?.trim() ?? '';
-                                                                                                if (id.isEmpty) continue;
-                                                                                                if (touroMap.containsKey(id)) continue;
-                                                                                                final nome = r.nomeReprodutor?.trim() ?? '';
-                                                                                                touroMap[id] = nome.isNotEmpty ? nome : 'Touro S/N';
-                                                                                              }
-
-                                                                                              final touroEntries = touroMap.entries.toList()
-                                                                                                ..sort((a, b) {
-                                                                                                  final labelA = a.value.toLowerCase();
-                                                                                                  final labelB = b.value.toLowerCase();
-                                                                                                  if (labelA != labelB) return labelA.compareTo(labelB);
-                                                                                                  return a.key.compareTo(b.key);
-                                                                                                });
-
-                                                                                                final touroOptions = touroEntries.map((e) => e.key).toList();
-                                                                                                final touroLabels = touroEntries.map((e) => e.value).toList();
-
-                                                                                                return _buildMultiFilterChip(
-                                                                                                  context,
-                                                                                                  label: 'Touro',
-                                                                                                  selectedValues: _model.filtroTouroTaxaConcepcaoValues,
-                                                                                                  options: touroOptions,
-                                                                                                  optionLabels: touroLabels,
-                                                                                                  onChanged: (vals) {
-                                                                                                    safeSetState(() {
-                                                                                                      _model.filtroTouroTaxaConcepcaoValues = vals;
-                                                                                                    });
-                                                                                                  },
-                                                                                                  onClear: () {
-                                                                                                    safeSetState(() {
-                                                                                                      _model.filtroTouroTaxaConcepcaoValues = [];
-                                                                                                    });
-                                                                                                  },
-                                                                                                );
-                                                                                            },
-                                                                                          ),
-                                                                                      FutureBuilder<List<ReproducaoRow>>(
-                                                                                            key: ValueKey('inseminadores_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
-                                                                                            future: ReproducaoTable().queryRows(
+                                                                                          return Future.wait([
+                                                                                            ReproducaoTable().queryRows(
+                                                                                              queryFn: (q) => q
+                                                                                                  .eqOrNull(
+                                                                                                    'id_propriedade',
+                                                                                                    FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                                  )
+                                                                                                  .eqOrNull(
+                                                                                                    'deletado',
+                                                                                                    'NAO',
+                                                                                                  )
+                                                                                                  .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
+                                                                                              limit: 5000,
+                                                                                            ),
+                                                                                            LotesTable().queryRows(
                                                                                               queryFn: (q) => q
                                                                                                   .eqOrNull(
                                                                                                     'id_propriedade',
@@ -4167,51 +4097,206 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                     'deletado',
                                                                                                     'NAO',
                                                                                                   ),
+                                                                                              limit: 5000,
                                                                                             ),
-                                                                                            builder: (context, reproSnapshot) {
-                                                                                              if (!reproSnapshot.hasData) {
-                                                                                                return const SizedBox(
-                                                                                                  height: 48.0,
-                                                                                                  child: Center(
-                                                                                                    child: SizedBox(
-                                                                                                      width: 20.0,
-                                                                                                      height: 20.0,
-                                                                                                      child: CircularProgressIndicator(strokeWidth: 2.0),
-                                                                                                    ),
-                                                                                                  ),
-                                                                                                );
-                                                                                              }
-                                                                                              final rows = reproSnapshot.data!;
-                                                                                              final inseminadores = rows
-                                                                                                  .map((e) => e.inseminador)
-                                                                                                  .withoutNulls
-                                                                                                  .map((e) => e.trim())
-                                                                                                  .where((e) => e.isNotEmpty)
-                                                                                                  .toList()
-                                                                                                  .unique((e) => e);
+                                                                                          ]);
+                                                                                        }(),
+                                                                                        builder: (context, lotesSnapshot) {
+                                                                                          if (!lotesSnapshot.hasData) {
+                                                                                            return const SizedBox(
+                                                                                              height: 48.0,
+                                                                                              child: Center(
+                                                                                                child: SizedBox(
+                                                                                                  width: 20.0,
+                                                                                                  height: 20.0,
+                                                                                                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                                                                                                ),
+                                                                                              ),
+                                                                                            );
+                                                                                          }
+                                                                                          final reproRows = lotesSnapshot.data![0] as List<ReproducaoRow>;
+                                                                                          final lotesRows = lotesSnapshot.data![1] as List<LotesRow>;
 
-                                                                                                return _buildMultiFilterChip(
-                                                                                                  context,
-                                                                                                  label: 'Inseminador',
-                                                                                                  selectedValues: _model.filtroInseminadorTaxaConcepcaoValues,
-                                                                                                  options: inseminadores,
-                                                                                                  optionLabels: inseminadores,
-                                                                                                  onChanged: (vals) {
-                                                                                                    safeSetState(() {
-                                                                                                      _model.filtroInseminadorTaxaConcepcaoValues = vals;
-                                                                                                    });
-                                                                                                  },
-                                                                                                  onClear: () {
-                                                                                                    safeSetState(() {
-                                                                                                      _model.filtroInseminadorTaxaConcepcaoValues = [];
-                                                                                                    });
-                                                                                                  },
-                                                                                                );
+                                                                                          final lotesComReproducao = reproRows.map((e) => e.idLote).withoutNulls.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet();
+
+                                                                                          final lotes = lotesRows.where((e) {
+                                                                                            final idLote = e.idLote?.trim();
+                                                                                            return idLote != null && idLote.isNotEmpty && lotesComReproducao.contains(idLote);
+                                                                                          }).toList();
+
+                                                                                          final loteOptions = lotes.map((e) => e.idLote?.trim() ?? '').where((e) => e.isNotEmpty).toList();
+                                                                                          final loteLabels = lotes.map((e) => e.nome?.trim() ?? '').where((e) => e.isNotEmpty).toList();
+
+                                                                                          return _buildMultiFilterChip(
+                                                                                            context,
+                                                                                            label: 'Lote',
+                                                                                            selectedValues: _model.filtroLoteTaxaConcepcaoValues,
+                                                                                            options: loteOptions,
+                                                                                            optionLabels: loteLabels,
+                                                                                            onChanged: (vals) {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroLoteTaxaConcepcaoValues = vals;
+                                                                                              });
                                                                                             },
-                                                                                          ),
-                                                                                  ],
+                                                                                            onClear: () {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroLoteTaxaConcepcaoValues = [];
+                                                                                              });
+                                                                                            },
+                                                                                          );
+                                                                                        },
+                                                                                      ),
+                                                                                      FutureBuilder<List<ReproducaoRow>>(
+                                                                                        key: ValueKey('touros_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
+                                                                                        future: () {
+                                                                                          final dataInicioFiltro = () {
+                                                                                            final ano = int.tryParse(valueOrDefault<String>(
+                                                                                                  _model.dDInicioAnoValue,
+                                                                                                  '2025',
+                                                                                                )) ??
+                                                                                                2025;
+                                                                                            final mes = int.tryParse(valueOrDefault<String>(
+                                                                                                  _model.dDInicioMesValue?.toString(),
+                                                                                                  '1',
+                                                                                                )) ??
+                                                                                                1;
+                                                                                            return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
+                                                                                          }();
+
+                                                                                          final dataFimFiltro = () {
+                                                                                            final ano = int.tryParse(valueOrDefault<String>(
+                                                                                                  _model.dDFimAnoValue,
+                                                                                                  '2025',
+                                                                                                )) ??
+                                                                                                2025;
+                                                                                            final mes = int.tryParse(valueOrDefault<String>(
+                                                                                                  _model.dDFimMesValue?.toString(),
+                                                                                                  '12',
+                                                                                                )) ??
+                                                                                                12;
+                                                                                            final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                                            return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+                                                                                          }();
+
+                                                                                          return ReproducaoTable().queryRows(
+                                                                                            queryFn: (q) => q
+                                                                                                .eqOrNull(
+                                                                                                  'id_propriedade',
+                                                                                                  FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                                )
+                                                                                                .eqOrNull(
+                                                                                                  'deletado',
+                                                                                                  'NAO',
+                                                                                                )
+                                                                                                .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
+                                                                                            limit: 5000,
+                                                                                          );
+                                                                                        }(),
+                                                                                        builder: (context, tourosSnapshot) {
+                                                                                          if (!tourosSnapshot.hasData) {
+                                                                                            return const SizedBox(
+                                                                                              height: 48.0,
+                                                                                              child: Center(
+                                                                                                child: SizedBox(
+                                                                                                  width: 20.0,
+                                                                                                  height: 20.0,
+                                                                                                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                                                                                                ),
+                                                                                              ),
+                                                                                            );
+                                                                                          }
+                                                                                          final reproRows = tourosSnapshot.data!;
+
+                                                                                          final touroMap = <String, String>{};
+                                                                                          for (final r in reproRows) {
+                                                                                            final id = r.idRebanhoReprodutor?.trim() ?? '';
+                                                                                            if (id.isEmpty) continue;
+                                                                                            if (touroMap.containsKey(id)) continue;
+                                                                                            final nome = r.nomeReprodutor?.trim() ?? '';
+                                                                                            touroMap[id] = nome.isNotEmpty ? nome : 'Touro S/N';
+                                                                                          }
+
+                                                                                          final touroEntries = touroMap.entries.toList()
+                                                                                            ..sort((a, b) {
+                                                                                              final labelA = a.value.toLowerCase();
+                                                                                              final labelB = b.value.toLowerCase();
+                                                                                              if (labelA != labelB) return labelA.compareTo(labelB);
+                                                                                              return a.key.compareTo(b.key);
+                                                                                            });
+
+                                                                                          final touroOptions = touroEntries.map((e) => e.key).toList();
+                                                                                          final touroLabels = touroEntries.map((e) => e.value).toList();
+
+                                                                                          return _buildMultiFilterChip(
+                                                                                            context,
+                                                                                            label: 'Touro',
+                                                                                            selectedValues: _model.filtroTouroTaxaConcepcaoValues,
+                                                                                            options: touroOptions,
+                                                                                            optionLabels: touroLabels,
+                                                                                            onChanged: (vals) {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroTouroTaxaConcepcaoValues = vals;
+                                                                                              });
+                                                                                            },
+                                                                                            onClear: () {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroTouroTaxaConcepcaoValues = [];
+                                                                                              });
+                                                                                            },
+                                                                                          );
+                                                                                        },
+                                                                                      ),
+                                                                                      FutureBuilder<List<ReproducaoRow>>(
+                                                                                        key: ValueKey('inseminadores_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}'),
+                                                                                        future: ReproducaoTable().queryRows(
+                                                                                          queryFn: (q) => q
+                                                                                              .eqOrNull(
+                                                                                                'id_propriedade',
+                                                                                                FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                              )
+                                                                                              .eqOrNull(
+                                                                                                'deletado',
+                                                                                                'NAO',
+                                                                                              ),
+                                                                                        ),
+                                                                                        builder: (context, reproSnapshot) {
+                                                                                          if (!reproSnapshot.hasData) {
+                                                                                            return const SizedBox(
+                                                                                              height: 48.0,
+                                                                                              child: Center(
+                                                                                                child: SizedBox(
+                                                                                                  width: 20.0,
+                                                                                                  height: 20.0,
+                                                                                                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                                                                                                ),
+                                                                                              ),
+                                                                                            );
+                                                                                          }
+                                                                                          final rows = reproSnapshot.data!;
+                                                                                          final inseminadores = rows.map((e) => e.inseminador).withoutNulls.map((e) => e.trim()).where((e) => e.isNotEmpty).toList().unique((e) => e);
+
+                                                                                          return _buildMultiFilterChip(
+                                                                                            context,
+                                                                                            label: 'Inseminador',
+                                                                                            selectedValues: _model.filtroInseminadorTaxaConcepcaoValues,
+                                                                                            options: inseminadores,
+                                                                                            optionLabels: inseminadores,
+                                                                                            onChanged: (vals) {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroInseminadorTaxaConcepcaoValues = vals;
+                                                                                              });
+                                                                                            },
+                                                                                            onClear: () {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroInseminadorTaxaConcepcaoValues = [];
+                                                                                              });
+                                                                                            },
+                                                                                          );
+                                                                                        },
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
                                                                                 ),
-                                                                              ),
                                                                               ),
                                                                               Expanded(
                                                                                 child: Container(
@@ -4241,7 +4326,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               height: double.infinity,
                                                                                               child: custom_widgets.TaxaPrenhezChart(
                                                                                                 key: ValueKey(
-                                                                                                  'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_${dataInicioStr}-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                                                  'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
@@ -4266,7 +4351,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 ),
                                                               ),
                                                               // Gráfico "Taxa de natalidade" oculto
-                                                              const SizedBox.shrink(),
+                                                              const SizedBox
+                                                                  .shrink(),
                                                               Expanded(
                                                                 child:
                                                                     Container(
@@ -4611,24 +4697,35 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .call(
                                                                     dataInicial:
                                                                         '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString().padLeft(2, '0')}-01',
-                                                                    dataFinal: () {
-                                                                      final ano = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimAnoValue,
-                                                                        '2025',
-                                                                      )) ?? 2025;
-                                                                      final mes = int.tryParse(valueOrDefault<String>(
-                                                                        _model.dDFimMesValue?.toString(),
-                                                                        '12',
-                                                                      )) ?? 12;
-                                                                      final ultimoDia = DateTime(ano, mes + 1, 0).day;
+                                                                    dataFinal:
+                                                                        () {
+                                                                      final ano = int.tryParse(
+                                                                              valueOrDefault<String>(
+                                                                            _model.dDFimAnoValue,
+                                                                            '2025',
+                                                                          )) ??
+                                                                          2025;
+                                                                      final mes =
+                                                                          int.tryParse(valueOrDefault<String>(
+                                                                                _model.dDFimMesValue?.toString(),
+                                                                                '12',
+                                                                              )) ??
+                                                                              12;
+                                                                      final ultimoDia = DateTime(
+                                                                              ano,
+                                                                              mes + 1,
+                                                                              0)
+                                                                          .day;
                                                                       return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
                                                                     }(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
-                                                                    categoria: _model.filtroCategoriadiagnosticoValue != 'Todos'
-                                                                        ? _model.filtroCategoriadiagnosticoValue
+                                                                    categoria: _model.filtroCategoriadiagnosticoValue !=
+                                                                            'Todos'
+                                                                        ? _model
+                                                                            .filtroCategoriadiagnosticoValue
                                                                         : '',
                                                                   ),
                                                                   builder: (context,
@@ -4805,14 +4902,13 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
-                                                                    mes:
-                                                                        _model.dDInicioMesValue,
-                                                                    ano:
-                                                                        functions
-                                                                            .converterTextoEmNumero(
-                                                                          _model
-                                                                              .dDInicioAnoValue,
-                                                                        ),
+                                                                    mes: _model
+                                                                        .dDInicioMesValue,
+                                                                    ano: functions
+                                                                        .converterTextoEmNumero(
+                                                                      _model
+                                                                          .dDInicioAnoValue,
+                                                                    ),
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -5530,7 +5626,8 @@ class _PainelWidgetState extends State<PainelWidget>
   }
 
   /// Soma projeção de desmamas conforme filtro de idade e sexo.
-  int _sumProjecaoDesmamas(dynamic items, String filtroIdadeMeses, String filtroSexo) {
+  int _sumProjecaoDesmamas(
+      dynamic items, String filtroIdadeMeses, String filtroSexo) {
     if (items == null) return 0;
     List<dynamic> list;
     if (items is List) {
@@ -5749,7 +5846,9 @@ class _PainelWidgetState extends State<PainelWidget>
     String displayValue = '';
     if (selectedValues.length == 1) {
       final idx = options.indexOf(selectedValues.first);
-      displayValue = idx >= 0 && idx < optionLabels.length ? optionLabels[idx] : selectedValues.first;
+      displayValue = idx >= 0 && idx < optionLabels.length
+          ? optionLabels[idx]
+          : selectedValues.first;
     } else if (selectedValues.length > 1) {
       displayValue = '${selectedValues.length} selecionados';
     }
@@ -5774,9 +5873,12 @@ class _PainelWidgetState extends State<PainelWidget>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16.0),
                     ),
-                    titlePadding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-                    contentPadding: const EdgeInsets.fromLTRB(0.0, 12.0, 0.0, 0.0),
-                    actionsPadding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+                    titlePadding:
+                        const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                    contentPadding:
+                        const EdgeInsets.fromLTRB(0.0, 12.0, 0.0, 0.0),
+                    actionsPadding:
+                        const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -5808,8 +5910,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                 ),
                               ),
                             IconButton(
-                              onPressed: () => Navigator.of(dialogContext).pop(),
-                              icon: const Icon(Icons.close, size: 22.0, color: Color(0xFF8E8E8E)),
+                              onPressed: () =>
+                                  Navigator.of(dialogContext).pop(),
+                              icon: const Icon(Icons.close,
+                                  size: 22.0, color: Color(0xFF8E8E8E)),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
                             ),
@@ -5824,7 +5928,8 @@ class _PainelWidgetState extends State<PainelWidget>
                         shrinkWrap: true,
                         itemCount: options.length,
                         itemBuilder: (ctx, i) {
-                          final isItemSelected = tempSelected.contains(options[i]);
+                          final isItemSelected =
+                              tempSelected.contains(options[i]);
                           return InkWell(
                             onTap: () {
                               setDialogState(() {
@@ -5836,22 +5941,28 @@ class _PainelWidgetState extends State<PainelWidget>
                               });
                             },
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20.0, vertical: 10.0),
                               child: Row(
                                 children: [
                                   Container(
                                     width: 22.0,
                                     height: 22.0,
                                     decoration: BoxDecoration(
-                                      color: isItemSelected ? greenColor : Colors.white,
+                                      color: isItemSelected
+                                          ? greenColor
+                                          : Colors.white,
                                       borderRadius: BorderRadius.circular(6.0),
                                       border: Border.all(
-                                        color: isItemSelected ? greenColor : borderColor,
+                                        color: isItemSelected
+                                            ? greenColor
+                                            : borderColor,
                                         width: 1.5,
                                       ),
                                     ),
                                     child: isItemSelected
-                                        ? const Icon(Icons.check, color: Colors.white, size: 16.0)
+                                        ? const Icon(Icons.check,
+                                            color: Colors.white, size: 16.0)
                                         : null,
                                   ),
                                   const SizedBox(width: 12.0),
@@ -5860,8 +5971,12 @@ class _PainelWidgetState extends State<PainelWidget>
                                       optionLabels[i],
                                       style: GoogleFonts.poppins(
                                         fontSize: 14.0,
-                                        fontWeight: isItemSelected ? FontWeight.w600 : FontWeight.w400,
-                                        color: isItemSelected ? greenColor : const Color(0xFF2F2F2F),
+                                        fontWeight: isItemSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                        color: isItemSelected
+                                            ? greenColor
+                                            : const Color(0xFF2F2F2F),
                                       ),
                                     ),
                                   ),
@@ -5911,7 +6026,8 @@ class _PainelWidgetState extends State<PainelWidget>
           children: [
             if (isActive)
               Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 0.0, 0.0),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 0.0, 0.0),
                 child: GestureDetector(
                   onTap: onClear,
                   child: Container(
@@ -5931,7 +6047,10 @@ class _PainelWidgetState extends State<PainelWidget>
               ),
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(
-                isActive ? 8.0 : 16.0, 0.0, 0.0, 0.0,
+                isActive ? 8.0 : 16.0,
+                0.0,
+                0.0,
+                0.0,
               ),
               child: Text(
                 label,
@@ -5964,7 +6083,10 @@ class _PainelWidgetState extends State<PainelWidget>
               ),
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(
-                isActive ? 0.0 : 8.0, 0.0, 12.0, 0.0,
+                isActive ? 0.0 : 8.0,
+                0.0,
+                12.0,
+                0.0,
               ),
               child: const Icon(
                 Icons.expand_more,
@@ -5995,7 +6117,9 @@ class _PainelWidgetState extends State<PainelWidget>
     String displayValue = '';
     if (isActive) {
       final idx = options.indexOf(selectedValue);
-      displayValue = idx >= 0 && idx < optionLabels.length ? optionLabels[idx] : selectedValue;
+      displayValue = idx >= 0 && idx < optionLabels.length
+          ? optionLabels[idx]
+          : selectedValue;
     }
 
     return Container(
@@ -6018,9 +6142,12 @@ class _PainelWidgetState extends State<PainelWidget>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16.0),
                     ),
-                    titlePadding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-                    contentPadding: const EdgeInsets.fromLTRB(0.0, 12.0, 0.0, 0.0),
-                    actionsPadding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
+                    titlePadding:
+                        const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                    contentPadding:
+                        const EdgeInsets.fromLTRB(0.0, 12.0, 0.0, 0.0),
+                    actionsPadding:
+                        const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0),
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -6034,7 +6161,8 @@ class _PainelWidgetState extends State<PainelWidget>
                         ),
                         IconButton(
                           onPressed: () => Navigator.of(dialogContext).pop(),
-                          icon: const Icon(Icons.close, size: 22.0, color: Color(0xFF8E8E8E)),
+                          icon: const Icon(Icons.close,
+                              size: 22.0, color: Color(0xFF8E8E8E)),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -6054,22 +6182,28 @@ class _PainelWidgetState extends State<PainelWidget>
                               });
                             },
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20.0, vertical: 10.0),
                               child: Row(
                                 children: [
                                   Container(
                                     width: 22.0,
                                     height: 22.0,
                                     decoration: BoxDecoration(
-                                      color: isItemSelected ? greenColor : Colors.white,
+                                      color: isItemSelected
+                                          ? greenColor
+                                          : Colors.white,
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: isItemSelected ? greenColor : borderColor,
+                                        color: isItemSelected
+                                            ? greenColor
+                                            : borderColor,
                                         width: 1.5,
                                       ),
                                     ),
                                     child: isItemSelected
-                                        ? const Icon(Icons.check, color: Colors.white, size: 14.0)
+                                        ? const Icon(Icons.check,
+                                            color: Colors.white, size: 14.0)
                                         : null,
                                   ),
                                   const SizedBox(width: 12.0),
@@ -6078,8 +6212,12 @@ class _PainelWidgetState extends State<PainelWidget>
                                       optionLabels[i],
                                       style: GoogleFonts.poppins(
                                         fontSize: 14.0,
-                                        fontWeight: isItemSelected ? FontWeight.w600 : FontWeight.w400,
-                                        color: isItemSelected ? greenColor : const Color(0xFF2F2F2F),
+                                        fontWeight: isItemSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                        color: isItemSelected
+                                            ? greenColor
+                                            : const Color(0xFF2F2F2F),
                                       ),
                                     ),
                                   ),
@@ -6129,7 +6267,8 @@ class _PainelWidgetState extends State<PainelWidget>
           children: [
             if (isActive)
               Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 0.0, 0.0),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 0.0, 0.0),
                 child: GestureDetector(
                   onTap: onClear,
                   child: Container(
@@ -6149,7 +6288,10 @@ class _PainelWidgetState extends State<PainelWidget>
               ),
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(
-                isActive ? 8.0 : 16.0, 0.0, 0.0, 0.0,
+                isActive ? 8.0 : 16.0,
+                0.0,
+                0.0,
+                0.0,
               ),
               child: Text(
                 label,
@@ -6182,7 +6324,10 @@ class _PainelWidgetState extends State<PainelWidget>
               ),
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(
-                isActive ? 0.0 : 8.0, 0.0, 12.0, 0.0,
+                isActive ? 0.0 : 8.0,
+                0.0,
+                12.0,
+                0.0,
               ),
               child: const Icon(
                 Icons.expand_more,

@@ -73,7 +73,8 @@ class _SubMenuPainelExportarWidgetState
                       context: context,
                       builder: (alertDialogContext) {
                         return AlertDialog(
-                          content: const Text('Selecione uma propriedade primeiro.'),
+                          content:
+                              const Text('Selecione uma propriedade primeiro.'),
                           actions: [
                             TextButton(
                               onPressed: () =>
@@ -110,12 +111,12 @@ class _SubMenuPainelExportarWidgetState
                     if (!success) {
                       ScaffoldMessenger.of(context).clearSnackBars();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text(
+                        const SnackBar(
+                          content: Text(
                             'Nenhum registro de rebanho encontrado para exportar.',
                             style: TextStyle(color: Colors.white),
                           ),
-                          duration: const Duration(milliseconds: 3000),
+                          duration: Duration(milliseconds: 3000),
                           backgroundColor: Colors.orange,
                         ),
                       );
@@ -221,7 +222,8 @@ class _SubMenuPainelExportarWidgetState
                       context: context,
                       builder: (alertDialogContext) {
                         return AlertDialog(
-                          content: const Text('Selecione uma propriedade primeiro.'),
+                          content:
+                              const Text('Selecione uma propriedade primeiro.'),
                           actions: [
                             TextButton(
                               onPressed: () =>
@@ -258,12 +260,12 @@ class _SubMenuPainelExportarWidgetState
                     if (!success) {
                       ScaffoldMessenger.of(context).clearSnackBars();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text(
+                        const SnackBar(
+                          content: Text(
                             'Nenhum registro de reprodução encontrado para exportar.',
                             style: TextStyle(color: Colors.white),
                           ),
-                          duration: const Duration(milliseconds: 3000),
+                          duration: Duration(milliseconds: 3000),
                           backgroundColor: Colors.orange,
                         ),
                       );
@@ -322,7 +324,8 @@ class _SubMenuPainelExportarWidgetState
                       context: context,
                       builder: (alertDialogContext) {
                         return AlertDialog(
-                          content: const Text('Selecione uma propriedade primeiro.'),
+                          content:
+                              const Text('Selecione uma propriedade primeiro.'),
                           actions: [
                             TextButton(
                               onPressed: () =>
@@ -359,12 +362,12 @@ class _SubMenuPainelExportarWidgetState
                     if (!success) {
                       ScaffoldMessenger.of(context).clearSnackBars();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text(
+                        const SnackBar(
+                          content: Text(
                             'Nenhum registro de sanidade encontrado para exportar.',
                             style: TextStyle(color: Colors.white),
                           ),
-                          duration: const Duration(milliseconds: 3000),
+                          duration: Duration(milliseconds: 3000),
                           backgroundColor: Colors.orange,
                         ),
                       );
@@ -418,7 +421,8 @@ class _SubMenuPainelExportarWidgetState
                       context: context,
                       builder: (alertDialogContext) {
                         return AlertDialog(
-                          content: const Text('Selecione uma propriedade primeiro.'),
+                          content:
+                              const Text('Selecione uma propriedade primeiro.'),
                           actions: [
                             TextButton(
                               onPressed: () =>
@@ -455,12 +459,12 @@ class _SubMenuPainelExportarWidgetState
                     if (!success) {
                       ScaffoldMessenger.of(context).clearSnackBars();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text(
+                        const SnackBar(
+                          content: Text(
                             'Nenhum registro de pesagem encontrado para exportar.',
                             style: TextStyle(color: Colors.white),
                           ),
-                          duration: const Duration(milliseconds: 3000),
+                          duration: Duration(milliseconds: 3000),
                           backgroundColor: Colors.orange,
                         ),
                       );

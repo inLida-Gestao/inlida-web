@@ -492,8 +492,8 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                         height: 56.0,
                         padding: const EdgeInsetsDirectional.fromSTEB(
                             16.0, 0.0, 16.0, 0.0),
-                        iconPadding:
-                            const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                        iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 0.0, 0.0, 0.0),
                         color: Colors.white,
                         textStyle:
                             FlutterFlowTheme.of(context).titleSmall.override(
@@ -523,19 +523,22 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                     ),
                     FFButtonWidget(
                       onPressed: () async {
-                        final pesoInteiro = int.tryParse(_model.pesoAddTextController.text)
-                            ?? double.tryParse(_model.pesoAddTextController.text)?.toInt();
+                        final pesoInteiro = int.tryParse(
+                                _model.pesoAddTextController.text) ??
+                            double.tryParse(_model.pesoAddTextController.text)
+                                ?.toInt();
                         final idRebanho = containerRebanhoRow?.idRebanho;
                         await HistoricoPesagensTable().insert({
                           'idRebanho': idRebanho,
                           'dataPesagem':
                               supaSerialize<DateTime>(_model.datePicked),
                           'tipo': 'Atual',
-                          'peso': pesoInteiro != null ? pesoInteiro.toDouble() : null,
+                          'peso': pesoInteiro?.toDouble(),
                           'deletado': 'NAO',
                         });
                         // Atualiza ficha com a pesagem mais recente (última por data)
-                        final ultimas = await HistoricoPesagensTable().queryRows(
+                        final ultimas =
+                            await HistoricoPesagensTable().queryRows(
                           queryFn: (q) => q
                               .eqOrNull('idRebanho', idRebanho)
                               .eqOrNull('deletado', 'NAO')
@@ -582,8 +585,8 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                         height: 56.0,
                         padding: const EdgeInsetsDirectional.fromSTEB(
                             16.0, 0.0, 16.0, 0.0),
-                        iconPadding:
-                            const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                        iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 0.0, 0.0, 0.0),
                         color: FlutterFlowTheme.of(context).primary,
                         textStyle:
                             FlutterFlowTheme.of(context).titleSmall.override(
