@@ -346,8 +346,7 @@ Map<String, dynamic> _prepareReproducaoRecord(
     }
   });
 
-  // Campo ressinc/parida: defaults
-  cleanData['ressinc'] ??= 'NAO';
+  // Campo parida: default
   cleanData['parida'] ??= 'NAO';
 
   // Normalizar numéricos principais (caso venham como string)
