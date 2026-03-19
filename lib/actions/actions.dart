@@ -1,5 +1,6 @@
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
+import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 
@@ -93,6 +94,7 @@ Future countLotes(BuildContext context) async {
   final ativos = qtdLotesAtivos ?? [];
   final idsLotesAtivos = <String>{};
   final nomesLotesAtivos = <String>{};
+  final idAnimaisEmLotesAtivos = <String>{};
   for (final l in ativos) {
     final idLote = l.idLote?.trim();
     if (idLote != null && idLote.isNotEmpty && idLote != 'null') {
@@ -101,6 +103,15 @@ Future countLotes(BuildContext context) async {
     final nome = l.nome?.trim();
     if (nome != null && nome.isNotEmpty && nome != 'null') {
       nomesLotesAtivos.add(nome);
+    }
+    final parsed = functions.converterJSONparaLista(l.idAnimais);
+    if (parsed != null) {
+      for (final id in parsed) {
+        final t = id.trim();
+        if (t.isNotEmpty && t != 'null') {
+          idAnimaisEmLotesAtivos.add(t);
+        }
+      }
     }
   }
 
@@ -117,15 +128,16 @@ Future countLotes(BuildContext context) async {
   for (final r in rebanhos) {
     final lid = r.loteID?.trim() ?? '';
     final lnome = r.loteNome?.trim() ?? '';
+    final idRebanho = r.idRebanho?.trim() ?? '';
     final temLoteId = lid.isNotEmpty && lid != 'null';
     final temLoteNome = lnome.isNotEmpty && lnome != 'null';
-    if (!temLoteId && !temLoteNome) {
-      continue;
-    }
-    final emLoteAtivo = temLoteId
+    final emLoteAtivoPorCampo = temLoteId
         ? idsLotesAtivos.contains(lid)
-        : nomesLotesAtivos.contains(lnome);
-    if (emLoteAtivo) {
+        : (temLoteNome && nomesLotesAtivos.contains(lnome));
+    final emLoteAtivoPorIdAnimais = idRebanho.isNotEmpty &&
+        idRebanho != 'null' &&
+        idAnimaisEmLotesAtivos.contains(idRebanho);
+    if (emLoteAtivoPorCampo || emLoteAtivoPorIdAnimais) {
       qtdAnimaisEmLotesAtivos++;
     }
   }

@@ -23,6 +23,9 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
 
   RebanhoRow? animalSelecionado;
 
+  /// Evita ressincronizar `FFAppState` a cada rebuild do FutureBuilder (preserva escolhas via popup).
+  int? progenySyncedForRebanhoPk;
+
   List<String> animaisLote = [];
   void addToAnimaisLote(String item) => animaisLote.add(item);
   void removeFromAnimaisLote(String item) => animaisLote.remove(item);

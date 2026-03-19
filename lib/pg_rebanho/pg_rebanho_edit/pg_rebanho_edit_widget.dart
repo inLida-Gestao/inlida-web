@@ -155,6 +155,29 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
             ? pgRebanhoEditRebanhoRowList.first
             : null;
 
+        if (pgRebanhoEditRebanhoRow != null &&
+            widget.rebanhoId != null &&
+            _model.progenySyncedForRebanhoPk != widget.rebanhoId) {
+          _model.progenySyncedForRebanhoPk = widget.rebanhoId;
+          // A aba Progênie usa só FFAppState; sem isto, restam matriz/reprodutor de outra tela/propriedade.
+          FFAppState().matrizSelecionada = AnimalSelecionadoStruct(
+            numAnimal: pgRebanhoEditRebanhoRow.numeroMatriz,
+            nomeAnimal: pgRebanhoEditRebanhoRow.nomeMatriz,
+            dataNascAnimal: pgRebanhoEditRebanhoRow.dataNascMatriz?.toString(),
+            racaAnimal: pgRebanhoEditRebanhoRow.racaMatriz,
+            categoria: pgRebanhoEditRebanhoRow.categoriaMatriz,
+            idAnimal: pgRebanhoEditRebanhoRow.rebanhoIdMatriz,
+          );
+          FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct(
+            numAnimal: pgRebanhoEditRebanhoRow.numeroReprodutor,
+            nomeAnimal: pgRebanhoEditRebanhoRow.nomeReprodutor,
+            dataNascAnimal:
+                pgRebanhoEditRebanhoRow.dataNascReprodutor?.toString(),
+            racaAnimal: pgRebanhoEditRebanhoRow.racaReprodutor,
+            idAnimal: pgRebanhoEditRebanhoRow.rebanhoIdReprodutor,
+          );
+        }
+
         return GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
@@ -7065,7 +7088,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         functions.converterParaData(
                                                             FFAppState()
                                                                 .reprodutorSelecionado
-                                                                .numAnimal)),
+                                                                .dataNascAnimal)),
                                                     'racaReprodutor': FFAppState()
                                                         .reprodutorSelecionado
                                                         .racaAnimal,
