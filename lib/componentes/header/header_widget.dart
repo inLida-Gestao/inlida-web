@@ -255,6 +255,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                                 },
                                 width: 418.0,
                                 height: 56.0,
+                                maxHeight: 360.0,
                                 textStyle: FlutterFlowTheme.of(context)
                                     .bodyMedium
                                     .override(
@@ -288,7 +289,26 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                                     12.0, 0.0, 12.0, 0.0),
                                 hidesUnderline: true,
                                 isOverButton: false,
-                                isSearchable: false,
+                                isSearchable: true,
+                                searchHintText: 'Pesquisar propriedade…',
+                                searchHintTextStyle:
+                                    FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .override(
+                                          font: GoogleFonts.poppins(),
+                                          color: FlutterFlowTheme.of(context)
+                                              .secondaryText,
+                                          fontSize: 14.0,
+                                        ),
+                                searchTextStyle:
+                                    FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .override(
+                                          font: GoogleFonts.poppins(),
+                                          fontSize: 14.0,
+                                        ),
+                                searchCursorColor:
+                                    FlutterFlowTheme.of(context).primary,
                                 isMultiSelect: false,
                               ),
                               if ((FFAppState()
