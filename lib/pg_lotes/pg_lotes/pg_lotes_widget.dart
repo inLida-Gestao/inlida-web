@@ -593,93 +593,91 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                         mainAxisSize: MainAxisSize.max,
                                         children: [
                                           Expanded(
-                                            child:
-                                                FutureBuilder<ApiCallResponse>(
-                                              future:
-                                                  FunctionsSupabaseRebanhoGroup
-                                                      .countRebanhosComLoteCall
-                                                      .call(
-                                                propriedade: FFAppState()
-                                                    .propriedadeSelecionada
-                                                    .idPropriedade,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: FlutterFlowTheme.of(
+                                                        context)
+                                                    .secondaryBackground,
+                                                boxShadow: const [
+                                                  BoxShadow(
+                                                    blurRadius: 4.0,
+                                                    color: Color(0x40000000),
+                                                    offset: Offset(
+                                                      2.0,
+                                                      2.0,
+                                                    ),
+                                                  )
+                                                ],
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        8.0),
+                                                border: Border.all(
+                                                  color: const Color(0xFFEDEDED),
+                                                ),
                                               ),
-                                              builder: (context, snapshot) {
-                                                // Customize what your widget looks like when it's loading.
-                                                if (!snapshot.hasData) {
-                                                  return Center(
-                                                    child: SizedBox(
-                                                      width: 50.0,
-                                                      height: 50.0,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                        valueColor:
-                                                            AlwaysStoppedAnimation<
-                                                                Color>(
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primary,
-                                                        ),
-                                                      ),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(24.0),
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.max,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      'Animais nos lotes',
+                                                      style: FlutterFlowTheme
+                                                              .of(context)
+                                                          .bodyMedium
+                                                          .override(
+                                                            font: GoogleFonts
+                                                                .poppins(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              fontStyle:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                            ),
+                                                            fontSize: 18.0,
+                                                            letterSpacing: 0.0,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
                                                     ),
-                                                  );
-                                                }
-                                                if (snapshot.hasError) {
-                                                  return Center(
-                                                    child: Column(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        Icon(
-                                                          Icons.error_outline_rounded,
-                                                          color: FlutterFlowTheme.of(context).error,
-                                                          size: 36.0,
-                                                        ),
-                                                        const SizedBox(height: 8.0),
-                                                        Text(
-                                                          'Erro ao carregar',
-                                                          style: FlutterFlowTheme.of(context).bodySmall,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  );
-                                                }
-                                                final containerCountRebanhosComLoteResponse =
-                                                    snapshot.data!;
-
-                                                return Container(
-                                                  decoration: BoxDecoration(
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .secondaryBackground,
-                                                    boxShadow: const [
-                                                      BoxShadow(
-                                                        blurRadius: 4.0,
-                                                        color:
-                                                            Color(0x40000000),
-                                                        offset: Offset(
-                                                          2.0,
-                                                          2.0,
-                                                        ),
-                                                      )
-                                                    ],
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8.0),
-                                                    border: Border.all(
-                                                      color: const Color(0xFFEDEDED),
-                                                    ),
-                                                  ),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(24.0),
-                                                    child: Column(
+                                                    Row(
                                                       mainAxisSize:
                                                           MainAxisSize.max,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
                                                       children: [
+                                                        if (FFAppState()
+                                                                .navegacao !=
+                                                            'rebanhos')
+                                                          ClipRRect(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        8.0),
+                                                            child: Image.asset(
+                                                              'assets/images/Icone_Animal_1-removebg-preview.png',
+                                                              width: 48.0,
+                                                              fit: BoxFit
+                                                                  .contain,
+                                                            ),
+                                                          ),
                                                         Text(
-                                                          'Animais nos lotes',
+                                                          '${valueOrDefault<String>(
+                                                            FFAppState()
+                                                                .qtdAnimaisEmLotesAtivos
+                                                                .toString(),
+                                                            '0',
+                                                          )} animais',
                                                           style: FlutterFlowTheme
                                                                   .of(context)
                                                               .bodyMedium
@@ -694,7 +692,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                                       .bodyMedium
                                                                       .fontStyle,
                                                                 ),
-                                                                fontSize: 18.0,
+                                                                fontSize: 24.0,
                                                                 letterSpacing:
                                                                     0.0,
                                                                 fontWeight:
@@ -706,69 +704,13 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                                     .fontStyle,
                                                               ),
                                                         ),
-                                                        Row(
-                                                          mainAxisSize:
-                                                              MainAxisSize.max,
-                                                          children: [
-                                                            if (FFAppState()
-                                                                    .navegacao !=
-                                                                'rebanhos')
-                                                              ClipRRect(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            8.0),
-                                                                child:
-                                                                    Image.asset(
-                                                                  'assets/images/Icone_Animal_1-removebg-preview.png',
-                                                                  width: 48.0,
-                                                                  fit: BoxFit
-                                                                      .contain,
-                                                                ),
-                                                              ),
-                                                            Text(
-                                                              '${valueOrDefault<String>(
-                                                                containerCountRebanhosComLoteResponse
-                                                                    .jsonBody
-                                                                    .toString(),
-                                                                '0',
-                                                              )} animais',
-                                                              style: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .bodyMedium
-                                                                  .override(
-                                                                    font: GoogleFonts
-                                                                        .poppins(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600,
-                                                                      fontStyle: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .bodyMedium
-                                                                          .fontStyle,
-                                                                    ),
-                                                                    fontSize:
-                                                                        24.0,
-                                                                    letterSpacing:
-                                                                        0.0,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                            ),
-                                                          ].divide(const SizedBox(
-                                                              width: 12.0)),
-                                                        ),
                                                       ].divide(const SizedBox(
-                                                          height: 16.0)),
+                                                          width: 12.0)),
                                                     ),
-                                                  ),
-                                                );
-                                              },
+                                                  ].divide(const SizedBox(
+                                                      height: 16.0)),
+                                                ),
+                                              ),
                                             ),
                                           ),
                                           Expanded(

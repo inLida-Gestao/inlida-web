@@ -89,6 +89,49 @@ Future countLotes(BuildContext context) async {
       );
     }),
   ]);
+
+  final ativos = qtdLotesAtivos ?? [];
+  final idsLotesAtivos = <String>{};
+  final nomesLotesAtivos = <String>{};
+  for (final l in ativos) {
+    final idLote = l.idLote?.trim();
+    if (idLote != null && idLote.isNotEmpty && idLote != 'null') {
+      idsLotesAtivos.add(idLote);
+    }
+    final nome = l.nome?.trim();
+    if (nome != null && nome.isNotEmpty && nome != 'null') {
+      nomesLotesAtivos.add(nome);
+    }
+  }
+
+  final rebanhos = await RebanhoTable().queryRows(
+    queryFn: (q) => q
+        .eqOrNull(
+          'idPropriedade',
+          FFAppState().propriedadeSelecionada.idPropriedade,
+        )
+        .eqOrNull('deletado', 'NAO'),
+  );
+
+  var qtdAnimaisEmLotesAtivos = 0;
+  for (final r in rebanhos) {
+    final lid = r.loteID?.trim() ?? '';
+    final lnome = r.loteNome?.trim() ?? '';
+    final temLoteId = lid.isNotEmpty && lid != 'null';
+    final temLoteNome = lnome.isNotEmpty && lnome != 'null';
+    if (!temLoteId && !temLoteNome) {
+      continue;
+    }
+    final emLoteAtivo = temLoteId
+        ? idsLotesAtivos.contains(lid)
+        : nomesLotesAtivos.contains(lnome);
+    if (emLoteAtivo) {
+      qtdAnimaisEmLotesAtivos++;
+    }
+  }
+
+  FFAppState().qtdAnimaisEmLotesAtivos = qtdAnimaisEmLotesAtivos;
+  FFAppState().update(() {});
 }
 
 Future countPiquetes(BuildContext context) async {

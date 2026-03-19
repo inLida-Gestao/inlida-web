@@ -44,7 +44,9 @@ serve(async (req) => {
       const url = new URL(req.url);
       inicio = toDateStr(url.searchParams.get("inicio"));
       fim = toDateStr(url.searchParams.get("fim"));
-      idPropriedade = url.searchParams.get("idPropriedade");
+      const rawProp = url.searchParams.get("idPropriedade");
+      const t = rawProp?.trim();
+      idPropriedade = t && t.length > 0 ? t : null;
       const d = url.searchParams.get("dias");
       if (d) dias = Math.max(1, parseInt(d, 10) || 3);
       agrupar = (url.searchParams.get("agrupar") ?? "bucket").toLowerCase();
@@ -52,7 +54,8 @@ serve(async (req) => {
       const b = await req.json().catch(() => ({}));
       inicio = toDateStr(b?.inicio);
       fim = toDateStr(b?.fim);
-      idPropriedade = b?.idPropriedade ?? null;
+      const tp = String(b?.idPropriedade ?? "").trim();
+      idPropriedade = tp.length > 0 ? tp : null;
       if (b?.dias) dias = Math.max(1, parseInt(String(b.dias), 10) || 3);
       agrupar = String(b?.agrupar ?? "bucket").toLowerCase();
     }

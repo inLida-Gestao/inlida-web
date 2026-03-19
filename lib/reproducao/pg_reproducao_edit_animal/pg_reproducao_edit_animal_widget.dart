@@ -66,6 +66,26 @@ class _PgReproducaoEditAnimalWidgetState
       _model.parida = _model.reproducaoBuscaEdit?.firstOrNull?.parida == 'SIM'
           ? true
           : false;
+      // Sincroniza matriz/reprodutor com o registro carregado. Sem isso, ao abrir
+      // "Editar" pela lista (modal) o FFAppState pode estar vazio e o Salvar
+      // sobrescreve id_rebanho_reprodutor e campos denormalizados com vazio.
+      final row = _model.reproducaoBuscaEdit?.firstOrNull;
+      if (row != null) {
+        FFAppState().matrizSelecionada = AnimalSelecionadoStruct(
+          numAnimal: row.numMatriz,
+          nomeAnimal: row.nomeMatriz,
+          dataNascAnimal: row.nascimentoMatriz?.toString(),
+          racaAnimal: row.racaMatriz,
+          idAnimal: row.idRebanhoMatriz,
+        );
+        FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct(
+          numAnimal: row.numReprodutor,
+          nomeAnimal: row.nomeReprodutor,
+          dataNascAnimal: row.nascimentoReprodutor?.toString(),
+          racaAnimal: row.racaReprodutor,
+          idAnimal: row.idRebanhoReprodutor,
+        );
+      }
       safeSetState(() {});
     });
 

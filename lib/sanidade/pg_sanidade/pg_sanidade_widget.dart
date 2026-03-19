@@ -1791,10 +1791,12 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                     Expanded(
                                       child: Column(
                                         children: [
-                                          Align(
-                                            alignment: const Alignment(-1.0, 0),
+                                          SizedBox(
+                                            width: double.infinity,
                                             child: TabBar(
                                               isScrollable: true,
+                                              physics:
+                                                  const AlwaysScrollableScrollPhysics(),
                                               labelColor:
                                                   FlutterFlowTheme.of(context)
                                                       .secondary,

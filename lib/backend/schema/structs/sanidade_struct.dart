@@ -308,6 +308,21 @@ class SanidadeStruct extends BaseStruct {
 
   bool hasLoteNome() => _loteNome != null;
 
+  /// Respostas JSON (ex.: edge `sanidade_filtros`) podem trazer jsonb como [List]/[Map].
+  /// Usar apenas `.toString()` gera texto que não é JSON válido e quebra filtros/abas.
+  static String? _jsonFieldFromDynamic(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return value;
+    if (value is List || value is Map) {
+      try {
+        return jsonEncode(value);
+      } catch (_) {
+        return value.toString();
+      }
+    }
+    return value.toString();
+  }
+
   static SanidadeStruct fromMap(Map<String, dynamic> data) => SanidadeStruct(
         id: castToType<int>(data['id']),
       createdAt: data['created_at']?.toString(),
@@ -319,19 +334,19 @@ class SanidadeStruct extends BaseStruct {
       idSanidade: data['id_sanidade']?.toString(),
       updatedAt: data['updated_at']?.toString(),
       deletado: data['deletado']?.toString(),
-      vacinacao: data['vacinacao']?.toString(),
-      vacinacaoOutros: data['vacinacao_outros']?.toString(),
-      vacinacaoObs: data['vacinacao_obs']?.toString(),
-      antiparasitario: data['antiparasitario']?.toString(),
-      antiparasitarioOutros: data['antiparasitario_outros']?.toString(),
-      antiparasitarioObs: data['antiparasitario_obs']?.toString(),
-      tratamento: data['tratamento']?.toString(),
-      tratamentoOutros: data['tratamento_outros']?.toString(),
-      tratamentoObs: data['tratamento_obs']?.toString(),
-      protocoloReprodutivo: data['protocolo_reprodutivo']?.toString(),
+      vacinacao: _jsonFieldFromDynamic(data['vacinacao']),
+      vacinacaoOutros: _jsonFieldFromDynamic(data['vacinacao_outros']),
+      vacinacaoObs: _jsonFieldFromDynamic(data['vacinacao_obs']),
+      antiparasitario: _jsonFieldFromDynamic(data['antiparasitario']),
+      antiparasitarioOutros: _jsonFieldFromDynamic(data['antiparasitario_outros']),
+      antiparasitarioObs: _jsonFieldFromDynamic(data['antiparasitario_obs']),
+      tratamento: _jsonFieldFromDynamic(data['tratamento']),
+      tratamentoOutros: _jsonFieldFromDynamic(data['tratamento_outros']),
+      tratamentoObs: _jsonFieldFromDynamic(data['tratamento_obs']),
+      protocoloReprodutivo: _jsonFieldFromDynamic(data['protocolo_reprodutivo']),
       protocoloReprodutivoOutros:
-        data['protocolo_reprodutivo_outros']?.toString(),
-      protocoloReprodutivoObs: data['protocolo_reprodutivo_obs']?.toString(),
+        _jsonFieldFromDynamic(data['protocolo_reprodutivo_outros']),
+      protocoloReprodutivoObs: _jsonFieldFromDynamic(data['protocolo_reprodutivo_obs']),
       protocoloD0: data['protocolo_d0']?.toString(),
       protocoloRetirada: data['protocolo_retirada']?.toString(),
       protocoloIatf: data['protocolo_iatf']?.toString(),

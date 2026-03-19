@@ -9,6 +9,18 @@ import '/flutter_flow/flutter_flow_util.dart';
 import 'package:excel/excel.dart';
 import 'package:download/download.dart';
 
+/// Normaliza sexo para exportação (Macho / Fêmea), como no cadastro do rebanho.
+String _sexoParaExportacao(dynamic raw) {
+  final s = raw?.toString().trim() ?? '';
+  if (s.isEmpty) return '';
+  final lower = s.toLowerCase();
+  if (lower == 'm' || lower == 'macho') return 'Macho';
+  if (lower == 'f' || lower == 'femea' || lower == 'fêmea') {
+    return 'Fêmea';
+  }
+  return s;
+}
+
 Future<bool> exportSanidadeExcel(String nameExcel, String idPropriedade) async {
   try {
     print('=== INÍCIO DA EXPORTAÇÃO - SANIDADE ===');
@@ -27,8 +39,9 @@ Future<bool> exportSanidadeExcel(String nameExcel, String idPropriedade) async {
       print('Buscando registros $offset a ${offset + batchSize}...');
 
       try {
+        // view_rebanho_sanidade: sanidade + dados do animal (rebanho), igual à listagem no app.
         final response = await SupaFlow.client
-            .from('sanidade')
+            .from('view_rebanho_sanidade')
             .select()
             .eq('id_propriedade', idPropriedade)
             .eq('deletado', 'NAO')
@@ -65,6 +78,12 @@ Future<bool> exportSanidadeExcel(String nameExcel, String idPropriedade) async {
     Sheet sheet = excel['Sheet1'];
 
     const template = <String, String>{
+      'Animal': 'id_rebanho',
+      'Numero': 'numeroAnimal',
+      'Nome': 'nome',
+      'Data_nascimento': 'dataNascimento',
+      'Raca': 'raca',
+      'Sexo': 'sexo',
       'Data_sanidade': 'data_sanidade',
       'Porcentagem_lote': 'porcentagem_lote',
       'Vacinacao': 'vacinacao',
@@ -99,6 +118,7 @@ Future<bool> exportSanidadeExcel(String nameExcel, String idPropriedade) async {
 
     Set<String> dateColumns = {
       'Data_sanidade',
+      'Data_nascimento',
     };
 
     print('Preenchendo dados...');
@@ -112,6 +132,10 @@ Future<bool> exportSanidadeExcel(String nameExcel, String idPropriedade) async {
         final sourceKey = template[header]!;
         var value = allData[rowIndex][sourceKey];
         String columnName = header;
+
+        if (columnName == 'Sexo') {
+          value = _sexoParaExportacao(value);
+        }
 
         try {
           if (numericColumns.contains(columnName)) {

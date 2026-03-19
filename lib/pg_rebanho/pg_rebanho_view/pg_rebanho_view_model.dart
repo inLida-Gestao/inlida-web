@@ -138,6 +138,15 @@ class PgRebanhoViewModel extends FlutterFlowModel<PgRebanhoViewWidget> {
   FocusNode? anotacoesFocusNode;
   TextEditingController? anotacoesTextController;
   String? Function(BuildContext, String?)? anotacoesTextControllerValidator;
+  // Data / valor da compra (ficha somente leitura).
+  FocusNode? dataCompraViewFocusNode;
+  TextEditingController? dataCompraViewTextController;
+  String? Function(BuildContext, String?)?
+      dataCompraViewTextControllerValidator;
+  FocusNode? valorCompraViewFocusNode;
+  TextEditingController? valorCompraViewTextController;
+  String? Function(BuildContext, String?)?
+      valorCompraViewTextControllerValidator;
   // State field(s) for PaginatedDataTable widget.
   final paginatedDataTableController1 =
       FlutterFlowDataTableController<AnimaisStruct>();
@@ -238,6 +247,12 @@ class PgRebanhoViewModel extends FlutterFlowModel<PgRebanhoViewWidget> {
 
     anotacoesFocusNode?.dispose();
     anotacoesTextController?.dispose();
+
+    dataCompraViewFocusNode?.dispose();
+    dataCompraViewTextController?.dispose();
+
+    valorCompraViewFocusNode?.dispose();
+    valorCompraViewTextController?.dispose();
 
     paginatedDataTableController1.dispose();
     paginatedDataTableController2.dispose();

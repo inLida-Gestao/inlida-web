@@ -112,11 +112,6 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                 FFAppState().filtroDataDiagnosticoAte,
                 locale: FFLocalizations.of(context).languageCode,
               ),
-              pDataDiagnostico: dateTimeFormat(
-                "yyyy-MM-dd",
-                FFAppState().filtroDataDiagnostico,
-                locale: FFLocalizations.of(context).languageCode,
-              ),
               pLoteNome: FFAppState().filtroLoteNome,
               pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
               pInseminador: FFAppState().filtroInseminador,
@@ -2523,16 +2518,6 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                           "yyyy-MM-dd",
                                                           FFAppState()
                                                               .filtroDataDiagnosticoAte,
-                                                          locale:
-                                                              FFLocalizations.of(
-                                                                      context)
-                                                                  .languageCode,
-                                                        ),
-                                                        pDataDiagnostico:
-                                                            dateTimeFormat(
-                                                          "yyyy-MM-dd",
-                                                          FFAppState()
-                                                              .filtroDataDiagnostico,
                                                           locale:
                                                               FFLocalizations.of(
                                                                       context)

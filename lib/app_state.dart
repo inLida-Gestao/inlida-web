@@ -1229,6 +1229,12 @@ class FFAppState extends ChangeNotifier {
     _lotesInativos = value;
   }
 
+  int _qtdAnimaisEmLotesAtivos = 0;
+  int get qtdAnimaisEmLotesAtivos => _qtdAnimaisEmLotesAtivos;
+  set qtdAnimaisEmLotesAtivos(int value) {
+    _qtdAnimaisEmLotesAtivos = value;
+  }
+
   PropriedadeStruct _propriedadeSelecionadaa = PropriedadeStruct();
   PropriedadeStruct get propriedadeSelecionadaa => _propriedadeSelecionadaa;
   set propriedadeSelecionadaa(PropriedadeStruct value) {
