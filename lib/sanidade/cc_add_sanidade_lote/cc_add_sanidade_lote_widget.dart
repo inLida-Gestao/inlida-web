@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
+import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import 'package:flutter/material.dart';
 import 'cc_add_sanidade_lote_model.dart';
@@ -1735,6 +1736,82 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
     );
   }
 
+  /// Mesma regra de `PgViewLoteWidget._loadAnimaisDoLote`: lista `id_animais` do lote
+  /// quando existir; senão animais com `loteID` ou `loteNome` na propriedade.
+  /// Evita divergência entre a contagem na tela do lote e o lançamento de sanidade.
+  Future<List<RebanhoRow>> _rebanhosDoLoteAlinhadoComTelaLote(LotesRow lote) async {
+    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
+    final hasIdAnimais = idAnimais.any((id) => id.trim().isNotEmpty);
+
+    if (hasIdAnimais) {
+      final list = <RebanhoRow>[];
+      for (final idRebanho in idAnimais) {
+        if (idRebanho.trim().isEmpty) continue;
+        final rows = await RebanhoTable().queryRows(
+          queryFn: (q) => q
+              .eqOrNull('idRebanho', idRebanho)
+              .eqOrNull('deletado', 'NAO'),
+        );
+        final row = rows.firstOrNull;
+        if (row != null) {
+          list.add(row);
+        }
+      }
+      return list;
+    }
+
+    final idPropriedadeLote = lote.idPropriedade;
+    final nomeLote = lote.nome;
+    if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) {
+      return [];
+    }
+
+    final idLoteCanonical = lote.idLote?.trim();
+    final idDbStr = lote.id.toString();
+
+    final byLoteID = await RebanhoTable().queryRows(
+      queryFn: (q) {
+        final base = q
+            .eqOrNull('idPropriedade', idPropriedadeLote)
+            .eqOrNull('deletado', 'NAO');
+        if (idLoteCanonical != null &&
+            idLoteCanonical.isNotEmpty &&
+            idLoteCanonical != idDbStr) {
+          return base.or('loteID.eq.$idLoteCanonical,loteID.eq.$idDbStr');
+        }
+        final single = (idLoteCanonical != null && idLoteCanonical.isNotEmpty)
+            ? idLoteCanonical
+            : idDbStr;
+        return base.eqOrNull('loteID', single);
+      },
+    );
+
+    final byLoteNome = (nomeLote != null && nomeLote.trim().isNotEmpty)
+        ? await RebanhoTable().queryRows(
+            queryFn: (q) => q
+                .eqOrNull('loteNome', nomeLote.trim())
+                .eqOrNull('idPropriedade', idPropriedadeLote)
+                .eqOrNull('deletado', 'NAO'),
+          )
+        : <RebanhoRow>[];
+
+    final idsSeen = <String>{};
+    final merged = <RebanhoRow>[];
+    for (final row in byLoteID) {
+      final id = row.idRebanho;
+      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+        merged.add(row);
+      }
+    }
+    for (final row in byLoteNome) {
+      final id = row.idRebanho;
+      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+        merged.add(row);
+      }
+    }
+    return merged;
+  }
+
   Future<void> _salvarSanidade() async {
     // Validação
     if (_loteSelecionadoId == null || _loteSelecionadoId!.trim().isEmpty) {
@@ -1767,22 +1844,51 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
     try {
       final loteIdStr = _loteSelecionadoId!.trim();
       final loteDbIdStr = _loteSelecionadoDbId?.trim();
+      final idProp = FFAppState().propriedadeSelecionada.idPropriedade;
 
-      // Buscar animais do lote
-      final animaisDoLote = await RebanhoTable().queryRows(
-        queryFn: (q) {
-          // Alguns fluxos salvam `rebanho.loteID` como `lotes.id_lote` (String),
-          // outros como `lotes.id` (int -> String). Tentamos os dois.
-          if (loteDbIdStr != null &&
-              loteDbIdStr.isNotEmpty &&
-              loteDbIdStr != loteIdStr) {
-            return q
-                .or('loteID.eq.$loteIdStr,loteID.eq.$loteDbIdStr')
-                .eqOrNull('deletado', 'NAO');
-          }
-          return q.eqOrNull('loteID', loteIdStr).eqOrNull('deletado', 'NAO');
-        },
+      // Buscar animais do lote (alinhado à tela do lote: id_animais / loteID / loteNome)
+      LotesRow? loteRow;
+      final lotesPorIdLote = await LotesTable().queryRows(
+        queryFn: (q) => q
+            .eqOrNull('id_lote', loteIdStr)
+            .eqOrNull('id_propriedade', idProp)
+            .eqOrNull('deletado', 'NAO'),
       );
+      if (lotesPorIdLote.isNotEmpty) {
+        loteRow = lotesPorIdLote.first;
+      } else if (loteDbIdStr != null) {
+        final idInt = int.tryParse(loteDbIdStr);
+        if (idInt != null) {
+          final lotesPorPk = await LotesTable().queryRows(
+            queryFn: (q) => q
+                .eqOrNull('id', idInt)
+                .eqOrNull('id_propriedade', idProp)
+                .eqOrNull('deletado', 'NAO'),
+          );
+          loteRow = lotesPorPk.firstOrNull;
+        }
+      }
+
+      late final List<RebanhoRow> animaisDoLote;
+      late final String idLoteParaSanidade;
+      if (loteRow != null) {
+        animaisDoLote = await _rebanhosDoLoteAlinhadoComTelaLote(loteRow);
+        idLoteParaSanidade = loteRow.idLote ?? loteRow.id.toString();
+      } else {
+        animaisDoLote = await RebanhoTable().queryRows(
+          queryFn: (q) {
+            if (loteDbIdStr != null &&
+                loteDbIdStr.isNotEmpty &&
+                loteDbIdStr != loteIdStr) {
+              return q
+                  .or('loteID.eq.$loteIdStr,loteID.eq.$loteDbIdStr')
+                  .eqOrNull('deletado', 'NAO');
+            }
+            return q.eqOrNull('loteID', loteIdStr).eqOrNull('deletado', 'NAO');
+          },
+        );
+        idLoteParaSanidade = loteIdStr;
+      }
 
       if (animaisDoLote.isEmpty) {
         if (mounted) {
@@ -1850,7 +1956,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
           'data_sanidade': supaSerialize<DateTime>(_model.dataSanidade),
           'updated_at': supaSerialize<DateTime>(DateTime.now()),
           'deletado': 'NAO',
-          'id_lote': loteIdStr,
+          'id_lote': idLoteParaSanidade,
           'porcentagem_lote': porcentagemSelecionada,
         };
 
