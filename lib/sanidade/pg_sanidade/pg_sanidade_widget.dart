@@ -60,7 +60,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
       );
       _model.countVacinas = vacinasCount.length;
 
-      // Contar antiparasitários aplicados
+      // Contar antiparasitários aplicados (registros com antiparasitário, como vacinas/tratamentos)
         final antiparasitariosRows = await SanidadeTable().queryRows(
         queryFn: (q) => q
           .eqOrNull('id_propriedade',
@@ -68,13 +68,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
           .eq('deletado', 'NAO')
           .or('antiparasitario.not.is.null,antiparasitario_outros.not.is.null'),
         );
-        final antiparasitariosSet = <String>{};
-        for (final row in antiparasitariosRows) {
-        antiparasitariosSet.addAll(_extractJsonListValues(row.antiparasitario));
-        antiparasitariosSet
-          .addAll(_extractJsonListValues(row.antiparasitarioOutros));
-        }
-        _model.countAntiparasitarios = antiparasitariosSet.length;
+        _model.countAntiparasitarios = antiparasitariosRows.length;
 
       // Contar tratamentos aplicados
       final tratamentosCount = await SanidadeTable().queryRows(
@@ -902,19 +896,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 _model.countVacinas =
                                                                     vacinasCount
                                                                         .length;
-                                                                final antiparasitariosSet =
-                                                                  <String>{};
-                                                                for (final row
-                                                                  in antiparasitariosCount) {
-                                                                  antiparasitariosSet.addAll(
-                                                                    _extractJsonListValues(
-                                                                      row.antiparasitario));
-                                                                  antiparasitariosSet.addAll(
-                                                                    _extractJsonListValues(
-                                                                      row.antiparasitarioOutros));
-                                                                }
                                                                 _model.countAntiparasitarios =
-                                                                  antiparasitariosSet.length;
+                                                                    antiparasitariosCount
+                                                                        .length;
                                                                 _model.countTratamentos =
                                                                     tratamentosCount
                                                                         .length;

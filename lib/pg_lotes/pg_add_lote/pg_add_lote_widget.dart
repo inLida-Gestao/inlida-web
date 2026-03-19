@@ -3434,6 +3434,11 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                 while (_model.index <
                                                     _model.animaisDentroLote
                                                         .length) {
+                                                  final marcarVendido = _model
+                                                              .switchValue ==
+                                                          false &&
+                                                      _model.dropDownLotesValue ==
+                                                          'Lote vendido';
                                                   await RebanhoTable().update(
                                                     data: {
                                                       'loteID': _model.idLote,
@@ -3457,6 +3462,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                               ?.dataVenda)),
                                                       'valorVenda': FFAppState()
                                                           .valueDouble2,
+                                                      if (marcarVendido)
+                                                        'status': 'Vendido',
                                                     },
                                                     matchingRows: (rows) =>
                                                         rows.eqOrNull(

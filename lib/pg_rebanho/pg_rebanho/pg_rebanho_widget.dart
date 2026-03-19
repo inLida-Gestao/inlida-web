@@ -933,8 +933,16 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
                                         final rebanhos =
                                             _model.rebanhosPage.toList();
                                         if (rebanhos.isEmpty) {
-                                          return const Center(
-                                            child: EmptyRebanhoWidget(),
+                                          final temPropriedade = FFAppState()
+                                              .propriedadeSelecionada
+                                              .idPropriedade
+                                              .isNotEmpty;
+                                          return Center(
+                                            child: EmptyRebanhoWidget(
+                                              message: temPropriedade
+                                                  ? 'Nenhum animal encontrado'
+                                                  : 'Nenhuma propriedade selecionada',
+                                            ),
                                           );
                                         }
 
