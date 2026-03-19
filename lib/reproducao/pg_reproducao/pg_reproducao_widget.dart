@@ -44,18 +44,23 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
     super.initState();
     _model = createModel(context, () => PgReproducaoModel());
 
+    // Tem de registar já no initState: se a troca de propriedade acontecer antes do
+    // primeiro postFrameCallback, o listener ainda não existia e apiRequestCompleter2
+    // não era limpo — a lista ficava com a resposta antiga (ex.: p_id vazio) enquanto
+    // os cards já usavam o novo id (countReproducoes no header).
+    _model.disposeRefreshListener = FFAppState().onRefresh('refreshReproducao', () {
+      FFAppState().refreshReproducao = false;
+      safeSetState(() {
+        _model.apiRequestCompleter2 = null;
+        _model.apiRequestCompleter1 = null;
+      });
+    });
+
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       await action_blocks.countReproducoes(context);
       safeSetState(() {});
       safeSetState(() {});
-      _model.disposeRefreshListener = FFAppState().onRefresh('refreshReproducao', () {
-        FFAppState().refreshReproducao = false;
-        safeSetState(() {
-          _model.apiRequestCompleter2 = null;
-          _model.apiRequestCompleter1 = null;
-        });
-      });
     });
 
     _model.textController ??= TextEditingController();
@@ -1156,26 +1161,31 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                     Expanded(
                                       child: Builder(
                                         builder: (context) {
-                                          final selectedProperty = FFAppState().propriedadeSelecionada.idPropriedade;
-                                          final reproducao = selectedProperty.isEmpty
-                                            ? <ReproducaoDTStruct>[]
-                                            : ((pgReproducaoBuscarReproducaoFiltrosResponse
-                                                          .jsonBody
-                                                          .toList()
-                                                          .map<ReproducaoDTStruct?>(
-                                                              ReproducaoDTStruct
-                                                                  .maybeFromMap)
-                                                          .toList()
-                                                      as Iterable<
-                                                          ReproducaoDTStruct?>)
-                                                  .withoutNulls
-                                                  .where((e) =>
-                                                    e.ressinc != 'SIM' &&
-                                                    e.idPropriedade == selectedProperty)
-                                                  .toList());
+                                          final selectedProperty = FFAppState()
+                                              .propriedadeSelecionada
+                                              .idPropriedade
+                                              .trim();
+                                          // reproducao_filtros já filtra por propriedade; não repetir
+                                          // id no cliente (evita divergência por espaços / estado obsoleto).
+                                          final reproducao = ((pgReproducaoBuscarReproducaoFiltrosResponse
+                                                      .jsonBody
+                                                      .toList()
+                                                      .map<ReproducaoDTStruct?>(
+                                                          ReproducaoDTStruct
+                                                              .maybeFromMap)
+                                                      .toList()
+                                                  as Iterable<
+                                                      ReproducaoDTStruct?>)
+                                              .withoutNulls
+                                              .where((e) => e.ressinc != 'SIM')
+                                              .toList());
                                           if (reproducao.isEmpty) {
-                                            return const Center(
-                                              child: EmptyRebanhoWidget(),
+                                            return Center(
+                                              child: EmptyRebanhoWidget(
+                                                message: selectedProperty.isEmpty
+                                                    ? 'Nenhuma propriedade selecionada'
+                                                    : 'Nenhuma reprodução encontrada para esta propriedade.',
+                                              ),
                                             );
                                           }
 
