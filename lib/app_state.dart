@@ -798,6 +798,12 @@ class FFAppState extends ChangeNotifier {
     _filtroDataDiagnosticoAte = value;
   }
 
+  DateTime? _filtroDataDiagnostico;
+  DateTime? get filtroDataDiagnostico => _filtroDataDiagnostico;
+  set filtroDataDiagnostico(DateTime? value) {
+    _filtroDataDiagnostico = value;
+  }
+
   String _filtroCategoriaRepro = '';
   String get filtroCategoriaRepro => _filtroCategoriaRepro;
   set filtroCategoriaRepro(String value) {

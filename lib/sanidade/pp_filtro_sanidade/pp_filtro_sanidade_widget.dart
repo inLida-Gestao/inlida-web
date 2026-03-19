@@ -84,6 +84,18 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
           ),
     );
 
+    _model.lotesFuture ??= LotesTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull(
+            'id_propriedade',
+            FFAppState().propriedadeSelecionada.idPropriedade,
+          )
+          .eqOrNull(
+            'deletado',
+            'NAO',
+          ),
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {
           _model.dataSanidadeDeTextController?.text = valueOrDefault<String>(
             dateTimeFormat(

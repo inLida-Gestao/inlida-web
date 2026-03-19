@@ -3376,7 +3376,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 ) ??
                                                                                                 containerProjecaoDesmamasResponse.jsonBody,
                                                                                             _model.ddMesesValue ?? '6',
-                                                                                            _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2 ? 'Todos' : _model.filtroSexoProjDesmamaValues.first,
+                                                                                            _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2
+                                                                                                ? 'Todos'
+                                                                                                : _model.filtroSexoProjDesmamaValues.first,
                                                                                           ),
                                                                                         ),
                                                                                       ],

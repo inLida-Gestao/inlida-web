@@ -459,12 +459,12 @@ class _SubMenuPainelExportarWidgetState
                     if (!success) {
                       ScaffoldMessenger.of(context).clearSnackBars();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
+                        SnackBar(
+                          content: const Text(
                             'Nenhum registro de pesagem encontrado para exportar.',
                             style: TextStyle(color: Colors.white),
                           ),
-                          duration: Duration(milliseconds: 3000),
+                          duration: const Duration(milliseconds: 3000),
                           backgroundColor: Colors.orange,
                         ),
                       );
