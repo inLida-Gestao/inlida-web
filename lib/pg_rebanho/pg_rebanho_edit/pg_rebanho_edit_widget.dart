@@ -115,6 +115,12 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
 
   @override
   void dispose() {
+    // Libera matriz/reprodutor usados na aba Progênie; a lista de Reprodução
+    // usa filtroIDMatriz/filtroIDReprodutor (após "Aplicar filtro") e não deve
+    // herdar estes IDs ao voltar para outras rotas.
+    FFAppState().matrizSelecionada = AnimalSelecionadoStruct();
+    FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct();
+
     _model.dispose();
 
     super.dispose();

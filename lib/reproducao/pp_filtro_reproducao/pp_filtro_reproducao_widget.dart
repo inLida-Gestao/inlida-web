@@ -2416,6 +2416,12 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                       ),
                       FFButtonWidget(
                         onPressed: () async {
+                          FFAppState().filtroIDMatriz =
+                              FFAppState().matrizSelecionada.idAnimal.trim();
+                          FFAppState().filtroIDReprodutor = FFAppState()
+                              .reprodutorSelecionado
+                              .idAnimal
+                              .trim();
                           FFAppState().refreshReproducao = true;
                           safeSetState(() {});
                           Navigator.pop(context);

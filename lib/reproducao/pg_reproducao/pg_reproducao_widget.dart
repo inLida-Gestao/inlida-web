@@ -123,9 +123,9 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
               pLimite: FFAppConstants.limit,
               pOffset: functions.calcDeslocamento(
                   _model.pageNum, FFAppConstants.limit),
-              pMatriz: FFAppState().matrizSelecionada.idAnimal,
+              pMatriz: FFAppState().filtroIDMatriz,
               pPesquisa: _model.textController.text,
-              pReprodutor: FFAppState().reprodutorSelecionado.idAnimal,
+              pReprodutor: FFAppState().filtroIDReprodutor,
               pTipoReproducao: FFAppState().filtroCategoriaRepro,
               pSortColumn: _model.sortColumn,
               pSortDirection: _model.sortDirection,
@@ -740,6 +740,29 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                       context)
                                                                   .bodyMedium
                                                                   .fontStyle,
+                                                        ),
+                                                  ),
+                                                  Text(
+                                                    'Total na propriedade',
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodySmall
+                                                        .override(
+                                                          font: GoogleFonts
+                                                              .poppins(
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodySmall
+                                                                    .fontStyle,
+                                                          ),
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .accent3,
+                                                          fontSize: 12.0,
+                                                          letterSpacing: 0.0,
                                                         ),
                                                   ),
                                                   Row(
@@ -2541,14 +2564,12 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                         pInseminador: FFAppState()
                                                             .filtroInseminador,
                                                         pMatriz: FFAppState()
-                                                            .matrizSelecionada
-                                                            .idAnimal,
+                                                            .filtroIDMatriz,
                                                         pPesquisa: _model
                                                             .textController
                                                             .text,
                                                         pReprodutor: FFAppState()
-                                                            .reprodutorSelecionado
-                                                            .idAnimal,
+                                                            .filtroIDReprodutor,
                                                         pTipoReproducao: FFAppState()
                                                             .filtroCategoriaRepro,
                                                       )))

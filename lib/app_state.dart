@@ -222,6 +222,11 @@ class FFAppState extends ChangeNotifier {
     _filtroNascimentoSanidadeDe = null;
     _filtroNascimentoSanidadeAte = null;
 
+    // Seleção de matriz/reprodutor (ex.: aba Progênie em edição de animal) não
+    // deve vazar para a lista de reprodução após troca de propriedade.
+    _matrizSelecionada = AnimalSelecionadoStruct();
+    _reprodutorSelecionado = AnimalSelecionadoStruct();
+
     // 3. Setar TODAS as flags de refresh (usando campos privados
     // para evitar o notifyListeners extra do setter de refreshReproducao)
     _refreshRebanho = true;
