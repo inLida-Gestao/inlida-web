@@ -185,6 +185,19 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
     super.dispose();
   }
 
+  bool _hasRebanhoFilters() {
+    final s = FFAppState();
+    return s.filtroSexo.isNotEmpty ||
+        s.filtroStatusRebanho.isNotEmpty ||
+        s.filtroCategoria.isNotEmpty ||
+        s.filtroDataNacimentoDe != null ||
+        s.filtroDataNacimentoAte != null ||
+        s.filtroLoteId.isNotEmpty ||
+        s.filtroLoteNome.isNotEmpty ||
+        s.filtroRaca.isNotEmpty ||
+        s.filtroOrigem.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -680,6 +693,66 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
                                       ),
                                     ].divide(const SizedBox(width: 24.0)),
                                   ),
+                                  if (_hasRebanhoFilters())
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8.0),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.filter_list,
+                                            size: 16.0,
+                                            color: FlutterFlowTheme.of(context).secondary,
+                                          ),
+                                          const SizedBox(width: 6.0),
+                                          Text(
+                                            'Filtros ativos',
+                                            style: FlutterFlowTheme.of(context)
+                                                .bodySmall
+                                                .override(
+                                                  font: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                  ),
+                                                  color: FlutterFlowTheme.of(context).secondary,
+                                                  fontSize: 13.0,
+                                                  letterSpacing: 0.0,
+                                                ),
+                                          ),
+                                          const SizedBox(width: 8.0),
+                                          InkWell(
+                                            onTap: () {
+                                              final s = FFAppState();
+                                              s.filtroSexo = '';
+                                              s.filtroStatusRebanho = '';
+                                              s.filtroCategoria = '';
+                                              s.filtroDataNacimentoDe = null;
+                                              s.filtroDataNacimentoAte = null;
+                                              s.filtroLoteId = '';
+                                              s.filtroRaca = '';
+                                              s.filtroOrigem = '';
+                                              s.filtroLoteNome = '';
+                                              s.refreshRebanho = true;
+                                              safeSetState(() {});
+                                            },
+                                            child: Text(
+                                              'Limpar',
+                                              style: FlutterFlowTheme.of(context)
+                                                  .bodySmall
+                                                  .override(
+                                                    font: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w500,
+                                                      fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                    ),
+                                                    color: FlutterFlowTheme.of(context).error,
+                                                    fontSize: 13.0,
+                                                    letterSpacing: 0.0,
+                                                    decoration: TextDecoration.underline,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   Row(
                                     mainAxisSize: MainAxisSize.max,
                                     children: [
@@ -1668,8 +1741,12 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
                                               ),
                                             ].map((c) => DataCell(c)).toList(),
                                           ),
-                                          emptyBuilder: () => const Center(
-                                            child: EmptyRebanhoWidget(),
+                                          emptyBuilder: () => Center(
+                                            child: EmptyRebanhoWidget(
+                                              message: _hasRebanhoFilters()
+                                                  ? 'Nenhum animal encontrado para os filtros aplicados'
+                                                  : null,
+                                            ),
                                           ),
                                           onSortChanged:
                                               (columnIndex, ascending) async {

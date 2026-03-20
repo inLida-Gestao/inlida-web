@@ -2049,7 +2049,7 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                   onChanged: (val) async {
                                     safeSetState(() =>
                                         _model.dDCatRebanhoFemeaValue = val);
-                                    FFAppState().filtroCategoria =
+                                    FFAppState().filtroCategoriaSanidade =
                                         _model.dDCatRebanhoFemeaValue!;
                                     safeSetState(() {});
                                   },
@@ -2109,7 +2109,7 @@ class _PpFiltroSanidadeWidgetState extends State<PpFiltroSanidadeWidget> {
                                   onChanged: (val) async {
                                     safeSetState(() =>
                                         _model.dDCatRebanhoMachoValue = val);
-                                    FFAppState().filtroCategoria =
+                                    FFAppState().filtroCategoriaSanidade =
                                         _model.dDCatRebanhoMachoValue!;
                                     safeSetState(() {});
                                   },

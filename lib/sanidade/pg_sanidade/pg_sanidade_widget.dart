@@ -197,6 +197,12 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     return candidateValues.intersection(selected).isNotEmpty;
   }
 
+  // Refina o resultado da RPC sanidade_filtros no cliente. A RPC já faz ILIKE
+  // nos campos principais (vacinacao, tratamento, etc.), mas não cobre os
+  // campos *Outros (vacinacaoOutros, tratamentoOutros, ...) nem faz parsing
+  // JSON — por isso este filtro complementar é necessário enquanto a RPC não
+  // for estendida. A contagem de paginação (count_sanidade_filtros) pode
+  // divergir ligeiramente quando registros são excluídos por este filtro.
   bool _passesMultiSelectFilters(SanidadeStruct s) {
     final vacValues = <String>{}
       ..addAll(_extractJsonListValues(s.vacinacao))
@@ -590,6 +596,23 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     );
   }
 
+  bool _hasSanidadeFilters() {
+    final s = FFAppState();
+    return s.filtroDataSanidadeDe != null ||
+        s.filtroDataSanidadeAte != null ||
+        s.filtroLoteSanidade.isNotEmpty ||
+        s.filtroAnimalSanidade.isNotEmpty ||
+        s.filtroSexoSanidade.isNotEmpty ||
+        s.filtroRacaSanidade.isNotEmpty ||
+        s.filtroCategoriaSanidade.isNotEmpty ||
+        s.filtroTratamentoSanidade.isNotEmpty ||
+        s.filtroProtocolo.isNotEmpty ||
+        s.filtroAntiparasitario.isNotEmpty ||
+        s.filtroVacinacao.isNotEmpty ||
+        s.filtroNascimentoSanidadeDe != null ||
+        s.filtroNascimentoSanidadeAte != null;
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -641,6 +664,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                 locale: FFLocalizations.of(context).languageCode,
               ),
               pRaca: FFAppState().filtroRacaSanidade,
+              pCategoria: FFAppState().filtroCategoriaSanidade,
               pTratamento: FFAppState().filtroTratamentoSanidade,
               pProtocolo: FFAppState().filtroProtocolo,
               pAntiparasitarios: FFAppState().filtroAntiparasitario,
@@ -1308,6 +1332,70 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                       ].divide(SizedBox(
                                           width: isCompact ? 16.0 : 24.0)),
                                     ),
+                                    if (_hasSanidadeFilters())
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8.0),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.filter_list,
+                                              size: 16.0,
+                                              color: FlutterFlowTheme.of(context).secondary,
+                                            ),
+                                            const SizedBox(width: 6.0),
+                                            Text(
+                                              'Filtros ativos',
+                                              style: FlutterFlowTheme.of(context)
+                                                  .bodySmall
+                                                  .override(
+                                                    font: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                    ),
+                                                    color: FlutterFlowTheme.of(context).secondary,
+                                                    fontSize: 13.0,
+                                                    letterSpacing: 0.0,
+                                                  ),
+                                            ),
+                                            const SizedBox(width: 8.0),
+                                            InkWell(
+                                              onTap: () {
+                                                final s = FFAppState();
+                                                s.filtroDataSanidadeDe = null;
+                                                s.filtroDataSanidadeAte = null;
+                                                s.filtroLoteSanidade = '';
+                                                s.filtroAnimalSanidade = '';
+                                                s.filtroSexoSanidade = '';
+                                                s.filtroRacaSanidade = '';
+                                                s.filtroCategoriaSanidade = '';
+                                                s.filtroTratamentoSanidade = '';
+                                                s.filtroProtocolo = '';
+                                                s.filtroAntiparasitario = '';
+                                                s.filtroVacinacao = '';
+                                                s.filtroNascimentoSanidadeDe = null;
+                                                s.filtroNascimentoSanidadeAte = null;
+                                                s.refreshSanidade = true;
+                                                safeSetState(() {});
+                                              },
+                                              child: Text(
+                                                'Limpar',
+                                                style: FlutterFlowTheme.of(context)
+                                                    .bodySmall
+                                                    .override(
+                                                      font: GoogleFonts.poppins(
+                                                        fontWeight: FontWeight.w500,
+                                                        fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                      ),
+                                                      color: FlutterFlowTheme.of(context).error,
+                                                      fontSize: 13.0,
+                                                      letterSpacing: 0.0,
+                                                      decoration: TextDecoration.underline,
+                                                    ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
                                       children: [
@@ -1367,6 +1455,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       context)
                                                                   .bodyMedium
                                                                   .fontStyle,
+                                                        ),
+                                                  ),
+                                                  Text(
+                                                    'Total na propriedade',
+                                                    style: FlutterFlowTheme.of(context)
+                                                        .bodySmall
+                                                        .override(
+                                                          font: GoogleFonts.poppins(
+                                                            fontWeight: FontWeight.w500,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                          ),
+                                                          color: FlutterFlowTheme.of(context).accent3,
+                                                          fontSize: 12.0,
+                                                          letterSpacing: 0.0,
                                                         ),
                                                   ),
                                                   Row(
@@ -1480,6 +1582,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       context)
                                                                   .bodyMedium
                                                                   .fontStyle,
+                                                        ),
+                                                  ),
+                                                  Text(
+                                                    'Total na propriedade',
+                                                    style: FlutterFlowTheme.of(context)
+                                                        .bodySmall
+                                                        .override(
+                                                          font: GoogleFonts.poppins(
+                                                            fontWeight: FontWeight.w500,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                          ),
+                                                          color: FlutterFlowTheme.of(context).accent3,
+                                                          fontSize: 12.0,
+                                                          letterSpacing: 0.0,
                                                         ),
                                                   ),
                                                   Row(
@@ -1596,6 +1712,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                   .fontStyle,
                                                         ),
                                                   ),
+                                                  Text(
+                                                    'Total na propriedade',
+                                                    style: FlutterFlowTheme.of(context)
+                                                        .bodySmall
+                                                        .override(
+                                                          font: GoogleFonts.poppins(
+                                                            fontWeight: FontWeight.w500,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                          ),
+                                                          color: FlutterFlowTheme.of(context).accent3,
+                                                          fontSize: 12.0,
+                                                          letterSpacing: 0.0,
+                                                        ),
+                                                  ),
                                                   Row(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
@@ -1707,6 +1837,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       context)
                                                                   .bodyMedium
                                                                   .fontStyle,
+                                                        ),
+                                                  ),
+                                                  Text(
+                                                    'Total na propriedade',
+                                                    style: FlutterFlowTheme.of(context)
+                                                        .bodySmall
+                                                        .override(
+                                                          font: GoogleFonts.poppins(
+                                                            fontWeight: FontWeight.w500,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                          ),
+                                                          color: FlutterFlowTheme.of(context).accent3,
+                                                          fontSize: 12.0,
+                                                          letterSpacing: 0.0,
                                                         ),
                                                   ),
                                                   Row(
@@ -1909,9 +2053,13 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
-                                                              return const Center(
+                                                              return Center(
                                                                 child:
-                                                                    EmptyRebanhoWidget(),
+                                                                    EmptyRebanhoWidget(
+                                                                      message: _hasSanidadeFilters()
+                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                          : null,
+                                                                    ),
                                                               );
                                                             }
 
@@ -2409,9 +2557,13 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     .toList(),
                                                               ),
                                                               emptyBuilder: () =>
-                                                                  const Center(
+                                                                  Center(
                                                                 child:
-                                                                    EmptyRebanhoWidget(),
+                                                                    EmptyRebanhoWidget(
+                                                                      message: _hasSanidadeFilters()
+                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                          : null,
+                                                                    ),
                                                               ),
                                                               paginated: false,
                                                               selectable: false,
@@ -2934,9 +3086,13 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
-                                                              return const Center(
+                                                              return Center(
                                                                 child:
-                                                                    EmptyRebanhoWidget(),
+                                                                    EmptyRebanhoWidget(
+                                                                      message: _hasSanidadeFilters()
+                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                          : null,
+                                                                    ),
                                                               );
                                                             }
 
@@ -3349,9 +3505,13 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     .toList(),
                                                               ),
                                                               emptyBuilder: () =>
-                                                                  const Center(
+                                                                  Center(
                                                                 child:
-                                                                    EmptyRebanhoWidget(),
+                                                                    EmptyRebanhoWidget(
+                                                                      message: _hasSanidadeFilters()
+                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                          : null,
+                                                                    ),
                                                               ),
                                                               paginated: true,
                                                               selectable: false,
@@ -3879,9 +4039,13 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
-                                                              return const Center(
+                                                              return Center(
                                                                 child:
-                                                                    EmptyRebanhoWidget(),
+                                                                    EmptyRebanhoWidget(
+                                                                      message: _hasSanidadeFilters()
+                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                          : null,
+                                                                    ),
                                                               );
                                                             }
 
@@ -4294,9 +4458,13 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     .toList(),
                                                               ),
                                                               emptyBuilder: () =>
-                                                                  const Center(
+                                                                  Center(
                                                                 child:
-                                                                    EmptyRebanhoWidget(),
+                                                                    EmptyRebanhoWidget(
+                                                                      message: _hasSanidadeFilters()
+                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                          : null,
+                                                                    ),
                                                               ),
                                                               paginated: true,
                                                               selectable: false,
@@ -4824,9 +4992,13 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
-                                                              return const Center(
+                                                              return Center(
                                                                 child:
-                                                                    EmptyRebanhoWidget(),
+                                                                    EmptyRebanhoWidget(
+                                                                      message: _hasSanidadeFilters()
+                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                          : null,
+                                                                    ),
                                                               );
                                                             }
 
@@ -5239,9 +5411,13 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     .toList(),
                                                               ),
                                                               emptyBuilder: () =>
-                                                                  const Center(
+                                                                  Center(
                                                                 child:
-                                                                    EmptyRebanhoWidget(),
+                                                                    EmptyRebanhoWidget(
+                                                                      message: _hasSanidadeFilters()
+                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                          : null,
+                                                                    ),
                                                               ),
                                                               paginated: true,
                                                               selectable: false,
@@ -5769,9 +5945,13 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
-                                                              return const Center(
+                                                              return Center(
                                                                 child:
-                                                                    EmptyRebanhoWidget(),
+                                                                    EmptyRebanhoWidget(
+                                                                      message: _hasSanidadeFilters()
+                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                          : null,
+                                                                    ),
                                                               );
                                                             }
 
@@ -6328,9 +6508,13 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     .toList(),
                                                               ),
                                                               emptyBuilder: () =>
-                                                                  const Center(
+                                                                  Center(
                                                                 child:
-                                                                    EmptyRebanhoWidget(),
+                                                                    EmptyRebanhoWidget(
+                                                                      message: _hasSanidadeFilters()
+                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                          : null,
+                                                                    ),
                                                               ),
                                                               paginated: true,
                                                               selectable: false,

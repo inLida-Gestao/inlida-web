@@ -67,6 +67,13 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
     super.dispose();
   }
 
+  bool _hasLotesFilters() {
+    final s = FFAppState();
+    return s.filtroStatusLote.isNotEmpty ||
+        s.filtroDataCriacaoLoteDe != null ||
+        s.filtroDataCriacaoLoteAte != null;
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -308,7 +315,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                           EasyDebounce.debounce(
                                                         '_model.textController',
                                                         const Duration(
-                                                            milliseconds: 2000),
+                                                            milliseconds: 250),
                                                         () async {
                                                           safeSetState(() =>
                                                               _model.apiRequestCompleter =
@@ -589,6 +596,60 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                           ),
                                         ].divide(const SizedBox(width: 24.0)),
                                       ),
+                                      if (_hasLotesFilters())
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 8.0),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.filter_list,
+                                                size: 16.0,
+                                                color: FlutterFlowTheme.of(context).secondary,
+                                              ),
+                                              const SizedBox(width: 6.0),
+                                              Text(
+                                                'Filtros ativos',
+                                                style: FlutterFlowTheme.of(context)
+                                                    .bodySmall
+                                                    .override(
+                                                      font: GoogleFonts.poppins(
+                                                        fontWeight: FontWeight.w600,
+                                                        fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                      ),
+                                                      color: FlutterFlowTheme.of(context).secondary,
+                                                      fontSize: 13.0,
+                                                      letterSpacing: 0.0,
+                                                    ),
+                                              ),
+                                              const SizedBox(width: 8.0),
+                                              InkWell(
+                                                onTap: () {
+                                                  final s = FFAppState();
+                                                  s.filtroStatusLote = '';
+                                                  s.filtroDataCriacaoLoteDe = null;
+                                                  s.filtroDataCriacaoLoteAte = null;
+                                                  s.refreshLotes = true;
+                                                  safeSetState(() {});
+                                                },
+                                                child: Text(
+                                                  'Limpar',
+                                                  style: FlutterFlowTheme.of(context)
+                                                      .bodySmall
+                                                      .override(
+                                                        font: GoogleFonts.poppins(
+                                                          fontWeight: FontWeight.w500,
+                                                          fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                        ),
+                                                        color: FlutterFlowTheme.of(context).error,
+                                                        fontSize: 13.0,
+                                                        letterSpacing: 0.0,
+                                                        decoration: TextDecoration.underline,
+                                                      ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       Row(
                                         mainAxisSize: MainAxisSize.max,
                                         children: [
@@ -971,8 +1032,12 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                     e.idPropriedade == selectedProperty)
                                                   .toList();
                                             if (lote.isEmpty) {
-                                              return const Center(
-                                                child: EmptyRebanhoWidget(),
+                                              return Center(
+                                                child: EmptyRebanhoWidget(
+                                                  message: _hasLotesFilters()
+                                                      ? 'Nenhum lote encontrado para os filtros aplicados'
+                                                      : null,
+                                                ),
                                               );
                                             }
 
@@ -1377,8 +1442,12 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                     .toList(),
                                               );
                                               },
-                                              emptyBuilder: () => const Center(
-                                                child: EmptyRebanhoWidget(),
+                                              emptyBuilder: () => Center(
+                                                child: EmptyRebanhoWidget(
+                                                  message: _hasLotesFilters()
+                                                      ? 'Nenhum lote encontrado para os filtros aplicados'
+                                                      : null,
+                                                ),
                                               ),
                                               paginated: false,
                                               selectable: false,

@@ -308,7 +308,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                                           EasyDebounce.debounce(
                                                         '_model.textController',
                                                         const Duration(
-                                                            milliseconds: 2000),
+                                                            milliseconds: 250),
                                                         () async {
                                                           safeSetState(() =>
                                                               _model.apiRequestCompleter =

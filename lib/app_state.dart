@@ -173,8 +173,23 @@ class FFAppState extends ChangeNotifier {
   }
 
   /// Chamado quando o usuário troca a propriedade no dropdown.
-  /// Atualiza a propriedade, reseta filtros e seta todas as flags de refresh
-  /// atomicamente, notificando os listeners uma única vez.
+  ///
+  /// Fluxo de invalidação:
+  /// 1. Persiste a nova propriedade.
+  /// 2. Reseta **todos** os campos `filtro*` para valores default — se um novo
+  ///    filtro for adicionado ao app, ele **deve** ser resetado aqui também.
+  /// 3. Seta todas as flags `refresh*` e notifica via `_notifyRefresh`, o que
+  ///    faz cada página ouvinte invalidar seu `Completer<ApiCallResponse>` e
+  ///    disparar um novo fetch com os filtros limpos.
+  /// 4. Chama `notifyListeners()` uma única vez para reconstruir a árvore.
+  ///
+  /// Padrão Completer nas páginas de lista:
+  /// - Cada página usa `_model.apiRequestCompleterN` (1 para count, 2 para dados).
+  /// - Quando `refresh*` é `true`, o callback registrado via `onRefresh` seta
+  ///   `apiRequestCompleterN = null` e chama `safeSetState`, forçando o
+  ///   `FutureBuilder` a criar um novo `Completer` e refazer a chamada à RPC.
+  /// - Isso garante que trocar propriedade, aplicar filtro ou pesquisar sempre
+  ///   resulta em dados frescos sem cache stale.
   void onPropriedadeChanged(PropriedadesDTStruct novaProp) {
     // 1. Atualizar propriedade selecionada com persistência
     _propriedadeSelecionada = novaProp;
@@ -221,6 +236,7 @@ class FFAppState extends ChangeNotifier {
     _filtroVacinacao = '';
     _filtroNascimentoSanidadeDe = null;
     _filtroNascimentoSanidadeAte = null;
+    _filtroDataDiagnostico = null;
 
     // Seleção de matriz/reprodutor (ex.: aba Progênie em edição de animal) não
     // deve vazar para a lista de reprodução após troca de propriedade.

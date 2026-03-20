@@ -79,6 +79,21 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
     super.dispose();
   }
 
+  bool _hasReproducaoFilters() {
+    final s = FFAppState();
+    return s.filtroDataReproducaoDe != null ||
+        s.filtroDataReproducaoAte != null ||
+        s.filtroDataPartoDe != null ||
+        s.filtroDataPartoAte != null ||
+        s.filtroDataDiagnosticoDe != null ||
+        s.filtroDataDiagnosticoAte != null ||
+        s.filtroCategoriaRepro.isNotEmpty ||
+        s.filtroLoteNome.isNotEmpty ||
+        s.filtroInseminador.isNotEmpty ||
+        s.filtroIDMatriz.isNotEmpty ||
+        s.filtroIDReprodutor.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -683,6 +698,70 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                         ),
                                       ].divide(const SizedBox(width: 24.0)),
                                     ),
+                                    if (_hasReproducaoFilters())
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8.0),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.filter_list,
+                                              size: 16.0,
+                                              color: FlutterFlowTheme.of(context).secondary,
+                                            ),
+                                            const SizedBox(width: 6.0),
+                                            Text(
+                                              'Filtros ativos',
+                                              style: FlutterFlowTheme.of(context)
+                                                  .bodySmall
+                                                  .override(
+                                                    font: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                    ),
+                                                    color: FlutterFlowTheme.of(context).secondary,
+                                                    fontSize: 13.0,
+                                                    letterSpacing: 0.0,
+                                                  ),
+                                            ),
+                                            const SizedBox(width: 8.0),
+                                            InkWell(
+                                              onTap: () {
+                                                final s = FFAppState();
+                                                s.filtroDataReproducaoDe = null;
+                                                s.filtroDataReproducaoAte = null;
+                                                s.filtroDataPartoDe = null;
+                                                s.filtroDataPartoAte = null;
+                                                s.filtroDataDiagnosticoDe = null;
+                                                s.filtroDataDiagnosticoAte = null;
+                                                s.filtroCategoriaRepro = '';
+                                                s.filtroInseminador = '';
+                                                s.filtroIDMatriz = '';
+                                                s.filtroIDReprodutor = '';
+                                                s.filtroLoteNome = '';
+                                                s.matrizSelecionada = AnimalSelecionadoStruct();
+                                                s.reprodutorSelecionado = AnimalSelecionadoStruct();
+                                                s.refreshReproducao = true;
+                                                safeSetState(() {});
+                                              },
+                                              child: Text(
+                                                'Limpar',
+                                                style: FlutterFlowTheme.of(context)
+                                                    .bodySmall
+                                                    .override(
+                                                      font: GoogleFonts.poppins(
+                                                        fontWeight: FontWeight.w500,
+                                                        fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                      ),
+                                                      color: FlutterFlowTheme.of(context).error,
+                                                      fontSize: 13.0,
+                                                      letterSpacing: 0.0,
+                                                      decoration: TextDecoration.underline,
+                                                    ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
                                       children: [
@@ -1200,7 +1279,6 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                   as Iterable<
                                                       ReproducaoDTStruct?>)
                                               .withoutNulls
-                                              .where((e) => e.ressinc != 'SIM')
                                               .toList());
                                           if (reproducao.isEmpty) {
                                             return Center(
@@ -2453,8 +2531,12 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                   .map((c) => DataCell(c))
                                                   .toList(),
                                             ),
-                                            emptyBuilder: () => const Center(
-                                              child: EmptyRebanhoWidget(),
+                                            emptyBuilder: () => Center(
+                                              child: EmptyRebanhoWidget(
+                                                message: _hasReproducaoFilters()
+                                                    ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                    : null,
+                                              ),
                                             ),
                                             paginated: false,
                                             selectable: false,
