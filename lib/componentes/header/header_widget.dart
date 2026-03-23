@@ -338,10 +338,12 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                                       _model.dropDownValueController?.reset();
                                       _model.dropDownValue = null;
                                     });
-                                    FFAppState().propriedadeSelecionada =
-                                        PropriedadesDTStruct();
+                                    // Usar onPropriedadeChanged para garantir que todos os
+                                    // filtros sejam resetados e todas as páginas sejam atualizadas
+                                    FFAppState().onPropriedadeChanged(
+                                      PropriedadesDTStruct(),
+                                    );
                                     _model.updatePage(() {});
-                                    FFAppState().refreshRebanho = true;
                                     safeSetState(() {});
                                   },
                                 ),

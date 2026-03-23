@@ -2276,37 +2276,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .idadeDesmamaCall
                                                                       .call(
                                                                     inicio:
-                                                                        '${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDInicioAnoValue,
-                                                                      '2025',
-                                                                    )}-${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDInicioMesValue
-                                                                          ?.toString(),
-                                                                      '01',
-                                                                    )}-01',
-                                                                    fim: () {
-                                                                      final ano = int.tryParse(
-                                                                              valueOrDefault<String>(
-                                                                            _model.dDFimAnoValue,
-                                                                            '2025',
-                                                                          )) ??
-                                                                          2025;
-                                                                      final mes =
-                                                                          int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDFimMesValue?.toString(),
-                                                                                '12',
-                                                                              )) ??
-                                                                              12;
-                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(
-                                                                              ano,
-                                                                              mes + 1,
-                                                                              0)
-                                                                          .day;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                    }(),
+                                                                        _painelPeriodoDataInicio(),
+                                                                    fim:
+                                                                        _painelPeriodoDataFim(),
                                                                     sexo: _model.filtroSexoIdadeDesmamaValues.isEmpty ||
                                                                             _model.filtroSexoIdadeDesmamaValues.length ==
                                                                                 2
@@ -2454,37 +2426,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .pesoDesmamaCall
                                                                       .call(
                                                                     inicio:
-                                                                        '${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDInicioAnoValue,
-                                                                      '2025',
-                                                                    )}-${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDInicioMesValue
-                                                                          ?.toString(),
-                                                                      '01',
-                                                                    )}-01',
-                                                                    fim: () {
-                                                                      final ano = int.tryParse(
-                                                                              valueOrDefault<String>(
-                                                                            _model.dDFimAnoValue,
-                                                                            '2025',
-                                                                          )) ??
-                                                                          2025;
-                                                                      final mes =
-                                                                          int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDFimMesValue?.toString(),
-                                                                                '12',
-                                                                              )) ??
-                                                                              12;
-                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(
-                                                                              ano,
-                                                                              mes + 1,
-                                                                              0)
-                                                                          .day;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                    }(),
+                                                                        _painelPeriodoDataInicio(),
+                                                                    fim:
+                                                                        _painelPeriodoDataFim(),
                                                                     sexo: _model.filtroSexoPesoDesmamaValues.isEmpty ||
                                                                             _model.filtroSexoPesoDesmamaValues.length ==
                                                                                 2
@@ -2651,25 +2595,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .nascimentosPeriodoCall
                                                                       .call(
                                                                     inicio:
-                                                                        '${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDInicioAnoValue,
-                                                                      '2025',
-                                                                    )}-${valueOrDefault<int>(
-                                                                      _model
-                                                                          .dDInicioMesValue,
-                                                                      1,
-                                                                    ).toString().padLeft(2, '0')}-01',
+                                                                        _painelPeriodoDataInicio(),
                                                                     fim:
-                                                                        '${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDFimAnoValue,
-                                                                      '2025',
-                                                                    )}-${valueOrDefault<int>(
-                                                                      _model
-                                                                          .dDFimMesValue,
-                                                                      12,
-                                                                    ).toString().padLeft(2, '0')}-01',
+                                                                        _painelPeriodoDataFim(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -2840,25 +2768,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .mortalidadePeriodoCall
                                                                       .call(
                                                                     inicio:
-                                                                        '${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDInicioAnoValue,
-                                                                      '2025',
-                                                                    )}-${valueOrDefault<int>(
-                                                                      _model
-                                                                          .dDInicioMesValue,
-                                                                      1,
-                                                                    ).toString().padLeft(2, '0')}-01',
+                                                                        _painelPeriodoDataInicio(),
                                                                     fim:
-                                                                        '${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDFimAnoValue,
-                                                                      '2025',
-                                                                    )}-${valueOrDefault<int>(
-                                                                      _model
-                                                                          .dDFimMesValue,
-                                                                      12,
-                                                                    ).toString().padLeft(2, '0')}-01',
+                                                                        _painelPeriodoDataFim(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -3074,36 +2986,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .desmamaPeriodoCall
                                                                       .call(
                                                                     inicio:
-                                                                        '${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDInicioAnoValue,
-                                                                      '2025',
-                                                                    )}-${valueOrDefault<int>(
-                                                                      _model
-                                                                          .dDInicioMesValue,
-                                                                      1,
-                                                                    ).toString().padLeft(2, '0')}-01',
-                                                                    fim: () {
-                                                                      final ano = int.tryParse(
-                                                                              valueOrDefault<String>(
-                                                                            _model.dDFimAnoValue,
-                                                                            '2025',
-                                                                          )) ??
-                                                                          2025;
-                                                                      final mes =
-                                                                          int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDFimMesValue?.toString(),
-                                                                                '12',
-                                                                              )) ??
-                                                                              12;
-                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(
-                                                                              ano,
-                                                                              mes + 1,
-                                                                              0)
-                                                                          .day;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                    }(),
+                                                                        _painelPeriodoDataInicio(),
+                                                                    fim:
+                                                                        _painelPeriodoDataFim(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -3251,25 +3136,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .projecaoDesmamasCall
                                                                       .call(
                                                                     inicio:
-                                                                        '${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDInicioAnoValue,
-                                                                      '2025',
-                                                                    )}-${valueOrDefault<int>(
-                                                                      _model
-                                                                          .dDInicioMesValue,
-                                                                      1,
-                                                                    ).toString().padLeft(2, '0')}-01',
+                                                                        _painelPeriodoDataInicio(),
                                                                     fim:
-                                                                        '${valueOrDefault<String>(
-                                                                      _model
-                                                                          .dDFimAnoValue,
-                                                                      '2025',
-                                                                    )}-${valueOrDefault<int>(
-                                                                      _model
-                                                                          .dDFimMesValue,
-                                                                      12,
-                                                                    ).toString().padLeft(2, '0')}-01',
+                                                                        _painelPeriodoDataFim(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -3560,29 +3429,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
                                                                     dataInicio:
-                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                        _painelPeriodoDataInicio(),
                                                                     dataFim:
-                                                                        () {
-                                                                      final ano = int.tryParse(
-                                                                              valueOrDefault<String>(
-                                                                            _model.dDFimAnoValue,
-                                                                            '2025',
-                                                                          )) ??
-                                                                          2025;
-                                                                      final mes =
-                                                                          int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDFimMesValue?.toString(),
-                                                                                '12',
-                                                                              )) ??
-                                                                              12;
-                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(
-                                                                              ano,
-                                                                              mes + 1,
-                                                                              0)
-                                                                          .day;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                    }(),
+                                                                        _painelPeriodoDataFim(),
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -3702,29 +3551,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
                                                                     dataInicio:
-                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                        _painelPeriodoDataInicio(),
                                                                     dataFim:
-                                                                        () {
-                                                                      final ano = int.tryParse(
-                                                                              valueOrDefault<String>(
-                                                                            _model.dDFimAnoValue,
-                                                                            '2025',
-                                                                          )) ??
-                                                                          2025;
-                                                                      final mes =
-                                                                          int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDFimMesValue?.toString(),
-                                                                                '12',
-                                                                              )) ??
-                                                                              12;
-                                                                      // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                      final ultimoDia = DateTime(
-                                                                              ano,
-                                                                              mes + 1,
-                                                                              0)
-                                                                          .day;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                    }(),
+                                                                        _painelPeriodoDataFim(),
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -3874,36 +3703,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
                                                                         dataInicio:
-                                                                            () {
-                                                                          final ano = int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDInicioAnoValue,
-                                                                                '2025',
-                                                                              )) ??
-                                                                              2025;
-                                                                          final mes = int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDInicioMesValue?.toString(),
-                                                                                '1',
-                                                                              )) ??
-                                                                              1;
-                                                                          return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
-                                                                        }(),
+                                                                            _painelPeriodoDataInicio(),
                                                                         dataFim:
-                                                                            () {
-                                                                          final ano = int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDFimAnoValue,
-                                                                                '2025',
-                                                                              )) ??
-                                                                              2025;
-                                                                          final mes = int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDFimMesValue?.toString(),
-                                                                                '12',
-                                                                              )) ??
-                                                                              12;
-                                                                          // Calcula o último dia do mês: DateTime(ano, mes + 1, 0)
-                                                                          final ultimoDia =
-                                                                              DateTime(ano, mes + 1, 0).day;
-                                                                          return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                        }(),
+                                                                            _painelPeriodoDataFim(),
                                                                         pLoteId: _model
                                                                             .filtroLoteTaxaConcepcaoValues
                                                                             .join(','),
@@ -3933,43 +3735,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         : null;
 
                                                                     final dataInicioStr =
-                                                                        () {
-                                                                      final ano = int.tryParse(
-                                                                              valueOrDefault<String>(
-                                                                            _model.dDInicioAnoValue,
-                                                                            '2025',
-                                                                          )) ??
-                                                                          2025;
-                                                                      final mes =
-                                                                          int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDInicioMesValue?.toString(),
-                                                                                '1',
-                                                                              )) ??
-                                                                              1;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
-                                                                    }();
-
+                                                                        _painelPeriodoDataInicio();
                                                                     final dataFimStr =
-                                                                        () {
-                                                                      final ano = int.tryParse(
-                                                                              valueOrDefault<String>(
-                                                                            _model.dDFimAnoValue,
-                                                                            '2025',
-                                                                          )) ??
-                                                                          2025;
-                                                                      final mes =
-                                                                          int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDFimMesValue?.toString(),
-                                                                                '12',
-                                                                              )) ??
-                                                                              12;
-                                                                      final ultimoDia = DateTime(
-                                                                              ano,
-                                                                              mes + 1,
-                                                                              0)
-                                                                          .day;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                    }();
+                                                                        _painelPeriodoDataFim();
 
                                                                     return Material(
                                                                       color: Colors
@@ -4046,34 +3814,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       FutureBuilder<List<dynamic>>(
                                                                                         key: ValueKey('lotes_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
                                                                                         future: () {
-                                                                                          final dataInicioFiltro = () {
-                                                                                            final ano = int.tryParse(valueOrDefault<String>(
-                                                                                                  _model.dDInicioAnoValue,
-                                                                                                  '2025',
-                                                                                                )) ??
-                                                                                                2025;
-                                                                                            final mes = int.tryParse(valueOrDefault<String>(
-                                                                                                  _model.dDInicioMesValue?.toString(),
-                                                                                                  '1',
-                                                                                                )) ??
-                                                                                                1;
-                                                                                            return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
-                                                                                          }();
-
-                                                                                          final dataFimFiltro = () {
-                                                                                            final ano = int.tryParse(valueOrDefault<String>(
-                                                                                                  _model.dDFimAnoValue,
-                                                                                                  '2025',
-                                                                                                )) ??
-                                                                                                2025;
-                                                                                            final mes = int.tryParse(valueOrDefault<String>(
-                                                                                                  _model.dDFimMesValue?.toString(),
-                                                                                                  '12',
-                                                                                                )) ??
-                                                                                                12;
-                                                                                            final ultimoDia = DateTime(ano, mes + 1, 0).day;
-                                                                                            return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                                          }();
+                                                                                          final dataInicioFiltro =
+                                                                                              _painelPeriodoDataInicio();
+                                                                                          final dataFimFiltro =
+                                                                                              _painelPeriodoDataFim();
 
                                                                                           return Future.wait([
                                                                                             ReproducaoTable().queryRows(
@@ -4151,34 +3895,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       FutureBuilder<List<ReproducaoRow>>(
                                                                                         key: ValueKey('touros_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
                                                                                         future: () {
-                                                                                          final dataInicioFiltro = () {
-                                                                                            final ano = int.tryParse(valueOrDefault<String>(
-                                                                                                  _model.dDInicioAnoValue,
-                                                                                                  '2025',
-                                                                                                )) ??
-                                                                                                2025;
-                                                                                            final mes = int.tryParse(valueOrDefault<String>(
-                                                                                                  _model.dDInicioMesValue?.toString(),
-                                                                                                  '1',
-                                                                                                )) ??
-                                                                                                1;
-                                                                                            return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
-                                                                                          }();
-
-                                                                                          final dataFimFiltro = () {
-                                                                                            final ano = int.tryParse(valueOrDefault<String>(
-                                                                                                  _model.dDFimAnoValue,
-                                                                                                  '2025',
-                                                                                                )) ??
-                                                                                                2025;
-                                                                                            final mes = int.tryParse(valueOrDefault<String>(
-                                                                                                  _model.dDFimMesValue?.toString(),
-                                                                                                  '12',
-                                                                                                )) ??
-                                                                                                12;
-                                                                                            final ultimoDia = DateTime(ano, mes + 1, 0).day;
-                                                                                            return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                                          }();
+                                                                                          final dataInicioFiltro =
+                                                                                              _painelPeriodoDataInicio();
+                                                                                          final dataFimFiltro =
+                                                                                              _painelPeriodoDataFim();
 
                                                                                           return ReproducaoTable().queryRows(
                                                                                             queryFn: (q) => q
@@ -4401,9 +4121,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .reproducaoPartosCategoriaCall
                                                                       .call(
                                                                     dataInicial:
-                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                        _painelPeriodoDataInicio(),
                                                                     dataFinal:
-                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-01',
+                                                                        _painelPeriodoDataFim(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -4541,9 +4261,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .reproducaoProjecaoPartosCall
                                                                       .call(
                                                                     dataInicial:
-                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                        _painelPeriodoDataInicio(),
                                                                     dataFinal:
-                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-01',
+                                                                        _painelPeriodoDataFim(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -4698,28 +4418,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .reproducaoDiagnosticosCategoriaCall
                                                                       .call(
                                                                     dataInicial:
-                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString().padLeft(2, '0')}-01',
+                                                                        _painelPeriodoDataInicio(),
                                                                     dataFinal:
-                                                                        () {
-                                                                      final ano = int.tryParse(
-                                                                              valueOrDefault<String>(
-                                                                            _model.dDFimAnoValue,
-                                                                            '2025',
-                                                                          )) ??
-                                                                          2025;
-                                                                      final mes =
-                                                                          int.tryParse(valueOrDefault<String>(
-                                                                                _model.dDFimMesValue?.toString(),
-                                                                                '12',
-                                                                              )) ??
-                                                                              12;
-                                                                      final ultimoDia = DateTime(
-                                                                              ano,
-                                                                              mes + 1,
-                                                                              0)
-                                                                          .day;
-                                                                      return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
-                                                                    }(),
+                                                                        _painelPeriodoDataFim(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -5288,9 +4989,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .vendidosPorCategoriasPeriodoCall
                                                                       .call(
                                                                     inicio:
-                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                        _painelPeriodoDataInicio(),
                                                                     fim:
-                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
+                                                                        _painelPeriodoDataFim(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -5422,9 +5123,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       .precoMedioCategoriaCall
                                                                       .call(
                                                                     inicio:
-                                                                        '${_model.dDInicioAnoValue}-${_model.dDInicioMesValue?.toString()}-01',
+                                                                        _painelPeriodoDataInicio(),
                                                                     fim:
-                                                                        '${_model.dDFimAnoValue}-${_model.dDFimMesValue?.toString()}-29',
+                                                                        _painelPeriodoDataFim(),
                                                                     idPropriedade:
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
@@ -5605,6 +5306,33 @@ class _PainelWidgetState extends State<PainelWidget>
         ),
       ),
     );
+  }
+
+  /// Primeiro dia do mês inicial do filtro global do painel (ISO yyyy-MM-dd).
+  String _painelPeriodoDataInicio() {
+    final ano = int.tryParse(valueOrDefault<String>(
+          _model.dDInicioAnoValue,
+          '${DateTime.now().year}',
+        )) ??
+        DateTime.now().year;
+    final mes = valueOrDefault<int>(_model.dDInicioMesValue, 1);
+    return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
+  }
+
+  /// Último dia do mês final do filtro global do painel (ISO yyyy-MM-dd).
+  ///
+  /// Várias RPCs comparam `data <= fim`. Usar só o dia 1 no mês final cortava
+  /// quase todo o último mês. Usar dia 29 fixo (vendidos/preço) errava fevereiro
+  /// e meses de 31 dias. Este helper alinha todos os gráficos ao mesmo intervalo.
+  String _painelPeriodoDataFim() {
+    final ano = int.tryParse(valueOrDefault<String>(
+          _model.dDFimAnoValue,
+          '${DateTime.now().year}',
+        )) ??
+        DateTime.now().year;
+    final mes = valueOrDefault<int>(_model.dDFimMesValue, 12);
+    final ultimoDia = DateTime(ano, mes + 1, 0).day;
+    return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
   }
 
   /// Soma o campo [field] de uma lista dinâmica de itens JSON.

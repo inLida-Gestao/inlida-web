@@ -1,87 +1,261 @@
-// file: supabase/functions/get-projected-births-by-category/index.ts
+// Edge: projeção de partos por categoria (painel).
+// Agrega no Deno — não depende da RPC get_projected_births_by_category_data no Postgres.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.0";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.44.0";
 
-// Configuração de CORS (Obrigatório, conforme sua regra)
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-// Edge Function para buscar Projeções de Parto
-serve(async (req) => {
-  // 1. Tratamento de requisições OPTIONS para CORS
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+function toDateStr(x: string | null): string | null {
+  if (!x) return null;
+  const m = x.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (!m) return null;
+  return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+}
+
+function enumerateMonths(inicio: string, fim: string): string[] {
+  const y0 = parseInt(inicio.slice(0, 4), 10);
+  const mo0 = parseInt(inicio.slice(5, 7), 10) - 1;
+  const y1 = parseInt(fim.slice(0, 4), 10);
+  const mo1 = parseInt(fim.slice(5, 7), 10) - 1;
+  const out: string[] = [];
+  let y = y0;
+  let m = mo0;
+  while (y < y1 || (y === y1 && m <= mo1)) {
+    out.push(`${y}-${String(m + 1).padStart(2, "0")}-01`);
+    m++;
+    if (m > 11) {
+      m = 0;
+      y++;
+    }
+  }
+  return out;
+}
+
+function bucketMonthFromPrevisao(s: unknown): string | null {
+  if (s == null) return null;
+  const d = String(s).slice(0, 10);
+  const m = d.match(/^(\d{4})-(\d{2})/);
+  if (!m) return null;
+  return `${m[1]}-${m[2]}-01`;
+}
+
+function classify(
+  cat: string | null | undefined,
+): "novilha" | "prim" | "multi" | "none" {
+  const c = (cat ?? "").toLowerCase().trim();
+  if (c.startsWith("novilha")) return "novilha";
+  if (c.startsWith("vaca primipara") || c.startsWith("vaca primípara")) {
+    return "prim";
+  }
+  if (c.startsWith("vaca multipara") || c.startsWith("vaca multípara")) {
+    return "multi";
+  }
+  return "none";
+}
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+type Agg = { Novilha: number; "Primípara": number; "Multípara": number };
+
+async function buildProjecaoItems(
+  supabase: SupabaseClient,
+  idPropriedade: string,
+  inicio: string,
+  fim: string,
+): Promise<
+  { mes: string; label: string; Novilha: number; Primípara: number; Multípara: number }[]
+> {
+  const monthKeys = enumerateMonths(inicio, fim);
+  const agg = new Map<string, Agg>();
+  for (const mk of monthKeys) {
+    agg.set(mk, { Novilha: 0, "Primípara": 0, "Multípara": 0 });
   }
 
-  // A função só deve responder a GET
-  if (req.method !== 'GET') {
+  const PAGE = 1000;
+  let from = 0;
+  const reproAll: Record<string, unknown>[] = [];
+
+  for (;;) {
+    const { data, error } = await supabase
+      .from("reproducao")
+      .select("previsao_parto, id_rebanho_matriz, deletado, ressinc")
+      .eq("id_propriedade", idPropriedade)
+      // Incluir o último dia inteiro (evita cortar timestamptz ao comparar só com date)
+      .gte("previsao_parto", `${inicio}T00:00:00.000Z`)
+      .lte("previsao_parto", `${fim}T23:59:59.999Z`)
+      .range(from, from + PAGE - 1);
+
+    if (error) throw error;
+    const rows = data ?? [];
+    reproAll.push(...rows);
+    if (rows.length < PAGE) break;
+    from += PAGE;
+  }
+
+  const filtered = reproAll.filter((r) => {
+    const del = r.deletado as string | null | undefined;
+    const rs = r.ressinc as string | null | undefined;
+    if (del === "SIM") return false;
+    if (rs === "SIM") return false;
+    return r.previsao_parto != null;
+  });
+
+  const rawIds = filtered
+    .map((r) => r.id_rebanho_matriz as string | null | undefined)
+    .filter((x): x is string => x != null && String(x).trim() !== "");
+
+  const ids = [...new Set(rawIds.map((x) => String(x).trim()))];
+
+  const catByMatriz = new Map<string, string>();
+
+  for (const part of chunk(ids, 120)) {
+    const { data: rows1, error: e1 } = await supabase
+      .from("rebanho")
+      .select("idRebanho, id, categoria, deletado, idPropriedade")
+      .in("idRebanho", part)
+      .eq("deletado", "NAO")
+      .eq("idPropriedade", idPropriedade);
+
+    if (!e1 && rows1) {
+      for (const row of rows1 as Record<string, unknown>[]) {
+        const idR = row.idRebanho != null ? String(row.idRebanho) : "";
+        if (idR) catByMatriz.set(idR, String(row.categoria ?? ""));
+      }
+    }
+
+    const numericOnly = part.filter((x) => /^\d+$/.test(x));
+    if (numericOnly.length === 0) continue;
+
+    const { data: rows2, error: e2 } = await supabase
+      .from("rebanho")
+      .select("idRebanho, id, categoria, deletado, idPropriedade")
+      .in(
+        "id",
+        numericOnly.map((x) => parseInt(x, 10)),
+      )
+      .eq("deletado", "NAO")
+      .eq("idPropriedade", idPropriedade);
+
+    if (!e2 && rows2) {
+      for (const row of rows2 as Record<string, unknown>[]) {
+        const idR = row.idRebanho != null ? String(row.idRebanho) : "";
+        const idNum = row.id != null ? String(row.id) : "";
+        const cat = String(row.categoria ?? "");
+        if (idR && !catByMatriz.has(idR)) catByMatriz.set(idR, cat);
+        if (idNum) catByMatriz.set(idNum, cat);
+      }
+    }
+  }
+
+  for (const r of filtered) {
+    const mk = bucketMonthFromPrevisao(r.previsao_parto);
+    if (!mk || !agg.has(mk)) continue;
+
+    const mid = r.id_rebanho_matriz != null
+      ? String(r.id_rebanho_matriz).trim()
+      : "";
+    let categoria = mid ? (catByMatriz.get(mid) ?? "") : "";
+    if (!categoria && mid && /^\d+$/.test(mid)) {
+      categoria = catByMatriz.get(mid) ?? "";
+    }
+
+    const slot = agg.get(mk)!;
+    const kind = classify(categoria);
+    if (kind === "novilha") slot.Novilha++;
+    else if (kind === "prim") slot["Primípara"]++;
+    else if (kind === "multi") slot["Multípara"]++;
+    else {
+      // Matriz sem categoria reconhecida: contar como multípara (vaca em lactação típica)
+      slot["Multípara"]++;
+    }
+  }
+
+  return monthKeys.map((mk) => {
+    const s = agg.get(mk)!;
+    const y = parseInt(mk.slice(0, 4), 10);
+    const mo = parseInt(mk.slice(5, 7), 10);
+    const label = `${String(mo).padStart(2, "0")}/${y}`;
+    return {
+      mes: mk,
+      label,
+      Novilha: s.Novilha,
+      "Primípara": s["Primípara"],
+      "Multípara": s["Multípara"],
+    };
+  });
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "GET") {
     return new Response(
-      JSON.stringify({ ok: false, error: 'Método não permitido. Use GET.' }),
-      { status: 405, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      JSON.stringify({ ok: false, error: "Método não permitido. Use GET." }),
+      {
+        status: 405,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      },
     );
   }
 
   try {
+    const auth = req.headers.get("Authorization") ?? "";
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: auth } } },
     );
 
-    // 2. Extrair os parâmetros da URL Query String
     const url = new URL(req.url);
-    const inicio = url.searchParams.get('inicio');
-    const fim = url.searchParams.get('fim');
-    const idPropriedade = url.searchParams.get('idPropriedade');
+    const inicio = toDateStr(url.searchParams.get("inicio"));
+    const fim = toDateStr(url.searchParams.get("fim"));
+    const idPropriedade = url.searchParams.get("idPropriedade");
 
     if (!inicio || !fim || !idPropriedade) {
       return new Response(
-        JSON.stringify({ ok: false, error: 'Parâmetros de URL: "inicio", "fim" e "idPropriedade" são obrigatórios.' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
-    }
-    
-    // 3. Chamar a NOVA função RPC do PostgreSQL para Projeção
-    const { data, error } = await supabaseClient.rpc('get_projected_births_by_category_data', {
-        id_propriedade_param: idPropriedade,
-        inicio_param: inicio,
-        fim_param: fim,
-    });
-
-    if (error) {
-      console.error('Erro na consulta ao banco de dados:', error);
-      return new Response(
-        JSON.stringify({ ok: false, error: 'Erro ao buscar dados de projeção de partos: ' + error.message }),
-        { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        JSON.stringify({
+          ok: false,
+          error:
+            'Parâmetros obrigatórios: "inicio", "fim" (YYYY-MM-DD) e "idPropriedade".',
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
       );
     }
 
-    // 4. Mapear o resultado
-    const items = data.map((item: any) => ({
-        mes: item.mes,
-        label: item.label,
-        Novilha: Number(item.Novilha),
-        Primípara: Number(item.Primípara),
-        Multípara: Number(item.Multípara)
-    }));
-
-    // 5. Retornar o JSON de sucesso
-    return new Response(
-      JSON.stringify({ ok: true, items }),
-      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+    const items = await buildProjecaoItems(
+      supabaseClient,
+      idPropriedade,
+      inicio,
+      fim,
     );
+
+    return new Response(JSON.stringify({ ok: true, items }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   } catch (error) {
-    console.error('Erro geral da função:', error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("reproducao-projecao-partos:", msg);
     return new Response(
-      JSON.stringify({ ok: false, error: error.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      JSON.stringify({ ok: false, error: msg }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      },
     );
   }
 });
