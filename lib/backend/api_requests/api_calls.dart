@@ -1402,9 +1402,13 @@ class CountRebanhosComLoteCall {
 class SupabaseEdgeGroup {
   static String getBaseUrl() =>
       'https://eqrtgsqnxxnfjjzlxpuj.functions.supabase.co/';
-  static Map<String, String> headers = {
-    'Content-Type': 'application/json',
-  };
+
+  /// Edge Functions com "Verify JWT" no Supabase exigem Bearer (anon ou sessão).
+  static Map<String, String> get authHeaders => {
+        'Authorization': 'Bearer ${SupabaseConfig.anonKey}',
+        'apikey': SupabaseConfig.anonKey,
+        'Content-Type': 'application/json',
+      };
   static NascimentosPeriodoCall nascimentosPeriodoCall =
       NascimentosPeriodoCall();
   static MortalidadePeriodoCall mortalidadePeriodoCall =
@@ -1442,9 +1446,7 @@ class NascimentosPeriodoCall {
       callName: 'Nascimentos Periodo',
       apiUrl: '${baseUrl}nascimentos_periodo',
       callType: ApiCallType.POST,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: SupabaseEdgeGroup.authHeaders,
       params: {},
       body: ffApiRequestBody,
       bodyType: BodyType.JSON,
@@ -1556,9 +1558,7 @@ class MortalidadePeriodoCall {
       callName: 'Mortalidade periodo',
       apiUrl: '${baseUrl}mortalidade_periodo',
       callType: ApiCallType.POST,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: SupabaseEdgeGroup.authHeaders,
       params: {},
       body: ffApiRequestBody,
       bodyType: BodyType.JSON,
@@ -1608,9 +1608,7 @@ class DesmamaPeriodoCall {
       callName: 'Desmama Periodo',
       apiUrl: '${baseUrl}desmama_periodo',
       callType: ApiCallType.GET,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: SupabaseEdgeGroup.authHeaders,
       params: {
         'inicio': inicio,
         'fim': fim,
@@ -1662,9 +1660,7 @@ class IdadeDesmamaCall {
       callName: 'Idade Desmama',
       apiUrl: '${baseUrl}idade_desmama_kpi',
       callType: ApiCallType.GET,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: SupabaseEdgeGroup.authHeaders,
       params: {
         'inicio': inicio,
         'fim': fim,
@@ -1699,9 +1695,7 @@ class PesoDesmamaCall {
       callName: 'peso Desmama',
       apiUrl: '${baseUrl}peso_desmama_kpi',
       callType: ApiCallType.GET,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: SupabaseEdgeGroup.authHeaders,
       params: {
         'inicio': inicio,
         'fim': fim,
@@ -1735,9 +1729,7 @@ class VendidosPorCategoriasPeriodoCall {
       callName: 'Vendidos por Categorias Periodo',
       apiUrl: '${baseUrl}vendidos_categoria_periodo',
       callType: ApiCallType.GET,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: SupabaseEdgeGroup.authHeaders,
       params: {
         'inicio': inicio,
         'fim': fim,
@@ -1772,9 +1764,7 @@ class PrecoMedioCategoriaCall {
       callName: 'Preco Medio Categoria',
       apiUrl: '${baseUrl}preco_medio_categoria_periodo',
       callType: ApiCallType.GET,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: SupabaseEdgeGroup.authHeaders,
       params: {
         'inicio': inicio,
         'fim': fim,
@@ -1807,25 +1797,28 @@ class TaxaPrenhezGetCall {
   }) async {
     final baseUrl = SupabaseEdgeGroup.getBaseUrl();
 
+    // Nunca omitir id_propriedade/data_inicio/data_fim: removeWhere com null
+    // tirava as chaves da URL e a edge respondia HTTP 400.
     final params = <String, dynamic>{
-      'id_propriedade': idPropriedade,
-      'data_inicio': dataInicio,
-      'data_fim': dataFim,
-      // Filtros opcionais (se vazios, não são enviados)
-      'p_lote_id': pLoteId,
-      'p_inseminador': pInseminador,
-      'p_id_rebanho_reprodutor': pIdRebanhoReprodutor,
+      'id_propriedade': (idPropriedade ?? '').trim(),
+      'data_inicio': (dataInicio ?? '').trim(),
+      'data_fim': (dataFim ?? '').trim(),
     };
-    params.removeWhere((key, value) =>
-        value == null || (value is String && value.trim().isEmpty));
+    if (pLoteId != null && pLoteId.trim().isNotEmpty) {
+      params['p_lote_id'] = pLoteId.trim();
+    }
+    if (pInseminador != null && pInseminador.trim().isNotEmpty) {
+      params['p_inseminador'] = pInseminador.trim();
+    }
+    if (pIdRebanhoReprodutor != null && pIdRebanhoReprodutor.trim().isNotEmpty) {
+      params['p_id_rebanho_reprodutor'] = pIdRebanhoReprodutor.trim();
+    }
 
     return ApiManager.instance.makeApiCall(
       callName: 'taxa prenhez get',
       apiUrl: '${baseUrl}taxa-prenhez',
       callType: ApiCallType.GET,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: SupabaseEdgeGroup.authHeaders,
       params: params,
       returnBody: true,
       encodeBodyUtf8: false,
@@ -1868,9 +1861,7 @@ class TaxaNatalidadeGetCall {
       callName: 'taxa natalidade get',
       apiUrl: '${baseUrl}taxa-natalidade',
       callType: ApiCallType.GET,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: SupabaseEdgeGroup.authHeaders,
       params: {
         'id_propriedade': idPropriedade,
         'data_inicio': dataInicio,
@@ -1919,9 +1910,7 @@ class ProjecaoDesmamasCall {
       callName: 'Projecao Desmamas',
       apiUrl: '${baseUrl}projecao_desmamas',
       callType: ApiCallType.GET,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: SupabaseEdgeGroup.authHeaders,
       params: {
         'inicio': inicio,
         'fim': fim,

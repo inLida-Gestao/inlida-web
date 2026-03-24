@@ -14,10 +14,13 @@ function badRequest(msg: string) {
   });
 }
 
-// Aceita YYYY-M-D e YYYY-MM-DD -> normaliza para YYYY-MM-DD
+// Aceita YYYY-M-D, YYYY-MM-DD, prefixo ISO (2025-01-15T00:00:00...) -> YYYY-MM-DD
 function toDateStr(x: unknown): string | null {
-  const s = String(x ?? "").trim();
-  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  let s = String(x ?? "").trim();
+  if (!s) return null;
+  if (s.includes("T")) s = s.split("T")[0] ?? s;
+  else if (s.includes(" ")) s = s.split(" ")[0] ?? s;
+  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (!m) return null;
 
   const y = Number(m[1]);
@@ -96,12 +99,42 @@ serve(async (req) => {
     // ✅ Converter porcentagem de 0-100 para 0-1 (decimal) conforme esperado pelo widget
     // A função SQL retorna porcentagem como 15.79 (15.79%)
     // O widget TaxaPrenhezChart espera 0.1579 (decimal entre 0 e 1)
+    // Contagens opcionais (quando calcular_taxa_prenhez retornar): exibir (prenhe/inseminadas) no app
+    const pickInt = (row: any, keys: string[]): number | undefined => {
+      for (const k of keys) {
+        const v = row[k];
+        if (v == null || v === "") continue;
+        const n = Number(v);
+        if (!Number.isNaN(n)) return Math.trunc(n);
+      }
+      return undefined;
+    };
+
     const items = (data ?? []).map((r: any) => {
       const porcentagemNum = Number(r.porcentagem ?? 0);
-      return {
+      const total_prenhe = pickInt(r, [
+        "total_prenhe",
+        "totalPrenhe",
+        "prenhe",
+        "qtd_prenhe",
+        "matrizes_prenhes",
+        "prenhez",
+      ]);
+      const total_inseminadas = pickInt(r, [
+        "total_inseminadas",
+        "totalInseminadas",
+        "inseminadas",
+        "qtd_inseminadas",
+        "matrizes_inseminadas",
+        "total_matrizes",
+      ]);
+      const out: Record<string, unknown> = {
         titulo: String(r.titulo ?? ""),
         porcentagem: porcentagemNum / 100.0, // Converte de percentual para decimal
       };
+      if (total_prenhe !== undefined) out.total_prenhe = total_prenhe;
+      if (total_inseminadas !== undefined) out.total_inseminadas = total_inseminadas;
+      return out;
     });
 
     return new Response(JSON.stringify({ ok: true, items }), {

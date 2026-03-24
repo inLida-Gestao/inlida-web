@@ -1746,8 +1746,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                       ),
                                                     ),
                                                     if (reproducaoItem
-                                                            .ressinc ==
-                                                        'SIM')
+                                                        .mostrarIndicadorRessinc)
                                                       Container(
                                                         width: 20.0,
                                                         height: 20.0,

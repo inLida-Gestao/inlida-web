@@ -14,9 +14,24 @@ class PrenhezDataPoint {
   final String titulo;
   final double porcentagem;
   final String porcentagemFormatada;
+  /// Prenhes na categoria (numerador da taxa), quando a API enviar.
+  final int? totalPrenhe;
+  /// Total inseminadas na categoria (denominador), quando a API enviar.
+  final int? totalInseminadas;
 
-  PrenhezDataPoint(this.titulo, this.porcentagem)
-      : porcentagemFormatada = '${(porcentagem * 100).toStringAsFixed(1)}%';
+  PrenhezDataPoint(
+    this.titulo,
+    this.porcentagem, {
+    this.totalPrenhe,
+    this.totalInseminadas,
+  }) : porcentagemFormatada = '${(porcentagem * 100).toStringAsFixed(1)}%';
+
+  /// Sufixo " (a/b)" alinhado ao cálculo da taxa exibida.
+  String get fracaoLabel {
+    if (totalPrenhe == null || totalInseminadas == null) return '';
+    if (totalInseminadas! < 0) return '';
+    return ' ($totalPrenhe/$totalInseminadas)';
+  }
 }
 
 class TaxaPrenhezChart extends StatefulWidget {
@@ -67,44 +82,133 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
     return listDyn;
   }
 
+  static int? _parseOptionalInt(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    if (v is num) return v.round();
+    if (v is String) {
+      final t = v.trim();
+      if (t.isEmpty) return null;
+      return int.tryParse(t) ?? num.tryParse(t.replaceAll(',', '.'))?.round();
+    }
+    return null;
+  }
+
+  static int? _countsFromJson(Map<String, dynamic> json, List<String> keys) {
+    for (final k in keys) {
+      final parsed = _parseOptionalInt(json[k]);
+      if (parsed != null) return parsed;
+    }
+    return null;
+  }
+
   /// Parse e valida os dados JSON recebidos
   List<PrenhezDataPoint> _parseData(List<dynamic> jsonList) {
     if (jsonList.isEmpty) return [];
 
     return jsonList
         .map((json) {
-          // ✅ Validação de tipo
-          if (json is! Map<String, dynamic>) return null;
+          if (json is! Map) return null;
+          final m = Map<String, dynamic>.from(json);
 
-          // ✅ Validação de campos obrigatórios
-          final titulo = json['titulo'] ?? json['label'];
-          final rawPct = json['porcentagem'] ?? json['percentual'];
+          final tituloRaw = m['titulo'] ?? m['label'];
+          final tituloStr =
+              tituloRaw == null ? null : tituloRaw.toString().trim();
+          if (tituloStr == null || tituloStr.isEmpty) return null;
 
-          if (titulo == null || rawPct == null) return null;
-          if (titulo is! String) return null;
+          final prenhe = _countsFromJson(m, const [
+            'total_prenhe',
+            'totalPrenhe',
+            'prenhe',
+            'qtd_prenhe',
+            'matrizes_prenhes',
+            'prenhez',
+          ]);
+          final insem = _countsFromJson(m, const [
+            'total_inseminadas',
+            'totalInseminadas',
+            'inseminadas',
+            'qtd_inseminadas',
+            'matrizes_inseminadas',
+            'total_matrizes',
+          ]);
 
-          final num? porcentagem = rawPct is num
+          final rawPct = m['porcentagem'] ?? m['percentual'];
+          num? porcentagem = rawPct is num
               ? rawPct
-              : (rawPct is String ? num.tryParse(rawPct.replaceAll('%', '').trim()) : null);
+              : (rawPct is String
+                  ? num.tryParse(rawPct.replaceAll('%', '').trim())
+                  : null);
+          if (porcentagem == null &&
+              prenhe != null &&
+              insem != null &&
+              insem > 0) {
+            porcentagem = prenhe / insem;
+          }
           if (porcentagem == null) return null;
 
-          // ✅ Clamp porcentagem entre 0 e 1
-          // Se vier em % (ex.: 55 ou 55.2), normaliza para 0-1.
           final double pctDouble = porcentagem.toDouble();
           final double pct0a1 = (pctDouble > 1.0) ? (pctDouble / 100.0) : pctDouble;
           final porcentagemNormalizada = pct0a1.clamp(0.0, 1.0);
 
-          return PrenhezDataPoint(titulo, porcentagemNormalizada);
+          return PrenhezDataPoint(
+            tituloStr,
+            porcentagemNormalizada,
+            totalPrenhe: prenhe,
+            totalInseminadas: insem,
+          );
         })
         .whereType<PrenhezDataPoint>()
         .toList();
+  }
+
+  /// Linha agregada "Todos": com contagens por categoria, usa taxa global (soma/soma) e o mesmo par (a/b).
+  static PrenhezDataPoint _linhaTodosAgregada(List<PrenhezDataPoint> categorias) {
+    final comContagem = categorias
+        .where(
+          (p) =>
+              p.totalPrenhe != null &&
+              p.totalInseminadas != null &&
+              p.totalInseminadas! >= 0,
+        )
+        .toList();
+    if (comContagem.length == categorias.length && categorias.isNotEmpty) {
+      final sumP =
+          comContagem.fold<int>(0, (a, p) => a + (p.totalPrenhe ?? 0));
+      final sumI = comContagem.fold<int>(
+          0, (acb, p) => acb + (p.totalInseminadas ?? 0));
+      final pct = sumI > 0 ? (sumP / sumI).clamp(0.0, 1.0) : 0.0;
+      return PrenhezDataPoint(
+        'Todos',
+        pct,
+        totalPrenhe: sumP,
+        totalInseminadas: sumI,
+      );
+    }
+    final sumPct = categorias.fold<double>(0, (acc, p) => acc + p.porcentagem);
+    final media = categorias.isEmpty ? 0.0 : sumPct / categorias.length;
+    return PrenhezDataPoint('Todos', media.clamp(0.0, 1.0));
+  }
+
+  static bool _isLinhaTodosCategoria(PrenhezDataPoint p) {
+    final t = p.titulo.trim().toLowerCase();
+    return t.startsWith('todos');
   }
 
   @override
   Widget build(BuildContext context) {
     final items = _extractItems(widget.prenhezData);
     final List<PrenhezDataPoint> chartData = _parseData(items);
-    final orderedData = chartData.reversed.toList();
+
+    final categorias = chartData.where((p) => !_isLinhaTodosCategoria(p)).toList();
+
+    final List<PrenhezDataPoint> orderedData;
+    if (categorias.isEmpty) {
+      orderedData = chartData.reversed.toList();
+    } else {
+      final todos = _linhaTodosAgregada(categorias);
+      orderedData = [todos, ...categorias.reversed];
+    }
 
     final double? w =
       (widget.width != null && widget.width!.isFinite) ? widget.width : null;
@@ -163,7 +267,7 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      dataPoint.porcentagemFormatada,
+                      '${dataPoint.porcentagemFormatada}${dataPoint.fracaoLabel}',
                       style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
                             fontWeight: FontWeight.bold,
                           ),

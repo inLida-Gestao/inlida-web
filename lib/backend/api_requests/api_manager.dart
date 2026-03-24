@@ -12,6 +12,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:mime_type/mime_type.dart';
 
 import '/flutter_flow/uploaded_file.dart';
+import '/backend/supabase/supabase.dart';
 
 import 'get_streamed_response.dart';
 
@@ -490,9 +491,13 @@ class ApiManager {
           cache: cache,
           isStreamingApi: isStreamingApi,
         );
-    // Modify for your specific needs if this differs from your API.
-    if (_accessToken != null) {
-      headers[HttpHeaders.authorizationHeader] = 'Bearer $_accessToken';
+    // JWT da sessão Supabase (RLS nas RPCs) ou token manual; senão mantém Authorization dos headers (ex.: anon).
+    final sessionJwt = SupaFlow.client.auth.currentSession?.accessToken;
+    final bearer = (sessionJwt != null && sessionJwt.isNotEmpty)
+        ? sessionJwt
+        : _accessToken;
+    if (bearer != null && bearer.isNotEmpty) {
+      headers[HttpHeaders.authorizationHeader] = 'Bearer $bearer';
     }
     if (!apiUrl.startsWith('http')) {
       apiUrl = 'https://$apiUrl';

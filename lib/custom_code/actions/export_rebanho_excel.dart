@@ -1,13 +1,43 @@
 // Automatic FlutterFlow imports
 import '/backend/supabase/supabase.dart';
-import '/flutter_flow/flutter_flow_util.dart';
+import '/flutter_flow/flutter_flow_util.dart'; // ignore: unused_import
 // Imports other custom actions
 // Imports custom functions
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import 'package:excel/excel.dart';
 import 'package:download/download.dart';
+import 'package:excel/excel.dart';
+
+/// Converte o valor vindo do Supabase/JSON para [DateTime] para células tipo data no Excel.
+DateTime? _parseDateForExcelExport(dynamic value) {
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  if (value is String) {
+    final s = value.trim();
+    if (s.isEmpty) return null;
+    return DateTime.tryParse(s);
+  }
+  if (value is int) {
+    final a = value.abs();
+    if (a > 2000000000000000) {
+      return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
+    }
+    if (a > 2000000000000) {
+      return DateTime.fromMillisecondsSinceEpoch(value, isUtc: true);
+    }
+    if (a > 2000000000) {
+      return DateTime.fromMillisecondsSinceEpoch(value * 1000, isUtc: true);
+    }
+  }
+  if (value is double) {
+    final asInt = value.round();
+    if ((value - asInt).abs() < 1e-9) {
+      return _parseDateForExcelExport(asInt);
+    }
+  }
+  return DateTime.tryParse(value.toString());
+}
 
 Future<bool> exportRebanhoExcel(String nameExcel, String idPropriedade) async {
   try {
@@ -183,28 +213,16 @@ Future<bool> exportRebanhoExcel(String nameExcel, String idPropriedade) async {
               }
             }
           } else if (dateColumns.contains(columnName)) {
-            // Tratamento de data
-            if (value == null) {
-              sheet
-                  .cell(CellIndex.indexByColumnRow(
-                      columnIndex: colIndex, rowIndex: rowIndex + 1))
-                  .value = TextCellValue('');
+            // Célula tipo data nativa do Excel (não número genérico nem texto “dd/MM/yyyy”).
+            final parsed = _parseDateForExcelExport(value);
+            final cell = sheet.cell(CellIndex.indexByColumnRow(
+                columnIndex: colIndex, rowIndex: rowIndex + 1));
+            if (parsed != null) {
+              cell.value = DateCellValue.fromDateTime(parsed);
             } else {
-              String dateStr;
-              if (value is DateTime) {
-                dateStr = DateFormat('dd/MM/yyyy').format(value);
-              } else {
-                try {
-                  DateTime date = DateTime.parse(value.toString());
-                  dateStr = DateFormat('dd/MM/yyyy').format(date);
-                } catch (e) {
-                  dateStr = value.toString();
-                }
-              }
-              sheet
-                  .cell(CellIndex.indexByColumnRow(
-                      columnIndex: colIndex, rowIndex: rowIndex + 1))
-                  .value = TextCellValue(dateStr);
+              final isEmpty = value == null ||
+                  (value is String && value.trim().isEmpty);
+              cell.value = TextCellValue(isEmpty ? '' : value.toString());
             }
           } else {
             // Tratamento padrão

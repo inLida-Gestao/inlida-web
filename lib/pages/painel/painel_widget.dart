@@ -3796,12 +3796,6 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                         ),
                                                                                   ),
-                                                                                  const SizedBox(width: 12.0),
-                                                                                  if (containerTaxaPrenhezGetResponse != null && containerTaxaPrenhezGetResponse.succeeded)
-                                                                                    _buildTotalBadge(
-                                                                                      context,
-                                                                                      _countItems(containerTaxaPrenhezGetResponse.bodyText),
-                                                                                    ),
                                                                                 ],
                                                                               ),
                                                                               Padding(
@@ -4057,7 +4051,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             )
                                                                                           : Center(
                                                                                               child: Text(
-                                                                                                'Sem dados de reprodução no período.',
+                                                                                                (containerTaxaPrenhezGetResponse != null && !containerTaxaPrenhezGetResponse.succeeded)
+                                                                                                    ? 'Não foi possível carregar a taxa de concepção (HTTP ${containerTaxaPrenhezGetResponse.statusCode}). Verifique a função calcular_taxa_prenhez no Supabase.'
+                                                                                                    : 'Sem dados de reprodução no período.',
                                                                                                 style: FlutterFlowTheme.of(context).labelMedium,
                                                                                                 textAlign: TextAlign.center,
                                                                                               ),
@@ -5315,7 +5311,7 @@ class _PainelWidgetState extends State<PainelWidget>
           '${DateTime.now().year}',
         )) ??
         DateTime.now().year;
-    final mes = valueOrDefault<int>(_model.dDInicioMesValue, 1);
+    final mes = valueOrDefault<int>(_model.dDInicioMesValue, 1).clamp(1, 12);
     return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-01';
   }
 
@@ -5330,7 +5326,7 @@ class _PainelWidgetState extends State<PainelWidget>
           '${DateTime.now().year}',
         )) ??
         DateTime.now().year;
-    final mes = valueOrDefault<int>(_model.dDFimMesValue, 12);
+    final mes = valueOrDefault<int>(_model.dDFimMesValue, 12).clamp(1, 12);
     final ultimoDia = DateTime(ano, mes + 1, 0).day;
     return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
   }
@@ -5407,25 +5403,6 @@ class _PainelWidgetState extends State<PainelWidget>
       }
     }
     return total;
-  }
-
-  /// Conta o número de itens em uma lista JSON (para taxa de concepção).
-  int _countItems(dynamic items) {
-    if (items == null) return 0;
-    if (items is List) return items.length;
-    if (items is String) {
-      try {
-        final decoded = jsonDecode(items);
-        if (decoded is List) return decoded.length;
-        if (decoded is Map && decoded['items'] is List) {
-          return (decoded['items'] as List).length;
-        }
-      } catch (_) {}
-    }
-    if (items is Map && items['items'] is List) {
-      return (items['items'] as List).length;
-    }
-    return 0;
   }
 
   /// Extrai o total da linha "Total" nos diagnósticos realizados no período.

@@ -362,6 +362,16 @@ class ReproducaoDTStruct extends BaseStruct {
 
   bool hasRessinc() => _ressinc != null;
 
+  /// Protocolo de ressinc. no cadastro: Tradicional, Precoce, Superprecoce; [NAO] = sem protocolo.
+  /// Legado: [SIM]. Usado pelo badge "R" na lista principal.
+  static bool ressincIndicaMarcacao(String? valor) {
+    final r = (valor ?? '').trim();
+    if (r.isEmpty || r == 'NAO') return false;
+    return true;
+  }
+
+  bool get mostrarIndicadorRessinc => ressincIndicaMarcacao(_ressinc);
+
   // "parida" field.
   String? _parida;
   String get parida => _parida ?? '';

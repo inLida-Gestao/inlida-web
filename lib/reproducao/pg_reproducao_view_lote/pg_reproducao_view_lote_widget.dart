@@ -1,3 +1,4 @@
+import '/backend/schema/structs/reproducao_d_t_struct.dart';
 import '/backend/supabase/supabase.dart';
 import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
@@ -2041,18 +2042,18 @@ class _PgReproducaoViewLoteWidgetState
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
                                       children: [
-                                        if (_model.reproducaoSelecionada
-                                                ?.ressinc ==
-                                            'SIM')
+                                        if (ReproducaoDTStruct.ressincIndicaMarcacao(
+                                            _model.reproducaoSelecionada
+                                                ?.ressinc))
                                           Icon(
                                             Icons.check_box_rounded,
                                             color: FlutterFlowTheme.of(context)
                                                 .primary,
                                             size: 24.0,
                                           ),
-                                        if (_model.reproducaoSelecionada
-                                                ?.ressinc ==
-                                            'NAO')
+                                        if (!ReproducaoDTStruct.ressincIndicaMarcacao(
+                                            _model.reproducaoSelecionada
+                                                ?.ressinc))
                                           Icon(
                                             Icons.check_box_outline_blank,
                                             color: FlutterFlowTheme.of(context)
