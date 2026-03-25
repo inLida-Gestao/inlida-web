@@ -9,26 +9,59 @@ import '/flutter_flow/flutter_flow_util.dart';
 import 'package:excel/excel.dart';
 import 'package:download/download.dart';
 
-Future<List<Map<String, dynamic>>> _fetchAll(
-    String table, String idPropriedade,
-    {String select = '*'}) async {
-  List<Map<String, dynamic>> all = [];
-  const batchSize = 1000;
-  int offset = 0;
-  while (true) {
-    final res = await SupaFlow.client
-        .from(table)
-        .select(select)
-        .eq('id_propriedade', idPropriedade)
-        .or('deletado.is.null,deletado.neq.SIM')
-        .order('id', ascending: true)
-        .range(offset, offset + batchSize - 1);
-    for (var item in res) {
-      all.add(Map<String, dynamic>.from(item));
-    }
-    if (res.length < batchSize) break;
-    offset += batchSize;
+/// Pesagens dos animais cuja ficha está nesta propriedade (via [idRebanho]).
+/// Não depende só de [historico_pesagens.id_propriedade], que muitas telas não preenchem
+/// ao inserir pesagem pela ficha do animal — só importação em lote costumava gravar.
+Future<List<Map<String, dynamic>>> _fetchPesagensForProperty(
+    String idPropriedade) async {
+  final idProp = idPropriedade.trim();
+  if (idProp.isEmpty) return [];
+
+  final rebanhoRows = await SupaFlow.client
+      .from('rebanho')
+      .select('idRebanho')
+      .eq('idPropriedade', idProp);
+
+  final ids = <String>[];
+  for (final r in rebanhoRows) {
+    final k = r['idRebanho']?.toString().trim();
+    if (k != null && k.isNotEmpty) ids.add(k);
   }
+  if (ids.isEmpty) return [];
+
+  const pageSize = 1000;
+  const idChunk = 200;
+  final all = <Map<String, dynamic>>[];
+
+  for (var start = 0; start < ids.length; start += idChunk) {
+    final end = start + idChunk > ids.length ? ids.length : start + idChunk;
+    final chunk = ids.sublist(start, end);
+    var offset = 0;
+    while (true) {
+      final res = await SupaFlow.client
+          .from('historico_pesagens')
+          .select('*')
+          .inFilter('idRebanho', chunk)
+          .or('deletado.is.null,deletado.neq.SIM')
+          .order('id', ascending: true)
+          .range(offset, offset + pageSize - 1);
+      for (final item in res) {
+        all.add(Map<String, dynamic>.from(item));
+      }
+      if (res.length < pageSize) break;
+      offset += pageSize;
+    }
+  }
+
+  all.sort((a, b) {
+    final ia = (a['id'] is int)
+        ? a['id'] as int
+        : int.tryParse('${a['id']}') ?? 0;
+    final ib = (b['id'] is int)
+        ? b['id'] as int
+        : int.tryParse('${b['id']}') ?? 0;
+    return ia.compareTo(ib);
+  });
   return all;
 }
 
@@ -37,8 +70,8 @@ Future<bool> exportPesagemExcel(String nameExcel, String idPropriedade) async {
     print('=== INÍCIO DA EXPORTAÇÃO - PESAGEM ===');
     print('ID Propriedade: $idPropriedade');
 
-    // 1) Buscar pesagens
-    final allData = await _fetchAll('historico_pesagens', idPropriedade);
+    // 1) Buscar pesagens pelos animais da propriedade (idRebanho)
+    final allData = await _fetchPesagensForProperty(idPropriedade);
     print('Pesagens carregadas: ${allData.length}');
 
     if (allData.isEmpty) {

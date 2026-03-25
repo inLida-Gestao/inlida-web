@@ -4782,6 +4782,9 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                         if (_model.pesoNascimentoTextController.text != '') {
                           await HistoricoPesagensTable().insert({
                             'idRebanho': _model.idRebanho,
+                            'id_propriedade': FFAppState()
+                                .propriedadeSelecionada
+                                .idPropriedade,
                             'dataPesagem':
                                 supaSerialize<DateTime>(_model.datePicked1),
                             'tipo': 'Nascimento',
@@ -4793,6 +4796,9 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                         if (_model.pesoDesmamaTextController.text != '') {
                           await HistoricoPesagensTable().insert({
                             'idRebanho': _model.idRebanho,
+                            'id_propriedade': FFAppState()
+                                .propriedadeSelecionada
+                                .idPropriedade,
                             'dataPesagem':
                                 supaSerialize<DateTime>(_model.datePicked3),
                             'tipo': 'Desmama',
@@ -4804,6 +4810,9 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                         if (_model.pesoAtualTextController.text != '') {
                           await HistoricoPesagensTable().insert({
                             'idRebanho': _model.idRebanho,
+                            'id_propriedade': FFAppState()
+                                .propriedadeSelecionada
+                                .idPropriedade,
                             'dataPesagem':
                                 supaSerialize<DateTime>(_model.datePicked4),
                             'tipo': 'Atual',

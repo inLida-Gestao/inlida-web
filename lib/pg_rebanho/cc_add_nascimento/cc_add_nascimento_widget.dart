@@ -3217,6 +3217,9 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                           if (_model.pesoNascimentoTextController.text != '') {
                             await HistoricoPesagensTable().insert({
                               'idRebanho': _model.idRebanho,
+                              'id_propriedade': FFAppState()
+                                  .propriedadeSelecionada
+                                  .idPropriedade,
                               'dataPesagem':
                                   supaSerialize<DateTime>(_model.datePicked1),
                               'tipo': 'Nascimento',

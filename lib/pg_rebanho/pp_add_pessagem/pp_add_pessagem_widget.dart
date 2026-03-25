@@ -530,6 +530,9 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                         final idRebanho = containerRebanhoRow?.idRebanho;
                         await HistoricoPesagensTable().insert({
                           'idRebanho': idRebanho,
+                          'id_propriedade': FFAppState()
+                              .propriedadeSelecionada
+                              .idPropriedade,
                           'dataPesagem':
                               supaSerialize<DateTime>(_model.datePicked),
                           'tipo': 'Atual',

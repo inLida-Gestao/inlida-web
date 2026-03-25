@@ -6416,6 +6416,10 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                     .insert({
                                                                   'idRebanho':
                                                                       idRebanhoEdit,
+                                                                  'id_propriedade':
+                                                                      FFAppState()
+                                                                          .propriedadeSelecionada
+                                                                          .idPropriedade,
                                                                   'dataPesagem':
                                                                       supaSerialize<
                                                                               DateTime>(

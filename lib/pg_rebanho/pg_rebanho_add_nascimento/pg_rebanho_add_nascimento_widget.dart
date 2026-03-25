@@ -4490,6 +4490,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
+                                              'id_propriedade': FFAppState()
+                                                  .propriedadeSelecionada
+                                                  .idPropriedade,
                                               'dataPesagem':
                                                   supaSerialize<DateTime>(
                                                       _model.datePicked1),

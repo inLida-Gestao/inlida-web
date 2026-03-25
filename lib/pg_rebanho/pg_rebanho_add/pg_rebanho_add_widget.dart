@@ -6656,6 +6656,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
+                                              'id_propriedade': FFAppState()
+                                                  .propriedadeSelecionada
+                                                  .idPropriedade,
                                               'dataPesagem':
                                                   supaSerialize<DateTime>(
                                                       _model.datePicked1),
@@ -6672,6 +6675,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
+                                              'id_propriedade': FFAppState()
+                                                  .propriedadeSelecionada
+                                                  .idPropriedade,
                                               'dataPesagem':
                                                   supaSerialize<DateTime>(
                                                       _model.datePicked3),
@@ -6688,6 +6694,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
+                                              'id_propriedade': FFAppState()
+                                                  .propriedadeSelecionada
+                                                  .idPropriedade,
                                               'dataPesagem':
                                                   supaSerialize<DateTime>(
                                                       _model.datePicked4),
