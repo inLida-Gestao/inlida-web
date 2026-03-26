@@ -43,6 +43,14 @@ Future countReproducoes(BuildContext context) async {
 }
 
 Future countLotes(BuildContext context) async {
+  final propriedadeId = FFAppState().propriedadeSelecionada.idPropriedade;
+
+  if (propriedadeId.isEmpty) {
+    FFAppState().lotesInativos = 0;
+    FFAppState().lotesAtivos = 0;
+    return;
+  }
+
   List<LotesRow>? qtdLotesInativos;
   List<LotesRow>? qtdLotesAtivos;
 
@@ -50,11 +58,11 @@ Future countLotes(BuildContext context) async {
     Future(() async {
       qtdLotesInativos = await LotesTable().queryRows(
         queryFn: (q) => q
-            .eqOrNull(
+            .eq(
               'id_propriedade',
-              FFAppState().propriedadeSelecionada.idPropriedade,
+              propriedadeId,
             )
-            .eqOrNull(
+            .eq(
               'ativo',
               'Inativo',
             )
@@ -71,11 +79,11 @@ Future countLotes(BuildContext context) async {
     Future(() async {
       qtdLotesAtivos = await LotesTable().queryRows(
         queryFn: (q) => q
-            .eqOrNull(
+            .eq(
               'id_propriedade',
-              FFAppState().propriedadeSelecionada.idPropriedade,
+              propriedadeId,
             )
-            .eqOrNull(
+            .eq(
               'ativo',
               'Ativo',
             )

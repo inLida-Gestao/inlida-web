@@ -8341,7 +8341,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                         mainAxisAlignment:
                                             MainAxisAlignment.end,
                                         children: [
-                                          Flexible(
+                                          Expanded(
                                             child: FFButtonWidget(
                                               onPressed: () async {
                                                 context.pushNamed(
@@ -8401,7 +8401,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                             ),
                                             ),
                                           ),
-                                          FFButtonWidget(
+                                          Expanded(
+                                            child: FFButtonWidget(
                                             onPressed: () async {
                                               _model.matriz =
                                                   await RebanhoTable()
@@ -8511,7 +8512,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                               size: 24.0,
                                             ),
                                             options: FFButtonOptions(
-                                              width: 218.0,
+                                              width: double.infinity,
                                               height: 56.0,
                                               padding:
                                                   const EdgeInsetsDirectional
@@ -8558,6 +8559,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                               borderRadius:
                                                   BorderRadius.circular(8.0),
                                             ),
+                                          ),
                                           ),
                                         ].divide(const SizedBox(width: 24.0)),
                                       ),
