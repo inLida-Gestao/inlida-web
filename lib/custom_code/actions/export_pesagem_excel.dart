@@ -9,6 +9,28 @@ import '/flutter_flow/flutter_flow_util.dart';
 import 'package:excel/excel.dart';
 import 'package:download/download.dart';
 
+/// O PostgREST limita o retorno padrão (ex.: 1000 linhas). Sem paginação, propriedades
+/// grandes exportavam pesagens só do primeiro lote de animais.
+Future<List<String>> _fetchAllRebanhoIdsForProperty(String idProp) async {
+  const batchSize = 1000;
+  var offset = 0;
+  final ids = <String>[];
+  while (true) {
+    final rebanhoRows = await SupaFlow.client
+        .from('rebanho')
+        .select('idRebanho')
+        .eq('idPropriedade', idProp)
+        .range(offset, offset + batchSize - 1);
+    for (final r in rebanhoRows) {
+      final k = r['idRebanho']?.toString().trim();
+      if (k != null && k.isNotEmpty) ids.add(k);
+    }
+    if (rebanhoRows.length < batchSize) break;
+    offset += batchSize;
+  }
+  return ids;
+}
+
 /// Pesagens dos animais cuja ficha está nesta propriedade (via [idRebanho]).
 /// Não depende só de [historico_pesagens.id_propriedade], que muitas telas não preenchem
 /// ao inserir pesagem pela ficha do animal — só importação em lote costumava gravar.
@@ -17,16 +39,7 @@ Future<List<Map<String, dynamic>>> _fetchPesagensForProperty(
   final idProp = idPropriedade.trim();
   if (idProp.isEmpty) return [];
 
-  final rebanhoRows = await SupaFlow.client
-      .from('rebanho')
-      .select('idRebanho')
-      .eq('idPropriedade', idProp);
-
-  final ids = <String>[];
-  for (final r in rebanhoRows) {
-    final k = r['idRebanho']?.toString().trim();
-    if (k != null && k.isNotEmpty) ids.add(k);
-  }
+  final ids = await _fetchAllRebanhoIdsForProperty(idProp);
   if (ids.isEmpty) return [];
 
   const pageSize = 1000;
@@ -67,11 +80,12 @@ Future<List<Map<String, dynamic>>> _fetchPesagensForProperty(
 
 Future<bool> exportPesagemExcel(String nameExcel, String idPropriedade) async {
   try {
+    final idProp = idPropriedade.trim();
     print('=== INÍCIO DA EXPORTAÇÃO - PESAGEM ===');
-    print('ID Propriedade: $idPropriedade');
+    print('ID Propriedade: $idProp');
 
     // 1) Buscar pesagens pelos animais da propriedade (idRebanho)
-    final allData = await _fetchPesagensForProperty(idPropriedade);
+    final allData = await _fetchPesagensForProperty(idProp);
     print('Pesagens carregadas: ${allData.length}');
 
     if (allData.isEmpty) {
@@ -80,14 +94,24 @@ Future<bool> exportPesagemExcel(String nameExcel, String idPropriedade) async {
     }
 
     // 2) Buscar dados do rebanho da mesma propriedade e indexar por idRebanho
-    final rebanhoList = await SupaFlow.client
-        .from('rebanho')
-        .select('idRebanho, numeroAnimal, chip, nome, sexo, dataNascimento, raca')
-        .eq('idPropriedade', idPropriedade);
+    const batchSize = 1000;
+    var offset = 0;
     final rebanhoMap = <String, Map<String, dynamic>>{};
-    for (var r in rebanhoList) {
-      final key = r['idRebanho'];
-      if (key != null) rebanhoMap[key.toString()] = Map<String, dynamic>.from(r);
+    while (true) {
+      final rebanhoList = await SupaFlow.client
+          .from('rebanho')
+          .select(
+              'idRebanho, numeroAnimal, chip, nome, sexo, dataNascimento, raca')
+          .eq('idPropriedade', idProp)
+          .range(offset, offset + batchSize - 1);
+      for (var r in rebanhoList) {
+        final key = r['idRebanho'];
+        if (key != null) {
+          rebanhoMap[key.toString()] = Map<String, dynamic>.from(r);
+        }
+      }
+      if (rebanhoList.length < batchSize) break;
+      offset += batchSize;
     }
     print('Animais indexados: ${rebanhoMap.length}');
 
