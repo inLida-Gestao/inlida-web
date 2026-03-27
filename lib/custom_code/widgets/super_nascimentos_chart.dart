@@ -66,20 +66,30 @@ class _SuperNascimentosChartState extends State<SuperNascimentosChart> {
     final inicio = widget.inicio;
     final fim = widget.fim;
 
-    final query = client
-        .from('rebanho')
-        .select('dataNascimento, sexo')
-        .eq('deletado', 'NAO')
-        .gte('dataNascimento', inicio.toIso8601String())
-        .lte('dataNascimento', fim.toIso8601String())
-        .eq('idPropriedade', widget.idPropriedade);
+    const pageSize = 1000;
+    var offset = 0;
+    final dados = <dynamic>[];
 
-    if (widget.sexo != 'T') {
-      query.eq('sexo', widget.sexo);
+    while (true) {
+      var builder = client
+          .from('rebanho')
+          .select('dataNascimento, sexo')
+          .eq('deletado', 'NAO')
+          .gte('dataNascimento', inicio.toIso8601String())
+          .lte('dataNascimento', fim.toIso8601String())
+          .eq('idPropriedade', widget.idPropriedade);
+
+      if (widget.sexo != 'T') {
+        builder = builder.eq('sexo', widget.sexo);
+      }
+
+      final batch = await builder.range(offset, offset + pageSize - 1);
+      final rows = batch as List<dynamic>;
+      if (rows.isEmpty) break;
+      dados.addAll(rows);
+      if (rows.length < pageSize) break;
+      offset += pageSize;
     }
-
-    final res = await query;
-    final dados = res as List<dynamic>;
 
     final Map<String, int> agrupado = {};
 

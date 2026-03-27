@@ -162,7 +162,10 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
   FocusNode? dataPesagemFocusNode;
   TextEditingController? dataPesagemTextController;
   String? Function(BuildContext, String?)? dataPesagemTextControllerValidator;
+  /// Data da venda (status Vendido). Separado de dataPesagem para não conflitar com pesagens.
   DateTime? datePicked9;
+  /// Data ao adicionar nova pesagem na ficha.
+  DateTime? datePicked10;
   // State field(s) for pesoAdd widget.
   FocusNode? pesoAddFocusNode;
   TextEditingController? pesoAddTextController;

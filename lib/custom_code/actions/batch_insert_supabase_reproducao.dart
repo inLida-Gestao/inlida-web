@@ -153,21 +153,35 @@ Future<Map<String, String>> _fetchLoteNomeToIdLoteMap(
   String idPropriedade,
 ) async {
   try {
-    final res = await Supabase.instance.client
-        .from('lotes')
-        .select('id_lote,nome,deletado')
-        .eq('id_propriedade', idPropriedade);
-
+    const pageSize = 1000;
+    var offset = 0;
     final map = <String, String>{};
-    for (final row in (res as List)) {
-      final nome = row['nome']?.toString();
-      final idLote = row['id_lote']?.toString();
-      final deletado = row['deletado']?.toString();
 
-      if (deletado != null && deletado.trim().toUpperCase() == 'SIM') continue;
-      if (nome == null || nome.trim().isEmpty) continue;
-      if (idLote == null || idLote.trim().isEmpty) continue;
-      map[_normalizeLoteNome(nome)] = idLote;
+    while (true) {
+      final res = await Supabase.instance.client
+          .from('lotes')
+          .select('id_lote,nome,deletado')
+          .eq('id_propriedade', idPropriedade)
+          .range(offset, offset + pageSize - 1);
+
+      final rows = (res as List);
+      if (rows.isEmpty) break;
+
+      for (final row in rows) {
+        final nome = row['nome']?.toString();
+        final idLote = row['id_lote']?.toString();
+        final deletado = row['deletado']?.toString();
+
+        if (deletado != null && deletado.trim().toUpperCase() == 'SIM') {
+          continue;
+        }
+        if (nome == null || nome.trim().isEmpty) continue;
+        if (idLote == null || idLote.trim().isEmpty) continue;
+        map[_normalizeLoteNome(nome)] = idLote;
+      }
+
+      if (rows.length < pageSize) break;
+      offset += pageSize;
     }
     return map;
   } catch (e) {

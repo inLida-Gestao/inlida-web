@@ -107,7 +107,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {
           _model.dataPesagemTextController?.text = dateTimeFormat(
             "d/M/y",
-            _model.datePicked9,
+            _model.datePicked10,
             locale: FFLocalizations.of(context).languageCode,
           );
         }));
@@ -5605,6 +5605,86 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             validator:
                                                                                 _model.dataAcaoTextController2Validator.asValidator(context),
                                                                           ),
+                                                                          InkWell(
+                                                                            splashColor:
+                                                                                Colors.transparent,
+                                                                            focusColor:
+                                                                                Colors.transparent,
+                                                                            hoverColor:
+                                                                                Colors.transparent,
+                                                                            highlightColor:
+                                                                                Colors.transparent,
+                                                                            onTap:
+                                                                                () async {
+                                                                              final initialVenda =
+                                                                                  _model.datePicked9 ??
+                                                                                      pgRebanhoEditRebanhoRow
+                                                                                          ?.dataVenda ??
+                                                                                      getCurrentTimestamp;
+                                                                              final datePickedVendaDate =
+                                                                                  await showDatePicker(
+                                                                                context: context,
+                                                                                initialDate: initialVenda,
+                                                                                firstDate: DateTime(1900),
+                                                                                lastDate: DateTime(2050),
+                                                                                builder: (context, child) {
+                                                                                  return wrapInMaterialDatePickerTheme(
+                                                                                    context,
+                                                                                    child!,
+                                                                                    headerBackgroundColor: FlutterFlowTheme.of(context).primary,
+                                                                                    headerForegroundColor: FlutterFlowTheme.of(context).info,
+                                                                                    headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                          ),
+                                                                                          fontSize: 32.0,
+                                                                                          letterSpacing: 0.0,
+                                                                                          fontWeight: FontWeight.w600,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                        ),
+                                                                                    pickerBackgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                    pickerForegroundColor: FlutterFlowTheme.of(context).primaryText,
+                                                                                    selectedDateTimeBackgroundColor: FlutterFlowTheme.of(context).primary,
+                                                                                    selectedDateTimeForegroundColor: FlutterFlowTheme.of(context).info,
+                                                                                    actionButtonForegroundColor: FlutterFlowTheme.of(context).primaryText,
+                                                                                    iconSize: 24.0,
+                                                                                  );
+                                                                                },
+                                                                              );
+
+                                                                              if (datePickedVendaDate !=
+                                                                                  null) {
+                                                                                safeSetState(() {
+                                                                                  _model.datePicked9 =
+                                                                                      DateTime(
+                                                                                    datePickedVendaDate.year,
+                                                                                    datePickedVendaDate.month,
+                                                                                    datePickedVendaDate.day,
+                                                                                  );
+                                                                                });
+                                                                              } else if (_model.datePicked9 !=
+                                                                                  null) {
+                                                                                safeSetState(() {
+                                                                                  _model.datePicked9 = getCurrentTimestamp;
+                                                                                });
+                                                                              }
+                                                                              safeSetState(() {
+                                                                                _model.dataAcaoTextController2?.text =
+                                                                                    dateTimeFormat(
+                                                                                  "d/M/y",
+                                                                                  _model.datePicked9,
+                                                                                  locale: FFLocalizations.of(context).languageCode,
+                                                                                );
+                                                                              });
+                                                                            },
+                                                                            child:
+                                                                                Container(
+                                                                              width: double.infinity,
+                                                                              height: 56.0,
+                                                                              decoration: const BoxDecoration(),
+                                                                            ),
+                                                                          ),
                                                                         ],
                                                                       ),
                                                                     ].divide(const SizedBox(
@@ -6139,10 +6219,11 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               Colors.transparent,
                                                                           onTap:
                                                                               () async {
-                                                                            final datePicked9Date =
+                                                                            final datePicked10Date =
                                                                                 await showDatePicker(
                                                                               context: context,
-                                                                              initialDate: getCurrentTimestamp,
+                                                                              initialDate: _model.datePicked10 ??
+                                                                                  getCurrentTimestamp,
                                                                               firstDate: DateTime(1900),
                                                                               lastDate: DateTime(2050),
                                                                               builder: (context, child) {
@@ -6171,25 +6252,25 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               },
                                                                             );
 
-                                                                            if (datePicked9Date !=
+                                                                            if (datePicked10Date !=
                                                                                 null) {
                                                                               safeSetState(() {
-                                                                                _model.datePicked9 = DateTime(
-                                                                                  datePicked9Date.year,
-                                                                                  datePicked9Date.month,
-                                                                                  datePicked9Date.day,
+                                                                                _model.datePicked10 = DateTime(
+                                                                                  datePicked10Date.year,
+                                                                                  datePicked10Date.month,
+                                                                                  datePicked10Date.day,
                                                                                 );
                                                                               });
-                                                                            } else if (_model.datePicked9 !=
+                                                                            } else if (_model.datePicked10 !=
                                                                                 null) {
                                                                               safeSetState(() {
-                                                                                _model.datePicked9 = getCurrentTimestamp;
+                                                                                _model.datePicked10 = getCurrentTimestamp;
                                                                               });
                                                                             }
                                                                             safeSetState(() {
                                                                               _model.dataPesagemTextController?.text = dateTimeFormat(
                                                                                 "d/M/y",
-                                                                                _model.datePicked9,
+                                                                                _model.datePicked10,
                                                                                 locale: FFLocalizations.of(context).languageCode,
                                                                               );
                                                                             });
@@ -6393,7 +6474,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                 FFButtonWidget(
                                                               onPressed:
                                                                   () async {
-                                                                if (_model.datePicked9 == null ||
+                                                                if (_model.datePicked10 == null ||
                                                                     (_model.pesoAddTextController.text).trim().isEmpty) {
                                                                   ScaffoldMessenger.of(context).showSnackBar(
                                                                     SnackBar(
@@ -6424,7 +6505,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                       supaSerialize<
                                                                               DateTime>(
                                                                           _model
-                                                                              .datePicked9),
+                                                                              .datePicked10),
                                                                   'tipo':
                                                                       'Atual',
                                                                   'peso': double
@@ -6480,7 +6561,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                       dateTimeFormat(
                                                                     "d/M/y",
                                                                     _model
-                                                                        .datePicked9,
+                                                                        .datePicked10,
                                                                     locale: FFLocalizations.of(
                                                                             context)
                                                                         .languageCode,
