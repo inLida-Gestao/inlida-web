@@ -191,6 +191,119 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     return _toNormSet([v]);
   }
 
+  /// Itens para exibição na lista (dropdown + campo "outros"), sem duplicar por caixa.
+  List<String> _sanidadeDisplayMerged(String? primary, String? outros) {
+    final a = functions.converterJSONparaLista(primary) ?? const <String>[];
+    final b = functions.converterJSONparaLista(outros) ?? const <String>[];
+    final seen = <String>{};
+    final out = <String>[];
+    for (final x in [...a, ...b]) {
+      final t = x.trim();
+      if (t.isEmpty || t == '[]') continue;
+      final key = t.toLowerCase();
+      if (seen.contains(key)) continue;
+      seen.add(key);
+      out.add(t);
+    }
+    return out;
+  }
+
+  bool _sanidadeJsonFieldPopulated(String raw) {
+    final t = raw.trim();
+    return t.isNotEmpty && t != 'null' && t != '[]';
+  }
+
+  List<Widget> _buildTudoSanidadeChips(
+    BuildContext context,
+    SanidadeStruct sanidadeItem,
+  ) {
+    Widget chip(String label) => Container(
+          decoration: BoxDecoration(
+            color: FlutterFlowTheme.of(context).accent2,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(8.0, 4.0, 8.0, 4.0),
+            child: Text(
+              label,
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    font: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontStyle:
+                          FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                    ),
+                    color: FlutterFlowTheme.of(context).secondaryBackground,
+                    fontSize: 10.0,
+                    letterSpacing: 0.0,
+                    fontWeight: FontWeight.w600,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                  ),
+            ),
+          ),
+        );
+
+    final out = <Widget>[];
+
+    final vacItems = _sanidadeDisplayMerged(
+      sanidadeItem.vacinacao,
+      sanidadeItem.vacinacaoOutros,
+    );
+    if (vacItems.isNotEmpty) {
+      for (final t in vacItems) {
+        out.add(chip(t));
+      }
+    } else if (_sanidadeJsonFieldPopulated(sanidadeItem.vacinacao) ||
+        _hasValue(sanidadeItem.vacinacaoOutros) ||
+        _hasValue(sanidadeItem.vacinacaoObs)) {
+      out.add(chip('Vacina'));
+    }
+
+    final antiItems = _sanidadeDisplayMerged(
+      sanidadeItem.antiparasitario,
+      sanidadeItem.antiparasitarioOutros,
+    );
+    if (antiItems.isNotEmpty) {
+      for (final t in antiItems) {
+        out.add(chip(t));
+      }
+    } else if (_sanidadeJsonFieldPopulated(sanidadeItem.antiparasitario) ||
+        _hasValue(sanidadeItem.antiparasitarioOutros) ||
+        _hasValue(sanidadeItem.antiparasitarioObs)) {
+      out.add(chip('Antiparasitário'));
+    }
+
+    final protoItems = _sanidadeDisplayMerged(
+      sanidadeItem.protocoloReprodutivo,
+      sanidadeItem.protocoloReprodutivoOutros,
+    );
+    if (protoItems.isNotEmpty) {
+      for (final t in protoItems) {
+        out.add(chip(t));
+      }
+    } else if (_sanidadeJsonFieldPopulated(sanidadeItem.protocoloReprodutivo) ||
+        _hasValue(sanidadeItem.protocoloReprodutivoOutros) ||
+        _hasValue(sanidadeItem.protocoloReprodutivoObs)) {
+      out.add(chip('Protocolo reprodutivo'));
+    }
+
+    final tratItems = _sanidadeDisplayMerged(
+      sanidadeItem.tratamento,
+      sanidadeItem.tratamentoOutros,
+    );
+    if (tratItems.isNotEmpty) {
+      for (final t in tratItems) {
+        out.add(chip(t));
+      }
+    } else if (_sanidadeJsonFieldPopulated(sanidadeItem.tratamento) ||
+        _hasValue(sanidadeItem.tratamentoOutros) ||
+        _hasValue(sanidadeItem.tratamentoObs)) {
+      out.add(chip('Tratamento'));
+    }
+
+    return out;
+  }
+
   bool _matchesMulti(String selectedCsv, Set<String> candidateValues) {
     final selected = _toNormSet(_parseCsvFilter(selectedCsv));
     if (selected.isEmpty) return true;
@@ -2292,129 +2405,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       mainAxisSize:
                                                                           MainAxisSize
                                                                               .max,
-                                                                      children:
-                                                                          [
-                                                                        if (sanidadeItem.vacinacao.trim().isNotEmpty &&
-                                                                            sanidadeItem.vacinacao !=
-                                                                                'null' &&
-                                                                            sanidadeItem.vacinacao !=
-                                                                                '[]')
-                                                                          Container(
-                                                                            decoration:
-                                                                                BoxDecoration(
-                                                                              color: FlutterFlowTheme.of(context).accent2,
-                                                                              borderRadius: BorderRadius.circular(4.0),
-                                                                            ),
-                                                                            child:
-                                                                                Padding(
-                                                                              padding: const EdgeInsetsDirectional.fromSTEB(8.0, 4.0, 8.0, 4.0),
-                                                                              child: Text(
-                                                                                'Vacina',
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                      fontSize: 10.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                    ),
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        if (sanidadeItem.antiparasitario.trim().isNotEmpty &&
-                                                                            sanidadeItem.antiparasitario !=
-                                                                                'null' &&
-                                                                            sanidadeItem.antiparasitario !=
-                                                                                '[]')
-                                                                          Container(
-                                                                            decoration:
-                                                                                BoxDecoration(
-                                                                              color: FlutterFlowTheme.of(context).accent2,
-                                                                              borderRadius: BorderRadius.circular(4.0),
-                                                                            ),
-                                                                            child:
-                                                                                Padding(
-                                                                              padding: const EdgeInsetsDirectional.fromSTEB(8.0, 4.0, 8.0, 4.0),
-                                                                              child: Text(
-                                                                                'Antiparasitário',
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                      fontSize: 10.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                    ),
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        if (sanidadeItem.protocoloReprodutivo.trim().isNotEmpty &&
-                                                                            sanidadeItem.protocoloReprodutivo !=
-                                                                                'null' &&
-                                                                            sanidadeItem.protocoloReprodutivo !=
-                                                                                '[]')
-                                                                          Container(
-                                                                            decoration:
-                                                                                BoxDecoration(
-                                                                              color: FlutterFlowTheme.of(context).accent2,
-                                                                              borderRadius: BorderRadius.circular(4.0),
-                                                                            ),
-                                                                            child:
-                                                                                Padding(
-                                                                              padding: const EdgeInsetsDirectional.fromSTEB(8.0, 4.0, 8.0, 4.0),
-                                                                              child: Text(
-                                                                                'Protocolo reprodutivo',
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                      fontSize: 10.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                    ),
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        if (sanidadeItem.tratamento.trim().isNotEmpty &&
-                                                                            sanidadeItem.tratamento !=
-                                                                                'null' &&
-                                                                            sanidadeItem.tratamento !=
-                                                                                '[]')
-                                                                          Container(
-                                                                            decoration:
-                                                                                BoxDecoration(
-                                                                              color: FlutterFlowTheme.of(context).accent2,
-                                                                              borderRadius: BorderRadius.circular(4.0),
-                                                                            ),
-                                                                            child:
-                                                                                Padding(
-                                                                              padding: const EdgeInsetsDirectional.fromSTEB(8.0, 4.0, 8.0, 4.0),
-                                                                              child: Text(
-                                                                                'Tratamento',
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                      fontSize: 10.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                    ),
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                      ].divide(const SizedBox(
+                                                                      children: _buildTudoSanidadeChips(
+                                                                              context,
+                                                                              sanidadeItem)
+                                                                          .divide(const SizedBox(
                                                                               width: 4.0)),
                                                                     ),
                                                                   ),
@@ -3322,8 +3316,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     builder:
                                                                         (context) {
                                                                       final vacinas =
-                                                                          functions.converterJSONparaLista(sanidadeItem.vacinacao)?.toList() ??
-                                                                              [];
+                                                                          _sanidadeDisplayMerged(
+                                                                        sanidadeItem.vacinacao,
+                                                                        sanidadeItem.vacinacaoOutros,
+                                                                      );
 
                                                                       return SingleChildScrollView(
                                                                         scrollDirection:
@@ -4275,8 +4271,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     builder:
                                                                         (context) {
                                                                       final antiparasitarios =
-                                                                          functions.converterJSONparaLista(sanidadeItem.antiparasitario)?.toList() ??
-                                                                              [];
+                                                                          _sanidadeDisplayMerged(
+                                                                        sanidadeItem.antiparasitario,
+                                                                        sanidadeItem.antiparasitarioOutros,
+                                                                      );
 
                                                                       return SingleChildScrollView(
                                                                         scrollDirection:
@@ -5228,8 +5226,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     builder:
                                                                         (context) {
                                                                       final tratamentos =
-                                                                          functions.converterJSONparaLista(sanidadeItem.tratamento)?.toList() ??
-                                                                              [];
+                                                                          _sanidadeDisplayMerged(
+                                                                        sanidadeItem.tratamento,
+                                                                        sanidadeItem.tratamentoOutros,
+                                                                      );
 
                                                                       return SingleChildScrollView(
                                                                         scrollDirection:
@@ -6274,8 +6274,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     builder:
                                                                         (context) {
                                                                       final protocolos =
-                                                                          functions.converterJSONparaLista(sanidadeItem.protocoloReprodutivo)?.toList() ??
-                                                                              [];
+                                                                          _sanidadeDisplayMerged(
+                                                                        sanidadeItem.protocoloReprodutivo,
+                                                                        sanidadeItem.protocoloReprodutivoOutros,
+                                                                      );
 
                                                                       return SingleChildScrollView(
                                                                         scrollDirection:

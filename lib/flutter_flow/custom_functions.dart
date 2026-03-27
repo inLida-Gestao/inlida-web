@@ -8,6 +8,66 @@ String? converterListaParaJSON(List<String>? lista) {
   return jsonEncode(lista); // Converte a lista para JSON
 }
 
+/// Converte item de JSON (string, mapa com nome/princípio ativo, etc.) em rótulo de UI.
+String _jsonArrayItemToDisplayString(dynamic item) {
+  if (item == null) return '';
+  if (item is String) {
+    final t = item.trim();
+    if (t.isEmpty || t.toLowerCase() == 'null') return '';
+    return item;
+  }
+  if (item is num || item is bool) {
+    return item.toString();
+  }
+  if (item is Map) {
+    final map = <String, dynamic>{};
+    item.forEach((k, v) => map[k.toString()] = v);
+    const orderedKeys = <String>[
+      'nome',
+      'principio_ativo',
+      'principioAtivo',
+      'principio',
+      'descricao',
+      'desc',
+      'label',
+      'valor',
+      'antiparasitario',
+      'vacinacao',
+      'tratamento',
+      'protocolo_reprodutivo',
+      'protocolo',
+    ];
+    for (final k in orderedKeys) {
+      final v = map[k];
+      if (v == null) continue;
+      final s = v is String ? v.trim() : v.toString().trim();
+      if (s.isNotEmpty && s.toLowerCase() != 'null') {
+        return v is String ? v.trim() : s;
+      }
+    }
+    for (final v in map.values) {
+      if (v is String) {
+        final s = v.trim();
+        if (s.isNotEmpty && s.toLowerCase() != 'null') return s;
+      } else if (v != null) {
+        final s = v.toString().trim();
+        if (s.isNotEmpty && s.toLowerCase() != 'null') return s;
+      }
+    }
+    return '';
+  }
+  if (item is List) {
+    final parts = item
+        .map(_jsonArrayItemToDisplayString)
+        .where((s) => s.trim().isNotEmpty)
+        .toList();
+    return parts.join(', ');
+  }
+  final s = item.toString().trim();
+  if (s.isEmpty || s.toLowerCase() == 'null') return '';
+  return s;
+}
+
 List<String>? converterJSONparaLista(String? json) {
   // Verifica se a string é null
   if (json == null) return null;
@@ -21,12 +81,22 @@ List<String>? converterJSONparaLista(String? json) {
     // Tenta fazer o decode do JSON
     dynamic decoded = jsonDecode(jsonTrimmed);
 
-    // Verifica se o resultado é uma lista
     if (decoded is List) {
-      return List<String>.from(decoded.map((item) => item.toString()));
+      final out = decoded
+          .map(_jsonArrayItemToDisplayString)
+          .map((s) => s.trim())
+          .where((s) =>
+              s.isNotEmpty && s != 'null' && s != '[]')
+          .toList();
+      return out.isEmpty ? null : out;
     }
 
-    // Se não for uma lista, retorna null
+    if (decoded is Map) {
+      final one = _jsonArrayItemToDisplayString(decoded).trim();
+      if (one.isEmpty || one == '[]') return null;
+      return [one];
+    }
+
     return null;
   } catch (e) {
     // Fallback: aceitar string simples/CSV (ex: "A, B")
