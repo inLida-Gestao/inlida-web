@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:download/download.dart';
 import 'package:provider/provider.dart';
 import '/pages/pp_importar_pesagem/pp_importar_pesagem_widget.dart';
+import '/pages/pp_instrucoes_importacao/pp_instrucoes_importacao_widget.dart';
 import 'sub_menu_painel_importar_model.dart';
 export 'sub_menu_painel_importar_model.dart';
 
@@ -158,6 +159,77 @@ class _SubMenuPainelImportarWidgetState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              InkWell(
+                splashColor: Colors.transparent,
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                onTap: () async {
+                  final nav = Navigator.of(context);
+                  nav.pop();
+                  await showDialog(
+                    context: nav.context,
+                    builder: (dialogContext) {
+                      return Dialog(
+                        elevation: 0,
+                        insetPadding: EdgeInsets.zero,
+                        backgroundColor: Colors.transparent,
+                        alignment: const AlignmentDirectional(0.0, 0.0)
+                            .resolve(Directionality.of(nav.context)),
+                        child: GestureDetector(
+                          onTap: () {
+                            FocusScope.of(dialogContext).unfocus();
+                            FocusManager.instance.primaryFocus?.unfocus();
+                          },
+                          child: const PpInstrucoesImportacaoWidget(),
+                        ),
+                      );
+                    },
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 56.0,
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: FlutterFlowTheme.of(context).alternate,
+                        width: 1.0,
+                      ),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Icon(
+                          Icons.table_chart_outlined,
+                          color: FlutterFlowTheme.of(context).primaryText,
+                          size: 24.0,
+                        ),
+                        Text(
+                          'Planilhas modelo',
+                          style:
+                              FlutterFlowTheme.of(context).bodyMedium.override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                        ),
+                      ].divide(const SizedBox(width: 10.0)),
+                    ),
+                  ),
+                ),
+              ),
               InkWell(
                 splashColor: Colors.transparent,
                 focusColor: Colors.transparent,
