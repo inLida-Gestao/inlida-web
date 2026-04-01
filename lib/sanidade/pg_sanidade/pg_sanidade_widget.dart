@@ -50,43 +50,47 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       await action_blocks.countReproducoes(context);
 
-      // Contar vacinas aplicadas
+      // Contar vacinas aplicadas (lista, outros ou observação)
       final vacinasCount = await SanidadeTable().queryRows(
         queryFn: (q) => q
             .eqOrNull('id_propriedade',
                 FFAppState().propriedadeSelecionada.idPropriedade)
             .eq('deletado', 'NAO')
-            .not('vacinacao', 'is', null),
+            .or(
+                'vacinacao.not.is.null,vacinacao_outros.not.is.null,vacinacao_obs.not.is.null'),
       );
       _model.countVacinas = vacinasCount.length;
 
-      // Contar antiparasitários aplicados (registros com antiparasitário, como vacinas/tratamentos)
-        final antiparasitariosRows = await SanidadeTable().queryRows(
+      // Antiparasitários: lista, outros ou observação (obs não duplica linha no banco)
+      final antiparasitariosRows = await SanidadeTable().queryRows(
         queryFn: (q) => q
-          .eqOrNull('id_propriedade',
-            FFAppState().propriedadeSelecionada.idPropriedade)
-          .eq('deletado', 'NAO')
-          .or('antiparasitario.not.is.null,antiparasitario_outros.not.is.null'),
-        );
-        _model.countAntiparasitarios = antiparasitariosRows.length;
+            .eqOrNull('id_propriedade',
+                FFAppState().propriedadeSelecionada.idPropriedade)
+            .eq('deletado', 'NAO')
+            .or(
+                'antiparasitario.not.is.null,antiparasitario_outros.not.is.null,antiparasitario_obs.not.is.null'),
+      );
+      _model.countAntiparasitarios = antiparasitariosRows.length;
 
-      // Contar tratamentos aplicados
+      // Tratamentos: lista, outros ou observação
       final tratamentosCount = await SanidadeTable().queryRows(
         queryFn: (q) => q
             .eqOrNull('id_propriedade',
                 FFAppState().propriedadeSelecionada.idPropriedade)
             .eq('deletado', 'NAO')
-            .not('tratamento', 'is', null),
+            .or(
+                'tratamento.not.is.null,tratamento_outros.not.is.null,tratamento_obs.not.is.null'),
       );
       _model.countTratamentos = tratamentosCount.length;
 
-      // Contar protocolos reprodutivos
+      // Protocolos: lista, outros ou observação
       final protocolosCount = await SanidadeTable().queryRows(
         queryFn: (q) => q
             .eqOrNull('id_propriedade',
                 FFAppState().propriedadeSelecionada.idPropriedade)
             .eq('deletado', 'NAO')
-            .not('protocolo_reprodutivo', 'is', null),
+            .or(
+                'protocolo_reprodutivo.not.is.null,protocolo_reprodutivo_outros.not.is.null,protocolo_reprodutivo_obs.not.is.null'),
       );
       _model.countProtocolos = protocolosCount.length;
 
@@ -155,6 +159,53 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     if (v.isEmpty) return false;
     if (v.toLowerCase() == 'null') return false;
     return true;
+  }
+
+  String _truncateForChip(String text, [int max = 48]) {
+    final t = text.trim();
+    if (t.isEmpty) return t;
+    if (t.length <= max) return t;
+    return '${t.substring(0, max)}…';
+  }
+
+  bool _rowQualifiesVacinaTab(SanidadeStruct e) {
+    return (e.vacinacao.trim().isNotEmpty &&
+            e.vacinacao != 'null' &&
+            e.vacinacao != '[]') ||
+        (e.vacinacaoOutros.trim().isNotEmpty &&
+            e.vacinacaoOutros != 'null' &&
+            e.vacinacaoOutros != '[]') ||
+        _hasValue(e.vacinacaoObs);
+  }
+
+  bool _rowQualifiesAntiparasitarioTab(SanidadeStruct e) {
+    return (e.antiparasitario.trim().isNotEmpty &&
+            e.antiparasitario != 'null' &&
+            e.antiparasitario != '[]') ||
+        (e.antiparasitarioOutros.trim().isNotEmpty &&
+            e.antiparasitarioOutros != 'null' &&
+            e.antiparasitarioOutros != '[]') ||
+        _hasValue(e.antiparasitarioObs);
+  }
+
+  bool _rowQualifiesTratamentoTab(SanidadeStruct e) {
+    return (e.tratamento.trim().isNotEmpty &&
+            e.tratamento != 'null' &&
+            e.tratamento != '[]') ||
+        (e.tratamentoOutros.trim().isNotEmpty &&
+            e.tratamentoOutros != 'null' &&
+            e.tratamentoOutros != '[]') ||
+        _hasValue(e.tratamentoObs);
+  }
+
+  bool _rowQualifiesProtocoloTab(SanidadeStruct e) {
+    return (e.protocoloReprodutivo.trim().isNotEmpty &&
+            e.protocoloReprodutivo != 'null' &&
+            e.protocoloReprodutivo != '[]') ||
+        (e.protocoloReprodutivoOutros.trim().isNotEmpty &&
+            e.protocoloReprodutivoOutros != 'null' &&
+            e.protocoloReprodutivoOutros != '[]') ||
+        _hasValue(e.protocoloReprodutivoObs);
   }
 
   List<String> _parseCsvFilter(String? raw) {
@@ -254,9 +305,18 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
         out.add(chip(t));
       }
     } else if (_sanidadeJsonFieldPopulated(sanidadeItem.vacinacao) ||
-        _hasValue(sanidadeItem.vacinacaoOutros) ||
-        _hasValue(sanidadeItem.vacinacaoObs)) {
+        _hasValue(sanidadeItem.vacinacaoOutros)) {
       out.add(chip('Vacina'));
+    } else if (_hasValue(sanidadeItem.vacinacaoObs)) {
+      out.add(chip(_truncateForChip(sanidadeItem.vacinacaoObs)));
+    }
+    if (vacItems.isNotEmpty && _hasValue(sanidadeItem.vacinacaoObs)) {
+      out.add(chip('Obs.: ${_truncateForChip(sanidadeItem.vacinacaoObs, 44)}'));
+    } else if (vacItems.isEmpty &&
+        (_sanidadeJsonFieldPopulated(sanidadeItem.vacinacao) ||
+            _hasValue(sanidadeItem.vacinacaoOutros)) &&
+        _hasValue(sanidadeItem.vacinacaoObs)) {
+      out.add(chip('Obs.: ${_truncateForChip(sanidadeItem.vacinacaoObs, 44)}'));
     }
 
     final antiItems = _sanidadeDisplayMerged(
@@ -268,9 +328,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
         out.add(chip(t));
       }
     } else if (_sanidadeJsonFieldPopulated(sanidadeItem.antiparasitario) ||
-        _hasValue(sanidadeItem.antiparasitarioOutros) ||
-        _hasValue(sanidadeItem.antiparasitarioObs)) {
+        _hasValue(sanidadeItem.antiparasitarioOutros)) {
       out.add(chip('Antiparasitário'));
+    } else if (_hasValue(sanidadeItem.antiparasitarioObs)) {
+      out.add(chip(_truncateForChip(sanidadeItem.antiparasitarioObs)));
+    }
+    if (antiItems.isNotEmpty && _hasValue(sanidadeItem.antiparasitarioObs)) {
+      out.add(
+          chip('Obs.: ${_truncateForChip(sanidadeItem.antiparasitarioObs, 44)}'));
+    } else if (antiItems.isEmpty &&
+        (_sanidadeJsonFieldPopulated(sanidadeItem.antiparasitario) ||
+            _hasValue(sanidadeItem.antiparasitarioOutros)) &&
+        _hasValue(sanidadeItem.antiparasitarioObs)) {
+      out.add(
+          chip('Obs.: ${_truncateForChip(sanidadeItem.antiparasitarioObs, 44)}'));
     }
 
     final protoItems = _sanidadeDisplayMerged(
@@ -282,9 +353,21 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
         out.add(chip(t));
       }
     } else if (_sanidadeJsonFieldPopulated(sanidadeItem.protocoloReprodutivo) ||
-        _hasValue(sanidadeItem.protocoloReprodutivoOutros) ||
-        _hasValue(sanidadeItem.protocoloReprodutivoObs)) {
+        _hasValue(sanidadeItem.protocoloReprodutivoOutros)) {
       out.add(chip('Protocolo reprodutivo'));
+    } else if (_hasValue(sanidadeItem.protocoloReprodutivoObs)) {
+      out.add(chip(_truncateForChip(sanidadeItem.protocoloReprodutivoObs)));
+    }
+    if (protoItems.isNotEmpty &&
+        _hasValue(sanidadeItem.protocoloReprodutivoObs)) {
+      out.add(chip(
+          'Obs.: ${_truncateForChip(sanidadeItem.protocoloReprodutivoObs, 44)}'));
+    } else if (protoItems.isEmpty &&
+        (_sanidadeJsonFieldPopulated(sanidadeItem.protocoloReprodutivo) ||
+            _hasValue(sanidadeItem.protocoloReprodutivoOutros)) &&
+        _hasValue(sanidadeItem.protocoloReprodutivoObs)) {
+      out.add(chip(
+          'Obs.: ${_truncateForChip(sanidadeItem.protocoloReprodutivoObs, 44)}'));
     }
 
     final tratItems = _sanidadeDisplayMerged(
@@ -296,9 +379,18 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
         out.add(chip(t));
       }
     } else if (_sanidadeJsonFieldPopulated(sanidadeItem.tratamento) ||
-        _hasValue(sanidadeItem.tratamentoOutros) ||
-        _hasValue(sanidadeItem.tratamentoObs)) {
+        _hasValue(sanidadeItem.tratamentoOutros)) {
       out.add(chip('Tratamento'));
+    } else if (_hasValue(sanidadeItem.tratamentoObs)) {
+      out.add(chip(_truncateForChip(sanidadeItem.tratamentoObs)));
+    }
+    if (tratItems.isNotEmpty && _hasValue(sanidadeItem.tratamentoObs)) {
+      out.add(chip('Obs.: ${_truncateForChip(sanidadeItem.tratamentoObs, 44)}'));
+    } else if (tratItems.isEmpty &&
+        (_sanidadeJsonFieldPopulated(sanidadeItem.tratamento) ||
+            _hasValue(sanidadeItem.tratamentoOutros)) &&
+        _hasValue(sanidadeItem.tratamentoObs)) {
+      out.add(chip('Obs.: ${_truncateForChip(sanidadeItem.tratamentoObs, 44)}'));
     }
 
     return out;
@@ -342,6 +434,27 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     if (!_matchesMulti(FFAppState().filtroProtocolo, protoValues)) return false;
 
     return true;
+  }
+
+  /// Evita listagem duplicada quando a API/view devolve o mesmo registro mais de uma vez
+  /// (ex.: múltiplas linhas com o mesmo `id` por causa de JOIN na view).
+  List<SanidadeStruct> _sanidadeRowsFromResponseJson(dynamic jsonBody) {
+    final parsed = (jsonBody.toList()
+            .map<SanidadeStruct?>(SanidadeStruct.maybeFromMap)
+            .toList() as Iterable<SanidadeStruct?>)
+        .withoutNulls
+        .toList();
+    final seen = <String>{};
+    final out = <SanidadeStruct>[];
+    for (final r in parsed) {
+      final key = r.id != 0
+          ? 'id:${r.id}'
+          : 'sid:${r.idSanidade}|${r.idRebanho}|${r.dataSanidade}|${r.createdAt}';
+      if (seen.add(key)) {
+        out.add(r);
+      }
+    }
+    return out;
   }
 
   Future<void> _openViewSanidadeDialog(SanidadeStruct sanidade) async {
@@ -980,10 +1093,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         idPropriedade)
                                                                     .eq('deletado',
                                                                         'NAO')
-                                                                    .not(
-                                                                        'vacinacao',
-                                                                        'is',
-                                                                        null),
+                                                                    .or(
+                                                                        'vacinacao.not.is.null,vacinacao_outros.not.is.null,vacinacao_obs.not.is.null'),
                                                               );
 
                                                               final antiparasitariosCount =
@@ -995,8 +1106,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         idPropriedade)
                                                                     .eq('deletado',
                                                                         'NAO')
-                                                                  .or(
-                                                                    'antiparasitario.not.is.null,antiparasitario_outros.not.is.null'),
+                                                                    .or(
+                                                                        'antiparasitario.not.is.null,antiparasitario_outros.not.is.null,antiparasitario_obs.not.is.null'),
                                                               );
 
                                                               final tratamentosCount =
@@ -1008,10 +1119,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         idPropriedade)
                                                                     .eq('deletado',
                                                                         'NAO')
-                                                                    .not(
-                                                                        'tratamento',
-                                                                        'is',
-                                                                        null),
+                                                                    .or(
+                                                                        'tratamento.not.is.null,tratamento_outros.not.is.null,tratamento_obs.not.is.null'),
                                                               );
 
                                                               final protocolosCount =
@@ -1023,10 +1132,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         idPropriedade)
                                                                     .eq('deletado',
                                                                         'NAO')
-                                                                    .not(
-                                                                        'protocolo_reprodutivo',
-                                                                        'is',
-                                                                        null),
+                                                                    .or(
+                                                                        'protocolo_reprodutivo.not.is.null,protocolo_reprodutivo_outros.not.is.null,protocolo_reprodutivo_obs.not.is.null'),
                                                               );
 
                                                               safeSetState(() {
@@ -1711,6 +1818,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                           letterSpacing: 0.0,
                                                         ),
                                                   ),
+                                                  Text(
+                                                    'Conta registros com antiparasitário, outros ou observação. Pode coincidir com Tratamentos no mesmo lançamento.',
+                                                    style: FlutterFlowTheme.of(context)
+                                                        .bodySmall
+                                                        .override(
+                                                          font: GoogleFonts.poppins(
+                                                            fontWeight: FontWeight.w400,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                          ),
+                                                          color: FlutterFlowTheme.of(context).accent3,
+                                                          fontSize: isCompact ? 9.0 : 10.0,
+                                                          letterSpacing: 0.0,
+                                                        ),
+                                                  ),
                                                   Row(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
@@ -1836,6 +1957,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                           ),
                                                           color: FlutterFlowTheme.of(context).accent3,
                                                           fontSize: 12.0,
+                                                          letterSpacing: 0.0,
+                                                        ),
+                                                  ),
+                                                  Text(
+                                                    'Conta registros com tratamento, outros ou observação. Pode coincidir com Antiparasitários no mesmo lançamento.',
+                                                    style: FlutterFlowTheme.of(context)
+                                                        .bodySmall
+                                                        .override(
+                                                          font: GoogleFonts.poppins(
+                                                            fontWeight: FontWeight.w400,
+                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                          ),
+                                                          color: FlutterFlowTheme.of(context).accent3,
+                                                          fontSize: isCompact ? 9.0 : 10.0,
                                                           letterSpacing: 0.0,
                                                         ),
                                                   ),
@@ -2148,22 +2283,18 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = (pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                        .jsonBody
-                                                                        .toList()
-                                                                        .map<SanidadeStruct?>(SanidadeStruct
-                                                                            .maybeFromMap)
-                                                                        .toList()
-                                                                    as Iterable<
-                                                                        SanidadeStruct?>)
-                                                                .withoutNulls
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .sortedList(
-                                                                    keyOf: (e) =>
-                                                                        e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                _sanidadeRowsFromResponseJson(
+                                                                        pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                            .jsonBody)
+                                                                    .where(
+                                                                        _passesMultiSelectFilters)
+                                                                    .sortedList(
+                                                                        keyOf: (e) =>
+                                                                            e.createdAt,
+                                                                        desc:
+                                                                            true)
+                                                                    .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -3052,32 +3183,21 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = (pgSanidadeBuscarSanidadeFiltrosResponse.jsonBody
-                                                                        .toList()
-                                                                        .map<SanidadeStruct?>(SanidadeStruct
-                                                                            .maybeFromMap)
-                                                                        .toList()
-                                                                    as Iterable<
-                                                                        SanidadeStruct?>)
-                                                                .withoutNulls
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where((e) =>
-                                                                    (e.vacinacao.trim().isNotEmpty &&
-                                                                        e.vacinacao !=
-                                                                            'null' &&
-                                                                        e.vacinacao !=
-                                                                            '[]') ||
-                                                                    (e.vacinacaoOutros.trim().isNotEmpty &&
-                                                                        e.vacinacaoOutros !=
-                                                                            'null' &&
-                                                                        e.vacinacaoOutros !=
-                                                                            '[]'))
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) => e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                _sanidadeRowsFromResponseJson(
+                                                                        pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                            .jsonBody)
+                                                                    .where(
+                                                                        _passesMultiSelectFilters)
+                                                                    .where(
+                                                                        _rowQualifiesVacinaTab)
+                                                                    .toList()
+                                                                    .sortedList(
+                                                                        keyOf: (e) =>
+                                                                            e.createdAt,
+                                                                        desc:
+                                                                            true)
+                                                                    .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -4007,32 +4127,21 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = (pgSanidadeBuscarSanidadeFiltrosResponse.jsonBody
-                                                                        .toList()
-                                                                        .map<SanidadeStruct?>(SanidadeStruct
-                                                                            .maybeFromMap)
-                                                                        .toList()
-                                                                    as Iterable<
-                                                                        SanidadeStruct?>)
-                                                                .withoutNulls
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where((e) =>
-                                                                    (e.antiparasitario.trim().isNotEmpty &&
-                                                                        e.antiparasitario !=
-                                                                            'null' &&
-                                                                        e.antiparasitario !=
-                                                                            '[]') ||
-                                                                    (e.antiparasitarioOutros.trim().isNotEmpty &&
-                                                                        e.antiparasitarioOutros !=
-                                                                            'null' &&
-                                                                        e.antiparasitarioOutros !=
-                                                                            '[]'))
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) => e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                _sanidadeRowsFromResponseJson(
+                                                                        pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                            .jsonBody)
+                                                                    .where(
+                                                                        _passesMultiSelectFilters)
+                                                                    .where(
+                                                                        _rowQualifiesAntiparasitarioTab)
+                                                                    .toList()
+                                                                    .sortedList(
+                                                                        keyOf: (e) =>
+                                                                            e.createdAt,
+                                                                        desc:
+                                                                            true)
+                                                                    .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -4962,32 +5071,21 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = (pgSanidadeBuscarSanidadeFiltrosResponse.jsonBody
-                                                                        .toList()
-                                                                        .map<SanidadeStruct?>(SanidadeStruct
-                                                                            .maybeFromMap)
-                                                                        .toList()
-                                                                    as Iterable<
-                                                                        SanidadeStruct?>)
-                                                                .withoutNulls
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where((e) =>
-                                                                    (e.tratamento.trim().isNotEmpty &&
-                                                                        e.tratamento !=
-                                                                            'null' &&
-                                                                        e.tratamento !=
-                                                                            '[]') ||
-                                                                    (e.tratamentoOutros.trim().isNotEmpty &&
-                                                                        e.tratamentoOutros !=
-                                                                            'null' &&
-                                                                        e.tratamentoOutros !=
-                                                                            '[]'))
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) => e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                _sanidadeRowsFromResponseJson(
+                                                                        pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                            .jsonBody)
+                                                                    .where(
+                                                                        _passesMultiSelectFilters)
+                                                                    .where(
+                                                                        _rowQualifiesTratamentoTab)
+                                                                    .toList()
+                                                                    .sortedList(
+                                                                        keyOf: (e) =>
+                                                                            e.createdAt,
+                                                                        desc:
+                                                                            true)
+                                                                    .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -5917,32 +6015,21 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = (pgSanidadeBuscarSanidadeFiltrosResponse.jsonBody
-                                                                        .toList()
-                                                                        .map<SanidadeStruct?>(SanidadeStruct
-                                                                            .maybeFromMap)
-                                                                        .toList()
-                                                                    as Iterable<
-                                                                        SanidadeStruct?>)
-                                                                .withoutNulls
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where((e) =>
-                                                                    (e.protocoloReprodutivo.trim().isNotEmpty &&
-                                                                        e.protocoloReprodutivo !=
-                                                                            'null' &&
-                                                                        e.protocoloReprodutivo !=
-                                                                            '[]') ||
-                                                                    (e.protocoloReprodutivoOutros.trim().isNotEmpty &&
-                                                                        e.protocoloReprodutivoOutros !=
-                                                                            'null' &&
-                                                                        e.protocoloReprodutivoOutros !=
-                                                                            '[]'))
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) => e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                _sanidadeRowsFromResponseJson(
+                                                                        pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                            .jsonBody)
+                                                                    .where(
+                                                                        _passesMultiSelectFilters)
+                                                                    .where(
+                                                                        _rowQualifiesProtocoloTab)
+                                                                    .toList()
+                                                                    .sortedList(
+                                                                        keyOf: (e) =>
+                                                                            e.createdAt,
+                                                                        desc:
+                                                                            true)
+                                                                    .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
