@@ -11,6 +11,12 @@ import 'package:provider/provider.dart';
 import 'popup_rebanhos_model.dart';
 export 'popup_rebanhos_model.dart';
 
+/// Evita modal em branco quando o texto do banco/UI difere por espaços ou acentos.
+bool _popupTipoInseminacao(String? tipo) {
+  final t = tipo?.trim().toLowerCase() ?? '';
+  return t == 'inseminação' || t == 'inseminacao';
+}
+
 class PopupRebanhosWidget extends StatefulWidget {
   const PopupRebanhosWidget({
     super.key,
@@ -61,24 +67,48 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
+    // Na reprodução não usar filtros da tela Rebanho (categoria, raça, lote…):
+    // eles zeram o retorno da API e o modal fica vazio mesmo com animais na fazenda.
+    final ignorarFiltrosGlobaisRebanho = widget.reproducao;
+    final inseminacaoReprod =
+        widget.reproducao && _popupTipoInseminacao(widget.tipoReproducao);
+    // Inseminação: status Sêmen no servidor; sexo vazio inclui cadastros com sexo nulo.
+    // Monta natural / outros: só animais na propriedade.
+    final pStatusReprod = inseminacaoReprod
+        ? 'Sêmen'
+        : (widget.reproducao ? 'Na propriedade' : '');
+    final pSexoCall = widget.sanidade == true
+        ? ''
+        : (inseminacaoReprod ? '' : widget.sexo);
+
     return Align(
       alignment: const AlignmentDirectional(0.0, 0.0),
       child: FutureBuilder<ApiCallResponse>(
         future: FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
-          pCategoria: FFAppState().filtroCategoria,
-          pDataNascimentoDe: dateTimeFormat(
-            "yyyy-MM-dd",
-            FFAppState().filtroDataNacimentoDe,
-          ),
-          pDataNascimentoAte: dateTimeFormat(
-            "yyyy-MM-dd",
-            FFAppState().filtroDataNacimentoAte,
-          ),
+          pCategoria: ignorarFiltrosGlobaisRebanho
+              ? ''
+              : FFAppState().filtroCategoria,
+          pDataNascimentoDe: ignorarFiltrosGlobaisRebanho
+              ? ''
+              : dateTimeFormat(
+                  "yyyy-MM-dd",
+                  FFAppState().filtroDataNacimentoDe,
+                ),
+          pDataNascimentoAte: ignorarFiltrosGlobaisRebanho
+              ? ''
+              : dateTimeFormat(
+                  "yyyy-MM-dd",
+                  FFAppState().filtroDataNacimentoAte,
+                ),
           pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
-          pLoteNome: FFAppState().filtroLoteNome,
-          pOrigem: FFAppState().filtroOrigem,
-          pRaca: FFAppState().filtroRaca,
-          pSexo: widget.sanidade == true ? '' : widget.sexo,
+          pLoteNome: ignorarFiltrosGlobaisRebanho
+              ? ''
+              : FFAppState().filtroLoteNome,
+          pOrigem:
+              ignorarFiltrosGlobaisRebanho ? '' : FFAppState().filtroOrigem,
+          pRaca: ignorarFiltrosGlobaisRebanho ? '' : FFAppState().filtroRaca,
+          pSexo: pSexoCall,
+          pStatus: pStatusReprod,
           pLimite: FFAppConstants.limit,
           pOffset: 0,
           pPesquisa: _model.pesquisarTextController.text,
@@ -1167,7 +1197,7 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                           .isNotEmpty) &&
                       (widget.sexo == 'Macho') &&
                       (widget.reproducao == true) &&
-                      (widget.tipoReproducao == 'Monta Natural') &&
+                      !_popupTipoInseminacao(widget.tipoReproducao) &&
                       (widget.sanidade == false))
                     Flexible(
                       child: Padding(
@@ -1206,7 +1236,8 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                             .where((e) =>
                                                 (e.status ==
                                                     'Na propriedade') &&
-                                                (e.categoria == 'Touro'))
+                                                (e.categoria != 'Bezerra') &&
+                                                (e.categoria != 'Bezerro'))
                                             .toList()
                                             .toList())
                                         .take(20)
@@ -1429,7 +1460,7 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                           .isNotEmpty) &&
                       (widget.sexo == 'Macho') &&
                       (widget.reproducao == true) &&
-                      (widget.tipoReproducao == 'Inseminação') &&
+                      _popupTipoInseminacao(widget.tipoReproducao) &&
                       (widget.sanidade == false))
                     Flexible(
                       child: Padding(

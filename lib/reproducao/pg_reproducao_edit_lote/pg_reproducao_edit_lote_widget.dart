@@ -2964,56 +2964,40 @@ class _PgReproducaoEditLoteWidgetState
                                                                       .fontStyle,
                                                             ),
                                                       ),
-                                                      if (pgRebanhRebanhoRowList
-                                                          .where((e) =>
-                                                              e.sexo == 'Macho')
-                                                          .toList()
-                                                          .isNotEmpty)
-                                                        FlutterFlowDropDown<
-                                                            String>(
-                                                          controller: _model
-                                                                  .dropDownStatusValueController ??=
-                                                              FormFieldController<
-                                                                  String>(
-                                                            _model.dropDownStatusValue ??=
-                                                                pgReproducaoEditLoteReproducaoRow
-                                                                            .statusReproducao ==
-                                                                        'Parida'
-                                                                    ? 'Não diagnosticado'
-                                                                    : pgReproducaoEditLoteReproducaoRow
-                                                                        .statusReproducao,
-                                                          ),
-                                                          options: const [
-                                                            'Não diagnosticado',
-                                                            'Absorção',
-                                                            'Aborto',
-                                                            'Prenhez',
-                                                            'Vazio'
-                                                          ],
-                                                          onChanged: (val) =>
-                                                              safeSetState(() =>
-                                                                  _model.dropDownStatusValue =
-                                                                      val),
-                                                          height: 56.0,
-                                                          textStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .override(
-                                                                    font: GoogleFonts
-                                                                        .poppins(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600,
-                                                                      fontStyle: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .bodyMedium
-                                                                          .fontStyle,
-                                                                    ),
-                                                                    fontSize:
-                                                                        16.0,
-                                                                    letterSpacing:
-                                                                        0.0,
+                                                      FlutterFlowDropDown<
+                                                          String>(
+                                                        controller: _model
+                                                                .dropDownStatusValueController ??=
+                                                            FormFieldController<
+                                                                String>(
+                                                          _model.dropDownStatusValue ??=
+                                                              pgReproducaoEditLoteReproducaoRow
+                                                                          .statusReproducao ==
+                                                                      'Parida'
+                                                                  ? 'Não diagnosticado'
+                                                                  : pgReproducaoEditLoteReproducaoRow
+                                                                      .statusReproducao,
+                                                        ),
+                                                        options: const [
+                                                          'Não diagnosticado',
+                                                          'Absorção',
+                                                          'Aborto',
+                                                          'Natimorto',
+                                                          'Prenhez',
+                                                          'Vazio'
+                                                        ],
+                                                        onChanged: (val) =>
+                                                            safeSetState(() =>
+                                                                _model.dropDownStatusValue =
+                                                                    val),
+                                                        height: 56.0,
+                                                        textStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .w600,
@@ -3022,35 +3006,47 @@ class _PgReproducaoEditLoteWidgetState
                                                                         .bodyMedium
                                                                         .fontStyle,
                                                                   ),
-                                                          hintText:
-                                                              'Selecionar',
-                                                          icon: Icon(
-                                                            Icons
-                                                                .keyboard_arrow_down_rounded,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .secondaryText,
-                                                            size: 24.0,
-                                                          ),
-                                                          fillColor:
-                                                              const Color(0xFFF1F1F1),
-                                                          elevation: 2.0,
-                                                          borderColor: Colors
-                                                              .transparent,
-                                                          borderWidth: 0.0,
-                                                          borderRadius: 8.0,
-                                                          margin:
-                                                              const EdgeInsetsDirectional
-                                                                  .fromSTEB(
-                                                                      12.0,
+                                                                  fontSize:
+                                                                      16.0,
+                                                                  letterSpacing:
                                                                       0.0,
-                                                                      12.0,
-                                                                      0.0),
-                                                          hidesUnderline: true,
-                                                          isOverButton: false,
-                                                          isSearchable: false,
-                                                          isMultiSelect: false,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                        hintText:
+                                                            'Selecionar',
+                                                        icon: Icon(
+                                                          Icons
+                                                              .keyboard_arrow_down_rounded,
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryText,
+                                                          size: 24.0,
                                                         ),
+                                                        fillColor:
+                                                            const Color(0xFFF1F1F1),
+                                                        elevation: 2.0,
+                                                        borderColor: Colors
+                                                            .transparent,
+                                                        borderWidth: 0.0,
+                                                        borderRadius: 8.0,
+                                                        margin:
+                                                            const EdgeInsetsDirectional
+                                                                .fromSTEB(
+                                                                    12.0,
+                                                                    0.0,
+                                                                    12.0,
+                                                                    0.0),
+                                                        hidesUnderline: true,
+                                                        isOverButton: false,
+                                                        isSearchable: false,
+                                                        isMultiSelect: false,
+                                                      ),
                                                     ].divide(
                                                         const SizedBox(height: 8.0)),
                                                   ),

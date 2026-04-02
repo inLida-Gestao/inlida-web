@@ -3042,6 +3042,7 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                       'Não diagnosticado',
                                                       'Absorção',
                                                       'Aborto',
+                                                      'Natimorto',
                                                       'Prenhez',
                                                       'Vazio'
                                                     ],

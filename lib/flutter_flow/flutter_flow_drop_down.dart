@@ -37,6 +37,7 @@ class FlutterFlowDropDown<T> extends StatefulWidget {
     this.labelText,
     this.labelTextStyle,
     this.optionsHasValueKeys = false,
+    this.allowClear = false,
   }) : assert(
           isMultiSelect
               ? (controller == null &&
@@ -80,6 +81,8 @@ class FlutterFlowDropDown<T> extends StatefulWidget {
   final String? labelText;
   final TextStyle? labelTextStyle;
   final bool optionsHasValueKeys;
+  /// Quando true (apenas seleção simples), mostra um botão para limpar o valor.
+  final bool allowClear;
 
   @override
   State<FlutterFlowDropDown<T>> createState() => _FlutterFlowDropDownState<T>();
@@ -184,6 +187,18 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
   @override
   Widget build(BuildContext context) {
     final dropdownWidget = _buildDropdownWidget();
+    final showClear = !isMultiSelect &&
+        widget.allowClear &&
+        !widget.disabled &&
+        currentValue != null;
+
+    final paddedDropdown = Padding(
+      padding: _useDropdown2() ? EdgeInsets.zero : widget.margin,
+      child: widget.hidesUnderline
+          ? DropdownButtonHideUnderline(child: dropdownWidget)
+          : dropdownWidget,
+    );
+
     return SizedBox(
       width: widget.width,
       height: widget.height,
@@ -196,12 +211,31 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
           ),
           color: widget.fillColor,
         ),
-        child: Padding(
-          padding: _useDropdown2() ? EdgeInsets.zero : widget.margin,
-          child: widget.hidesUnderline
-              ? DropdownButtonHideUnderline(child: dropdownWidget)
-              : dropdownWidget,
-        ),
+        child: showClear
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: paddedDropdown),
+                  IconButton(
+                    tooltip: 'Limpar',
+                    onPressed: () {
+                      controller.value = null;
+                    },
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsetsDirectional.only(end: 4.0),
+                    constraints: const BoxConstraints(
+                      minWidth: 40.0,
+                      minHeight: 40.0,
+                    ),
+                    icon: Icon(
+                      Icons.close,
+                      size: 20.0,
+                      color: Theme.of(context).hintColor,
+                    ),
+                  ),
+                ],
+              )
+            : paddedDropdown,
       ),
     );
   }

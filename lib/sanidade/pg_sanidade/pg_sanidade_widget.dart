@@ -264,6 +264,34 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     return t.isNotEmpty && t != 'null' && t != '[]';
   }
 
+  /// Mesma regra visual da aba **Tudo** para uma categoria (vacina, antiparasitário, …).
+  /// As abas filtradas antes só usavam [_sanidadeDisplayMerged] e não mostravam obs nem
+  /// o rótulo genérico quando o JSON estava marcado sem itens parseáveis.
+  List<String> _sanidadeCategoryRowLabels({
+    required String? primary,
+    required String? outros,
+    required String? obs,
+    required String genericWhenEmptyParse,
+  }) {
+    final items = _sanidadeDisplayMerged(primary, outros);
+    final out = <String>[];
+    if (items.isNotEmpty) {
+      out.addAll(items);
+      if (_hasValue(obs)) {
+        out.add('Obs.: ${_truncateForChip(obs!, 44)}');
+      }
+    } else if (_sanidadeJsonFieldPopulated(primary ?? '') ||
+        _hasValue(outros)) {
+      out.add(genericWhenEmptyParse);
+      if (_hasValue(obs)) {
+        out.add('Obs.: ${_truncateForChip(obs!, 44)}');
+      }
+    } else if (_hasValue(obs)) {
+      out.add(_truncateForChip(obs!));
+    }
+    return out;
+  }
+
   List<Widget> _buildTudoSanidadeChips(
     BuildContext context,
     SanidadeStruct sanidadeItem,
@@ -296,101 +324,40 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
 
     final out = <Widget>[];
 
-    final vacItems = _sanidadeDisplayMerged(
-      sanidadeItem.vacinacao,
-      sanidadeItem.vacinacaoOutros,
-    );
-    if (vacItems.isNotEmpty) {
-      for (final t in vacItems) {
-        out.add(chip(t));
-      }
-    } else if (_sanidadeJsonFieldPopulated(sanidadeItem.vacinacao) ||
-        _hasValue(sanidadeItem.vacinacaoOutros)) {
-      out.add(chip('Vacina'));
-    } else if (_hasValue(sanidadeItem.vacinacaoObs)) {
-      out.add(chip(_truncateForChip(sanidadeItem.vacinacaoObs)));
-    }
-    if (vacItems.isNotEmpty && _hasValue(sanidadeItem.vacinacaoObs)) {
-      out.add(chip('Obs.: ${_truncateForChip(sanidadeItem.vacinacaoObs, 44)}'));
-    } else if (vacItems.isEmpty &&
-        (_sanidadeJsonFieldPopulated(sanidadeItem.vacinacao) ||
-            _hasValue(sanidadeItem.vacinacaoOutros)) &&
-        _hasValue(sanidadeItem.vacinacaoObs)) {
-      out.add(chip('Obs.: ${_truncateForChip(sanidadeItem.vacinacaoObs, 44)}'));
+    for (final t in _sanidadeCategoryRowLabels(
+      primary: sanidadeItem.vacinacao,
+      outros: sanidadeItem.vacinacaoOutros,
+      obs: sanidadeItem.vacinacaoObs,
+      genericWhenEmptyParse: 'Vacina',
+    )) {
+      out.add(chip(t));
     }
 
-    final antiItems = _sanidadeDisplayMerged(
-      sanidadeItem.antiparasitario,
-      sanidadeItem.antiparasitarioOutros,
-    );
-    if (antiItems.isNotEmpty) {
-      for (final t in antiItems) {
-        out.add(chip(t));
-      }
-    } else if (_sanidadeJsonFieldPopulated(sanidadeItem.antiparasitario) ||
-        _hasValue(sanidadeItem.antiparasitarioOutros)) {
-      out.add(chip('Antiparasitário'));
-    } else if (_hasValue(sanidadeItem.antiparasitarioObs)) {
-      out.add(chip(_truncateForChip(sanidadeItem.antiparasitarioObs)));
-    }
-    if (antiItems.isNotEmpty && _hasValue(sanidadeItem.antiparasitarioObs)) {
-      out.add(
-          chip('Obs.: ${_truncateForChip(sanidadeItem.antiparasitarioObs, 44)}'));
-    } else if (antiItems.isEmpty &&
-        (_sanidadeJsonFieldPopulated(sanidadeItem.antiparasitario) ||
-            _hasValue(sanidadeItem.antiparasitarioOutros)) &&
-        _hasValue(sanidadeItem.antiparasitarioObs)) {
-      out.add(
-          chip('Obs.: ${_truncateForChip(sanidadeItem.antiparasitarioObs, 44)}'));
+    for (final t in _sanidadeCategoryRowLabels(
+      primary: sanidadeItem.antiparasitario,
+      outros: sanidadeItem.antiparasitarioOutros,
+      obs: sanidadeItem.antiparasitarioObs,
+      genericWhenEmptyParse: 'Antiparasitário',
+    )) {
+      out.add(chip(t));
     }
 
-    final protoItems = _sanidadeDisplayMerged(
-      sanidadeItem.protocoloReprodutivo,
-      sanidadeItem.protocoloReprodutivoOutros,
-    );
-    if (protoItems.isNotEmpty) {
-      for (final t in protoItems) {
-        out.add(chip(t));
-      }
-    } else if (_sanidadeJsonFieldPopulated(sanidadeItem.protocoloReprodutivo) ||
-        _hasValue(sanidadeItem.protocoloReprodutivoOutros)) {
-      out.add(chip('Protocolo reprodutivo'));
-    } else if (_hasValue(sanidadeItem.protocoloReprodutivoObs)) {
-      out.add(chip(_truncateForChip(sanidadeItem.protocoloReprodutivoObs)));
-    }
-    if (protoItems.isNotEmpty &&
-        _hasValue(sanidadeItem.protocoloReprodutivoObs)) {
-      out.add(chip(
-          'Obs.: ${_truncateForChip(sanidadeItem.protocoloReprodutivoObs, 44)}'));
-    } else if (protoItems.isEmpty &&
-        (_sanidadeJsonFieldPopulated(sanidadeItem.protocoloReprodutivo) ||
-            _hasValue(sanidadeItem.protocoloReprodutivoOutros)) &&
-        _hasValue(sanidadeItem.protocoloReprodutivoObs)) {
-      out.add(chip(
-          'Obs.: ${_truncateForChip(sanidadeItem.protocoloReprodutivoObs, 44)}'));
+    for (final t in _sanidadeCategoryRowLabels(
+      primary: sanidadeItem.protocoloReprodutivo,
+      outros: sanidadeItem.protocoloReprodutivoOutros,
+      obs: sanidadeItem.protocoloReprodutivoObs,
+      genericWhenEmptyParse: 'Protocolo reprodutivo',
+    )) {
+      out.add(chip(t));
     }
 
-    final tratItems = _sanidadeDisplayMerged(
-      sanidadeItem.tratamento,
-      sanidadeItem.tratamentoOutros,
-    );
-    if (tratItems.isNotEmpty) {
-      for (final t in tratItems) {
-        out.add(chip(t));
-      }
-    } else if (_sanidadeJsonFieldPopulated(sanidadeItem.tratamento) ||
-        _hasValue(sanidadeItem.tratamentoOutros)) {
-      out.add(chip('Tratamento'));
-    } else if (_hasValue(sanidadeItem.tratamentoObs)) {
-      out.add(chip(_truncateForChip(sanidadeItem.tratamentoObs)));
-    }
-    if (tratItems.isNotEmpty && _hasValue(sanidadeItem.tratamentoObs)) {
-      out.add(chip('Obs.: ${_truncateForChip(sanidadeItem.tratamentoObs, 44)}'));
-    } else if (tratItems.isEmpty &&
-        (_sanidadeJsonFieldPopulated(sanidadeItem.tratamento) ||
-            _hasValue(sanidadeItem.tratamentoOutros)) &&
-        _hasValue(sanidadeItem.tratamentoObs)) {
-      out.add(chip('Obs.: ${_truncateForChip(sanidadeItem.tratamentoObs, 44)}'));
+    for (final t in _sanidadeCategoryRowLabels(
+      primary: sanidadeItem.tratamento,
+      outros: sanidadeItem.tratamentoOutros,
+      obs: sanidadeItem.tratamentoObs,
+      genericWhenEmptyParse: 'Tratamento',
+    )) {
+      out.add(chip(t));
     }
 
     return out;
@@ -3436,9 +3403,11 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     builder:
                                                                         (context) {
                                                                       final vacinas =
-                                                                          _sanidadeDisplayMerged(
-                                                                        sanidadeItem.vacinacao,
-                                                                        sanidadeItem.vacinacaoOutros,
+                                                                          _sanidadeCategoryRowLabels(
+                                                                        primary: sanidadeItem.vacinacao,
+                                                                        outros: sanidadeItem.vacinacaoOutros,
+                                                                        obs: sanidadeItem.vacinacaoObs,
+                                                                        genericWhenEmptyParse: 'Vacina',
                                                                       );
 
                                                                       return SingleChildScrollView(
@@ -4380,9 +4349,11 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     builder:
                                                                         (context) {
                                                                       final antiparasitarios =
-                                                                          _sanidadeDisplayMerged(
-                                                                        sanidadeItem.antiparasitario,
-                                                                        sanidadeItem.antiparasitarioOutros,
+                                                                          _sanidadeCategoryRowLabels(
+                                                                        primary: sanidadeItem.antiparasitario,
+                                                                        outros: sanidadeItem.antiparasitarioOutros,
+                                                                        obs: sanidadeItem.antiparasitarioObs,
+                                                                        genericWhenEmptyParse: 'Antiparasitário',
                                                                       );
 
                                                                       return SingleChildScrollView(
@@ -5324,9 +5295,11 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     builder:
                                                                         (context) {
                                                                       final tratamentos =
-                                                                          _sanidadeDisplayMerged(
-                                                                        sanidadeItem.tratamento,
-                                                                        sanidadeItem.tratamentoOutros,
+                                                                          _sanidadeCategoryRowLabels(
+                                                                        primary: sanidadeItem.tratamento,
+                                                                        outros: sanidadeItem.tratamentoOutros,
+                                                                        obs: sanidadeItem.tratamentoObs,
+                                                                        genericWhenEmptyParse: 'Tratamento',
                                                                       );
 
                                                                       return SingleChildScrollView(
@@ -6361,9 +6334,11 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     builder:
                                                                         (context) {
                                                                       final protocolos =
-                                                                          _sanidadeDisplayMerged(
-                                                                        sanidadeItem.protocoloReprodutivo,
-                                                                        sanidadeItem.protocoloReprodutivoOutros,
+                                                                          _sanidadeCategoryRowLabels(
+                                                                        primary: sanidadeItem.protocoloReprodutivo,
+                                                                        outros: sanidadeItem.protocoloReprodutivoOutros,
+                                                                        obs: sanidadeItem.protocoloReprodutivoObs,
+                                                                        genericWhenEmptyParse: 'Protocolo reprodutivo',
                                                                       );
 
                                                                       return SingleChildScrollView(

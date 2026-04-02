@@ -23,6 +23,98 @@ import 'package:provider/provider.dart';
 import 'pg_rebanho_view_model.dart';
 export 'pg_rebanho_view_model.dart';
 
+/// Data de referência para ordenação e cálculos: IA usa [ReproducaoRow.dataInseminacao];
+/// monta natural usa [ReproducaoRow.dataInicial] (com fallback à IA).
+DateTime? _dataReferenciaReproducao(ReproducaoRow r) {
+  if (r.tipoReproducao == 'Inseminação') {
+    return r.dataInseminacao;
+  }
+  return r.dataInicial ?? r.dataInseminacao;
+}
+
+/// Mesma regra da lista global de Reprodução: data única para IA; intervalo inicial–final para monta.
+String _textoDataReproducaoFichaAnimal(BuildContext context, ReproducaoRow r) {
+  final locale = FFLocalizations.of(context).languageCode;
+  if (r.tipoReproducao == 'Inseminação') {
+    return valueOrDefault<String>(
+      dateTimeFormat(
+        'd/M/y',
+        r.dataInseminacao,
+        locale: locale,
+      ),
+      'S/D',
+    );
+  }
+  return valueOrDefault<String>(
+    '${valueOrDefault<String>(
+      dateTimeFormat(
+        'd/M/y',
+        r.dataInicial,
+        locale: locale,
+      ),
+      'S/D',
+    )} - ${valueOrDefault<String>(
+      dateTimeFormat(
+        'd/M/y',
+        r.dataFinal,
+        locale: locale,
+      ),
+      'S/D',
+    )}',
+    'S/D',
+  );
+}
+
+/// Índices alinhados às [DataColumn2] da tabela de reproduções na ficha do animal.
+List<ReproducaoRow> _sortReproducoesFichaAnimal(
+  List<ReproducaoRow> source,
+  int columnIndex,
+  bool ascending,
+) {
+  final copy = List<ReproducaoRow>.from(source);
+  int dir(int c) => ascending ? c : -c;
+
+  int compare(ReproducaoRow a, ReproducaoRow b) {
+    switch (columnIndex) {
+      case 0:
+        return dir(
+          (a.tipoReproducao ?? '')
+              .toLowerCase()
+              .compareTo((b.tipoReproducao ?? '').toLowerCase()),
+        );
+      case 1:
+        final da = _dataReferenciaReproducao(a);
+        final db = _dataReferenciaReproducao(b);
+        if (da == null && db == null) {
+          return dir(a.createdAt.compareTo(b.createdAt));
+        }
+        if (da == null) return dir(1);
+        if (db == null) return dir(-1);
+        return dir(da.compareTo(db));
+      case 2:
+        return dir(
+          (a.statusReproducao ?? '').compareTo(b.statusReproducao ?? ''),
+        );
+      case 5:
+        final refA = _dataReferenciaReproducao(a);
+        final refB = _dataReferenciaReproducao(b);
+        final hasA = refA != null && a.dataParto != null;
+        final hasB = refB != null && b.dataParto != null;
+        if (!hasA && !hasB) return 0;
+        if (!hasA) return dir(1);
+        if (!hasB) return dir(-1);
+        final ia = functions.diasEntreDatas(refA, a.dataParto!);
+        final ib = functions.diasEntreDatas(refB, b.dataParto!);
+        return dir(ia.compareTo(ib));
+      default:
+        return 0;
+    }
+  }
+
+  copy.sort(compare);
+  return copy;
+}
+
 class PgRebanhoViewWidget extends StatefulWidget {
   const PgRebanhoViewWidget({
     super.key,
@@ -119,6 +211,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     _model.dataCompraViewFocusNode ??= FocusNode();
 
     _model.valorCompraViewFocusNode ??= FocusNode();
+
+    _model.dataVendaViewFocusNode ??= FocusNode();
+
+    _model.valorVendaViewFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -5056,6 +5152,296 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     width:
                                                                         24.0)),
                                                           ),
+                                                        if (valueOrDefault<
+                                                                String>(
+                                                              pgRebanhoViewRebanhoRow
+                                                                  ?.status,
+                                                              'N/A',
+                                                            ) ==
+                                                            'Vendido')
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsetsDirectional
+                                                                    .only(
+                                                                    top: 16.0),
+                                                            child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .max,
+                                                              children: [
+                                                                Expanded(
+                                                                  child:
+                                                                      Container(
+                                                                    decoration:
+                                                                        const BoxDecoration(),
+                                                                    child:
+                                                                        Column(
+                                                                      mainAxisSize:
+                                                                          MainAxisSize.max,
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment.start,
+                                                                      children: [
+                                                                        Text(
+                                                                          'Data da venda',
+                                                                          style: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .override(
+                                                                                font: GoogleFonts.poppins(
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                ),
+                                                                                fontSize: 16.0,
+                                                                                letterSpacing: 0.0,
+                                                                                fontWeight: FontWeight.w600,
+                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                        ),
+                                                                        TextFormField(
+                                                                          controller: _model.dataVendaViewTextController ??=
+                                                                              TextEditingController(
+                                                                            text:
+                                                                                valueOrDefault<String>(
+                                                                              dateTimeFormat(
+                                                                                'd/M/y',
+                                                                                pgRebanhoViewRebanhoRow?.dataVenda,
+                                                                                locale: FFLocalizations.of(context).languageCode,
+                                                                              ),
+                                                                              'N/A',
+                                                                            ),
+                                                                          ),
+                                                                          focusNode:
+                                                                              _model.dataVendaViewFocusNode,
+                                                                          autofocus:
+                                                                              false,
+                                                                          readOnly:
+                                                                              true,
+                                                                          obscureText:
+                                                                              false,
+                                                                          decoration:
+                                                                              InputDecoration(
+                                                                            isDense:
+                                                                                false,
+                                                                            labelStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                  font: GoogleFonts.poppins(
+                                                                                    fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                  ),
+                                                                                  fontSize: 16.0,
+                                                                                  letterSpacing: 0.0,
+                                                                                  fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                ),
+                                                                            hintText:
+                                                                                valueOrDefault<String>(
+                                                                              dateTimeFormat(
+                                                                                'd/M/y',
+                                                                                pgRebanhoViewRebanhoRow?.dataVenda,
+                                                                                locale: FFLocalizations.of(context).languageCode,
+                                                                              ),
+                                                                              'N/A',
+                                                                            ),
+                                                                            hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                  font: GoogleFonts.poppins(
+                                                                                    fontWeight: FontWeight.w600,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                  ),
+                                                                                  color: const Color(0xFFBEBEBE),
+                                                                                  fontSize: 16.0,
+                                                                                  letterSpacing: 0.0,
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                ),
+                                                                            enabledBorder: OutlineInputBorder(
+                                                                              borderSide: const BorderSide(
+                                                                                color: Color(0x00000000),
+                                                                                width: 1.0,
+                                                                              ),
+                                                                              borderRadius: BorderRadius.circular(8.0),
+                                                                            ),
+                                                                            focusedBorder: OutlineInputBorder(
+                                                                              borderSide: const BorderSide(
+                                                                                color: Color(0x00000000),
+                                                                                width: 1.0,
+                                                                              ),
+                                                                              borderRadius: BorderRadius.circular(8.0),
+                                                                            ),
+                                                                            errorBorder: OutlineInputBorder(
+                                                                              borderSide: BorderSide(
+                                                                                color: FlutterFlowTheme.of(context).error,
+                                                                                width: 1.0,
+                                                                              ),
+                                                                              borderRadius: BorderRadius.circular(8.0),
+                                                                            ),
+                                                                            focusedErrorBorder: OutlineInputBorder(
+                                                                              borderSide: BorderSide(
+                                                                                color: FlutterFlowTheme.of(context).error,
+                                                                                width: 1.0,
+                                                                              ),
+                                                                              borderRadius: BorderRadius.circular(8.0),
+                                                                            ),
+                                                                            filled: true,
+                                                                            fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                                          ),
+                                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                font: GoogleFonts.poppins(
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                ),
+                                                                                fontSize: 16.0,
+                                                                                letterSpacing: 0.0,
+                                                                                fontWeight: FontWeight.w600,
+                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                          keyboardType:
+                                                                              TextInputType.datetime,
+                                                                          cursorColor:
+                                                                              FlutterFlowTheme.of(context).primaryText,
+                                                                          validator: _model
+                                                                              .dataVendaViewTextControllerValidator
+                                                                              .asValidator(context),
+                                                                        ),
+                                                                      ].divide(const SizedBox(height: 8.0)),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Expanded(
+                                                                  child:
+                                                                      Container(
+                                                                    decoration:
+                                                                        const BoxDecoration(),
+                                                                    child:
+                                                                        Column(
+                                                                      mainAxisSize:
+                                                                          MainAxisSize.max,
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment.start,
+                                                                      children: [
+                                                                        Text(
+                                                                          'Valor da venda (R\$)',
+                                                                          style: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .override(
+                                                                                font: GoogleFonts.poppins(
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                ),
+                                                                                fontSize: 16.0,
+                                                                                letterSpacing: 0.0,
+                                                                                fontWeight: FontWeight.w600,
+                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                        ),
+                                                                        TextFormField(
+                                                                          controller: _model.valorVendaViewTextController ??=
+                                                                              TextEditingController(
+                                                                            text:
+                                                                                pgRebanhoViewRebanhoRow?.valorVenda != null
+                                                                                    ? formatNumber(
+                                                                                        pgRebanhoViewRebanhoRow!.valorVenda,
+                                                                                        formatType: FormatType.decimal,
+                                                                                        decimalType: DecimalType.commaDecimal,
+                                                                                        currency: 'R\$ ',
+                                                                                      )
+                                                                                    : 'N/A',
+                                                                          ),
+                                                                          focusNode:
+                                                                              _model.valorVendaViewFocusNode,
+                                                                          autofocus:
+                                                                              false,
+                                                                          readOnly:
+                                                                              true,
+                                                                          obscureText:
+                                                                              false,
+                                                                          decoration:
+                                                                              InputDecoration(
+                                                                            isDense:
+                                                                                false,
+                                                                            labelStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                  font: GoogleFonts.poppins(
+                                                                                    fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                  ),
+                                                                                  fontSize: 16.0,
+                                                                                  letterSpacing: 0.0,
+                                                                                  fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                ),
+                                                                            hintText:
+                                                                                pgRebanhoViewRebanhoRow?.valorVenda != null
+                                                                                    ? formatNumber(
+                                                                                        pgRebanhoViewRebanhoRow!.valorVenda,
+                                                                                        formatType: FormatType.decimal,
+                                                                                        decimalType: DecimalType.commaDecimal,
+                                                                                        currency: 'R\$ ',
+                                                                                      )
+                                                                                    : 'N/A',
+                                                                            hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                  font: GoogleFonts.poppins(
+                                                                                    fontWeight: FontWeight.w600,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                  ),
+                                                                                  color: const Color(0xFFBEBEBE),
+                                                                                  fontSize: 16.0,
+                                                                                  letterSpacing: 0.0,
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                ),
+                                                                            enabledBorder: OutlineInputBorder(
+                                                                              borderSide: const BorderSide(
+                                                                                color: Color(0x00000000),
+                                                                                width: 1.0,
+                                                                              ),
+                                                                              borderRadius: BorderRadius.circular(8.0),
+                                                                            ),
+                                                                            focusedBorder: OutlineInputBorder(
+                                                                              borderSide: const BorderSide(
+                                                                                color: Color(0x00000000),
+                                                                                width: 1.0,
+                                                                              ),
+                                                                              borderRadius: BorderRadius.circular(8.0),
+                                                                            ),
+                                                                            errorBorder: OutlineInputBorder(
+                                                                              borderSide: BorderSide(
+                                                                                color: FlutterFlowTheme.of(context).error,
+                                                                                width: 1.0,
+                                                                              ),
+                                                                              borderRadius: BorderRadius.circular(8.0),
+                                                                            ),
+                                                                            focusedErrorBorder: OutlineInputBorder(
+                                                                              borderSide: BorderSide(
+                                                                                color: FlutterFlowTheme.of(context).error,
+                                                                                width: 1.0,
+                                                                              ),
+                                                                              borderRadius: BorderRadius.circular(8.0),
+                                                                            ),
+                                                                            filled: true,
+                                                                            fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                                          ),
+                                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                font: GoogleFonts.poppins(
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                ),
+                                                                                fontSize: 16.0,
+                                                                                letterSpacing: 0.0,
+                                                                                fontWeight: FontWeight.w600,
+                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                          keyboardType:
+                                                                              TextInputType.number,
+                                                                          cursorColor:
+                                                                              FlutterFlowTheme.of(context).primaryText,
+                                                                          validator: _model
+                                                                              .valorVendaViewTextControllerValidator
+                                                                              .asValidator(context),
+                                                                        ),
+                                                                      ].divide(const SizedBox(height: 8.0)),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ].divide(const SizedBox(width: 24.0)),
+                                                            ),
+                                                          ),
                                                         Column(
                                                           mainAxisSize:
                                                               MainAxisSize.max,
@@ -6633,6 +7019,32 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                         ),
                                                                                       ),
                                                                                     ),
+                                                                                    if (ReproducaoDTStruct.ressincIndicaMarcacao(
+                                                                                        reproducaoItem.ressinc))
+                                                                                      Container(
+                                                                                        width: 20.0,
+                                                                                        height: 20.0,
+                                                                                        decoration: BoxDecoration(
+                                                                                          color: FlutterFlowTheme.of(context).primary,
+                                                                                          borderRadius: BorderRadius.circular(100.0),
+                                                                                        ),
+                                                                                        child: Align(
+                                                                                          alignment: const AlignmentDirectional(0.0, 0.0),
+                                                                                          child: Text(
+                                                                                            'R',
+                                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                  font: GoogleFonts.poppins(
+                                                                                                    fontWeight: FontWeight.w600,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                  ),
+                                                                                                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                                  letterSpacing: 0.0,
+                                                                                                  fontWeight: FontWeight.w600,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
                                                                                   ].divide(const SizedBox(width: 8.0)),
                                                                                 ),
                                                                                 Column(
@@ -6641,14 +7053,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   crossAxisAlignment: CrossAxisAlignment.center,
                                                                                   children: [
                                                                                     Text(
-                                                                                      valueOrDefault<String>(
-                                                                                        dateTimeFormat(
-                                                                                          "d/M/y",
-                                                                                          reproducaoItem.dataInseminacao,
-                                                                                          locale: FFLocalizations.of(context).languageCode,
-                                                                                        ),
-                                                                                        'S/D',
-                                                                                      ),
+                                                                                      _textoDataReproducaoFichaAnimal(context, reproducaoItem),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                             font: GoogleFonts.poppins(
                                                                                               fontWeight: FontWeight.w500,
@@ -6851,14 +7256,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                 ),
                                                                                 Builder(
                                                                                   builder: (context) {
-                                                                                    if ((reproducaoItem.dataInseminacao != null) || (reproducaoItem.previsaoParto != null)) {
+                                                                                    if ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null)) {
                                                                                       return Text(
                                                                                         valueOrDefault<String>(
                                                                                           reproducaoItem.previsaoParto == null
                                                                                               ? valueOrDefault<String>(
                                                                                                   dateTimeFormat(
                                                                                                     "d/M/y",
-                                                                                                    functions.dataMais295(reproducaoItem.dataInseminacao!),
+                                                                                                    functions.dataMais295(_dataReferenciaReproducao(reproducaoItem)!),
                                                                                                     locale: FFLocalizations.of(context).languageCode,
                                                                                                   ),
                                                                                                   'S/D',
@@ -6905,10 +7310,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   mainAxisAlignment: MainAxisAlignment.center,
                                                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                                                   children: [
-                                                                                    if ((reproducaoItem.dataInseminacao != null) && (reproducaoItem.dataParto != null))
+                                                                                    if ((_dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null))
                                                                                       Text(
                                                                                         valueOrDefault<String>(
-                                                                                          functions.diasEntreDatas(reproducaoItem.dataInseminacao!, reproducaoItem.dataParto!).toString(),
+                                                                                          functions.diasEntreDatas(_dataReferenciaReproducao(reproducaoItem)!, reproducaoItem.dataParto!).toString(),
                                                                                           '0',
                                                                                         ),
                                                                                         style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -6922,7 +7327,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                             ),
                                                                                       ),
-                                                                                    if (!((reproducaoItem.dataInseminacao != null) && (reproducaoItem.dataParto != null)))
+                                                                                    if (!((_dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null)))
                                                                                       Text(
                                                                                         'Sem informação.',
                                                                                         style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -6982,6 +7387,21 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                 ),
                                                                               ].map((c) => DataCell(c)).toList(),
                                                                             ),
+                                                                            onSortChanged:
+                                                                                (columnIndex, ascending) {
+                                                                              final sorted =
+                                                                                  _sortReproducoesFichaAnimal(
+                                                                                reproducao,
+                                                                                columnIndex,
+                                                                                ascending,
+                                                                              );
+                                                                              _model
+                                                                                  .paginatedDataTableController3
+                                                                                  .updateData(
+                                                                                data: sorted,
+                                                                                notify: true,
+                                                                              );
+                                                                            },
                                                                             emptyBuilder: () =>
                                                                                 const Center(
                                                                               child: EmptyWidget(),
@@ -7286,6 +7706,32 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                         ),
                                                                                       ),
                                                                                     ),
+                                                                                    if (ReproducaoDTStruct.ressincIndicaMarcacao(
+                                                                                        reproducaoItem.ressinc))
+                                                                                      Container(
+                                                                                        width: 20.0,
+                                                                                        height: 20.0,
+                                                                                        decoration: BoxDecoration(
+                                                                                          color: FlutterFlowTheme.of(context).primary,
+                                                                                          borderRadius: BorderRadius.circular(100.0),
+                                                                                        ),
+                                                                                        child: Align(
+                                                                                          alignment: const AlignmentDirectional(0.0, 0.0),
+                                                                                          child: Text(
+                                                                                            'R',
+                                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                  font: GoogleFonts.poppins(
+                                                                                                    fontWeight: FontWeight.w600,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                  ),
+                                                                                                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                                  letterSpacing: 0.0,
+                                                                                                  fontWeight: FontWeight.w600,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
                                                                                   ].divide(const SizedBox(width: 8.0)),
                                                                                 ),
                                                                                 Column(
@@ -7294,14 +7740,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   crossAxisAlignment: CrossAxisAlignment.center,
                                                                                   children: [
                                                                                     Text(
-                                                                                      valueOrDefault<String>(
-                                                                                        dateTimeFormat(
-                                                                                          "d/M/y",
-                                                                                          reproducaoItem.dataInseminacao,
-                                                                                          locale: FFLocalizations.of(context).languageCode,
-                                                                                        ),
-                                                                                        'S/D',
-                                                                                      ),
+                                                                                      _textoDataReproducaoFichaAnimal(context, reproducaoItem),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                             font: GoogleFonts.poppins(
                                                                                               fontWeight: FontWeight.w500,
@@ -7504,14 +7943,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                 ),
                                                                                 Builder(
                                                                                   builder: (context) {
-                                                                                    if ((reproducaoItem.dataInseminacao != null) || (reproducaoItem.previsaoParto != null)) {
+                                                                                    if ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null)) {
                                                                                       return Text(
                                                                                         valueOrDefault<String>(
                                                                                           reproducaoItem.previsaoParto == null
                                                                                               ? valueOrDefault<String>(
                                                                                                   dateTimeFormat(
                                                                                                     "d/M/y",
-                                                                                                    functions.dataMais295(reproducaoItem.dataInseminacao!),
+                                                                                                    functions.dataMais295(_dataReferenciaReproducao(reproducaoItem)!),
                                                                                                     locale: FFLocalizations.of(context).languageCode,
                                                                                                   ),
                                                                                                   'S/D',
@@ -7558,10 +7997,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   mainAxisAlignment: MainAxisAlignment.center,
                                                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                                                   children: [
-                                                                                    if ((reproducaoItem.dataInseminacao != null) && (reproducaoItem.dataParto != null))
+                                                                                    if ((_dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null))
                                                                                       Text(
                                                                                         valueOrDefault<String>(
-                                                                                          functions.diasEntreDatas(reproducaoItem.dataInseminacao!, reproducaoItem.dataParto!).toString(),
+                                                                                          functions.diasEntreDatas(_dataReferenciaReproducao(reproducaoItem)!, reproducaoItem.dataParto!).toString(),
                                                                                           '0',
                                                                                         ),
                                                                                         style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -7575,7 +8014,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                             ),
                                                                                       ),
-                                                                                    if (!((reproducaoItem.dataInseminacao != null) && (reproducaoItem.dataParto != null)))
+                                                                                    if (!((_dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null)))
                                                                                       Text(
                                                                                         'Sem informação.',
                                                                                         style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -7635,6 +8074,21 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                 ),
                                                                               ].map((c) => DataCell(c)).toList(),
                                                                             ),
+                                                                            onSortChanged:
+                                                                                (columnIndex, ascending) {
+                                                                              final sorted =
+                                                                                  _sortReproducoesFichaAnimal(
+                                                                                reproducao,
+                                                                                columnIndex,
+                                                                                ascending,
+                                                                              );
+                                                                              _model
+                                                                                  .paginatedDataTableController4
+                                                                                  .updateData(
+                                                                                data: sorted,
+                                                                                notify: true,
+                                                                              );
+                                                                            },
                                                                             emptyBuilder: () =>
                                                                                 const Center(
                                                                               child: EmptyWidget(),

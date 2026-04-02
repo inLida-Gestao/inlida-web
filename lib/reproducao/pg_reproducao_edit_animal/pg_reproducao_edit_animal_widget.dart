@@ -224,8 +224,6 @@ class _PgReproducaoEditAnimalWidgetState
                                       ),
                                     );
                                   }
-                                  List<RebanhoRow> pgRebanhRebanhoRowList =
-                                      snapshot.data!;
 
                                   return Container(
                                     constraints: const BoxConstraints(
@@ -3232,56 +3230,40 @@ class _PgReproducaoEditAnimalWidgetState
                                                                       .fontStyle,
                                                             ),
                                                       ),
-                                                      if (pgRebanhRebanhoRowList
-                                                          .where((e) =>
-                                                              e.sexo == 'Macho')
-                                                          .toList()
-                                                          .isNotEmpty)
-                                                        FlutterFlowDropDown<
-                                                            String>(
-                                                          controller: _model
-                                                                  .dropDownStatusValueController ??=
-                                                              FormFieldController<
-                                                                  String>(
-                                                            _model.dropDownStatusValue ??=
-                                                                pgReproducaoEditAnimalReproducaoRow
-                                                                            ?.statusReproducao ==
-                                                                        'Parida'
-                                                                    ? 'Não diagnosticado'
-                                                                    : pgReproducaoEditAnimalReproducaoRow
-                                                                        ?.statusReproducao,
-                                                          ),
-                                                          options: const [
-                                                            'Não diagnosticado',
-                                                            'Absorção',
-                                                            'Aborto',
-                                                            'Prenhez',
-                                                            'Vazio'
-                                                          ],
-                                                          onChanged: (val) =>
-                                                              safeSetState(() =>
-                                                                  _model.dropDownStatusValue =
-                                                                      val),
-                                                          height: 56.0,
-                                                          textStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .override(
-                                                                    font: GoogleFonts
-                                                                        .poppins(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600,
-                                                                      fontStyle: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .bodyMedium
-                                                                          .fontStyle,
-                                                                    ),
-                                                                    fontSize:
-                                                                        16.0,
-                                                                    letterSpacing:
-                                                                        0.0,
+                                                      FlutterFlowDropDown<
+                                                          String>(
+                                                        controller: _model
+                                                                .dropDownStatusValueController ??=
+                                                            FormFieldController<
+                                                                String>(
+                                                          _model.dropDownStatusValue ??=
+                                                              pgReproducaoEditAnimalReproducaoRow
+                                                                          ?.statusReproducao ==
+                                                                      'Parida'
+                                                                  ? 'Não diagnosticado'
+                                                                  : pgReproducaoEditAnimalReproducaoRow
+                                                                      ?.statusReproducao,
+                                                        ),
+                                                        options: const [
+                                                          'Não diagnosticado',
+                                                          'Absorção',
+                                                          'Aborto',
+                                                          'Natimorto',
+                                                          'Prenhez',
+                                                          'Vazio'
+                                                        ],
+                                                        onChanged: (val) =>
+                                                            safeSetState(() =>
+                                                                _model.dropDownStatusValue =
+                                                                    val),
+                                                        height: 56.0,
+                                                        textStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .w600,
@@ -3290,35 +3272,47 @@ class _PgReproducaoEditAnimalWidgetState
                                                                         .bodyMedium
                                                                         .fontStyle,
                                                                   ),
-                                                          hintText:
-                                                              'Selecionar',
-                                                          icon: Icon(
-                                                            Icons
-                                                                .keyboard_arrow_down_rounded,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .secondaryText,
-                                                            size: 24.0,
-                                                          ),
-                                                          fillColor:
-                                                              const Color(0xFFF1F1F1),
-                                                          elevation: 2.0,
-                                                          borderColor: Colors
-                                                              .transparent,
-                                                          borderWidth: 0.0,
-                                                          borderRadius: 8.0,
-                                                          margin:
-                                                              const EdgeInsetsDirectional
-                                                                  .fromSTEB(
-                                                                      12.0,
+                                                                  fontSize:
+                                                                      16.0,
+                                                                  letterSpacing:
                                                                       0.0,
-                                                                      12.0,
-                                                                      0.0),
-                                                          hidesUnderline: true,
-                                                          isOverButton: false,
-                                                          isSearchable: false,
-                                                          isMultiSelect: false,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                        hintText:
+                                                            'Selecionar',
+                                                        icon: Icon(
+                                                          Icons
+                                                              .keyboard_arrow_down_rounded,
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryText,
+                                                          size: 24.0,
                                                         ),
+                                                        fillColor:
+                                                            const Color(0xFFF1F1F1),
+                                                        elevation: 2.0,
+                                                        borderColor: Colors
+                                                            .transparent,
+                                                        borderWidth: 0.0,
+                                                        borderRadius: 8.0,
+                                                        margin:
+                                                            const EdgeInsetsDirectional
+                                                                .fromSTEB(
+                                                                    12.0,
+                                                                    0.0,
+                                                                    12.0,
+                                                                    0.0),
+                                                        hidesUnderline: true,
+                                                        isOverButton: false,
+                                                        isSearchable: false,
+                                                        isMultiSelect: false,
+                                                      ),
                                                     ].divide(
                                                         const SizedBox(height: 8.0)),
                                                   ),
@@ -3897,34 +3891,56 @@ class _PgReproducaoEditAnimalWidgetState
                                                                       .fontStyle,
                                                             ),
                                                       ),
-                                                      Stack(
-                                                        children: [
-                                                          SizedBox(
-                                                            width: 200.0,
-                                                            child:
-                                                                TextFormField(
+                                                      Builder(
+                                                        builder: (context) {
+                                                          final rowParto =
+                                                              pgReproducaoEditAnimalReproducaoRow
+                                                                  ?.dataParto;
+                                                          final hasDataParto = !_model
+                                                                  .dataPartoCleared &&
+                                                              (_model.datePicked5 !=
+                                                                      null ||
+                                                                  rowParto !=
+                                                                      null);
+                                                          return Row(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            children: [
+                                                              SizedBox(
+                                                                width: 200.0,
+                                                                child: Stack(
+                                                                  children: [
+                                                                    TextFormField(
                                                               controller: _model
                                                                       .dataParidaTextController ??=
                                                                   TextEditingController(
                                                                 text:
                                                                     valueOrDefault<
                                                                         String>(
-                                                                  _model.datePicked5 !=
-                                                                          null
-                                                                      ? dateTimeFormat(
-                                                                          "d/M/y",
-                                                                          _model
-                                                                              .datePicked5,
-                                                                          locale:
-                                                                              FFLocalizations.of(context).languageCode,
-                                                                        )
-                                                                      : dateTimeFormat(
-                                                                          "d/M/y",
-                                                                          pgReproducaoEditAnimalReproducaoRow
-                                                                              ?.dataParto,
-                                                                          locale:
-                                                                              FFLocalizations.of(context).languageCode,
-                                                                        ),
+                                                                  _model.dataPartoCleared
+                                                                      ? 'dd/mm/aaaa'
+                                                                      : (_model.datePicked5 !=
+                                                                              null
+                                                                          ? dateTimeFormat(
+                                                                              "d/M/y",
+                                                                              _model
+                                                                                  .datePicked5,
+                                                                              locale:
+                                                                                  FFLocalizations.of(context).languageCode,
+                                                                            )
+                                                                          : rowParto !=
+                                                                                  null
+                                                                              ? dateTimeFormat(
+                                                                                  "d/M/y",
+                                                                                  rowParto,
+                                                                                  locale:
+                                                                                      FFLocalizations.of(context).languageCode,
+                                                                                )
+                                                                              : 'dd/mm/aaaa'),
                                                                   'dd/mm/aaaa',
                                                                 ),
                                                               ),
@@ -4093,7 +4109,6 @@ class _PgReproducaoEditAnimalWidgetState
                                                                   .asValidator(
                                                                       context),
                                                             ),
-                                                          ),
                                                           InkWell(
                                                             splashColor: Colors
                                                                 .transparent,
@@ -4110,7 +4125,9 @@ class _PgReproducaoEditAnimalWidgetState
                                                                 context:
                                                                     context,
                                                                 initialDate:
-                                                                    getCurrentTimestamp,
+                                                                    _model.datePicked5 ??
+                                                                        rowParto ??
+                                                                        getCurrentTimestamp,
                                                                 firstDate:
                                                                     DateTime(
                                                                         1900),
@@ -4175,6 +4192,8 @@ class _PgReproducaoEditAnimalWidgetState
                                                                   null) {
                                                                 safeSetState(
                                                                     () {
+                                                                  _model.dataPartoCleared =
+                                                                      false;
                                                                   _model.datePicked5 =
                                                                       DateTime(
                                                                     datePicked5Date
@@ -4185,26 +4204,40 @@ class _PgReproducaoEditAnimalWidgetState
                                                                         .day,
                                                                   );
                                                                 });
-                                                              } else if (_model
-                                                                      .datePicked5 !=
-                                                                  null) {
-                                                                safeSetState(
-                                                                    () {
-                                                                  _model.datePicked5 =
-                                                                      getCurrentTimestamp;
-                                                                });
                                                               }
                                                               safeSetState(() {
-                                                                _model.dataParidaTextController
-                                                                        ?.text =
-                                                                    dateTimeFormat(
-                                                                  "d/M/y",
-                                                                  _model
-                                                                      .datePicked5,
-                                                                  locale: FFLocalizations.of(
-                                                                          context)
-                                                                      .languageCode,
-                                                                );
+                                                                if (_model
+                                                                    .dataPartoCleared) {
+                                                                  _model.dataParidaTextController
+                                                                      ?.text = 'dd/mm/aaaa';
+                                                                } else if (_model
+                                                                        .datePicked5 !=
+                                                                    null) {
+                                                                  _model.dataParidaTextController
+                                                                          ?.text =
+                                                                      dateTimeFormat(
+                                                                    "d/M/y",
+                                                                    _model
+                                                                        .datePicked5,
+                                                                    locale: FFLocalizations.of(
+                                                                            context)
+                                                                        .languageCode,
+                                                                  );
+                                                                } else if (rowParto !=
+                                                                    null) {
+                                                                  _model.dataParidaTextController
+                                                                          ?.text =
+                                                                      dateTimeFormat(
+                                                                    "d/M/y",
+                                                                    rowParto,
+                                                                    locale: FFLocalizations.of(
+                                                                            context)
+                                                                        .languageCode,
+                                                                  );
+                                                                } else {
+                                                                  _model.dataParidaTextController
+                                                                      ?.text = 'dd/mm/aaaa';
+                                                                }
                                                               });
                                                             },
                                                             child: Container(
@@ -4214,7 +4247,38 @@ class _PgReproducaoEditAnimalWidgetState
                                                                   const BoxDecoration(),
                                                             ),
                                                           ),
-                                                        ],
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              if (hasDataParto) ...[
+                                                                const SizedBox(
+                                                                    width: 8.0),
+                                                                IconButton(
+                                                                  icon: Icon(
+                                                                    Icons.close,
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .secondaryText,
+                                                                    size: 20.0,
+                                                                  ),
+                                                                  onPressed:
+                                                                      () async {
+                                                                    safeSetState(
+                                                                        () {
+                                                                      _model.dataPartoCleared =
+                                                                          true;
+                                                                      _model.datePicked5 =
+                                                                          null;
+                                                                      _model.dataParidaTextController
+                                                                              ?.text =
+                                                                          'dd/mm/aaaa';
+                                                                    });
+                                                                  },
+                                                                ),
+                                                              ],
+                                                            ],
+                                                          );
+                                                        },
                                                       ),
                                                     ],
                                                   ),
@@ -4225,7 +4289,11 @@ class _PgReproducaoEditAnimalWidgetState
                                                       ?? (_model.tipoReproducao == 'Inseminação'
                                                           ? pgReproducaoEditAnimalReproducaoRow?.dataInseminacao
                                                           : (_model.datePicked2 ?? pgReproducaoEditAnimalReproducaoRow?.dataInseminacao));
-                                                  final dataParto = _model.datePicked5 ?? pgReproducaoEditAnimalReproducaoRow?.dataParto;
+                                                  final dataParto = _model.dataPartoCleared
+                                                      ? null
+                                                      : (_model.datePicked5 ??
+                                                          pgReproducaoEditAnimalReproducaoRow
+                                                              ?.dataParto);
                                                   if (dataInsem == null || dataParto == null) return const SizedBox.shrink();
                                                   final dias = dataParto.difference(dataInsem).inDays;
                                                   return Padding(
@@ -4634,9 +4702,12 @@ class _PgReproducaoEditAnimalWidgetState
                                                                   ? 'SIM'
                                                                   : 'NAO',
                                                           'data_parto': supaSerialize<
-                                                              DateTime>(_model
-                                                                  .datePicked5 ?? pgReproducaoEditAnimalReproducaoRow
-                                                                  ?.dataParto),
+                                                              DateTime>(_model.dataPartoCleared
+                                                                  ? null
+                                                                  : (_model
+                                                                          .datePicked5 ??
+                                                                      pgReproducaoEditAnimalReproducaoRow
+                                                                          ?.dataParto)),
                                                         },
                                                         matchingRows: (rows) =>
                                                             rows.eqOrNull(
@@ -4723,9 +4794,12 @@ class _PgReproducaoEditAnimalWidgetState
                                                                   ? 'SIM'
                                                                   : 'NAO',
                                                           'data_parto': supaSerialize<
-                                                              DateTime>(_model
-                                                                  .datePicked5 ?? pgReproducaoEditAnimalReproducaoRow
-                                                                  ?.dataParto),
+                                                              DateTime>(_model.dataPartoCleared
+                                                                  ? null
+                                                                  : (_model
+                                                                          .datePicked5 ??
+                                                                      pgReproducaoEditAnimalReproducaoRow
+                                                                          ?.dataParto)),
                                                         },
                                                         matchingRows: (rows) =>
                                                             rows.eqOrNull(

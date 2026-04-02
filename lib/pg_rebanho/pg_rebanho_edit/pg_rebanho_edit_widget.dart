@@ -1253,216 +1253,220 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               .fontStyle,
                                                                         ),
                                                                   ),
-                                                                  Stack(
-                                                                    children: [
-                                                                      TextFormField(
-                                                                        controller:
-                                                                            _model.dataNascimentoTextController ??=
-                                                                                TextEditingController(
-                                                                          text: _model.datePicked1 != null
-                                                                              ? dateTimeFormat(
-                                                                                  "d/M/y",
-                                                                                  _model.datePicked1,
-                                                                                  locale: FFLocalizations.of(context).languageCode,
-                                                                                )
-                                                                              : dateTimeFormat(
-                                                                                  "d/M/y",
-                                                                                  pgRebanhoEditRebanhoRow?.dataNascimento,
-                                                                                  locale: FFLocalizations.of(context).languageCode,
-                                                                                ),
-                                                                        ),
-                                                                        focusNode:
-                                                                            _model.dataNascimentoFocusNode,
-                                                                        autofocus:
-                                                                            false,
-                                                                        readOnly:
-                                                                            true,
-                                                                        obscureText:
-                                                                            false,
-                                                                        decoration:
-                                                                            InputDecoration(
-                                                                          isDense:
-                                                                              false,
-                                                                          labelStyle: FlutterFlowTheme.of(context)
-                                                                              .labelMedium
-                                                                              .override(
-                                                                                font: GoogleFonts.poppins(
-                                                                                  fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                ),
-                                                                                fontSize: 16.0,
-                                                                                letterSpacing: 0.0,
-                                                                                fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                              ),
-                                                                          hintText:
-                                                                              'dd/mm/aaaa',
-                                                                          hintStyle: FlutterFlowTheme.of(context)
-                                                                              .labelMedium
-                                                                              .override(
-                                                                                font: GoogleFonts.poppins(
-                                                                                  fontWeight: FontWeight.w600,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                ),
-                                                                                color: const Color(0xFFBEBEBE),
-                                                                                fontSize: 16.0,
-                                                                                letterSpacing: 0.0,
-                                                                                fontWeight: FontWeight.w600,
-                                                                                fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                              ),
-                                                                          enabledBorder:
-                                                                              OutlineInputBorder(
-                                                                            borderSide:
-                                                                                const BorderSide(
-                                                                              color: Color(0x00000000),
-                                                                              width: 1.0,
-                                                                            ),
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(8.0),
-                                                                          ),
-                                                                          focusedBorder:
-                                                                              OutlineInputBorder(
-                                                                            borderSide:
-                                                                                const BorderSide(
-                                                                              color: Color(0x00000000),
-                                                                              width: 1.0,
-                                                                            ),
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(8.0),
-                                                                          ),
-                                                                          errorBorder:
-                                                                              OutlineInputBorder(
-                                                                            borderSide:
-                                                                                BorderSide(
-                                                                              color: FlutterFlowTheme.of(context).error,
-                                                                              width: 1.0,
-                                                                            ),
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(8.0),
-                                                                          ),
-                                                                          focusedErrorBorder:
-                                                                              OutlineInputBorder(
-                                                                            borderSide:
-                                                                                BorderSide(
-                                                                              color: FlutterFlowTheme.of(context).error,
-                                                                              width: 1.0,
-                                                                            ),
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(8.0),
-                                                                          ),
-                                                                          filled:
-                                                                              true,
-                                                                          fillColor:
-                                                                              FlutterFlowTheme.of(context).customColor2,
-                                                                          suffixIcon:
-                                                                              Icon(
-                                                                            Icons.calendar_today,
-                                                                            color:
-                                                                                FlutterFlowTheme.of(context).secondaryText,
-                                                                          ),
-                                                                        ),
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FontWeight.w600,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              fontSize: 16.0,
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FontWeight.w600,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                        cursorColor:
-                                                                            FlutterFlowTheme.of(context).primaryText,
-                                                                        validator: _model
-                                                                            .dataNascimentoTextControllerValidator
-                                                                            .asValidator(context),
-                                                                      ),
-                                                                      InkWell(
-                                                                        splashColor:
-                                                                            Colors.transparent,
-                                                                        focusColor:
-                                                                            Colors.transparent,
-                                                                        hoverColor:
-                                                                            Colors.transparent,
-                                                                        highlightColor:
-                                                                            Colors.transparent,
-                                                                        onTap:
-                                                                            () async {
-                                                                          final datePicked1Date =
-                                                                              await showDatePicker(
-                                                                            context:
-                                                                                context,
-                                                                            initialDate:
-                                                                                getCurrentTimestamp,
-                                                                            firstDate:
-                                                                                DateTime(1900),
-                                                                            lastDate:
-                                                                                DateTime(2050),
-                                                                            builder:
-                                                                                (context, child) {
-                                                                              return wrapInMaterialDatePickerTheme(
-                                                                                context,
-                                                                                child!,
-                                                                                headerBackgroundColor: FlutterFlowTheme.of(context).primary,
-                                                                                headerForegroundColor: FlutterFlowTheme.of(context).info,
-                                                                                headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
-                                                                                      font: GoogleFonts.poppins(
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
-                                                                                      ),
-                                                                                      fontSize: 32.0,
-                                                                                      letterSpacing: 0.0,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                  Builder(
+                                                                    builder:
+                                                                        (context) {
+                                                                      final rowNasc =
+                                                                          pgRebanhoEditRebanhoRow
+                                                                              ?.dataNascimento;
+                                                                      final hasDataNascimento = !_model
+                                                                              .dataNascimentoCleared &&
+                                                                          (_model.datePicked1 !=
+                                                                                  null ||
+                                                                              rowNasc !=
+                                                                                  null);
+                                                                      return Row(
+                                                                        crossAxisAlignment:
+                                                                            CrossAxisAlignment.start,
+                                                                        children: [
+                                                                          Expanded(
+                                                                            child:
+                                                                                Stack(
+                                                                              children: [
+                                                                                TextFormField(
+                                                                                  controller: _model.dataNascimentoTextController ??=
+                                                                                      TextEditingController(
+                                                                                    text: valueOrDefault<String>(
+                                                                                      _model.dataNascimentoCleared
+                                                                                          ? 'dd/mm/aaaa'
+                                                                                          : (_model.datePicked1 != null
+                                                                                              ? dateTimeFormat(
+                                                                                                  "d/M/y",
+                                                                                                  _model.datePicked1,
+                                                                                                  locale: FFLocalizations.of(context).languageCode,
+                                                                                                )
+                                                                                              : rowNasc != null
+                                                                                                  ? dateTimeFormat(
+                                                                                                      "d/M/y",
+                                                                                                      rowNasc,
+                                                                                                      locale: FFLocalizations.of(context).languageCode,
+                                                                                                    )
+                                                                                                  : 'dd/mm/aaaa'),
+                                                                                      'dd/mm/aaaa',
                                                                                     ),
-                                                                                pickerBackgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                pickerForegroundColor: FlutterFlowTheme.of(context).primaryText,
-                                                                                selectedDateTimeBackgroundColor: FlutterFlowTheme.of(context).primary,
-                                                                                selectedDateTimeForegroundColor: FlutterFlowTheme.of(context).info,
-                                                                                actionButtonForegroundColor: FlutterFlowTheme.of(context).primaryText,
-                                                                                iconSize: 24.0,
-                                                                              );
-                                                                            },
-                                                                          );
+                                                                                  ),
+                                                                                  focusNode: _model.dataNascimentoFocusNode,
+                                                                                  autofocus: false,
+                                                                                  readOnly: true,
+                                                                                  obscureText: false,
+                                                                                  decoration: InputDecoration(
+                                                                                    isDense: false,
+                                                                                    labelStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                          ),
+                                                                                          fontSize: 16.0,
+                                                                                          letterSpacing: 0.0,
+                                                                                          fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                        ),
+                                                                                    hintText: 'dd/mm/aaaa',
+                                                                                    hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                          ),
+                                                                                          color: const Color(0xFFBEBEBE),
+                                                                                          fontSize: 16.0,
+                                                                                          letterSpacing: 0.0,
+                                                                                          fontWeight: FontWeight.w600,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                        ),
+                                                                                    enabledBorder: OutlineInputBorder(
+                                                                                      borderSide: const BorderSide(
+                                                                                        color: Color(0x00000000),
+                                                                                        width: 1.0,
+                                                                                      ),
+                                                                                      borderRadius: BorderRadius.circular(8.0),
+                                                                                    ),
+                                                                                    focusedBorder: OutlineInputBorder(
+                                                                                      borderSide: const BorderSide(
+                                                                                        color: Color(0x00000000),
+                                                                                        width: 1.0,
+                                                                                      ),
+                                                                                      borderRadius: BorderRadius.circular(8.0),
+                                                                                    ),
+                                                                                    errorBorder: OutlineInputBorder(
+                                                                                      borderSide: BorderSide(
+                                                                                        color: FlutterFlowTheme.of(context).error,
+                                                                                        width: 1.0,
+                                                                                      ),
+                                                                                      borderRadius: BorderRadius.circular(8.0),
+                                                                                    ),
+                                                                                    focusedErrorBorder: OutlineInputBorder(
+                                                                                      borderSide: BorderSide(
+                                                                                        color: FlutterFlowTheme.of(context).error,
+                                                                                        width: 1.0,
+                                                                                      ),
+                                                                                      borderRadius: BorderRadius.circular(8.0),
+                                                                                    ),
+                                                                                    filled: true,
+                                                                                    fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                                                    suffixIcon: Icon(
+                                                                                      Icons.calendar_today,
+                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                    ),
+                                                                                  ),
+                                                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                        font: GoogleFonts.poppins(
+                                                                                          fontWeight: FontWeight.w600,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                        ),
+                                                                                        fontSize: 16.0,
+                                                                                        letterSpacing: 0.0,
+                                                                                        fontWeight: FontWeight.w600,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                      ),
+                                                                                  cursorColor: FlutterFlowTheme.of(context).primaryText,
+                                                                                  validator: _model.dataNascimentoTextControllerValidator.asValidator(context),
+                                                                                ),
+                                                                                InkWell(
+                                                                                  splashColor: Colors.transparent,
+                                                                                  focusColor: Colors.transparent,
+                                                                                  hoverColor: Colors.transparent,
+                                                                                  highlightColor: Colors.transparent,
+                                                                                  onTap: () async {
+                                                                                    final datePicked1Date = await showDatePicker(
+                                                                                      context: context,
+                                                                                      initialDate: _model.datePicked1 ?? rowNasc ?? getCurrentTimestamp,
+                                                                                      firstDate: DateTime(1900),
+                                                                                      lastDate: DateTime(2050),
+                                                                                      builder: (context, child) {
+                                                                                        return wrapInMaterialDatePickerTheme(
+                                                                                          context,
+                                                                                          child!,
+                                                                                          headerBackgroundColor: FlutterFlowTheme.of(context).primary,
+                                                                                          headerForegroundColor: FlutterFlowTheme.of(context).info,
+                                                                                          headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
+                                                                                                font: GoogleFonts.poppins(
+                                                                                                  fontWeight: FontWeight.w600,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                                ),
+                                                                                                fontSize: 32.0,
+                                                                                                letterSpacing: 0.0,
+                                                                                                fontWeight: FontWeight.w600,
+                                                                                                fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                              ),
+                                                                                          pickerBackgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                          pickerForegroundColor: FlutterFlowTheme.of(context).primaryText,
+                                                                                          selectedDateTimeBackgroundColor: FlutterFlowTheme.of(context).primary,
+                                                                                          selectedDateTimeForegroundColor: FlutterFlowTheme.of(context).info,
+                                                                                          actionButtonForegroundColor: FlutterFlowTheme.of(context).primaryText,
+                                                                                          iconSize: 24.0,
+                                                                                        );
+                                                                                      },
+                                                                                    );
 
-                                                                          if (datePicked1Date !=
-                                                                              null) {
-                                                                            safeSetState(() {
-                                                                              _model.datePicked1 = DateTime(
-                                                                                datePicked1Date.year,
-                                                                                datePicked1Date.month,
-                                                                                datePicked1Date.day,
-                                                                              );
-                                                                            });
-                                                                          } else if (_model.datePicked1 !=
-                                                                              null) {
-                                                                            safeSetState(() {
-                                                                              _model.datePicked1 = getCurrentTimestamp;
-                                                                            });
-                                                                          }
-                                                                          safeSetState(
-                                                                              () {
-                                                                            _model.dataNascimentoTextController?.text =
-                                                                                dateTimeFormat(
-                                                                              "d/M/y",
-                                                                              _model.datePicked1,
-                                                                              locale: FFLocalizations.of(context).languageCode,
-                                                                            );
-                                                                          });
-                                                                        },
-                                                                        child:
-                                                                            Container(
-                                                                          width:
-                                                                              double.infinity,
-                                                                          height:
-                                                                              56.0,
-                                                                          decoration:
-                                                                              const BoxDecoration(),
-                                                                        ),
-                                                                      ),
-                                                                    ],
+                                                                                    if (datePicked1Date != null) {
+                                                                                      safeSetState(() {
+                                                                                        _model.dataNascimentoCleared = false;
+                                                                                        _model.datePicked1 = DateTime(
+                                                                                          datePicked1Date.year,
+                                                                                          datePicked1Date.month,
+                                                                                          datePicked1Date.day,
+                                                                                        );
+                                                                                      });
+                                                                                    }
+                                                                                    safeSetState(() {
+                                                                                      if (_model.dataNascimentoCleared) {
+                                                                                        _model.dataNascimentoTextController?.text = 'dd/mm/aaaa';
+                                                                                      } else if (_model.datePicked1 != null) {
+                                                                                        _model.dataNascimentoTextController?.text = dateTimeFormat(
+                                                                                          "d/M/y",
+                                                                                          _model.datePicked1,
+                                                                                          locale: FFLocalizations.of(context).languageCode,
+                                                                                        );
+                                                                                      } else if (rowNasc != null) {
+                                                                                        _model.dataNascimentoTextController?.text = dateTimeFormat(
+                                                                                          "d/M/y",
+                                                                                          rowNasc,
+                                                                                          locale: FFLocalizations.of(context).languageCode,
+                                                                                        );
+                                                                                      } else {
+                                                                                        _model.dataNascimentoTextController?.text = 'dd/mm/aaaa';
+                                                                                      }
+                                                                                    });
+                                                                                  },
+                                                                                  child: Container(
+                                                                                    width: double.infinity,
+                                                                                    height: 56.0,
+                                                                                    decoration: const BoxDecoration(),
+                                                                                  ),
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                          ),
+                                                                          if (hasDataNascimento) ...[
+                                                                            const SizedBox(width: 8.0),
+                                                                            IconButton(
+                                                                              icon: Icon(
+                                                                                Icons.close,
+                                                                                color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                size: 20.0,
+                                                                              ),
+                                                                              onPressed: () async {
+                                                                                safeSetState(() {
+                                                                                  _model.dataNascimentoCleared = true;
+                                                                                  _model.datePicked1 = null;
+                                                                                  _model.dataNascimentoTextController?.text = 'dd/mm/aaaa';
+                                                                                });
+                                                                              },
+                                                                            ),
+                                                                          ],
+                                                                        ],
+                                                                      );
+                                                                    },
                                                                   ),
                                                                 ].divide(const SizedBox(
                                                                     height:
@@ -7072,6 +7076,44 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                       lotesRows.firstOrNull
                                                           ?.idLote;
                                                 }
+                                                if (!context.mounted) {
+                                                  return;
+                                                }
+                                                if (_model.dropDownStatusValue ==
+                                                    'Vendido') {
+                                                  final dataVendaEfetiva =
+                                                      _model.datePicked9 ??
+                                                          pgRebanhoEditRebanhoRow
+                                                              ?.dataVenda;
+                                                  if (dataVendaEfetiva == null) {
+                                                    ScaffoldMessenger.of(context)
+                                                        .showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          'Informe a data da venda (toque no calendário) antes de salvar com status Vendido.',
+                                                          style: TextStyle(
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryBackground,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                        backgroundColor:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .secondary,
+                                                      ),
+                                                    );
+                                                    return;
+                                                  }
+                                                }
+                                                final effectiveDataNascimentoForSave =
+                                                    _model.dataNascimentoCleared
+                                                        ? null
+                                                        : (_model.datePicked1 ??
+                                                            pgRebanhoEditRebanhoRow
+                                                                ?.dataNascimento);
                                                 await RebanhoTable().update(
                                                   data: {
                                                     'numeroAnimal': _model
@@ -7096,8 +7138,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         : _model
                                                             .dDCatRebanhoFemeaValue,
                                                     'dataNascimento': supaSerialize<
-                                                        DateTime>(_model.datePicked1 ?? pgRebanhoEditRebanhoRow
-                                                            ?.dataNascimento),
+                                                        DateTime>(
+                                                        effectiveDataNascimentoForSave),
                                                     'pesoNascimento':
                                                         double.tryParse(_model
                                                             .pesoNascimentoTextController
@@ -7139,14 +7181,14 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         DateTime>(_model.datePicked4 ?? pgRebanhoEditRebanhoRow
                                                             ?.dataUltimaPesagem),
                                                     'nomeConcat':
-                                                        '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${dateTimeFormat(
+                                                        '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${effectiveDataNascimentoForSave != null ? dateTimeFormat(
                                                       "d/M/y",
-                                                      _model.datePicked1,
+                                                      effectiveDataNascimentoForSave,
                                                       locale:
                                                           FFLocalizations.of(
                                                                   context)
                                                               .languageCode,
-                                                    )}',
+                                                    ) : 'N/A'}',
                                                     'dataVenda': supaSerialize<
                                                         DateTime>(_model.datePicked9 ?? pgRebanhoEditRebanhoRow
                                                             ?.dataVenda),
@@ -7214,9 +7256,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                   ),
                                                 );
                                                   final dataNascimentoHistorico =
-                                                    _model.datePicked1 ??
-                                                      pgRebanhoEditRebanhoRow
-                                                        ?.dataNascimento;
+                                                      effectiveDataNascimentoForSave;
                                                   final pesoNascimentoHistorico =
                                                     double.tryParse(_model
                                                       .pesoNascimentoTextController

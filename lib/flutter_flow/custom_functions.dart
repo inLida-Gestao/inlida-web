@@ -97,6 +97,18 @@ List<String>? converterJSONparaLista(String? json) {
       return [one];
     }
 
+    // jsonb escalar (texto, número, booleano) — antes retornava null e sumia na UI
+    if (decoded is String) {
+      final s = decoded.trim();
+      if (s.isEmpty || s.toLowerCase() == 'null') return null;
+      return [s];
+    }
+    if (decoded is num || decoded is bool) {
+      final s = decoded.toString().trim();
+      if (s.isEmpty) return null;
+      return [s];
+    }
+
     return null;
   } catch (e) {
     // Fallback: aceitar string simples/CSV (ex: "A, B")

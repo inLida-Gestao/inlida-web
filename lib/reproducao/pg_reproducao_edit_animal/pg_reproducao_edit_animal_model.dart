@@ -70,6 +70,8 @@ class PgReproducaoEditAnimalModel
   TextEditingController? dataParidaTextController;
   String? Function(BuildContext, String?)? dataParidaTextControllerValidator;
   DateTime? datePicked5;
+  /// Quando true, salva `data_parto` como null.
+  bool dataPartoCleared = false;
   // State field(s) for DropDownStatus widget.
   String? dropDownStatusValue;
   FormFieldController<String>? dropDownStatusValueController;

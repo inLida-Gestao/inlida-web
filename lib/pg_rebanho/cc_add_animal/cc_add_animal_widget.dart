@@ -1698,6 +1698,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                               isOverButton: false,
                                               isSearchable: false,
                                               isMultiSelect: false,
+                                              allowClear: true,
                                             ),
                                           ].divide(const SizedBox(height: 8.0)),
                                         ),
@@ -1807,6 +1808,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                 isOverButton: false,
                                                 isSearchable: false,
                                                 isMultiSelect: false,
+                                                allowClear: true,
                                               ),
                                             if (_model.dropDownSexoValue ==
                                                 'Macho')
@@ -1879,6 +1881,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                 isOverButton: false,
                                                 isSearchable: false,
                                                 isMultiSelect: false,
+                                                allowClear: true,
                                               ),
                                             if (_model.dropDownSexoValue ==
                                                     null ||
@@ -2007,6 +2010,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                               isOverButton: false,
                                               isSearchable: false,
                                               isMultiSelect: false,
+                                              allowClear: true,
                                             ),
                                           ].divide(const SizedBox(height: 8.0)),
                                         ),
@@ -2113,6 +2117,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                               isOverButton: false,
                                               isSearchable: false,
                                               isMultiSelect: false,
+                                              allowClear: true,
                                             ),
                                           ].divide(const SizedBox(height: 8.0)),
                                         ),
@@ -2567,6 +2572,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                               isOverButton: false,
                                               isSearchable: false,
                                               isMultiSelect: false,
+                                              allowClear: true,
                                             ),
                                           if (!(containerRebanhoRowList
                                               .where((e) => e.sexo == 'Fêmea')
@@ -2726,6 +2732,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                               isOverButton: false,
                                               isSearchable: false,
                                               isMultiSelect: false,
+                                              allowClear: true,
                                             ),
                                           if (!(containerRebanhoRowList
                                               .where((e) => e.sexo == 'Macho')

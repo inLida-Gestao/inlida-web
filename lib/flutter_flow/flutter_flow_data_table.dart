@@ -230,12 +230,17 @@ class _FlutterFlowDataTableState<T> extends State<FlutterFlowDataTable<T>> {
   @override
   void didUpdateWidget(FlutterFlowDataTable<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    controller.updateData(
-      data: widget.data,
-      numRows: widget.numRows,
-      notify: true,
-      paginated: widget.paginated,
-    );
+    // Evita sobrescrever ordenação feita no controller (ex.: onSortChanged) quando o
+    // pai ainda passa a mesma instância de lista.
+    if (!identical(oldWidget.data, widget.data) ||
+        oldWidget.numRows != widget.numRows) {
+      controller.updateData(
+        data: widget.data,
+        numRows: widget.numRows,
+        notify: true,
+        paginated: widget.paginated,
+      );
+    }
   }
 
   @override

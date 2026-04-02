@@ -2960,6 +2960,7 @@ class _PgReproducaoAddAnimalWidgetState
                                                   'Não diagnosticado',
                                                   'Absorção',
                                                   'Aborto',
+                                                  'Natimorto',
                                                   'Prenhez',
                                                   'Vazio'
                                                 ],

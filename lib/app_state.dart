@@ -54,6 +54,41 @@ class FFAppState extends ChangeNotifier {
     'D0-D7-D9-D11',
   ];
 
+  static const List<String> _kRacaOptions = <String>[
+    'Aberdeen',
+    'Angus Black',
+    'Angus Red',
+    'Bonsmara',
+    'Boran',
+    'Braford',
+    'Brahman',
+    'Brangus',
+    'Caracu',
+    'Charolês',
+    'Devon Red',
+    'Gir',
+    'Girolando',
+    'Guzerá',
+    'Hereford',
+    'Holandês',
+    'Jersey',
+    'Limousin',
+    'Marchigiana',
+    'Mestiço',
+    'Nelore',
+    'Nelore PO',
+    'Pardo Suíço (CORTE)',
+    'Pardo Suíço (Leite)',
+    'Santa Gertrudis',
+    'Senepol',
+    'Simental',
+    'Sindi',
+    'Sindinel',
+    'Tabapuã',
+    'Ultrablack',
+    'Wagyu',
+  ];
+
   factory FFAppState() {
     return _instance;
   }
@@ -87,6 +122,10 @@ class FFAppState extends ChangeNotifier {
     });
     _safeInit(() {
       _raca = prefs.getStringList('ff_raca') ?? _raca;
+      if (!_listEquals(_raca, _kRacaOptions)) {
+        _raca = _kRacaOptions.toList();
+        prefs.setStringList('ff_raca', _raca);
+      }
     });
     _safeInit(() {
       _statusRebanho =
@@ -456,38 +495,7 @@ class FFAppState extends ChangeNotifier {
     if (value) _notifyRefresh('refreshRebanho');
   }
 
-  List<String> _raca = [
-    'Aberdeen',
-    'Angus Black',
-    'Angus Red',
-    'Bonsmara',
-    'Braford',
-    'Brahman',
-    'Brangus',
-    'Caracu',
-    'Charolês',
-    'Devon Red',
-    'Gir',
-    'Girolando',
-    'Guzerá',
-    'Hereford',
-    'Holandês',
-    'Jersey',
-    'Limousin',
-    'Marchigiana',
-    'Mestiço',
-    'Nelore',
-    'Nelore PO',
-    'Pardo Suíço (CORTE)',
-    'Pardo Suíço (Leite)',
-    'Santa Gertrudis',
-    'Senepol',
-    'Simental',
-    'Sindi',
-    'Sindinel',
-    'Tabapuã',
-    'Wagyu'
-  ];
+  List<String> _raca = List<String>.from(_kRacaOptions);
   List<String> get raca => _raca;
   set raca(List<String> value) {
     _raca = value;
@@ -1208,22 +1216,26 @@ class FFAppState extends ChangeNotifier {
   AnimalSelecionadoStruct get matrizSelecionada => _matrizSelecionada;
   set matrizSelecionada(AnimalSelecionadoStruct value) {
     _matrizSelecionada = value;
+    notifyListeners();
   }
 
   void updateMatrizSelecionadaStruct(
       Function(AnimalSelecionadoStruct) updateFn) {
     updateFn(_matrizSelecionada);
+    notifyListeners();
   }
 
   AnimalSelecionadoStruct _reprodutorSelecionado = AnimalSelecionadoStruct();
   AnimalSelecionadoStruct get reprodutorSelecionado => _reprodutorSelecionado;
   set reprodutorSelecionado(AnimalSelecionadoStruct value) {
     _reprodutorSelecionado = value;
+    notifyListeners();
   }
 
   void updateReprodutorSelecionadoStruct(
       Function(AnimalSelecionadoStruct) updateFn) {
     updateFn(_reprodutorSelecionado);
+    notifyListeners();
   }
 
   bool _visibilidadeGraficoPrincipal = false;

@@ -2313,7 +2313,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               crossAxisAlignment: CrossAxisAlignment.start,
                                                                               children: [
                                                                                 Text(
-                                                                                  'Taxa de desmama por período (%)',
+                                                                                  'Taxa de aproveitamento ao desmame (Desmamados/Nascidos) por período (%)',
                                                                                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                         font: GoogleFonts.poppins(
                                                                                           fontWeight: FontWeight.w600,
@@ -3792,11 +3792,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
                                                                   key: ValueKey(
-                                                                    'taxa_prenhez_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                    'taxa_prenhez2_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
                                                                   ),
                                                                   future: () {
                                                                     final taxaPrenhezKey =
-                                                                        'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}';
+                                                                        'taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}';
                                                                     if (_model
                                                                             .taxaPrenhezFutureKey !=
                                                                         taxaPrenhezKey) {
@@ -4148,7 +4148,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               height: double.infinity,
                                                                                               child: custom_widgets.TaxaPrenhezChart(
                                                                                                 key: ValueKey(
-                                                                                                  'taxa_prenhez_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                                                  'taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
@@ -4158,7 +4158,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           : Center(
                                                                                               child: Text(
                                                                                                 (containerTaxaPrenhezGetResponse != null && !containerTaxaPrenhezGetResponse.succeeded)
-                                                                                                    ? 'Não foi possível carregar a taxa de concepção (HTTP ${containerTaxaPrenhezGetResponse.statusCode}). Verifique a função calcular_taxa_prenhez no Supabase.'
+                                                                                                    ? _mensagemErroTaxaConcepcao(containerTaxaPrenhezGetResponse)
                                                                                                     : 'Sem dados de reprodução no período.',
                                                                                                 style: FlutterFlowTheme.of(context).labelMedium,
                                                                                                 textAlign: TextAlign.center,
@@ -4174,9 +4174,396 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   },
                                                                 ),
                                                               ),
-                                                              // Gráfico "Taxa de natalidade" oculto
-                                                              const SizedBox
-                                                                  .shrink(),
+                                                              // Taxa de natalidade: TaxaPrenhezChart + filtros alinhados à taxa de concepção.
+                                                              SizedBox(
+                                                                width: 550.0,
+                                                                child: FutureBuilder<
+                                                                    ApiCallResponse>(
+                                                                  key: ValueKey(
+                                                                    'taxa_natalidade_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                  ),
+                                                                  future: () {
+                                                                    final taxaNatalidadeKey =
+                                                                        'taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}';
+                                                                    if (_model
+                                                                            .taxaNatalidadeFutureKey !=
+                                                                        taxaNatalidadeKey) {
+                                                                      _model.taxaNatalidadeFutureKey =
+                                                                          taxaNatalidadeKey;
+                                                                      _model.taxaNatalidadeFuture =
+                                                                          SupabaseEdgeGroup
+                                                                              .taxaNatalidadeGetCall
+                                                                              .call(
+                                                                        idPropriedade: FFAppState()
+                                                                            .propriedadeSelecionada
+                                                                            .idPropriedade,
+                                                                        dataInicio:
+                                                                            _painelPeriodoDataInicio(),
+                                                                        dataFim:
+                                                                            _painelPeriodoDataFim(),
+                                                                        pLoteId: _model
+                                                                            .filtroLoteTaxaConcepcaoValues
+                                                                            .join(','),
+                                                                        pIdRebanhoReprodutor: _model
+                                                                            .filtroTouroTaxaConcepcaoValues
+                                                                            .join(','),
+                                                                        pInseminador: _model
+                                                                            .filtroInseminadorTaxaConcepcaoValues
+                                                                            .join(','),
+                                                                      );
+                                                                    }
+                                                                    return _model
+                                                                        .taxaNatalidadeFuture;
+                                                                  }(),
+                                                                  builder: (context,
+                                                                      snapshot) {
+                                                                    final isLoading = snapshot
+                                                                                .connectionState ==
+                                                                            ConnectionState
+                                                                                .waiting ||
+                                                                        !snapshot
+                                                                            .hasData;
+                                                                    final containerTaxaNatalidadeResponse =
+                                                                        snapshot
+                                                                                .hasData
+                                                                            ? snapshot
+                                                                                .data!
+                                                                            : null;
+
+                                                                    final dataInicioStr =
+                                                                        _painelPeriodoDataInicio();
+                                                                    final dataFimStr =
+                                                                        _painelPeriodoDataFim();
+
+                                                                    return Material(
+                                                                      color: Colors
+                                                                          .transparent,
+                                                                      elevation:
+                                                                          2.0,
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(6.0),
+                                                                      ),
+                                                                      child:
+                                                                          Container(
+                                                                        width: double
+                                                                            .infinity,
+                                                                        height:
+                                                                            433.0,
+                                                                        constraints:
+                                                                            const BoxConstraints(
+                                                                          maxHeight:
+                                                                              433.0,
+                                                                        ),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color:
+                                                                              FlutterFlowTheme.of(context).secondaryBackground,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(6.0),
+                                                                        ),
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
+                                                                          child:
+                                                                              Column(
+                                                                            mainAxisSize:
+                                                                                MainAxisSize.max,
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.start,
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.start,
+                                                                            children: [
+                                                                              Row(
+                                                                                children: [
+                                                                                  Text(
+                                                                                    'Taxa de natalidade',
+                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                          fontSize: 18.0,
+                                                                                          letterSpacing: 0.0,
+                                                                                          fontWeight: FontWeight.w600,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                        ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                              Padding(
+                                                                                padding: const EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
+                                                                                child: RepaintBoundary(
+                                                                                  child: Wrap(
+                                                                                    spacing: 8.0,
+                                                                                    runSpacing: 8.0,
+                                                                                    children: [
+                                                                                      FutureBuilder<List<dynamic>>(
+                                                                                        key: ValueKey('lotes_filtro_taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
+                                                                                        future: () {
+                                                                                          final dataInicioFiltro =
+                                                                                              _painelPeriodoDataInicio();
+                                                                                          final dataFimFiltro =
+                                                                                              _painelPeriodoDataFim();
+
+                                                                                          return Future.wait([
+                                                                                            ReproducaoTable().queryRows(
+                                                                                              queryFn: (q) => q
+                                                                                                  .eqOrNull(
+                                                                                                    'id_propriedade',
+                                                                                                    FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                                  )
+                                                                                                  .eqOrNull(
+                                                                                                    'deletado',
+                                                                                                    'NAO',
+                                                                                                  )
+                                                                                                  .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
+                                                                                              limit: 5000,
+                                                                                            ),
+                                                                                            LotesTable().queryRows(
+                                                                                              queryFn: (q) => q
+                                                                                                  .eqOrNull(
+                                                                                                    'id_propriedade',
+                                                                                                    FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                                  )
+                                                                                                  .eqOrNull(
+                                                                                                    'deletado',
+                                                                                                    'NAO',
+                                                                                                  ),
+                                                                                              limit: 5000,
+                                                                                            ),
+                                                                                          ]);
+                                                                                        }(),
+                                                                                        builder: (context, lotesSnapshot) {
+                                                                                          if (!lotesSnapshot.hasData) {
+                                                                                            return const SizedBox(
+                                                                                              height: 48.0,
+                                                                                              child: Center(
+                                                                                                child: SizedBox(
+                                                                                                  width: 20.0,
+                                                                                                  height: 20.0,
+                                                                                                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                                                                                                ),
+                                                                                              ),
+                                                                                            );
+                                                                                          }
+                                                                                          final reproRows = lotesSnapshot.data![0] as List<ReproducaoRow>;
+                                                                                          final lotesRows = lotesSnapshot.data![1] as List<LotesRow>;
+
+                                                                                          final lotesComReproducao = reproRows.map((e) => e.idLote).withoutNulls.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet();
+
+                                                                                          final lotes = lotesRows.where((e) {
+                                                                                            final idLote = e.idLote?.trim();
+                                                                                            return idLote != null && idLote.isNotEmpty && lotesComReproducao.contains(idLote);
+                                                                                          }).toList();
+
+                                                                                          final loteOptions = lotes.map((e) => e.idLote?.trim() ?? '').where((e) => e.isNotEmpty).toList();
+                                                                                          final loteLabels = lotes.map((e) => e.nome?.trim() ?? '').where((e) => e.isNotEmpty).toList();
+
+                                                                                          return _buildMultiFilterChip(
+                                                                                            context,
+                                                                                            label: 'Lote',
+                                                                                            selectedValues: _model.filtroLoteTaxaConcepcaoValues,
+                                                                                            options: loteOptions,
+                                                                                            optionLabels: loteLabels,
+                                                                                            onChanged: (vals) {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroLoteTaxaConcepcaoValues = vals;
+                                                                                              });
+                                                                                            },
+                                                                                            onClear: () {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroLoteTaxaConcepcaoValues = [];
+                                                                                              });
+                                                                                            },
+                                                                                          );
+                                                                                        },
+                                                                                      ),
+                                                                                      FutureBuilder<List<ReproducaoRow>>(
+                                                                                        key: ValueKey('touros_filtro_taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
+                                                                                        future: () {
+                                                                                          final dataInicioFiltro =
+                                                                                              _painelPeriodoDataInicio();
+                                                                                          final dataFimFiltro =
+                                                                                              _painelPeriodoDataFim();
+
+                                                                                          return ReproducaoTable().queryRows(
+                                                                                            queryFn: (q) => q
+                                                                                                .eqOrNull(
+                                                                                                  'id_propriedade',
+                                                                                                  FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                                )
+                                                                                                .eqOrNull(
+                                                                                                  'deletado',
+                                                                                                  'NAO',
+                                                                                                )
+                                                                                                .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
+                                                                                            limit: 5000,
+                                                                                          );
+                                                                                        }(),
+                                                                                        builder: (context, tourosSnapshot) {
+                                                                                          if (!tourosSnapshot.hasData) {
+                                                                                            return const SizedBox(
+                                                                                              height: 48.0,
+                                                                                              child: Center(
+                                                                                                child: SizedBox(
+                                                                                                  width: 20.0,
+                                                                                                  height: 20.0,
+                                                                                                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                                                                                                ),
+                                                                                              ),
+                                                                                            );
+                                                                                          }
+                                                                                          final reproRows = tourosSnapshot.data!;
+
+                                                                                          final touroMap = <String, String>{};
+                                                                                          for (final r in reproRows) {
+                                                                                            final id = r.idRebanhoReprodutor?.trim() ?? '';
+                                                                                            if (id.isEmpty) continue;
+                                                                                            if (touroMap.containsKey(id)) continue;
+                                                                                            final nome = r.nomeReprodutor?.trim() ?? '';
+                                                                                            touroMap[id] = nome.isNotEmpty ? nome : 'Touro S/N';
+                                                                                          }
+
+                                                                                          final touroEntries = touroMap.entries.toList()
+                                                                                            ..sort((a, b) {
+                                                                                              final labelA = a.value.toLowerCase();
+                                                                                              final labelB = b.value.toLowerCase();
+                                                                                              if (labelA != labelB) return labelA.compareTo(labelB);
+                                                                                              return a.key.compareTo(b.key);
+                                                                                            });
+
+                                                                                          final touroOptions = touroEntries.map((e) => e.key).toList();
+                                                                                          final touroLabels = touroEntries.map((e) => e.value).toList();
+
+                                                                                          return _buildMultiFilterChip(
+                                                                                            context,
+                                                                                            label: 'Touro',
+                                                                                            selectedValues: _model.filtroTouroTaxaConcepcaoValues,
+                                                                                            options: touroOptions,
+                                                                                            optionLabels: touroLabels,
+                                                                                            onChanged: (vals) {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroTouroTaxaConcepcaoValues = vals;
+                                                                                              });
+                                                                                            },
+                                                                                            onClear: () {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroTouroTaxaConcepcaoValues = [];
+                                                                                              });
+                                                                                            },
+                                                                                          );
+                                                                                        },
+                                                                                      ),
+                                                                                      FutureBuilder<List<ReproducaoRow>>(
+                                                                                        key: ValueKey('inseminadores_filtro_taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}'),
+                                                                                        future: ReproducaoTable().queryRows(
+                                                                                          queryFn: (q) => q
+                                                                                              .eqOrNull(
+                                                                                                'id_propriedade',
+                                                                                                FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                              )
+                                                                                              .eqOrNull(
+                                                                                                'deletado',
+                                                                                                'NAO',
+                                                                                              ),
+                                                                                        ),
+                                                                                        builder: (context, reproSnapshot) {
+                                                                                          if (!reproSnapshot.hasData) {
+                                                                                            return const SizedBox(
+                                                                                              height: 48.0,
+                                                                                              child: Center(
+                                                                                                child: SizedBox(
+                                                                                                  width: 20.0,
+                                                                                                  height: 20.0,
+                                                                                                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                                                                                                ),
+                                                                                              ),
+                                                                                            );
+                                                                                          }
+                                                                                          final rows = reproSnapshot.data!;
+                                                                                          final inseminadores = rows.map((e) => e.inseminador).withoutNulls.map((e) => e.trim()).where((e) => e.isNotEmpty).toList().unique((e) => e);
+
+                                                                                          return _buildMultiFilterChip(
+                                                                                            context,
+                                                                                            label: 'Inseminador',
+                                                                                            selectedValues: _model.filtroInseminadorTaxaConcepcaoValues,
+                                                                                            options: inseminadores,
+                                                                                            optionLabels: inseminadores,
+                                                                                            onChanged: (vals) {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroInseminadorTaxaConcepcaoValues = vals;
+                                                                                              });
+                                                                                            },
+                                                                                            onClear: () {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroInseminadorTaxaConcepcaoValues = [];
+                                                                                              });
+                                                                                            },
+                                                                                          );
+                                                                                        },
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                              Expanded(
+                                                                                child: Container(
+                                                                                  width: double.infinity,
+                                                                                  height: double.infinity,
+                                                                                  constraints: const BoxConstraints(
+                                                                                    maxHeight: 350.0,
+                                                                                  ),
+                                                                                  decoration: BoxDecoration(
+                                                                                    color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                  ),
+                                                                                  child: isLoading
+                                                                                      ? Center(
+                                                                                          child: SizedBox(
+                                                                                            width: 50.0,
+                                                                                            height: 50.0,
+                                                                                            child: CircularProgressIndicator(
+                                                                                              valueColor: AlwaysStoppedAnimation<Color>(
+                                                                                                FlutterFlowTheme.of(context).primary,
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                        )
+                                                                                      : (containerTaxaNatalidadeResponse != null && containerTaxaNatalidadeResponse.succeeded)
+                                                                                          ? SizedBox(
+                                                                                              width: double.infinity,
+                                                                                              height: double.infinity,
+                                                                                              child: custom_widgets.TaxaPrenhezChart(
+                                                                                                key: ValueKey(
+                                                                                                  'taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_${dataInicioStr}-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                                                ),
+                                                                                                width: double.infinity,
+                                                                                                height: double.infinity,
+                                                                                                prenhezData: containerTaxaNatalidadeResponse.bodyText,
+                                                                                              ),
+                                                                                            )
+                                                                                          : Center(
+                                                                                              child: Text(
+                                                                                                (containerTaxaNatalidadeResponse != null && !containerTaxaNatalidadeResponse.succeeded)
+                                                                                                    ? _mensagemErroTaxaNatalidade(containerTaxaNatalidadeResponse)
+                                                                                                    : 'Sem dados de natalidade no período.',
+                                                                                                style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                                textAlign: TextAlign.center,
+                                                                                              ),
+                                                                                            ),
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ),
                                                               Expanded(
                                                                 child:
                                                                     Container(
@@ -4642,6 +5029,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       'Não diagnosticado',
                                                                                       'Absorção',
                                                                                       'Aborto',
+                                                                                      'Natimorto',
                                                                                       'Prenhez',
                                                                                       'Vazio',
                                                                                     ],
@@ -4649,6 +5037,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       'Não diagnosticado',
                                                                                       'Absorção',
                                                                                       'Aborto',
+                                                                                      'Natimorto',
                                                                                       'Prenhez',
                                                                                       'Vazio',
                                                                                     ],
@@ -5408,6 +5797,24 @@ class _PainelWidgetState extends State<PainelWidget>
         ),
       ),
     );
+  }
+
+  String _mensagemErroTaxaConcepcao(ApiCallResponse response) {
+    var msg =
+        'Não foi possível carregar a taxa de concepção (HTTP ${response.statusCode}). Verifique a função calcular_taxa_prenhez2 e a edge taxa-prenhez2 no Supabase.';
+    if (response.statusCode == -1 && response.exception != null) {
+      msg = '$msg\n${response.exceptionMessage}';
+    }
+    return msg;
+  }
+
+  String _mensagemErroTaxaNatalidade(ApiCallResponse response) {
+    var msg =
+        'Não foi possível carregar a taxa de natalidade (HTTP ${response.statusCode}). Verifique a função calcular_taxa_natalidade (6 parâmetros, com filtros) e a edge taxa-natalidade no Supabase.';
+    if (response.statusCode == -1 && response.exception != null) {
+      msg = '$msg\n${response.exceptionMessage}';
+    }
+    return msg;
   }
 
   /// Primeiro dia do mês inicial do filtro global do painel (ISO yyyy-MM-dd).

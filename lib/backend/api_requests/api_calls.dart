@@ -1400,8 +1400,15 @@ class CountRebanhosComLoteCall {
 /// Start Supabase Edge Group Code
 
 class SupabaseEdgeGroup {
-  static String getBaseUrl() =>
-      'https://eqrtgsqnxxnfjjzlxpuj.functions.supabase.co/';
+  /// Mesmo padrão de [SupaEdgeGroup]: `…/supabase.co/functions/v1/`.
+  /// O host `*.functions.supabase.co` pode falhar no Flutter Web (HTTP -1).
+  static String getBaseUrl() {
+    var base = SupabaseConfig.url.trim();
+    while (base.endsWith('/')) {
+      base = base.substring(0, base.length - 1);
+    }
+    return '$base/functions/v1/';
+  }
 
   /// Edge Functions com "Verify JWT" no Supabase exigem Bearer (anon ou sessão).
   static Map<String, String> get authHeaders => {
@@ -1815,8 +1822,8 @@ class TaxaPrenhezGetCall {
     }
 
     return ApiManager.instance.makeApiCall(
-      callName: 'taxa prenhez get',
-      apiUrl: '${baseUrl}taxa-prenhez',
+      callName: 'taxa prenhez2 get',
+      apiUrl: '${baseUrl}taxa-prenhez2',
       callType: ApiCallType.GET,
       headers: SupabaseEdgeGroup.authHeaders,
       params: params,
@@ -1854,19 +1861,33 @@ class TaxaNatalidadeGetCall {
     String? idPropriedade = '',
     String? dataInicio = '',
     String? dataFim = '',
+    String? pLoteId = '',
+    String? pInseminador = '',
+    String? pIdRebanhoReprodutor = '',
   }) async {
     final baseUrl = SupabaseEdgeGroup.getBaseUrl();
+
+    final params = <String, dynamic>{
+      'id_propriedade': (idPropriedade ?? '').trim(),
+      'data_inicio': (dataInicio ?? '').trim(),
+      'data_fim': (dataFim ?? '').trim(),
+    };
+    if (pLoteId != null && pLoteId.trim().isNotEmpty) {
+      params['p_lote_id'] = pLoteId.trim();
+    }
+    if (pInseminador != null && pInseminador.trim().isNotEmpty) {
+      params['p_inseminador'] = pInseminador.trim();
+    }
+    if (pIdRebanhoReprodutor != null && pIdRebanhoReprodutor.trim().isNotEmpty) {
+      params['p_id_rebanho_reprodutor'] = pIdRebanhoReprodutor.trim();
+    }
 
     return ApiManager.instance.makeApiCall(
       callName: 'taxa natalidade get',
       apiUrl: '${baseUrl}taxa-natalidade',
       callType: ApiCallType.GET,
       headers: SupabaseEdgeGroup.authHeaders,
-      params: {
-        'id_propriedade': idPropriedade,
-        'data_inicio': dataInicio,
-        'data_fim': dataFim,
-      },
+      params: params,
       returnBody: true,
       encodeBodyUtf8: false,
       decodeUtf8: false,

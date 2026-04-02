@@ -58,7 +58,7 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   int? dropDownValue4;
   FormFieldController<int>? dropDownValueController4;
 
-  // Multi-select filters for "Taxa de concepção" chart.
+  // Multi-select filters compartilhados: "Taxa de concepção" e "Taxa de natalidade".
   List<String> filtroLoteTaxaConcepcaoValues = [];
   List<String> filtroTouroTaxaConcepcaoValues = [];
   List<String> filtroInseminadorTaxaConcepcaoValues = [];

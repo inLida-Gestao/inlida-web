@@ -71,52 +71,10 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
       _model.switchValue = isAtivo;
       safeSetState(() {});
 
-      // Carregar animais do lote a partir do id_animais cadastrado no lote (fonte de verdade)
-      final idAnimaisList = functions.converterJSONparaLista(
-            _model.loteEdit?.firstOrNull?.idAnimais) ?? <String>[];
-      for (final idRebanho in idAnimaisList) {
-        if (idRebanho.trim().isEmpty) continue;
-        _model.rebanhoSelecionado = await RebanhoTable().queryRows(
-          queryFn: (q) => q.eqOrNull('idRebanho', idRebanho),
-        );
-        final row = _model.rebanhoSelecionado?.firstOrNull;
-        if (row == null) continue;
-        final struct = RebanhoDTStruct(
-          id: row.id,
-          createdAt: row.createdAt.toString(),
-          idPropriedade: row.idPropriedade,
-          numeroAnimal: row.numeroAnimal,
-          chip: row.chip,
-          codRegistro: row.codRegistro,
-          nome: row.nome,
-          sexo: row.sexo,
-          categoria: row.categoria,
-          dataNascimento: row.dataNascimento?.toString(),
-          pesoNascimento: row.pesoNascimento,
-          porte: row.porte,
-          raca: row.raca,
-          loteID: row.loteID,
-          dataEntradaLote: row.dataEntradaLote?.toString(),
-          rebanhoIdMatriz: row.rebanhoIdMatriz,
-          rebanhoIdReprodutor: row.rebanhoIdReprodutor,
-          dataDesmama: row.dataDesmama?.toString(),
-          pesoDesmama: row.pesoDesmama,
-          pesoAtual: row.pesoAtual,
-          status: row.status,
-          origem: row.origem,
-          anotacoes: row.anotacoes,
-          idRebanho: row.idRebanho,
-          deletado: row.deletado,
-          updatedAt: row.updatedAt?.toString(),
-          loteNome: row.loteNome,
-          tipo: row.tipo,
-          dataAcao: row.dataAcao?.toString(),
-          valorCompra: row.valorCompra,
-          dataUltimaPesagem: row.dataUltimaPesagem?.toString(),
-          nomeConcat: row.nomeConcat,
-          dataVenda: row.dataVenda?.toString(),
-          valorVenda: row.valorVenda,
-        );
+      // Mesma regra que PgViewLoteWidget._loadAnimaisDoLote (evita 0 animais na edição
+      // quando o vínculo está só em loteID/loteNome e id_animais não está sincronizado).
+      final animaisStructs = await _loadAnimaisDoLoteParaEdicao();
+      for (final struct in animaisStructs) {
         _model.addToAnimaisSelecionados(struct);
         _model.addToAnimaisDentroLote(struct);
       }
@@ -142,6 +100,105 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
     _model.pesquisaDentroFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+  }
+
+  /// Alinhado a [PgViewLoteWidget._loadAnimaisDoLote].
+  Future<List<RebanhoDTStruct>> _loadAnimaisDoLoteParaEdicao() async {
+    if (widget.idLote == null || widget.idLote!.isEmpty) return [];
+    final lote = _model.loteEdit?.firstOrNull;
+    if (lote == null) return [];
+
+    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
+    final hasIdAnimais = idAnimais.any((id) => id.trim().isNotEmpty);
+
+    if (hasIdAnimais) {
+      final list = <RebanhoDTStruct>[];
+      for (final idRebanho in idAnimais) {
+        if (idRebanho.trim().isEmpty) continue;
+        final rows = await RebanhoTable().queryRows(
+          queryFn: (q) => q
+              .eqOrNull('idRebanho', idRebanho)
+              .eqOrNull('deletado', 'NAO'),
+        );
+        final row = rows.firstOrNull;
+        if (row == null) continue;
+        list.add(_rebanhoRowToStruct(row));
+      }
+      return list;
+    }
+
+    final idPropriedadeLote = lote.idPropriedade;
+    final nomeLote = lote.nome;
+    if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) return [];
+
+    final byLoteID = await RebanhoTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('loteID', widget.idLote)
+          .eqOrNull('idPropriedade', idPropriedadeLote)
+          .eqOrNull('deletado', 'NAO'),
+    );
+    final byLoteNome = (nomeLote != null && nomeLote.trim().isNotEmpty)
+        ? await RebanhoTable().queryRows(
+            queryFn: (q) => q
+                .eqOrNull('loteNome', nomeLote.trim())
+                .eqOrNull('idPropriedade', idPropriedadeLote)
+                .eqOrNull('deletado', 'NAO'),
+          )
+        : <RebanhoRow>[];
+    final idsSeen = <String>{};
+    final list = <RebanhoDTStruct>[];
+    for (final row in byLoteID) {
+      final id = row.idRebanho;
+      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+        list.add(_rebanhoRowToStruct(row));
+      }
+    }
+    for (final row in byLoteNome) {
+      final id = row.idRebanho;
+      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+        list.add(_rebanhoRowToStruct(row));
+      }
+    }
+    return list;
+  }
+
+  RebanhoDTStruct _rebanhoRowToStruct(RebanhoRow row) {
+    return RebanhoDTStruct(
+      id: row.id,
+      createdAt: row.createdAt.toString(),
+      idPropriedade: row.idPropriedade,
+      numeroAnimal: row.numeroAnimal,
+      chip: row.chip,
+      codRegistro: row.codRegistro,
+      nome: row.nome,
+      sexo: row.sexo,
+      categoria: row.categoria,
+      dataNascimento: row.dataNascimento?.toString(),
+      pesoNascimento: row.pesoNascimento,
+      porte: row.porte,
+      raca: row.raca,
+      loteID: row.loteID,
+      dataEntradaLote: row.dataEntradaLote?.toString(),
+      rebanhoIdMatriz: row.rebanhoIdMatriz,
+      rebanhoIdReprodutor: row.rebanhoIdReprodutor,
+      dataDesmama: row.dataDesmama?.toString(),
+      pesoDesmama: row.pesoDesmama,
+      pesoAtual: row.pesoAtual,
+      status: row.status,
+      origem: row.origem,
+      anotacoes: row.anotacoes,
+      idRebanho: row.idRebanho,
+      deletado: row.deletado,
+      updatedAt: row.updatedAt?.toString(),
+      loteNome: row.loteNome,
+      tipo: row.tipo,
+      dataAcao: row.dataAcao?.toString(),
+      valorCompra: row.valorCompra,
+      dataUltimaPesagem: row.dataUltimaPesagem?.toString(),
+      nomeConcat: row.nomeConcat,
+      dataVenda: row.dataVenda?.toString(),
+      valorVenda: row.valorVenda,
+    );
   }
 
   @override

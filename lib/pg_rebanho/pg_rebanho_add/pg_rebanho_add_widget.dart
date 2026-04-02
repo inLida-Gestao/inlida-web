@@ -1863,6 +1863,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     false,
                                                                 isMultiSelect:
                                                                     false,
+                                                                allowClear:
+                                                                    true,
                                                               ),
                                                             ].divide(
                                                                 const SizedBox(
@@ -1992,6 +1994,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       false,
                                                                   isMultiSelect:
                                                                       false,
+                                                                  allowClear:
+                                                                      true,
                                                                 ),
                                                               if (_model
                                                                       .dropDownSexoValue ==
@@ -2074,6 +2078,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       false,
                                                                   isMultiSelect:
                                                                       false,
+                                                                  allowClear:
+                                                                      true,
                                                                 ),
                                                               if (_model.dropDownSexoValue ==
                                                                       null ||
@@ -2222,6 +2228,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     false,
                                                                 isMultiSelect:
                                                                     false,
+                                                                allowClear:
+                                                                    true,
                                                               ),
                                                             ].divide(
                                                                 const SizedBox(
@@ -2357,6 +2365,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     false,
                                                                 isMultiSelect:
                                                                     false,
+                                                                allowClear:
+                                                                    true,
                                                               ),
                                                             ].divide(
                                                                 const SizedBox(

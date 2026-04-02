@@ -234,6 +234,9 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
           );
         }
         final animaisNesteLote = snapshot.data ?? <RebanhoDTStruct>[];
+        final animaisComPesagemAtual = animaisNesteLote
+            .where((e) => e.hasPesoAtual())
+            .toList();
 
         return GestureDetector(
           onTap: () {
@@ -1836,18 +1839,17 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                 valueOrDefault<String>(
                                                                                   formatNumber(
                                                                                     valueOrDefault<double>(
-                                                                                          functions.somarTotal(animaisNesteLote
-                                                                                              .map((e) => valueOrDefault<double>(
-                                                                                                    e.pesoAtual,
-                                                                                                    0.0,
-                                                                                                  ))
-                                                                                              .toList()),
-                                                                                          0.0,
-                                                                                        ) /
-                                                                                        valueOrDefault<int>(
-                                                                                          animaisNesteLote.length,
-                                                                                          0,
-                                                                                        ),
+                                                                                      animaisComPesagemAtual.isEmpty
+                                                                                          ? 0.0
+                                                                                          : (functions.somarTotal(
+                                                                                                    animaisComPesagemAtual
+                                                                                                        .map((e) => e.pesoAtual)
+                                                                                                        .toList(),
+                                                                                                  ) ??
+                                                                                                  0.0) /
+                                                                                              animaisComPesagemAtual.length,
+                                                                                      0.0,
+                                                                                    ),
                                                                                     formatType: FormatType.compact,
                                                                                   ),
                                                                                   '0',

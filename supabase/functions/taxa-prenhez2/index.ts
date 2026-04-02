@@ -14,7 +14,6 @@ function badRequest(msg: string) {
   });
 }
 
-// Aceita YYYY-M-D, YYYY-MM-DD, prefixo ISO (2025-01-15T00:00:00...) -> YYYY-MM-DD
 function toDateStr(x: unknown): string | null {
   let s = String(x ?? "").trim();
   if (!s) return null;
@@ -49,6 +48,7 @@ serve(async (req) => {
     const id_propriedade = url.searchParams.get("id_propriedade");
     const data_inicio_raw = url.searchParams.get("data_inicio");
     const data_fim_raw = url.searchParams.get("data_fim");
+
     const p_lote_id = url.searchParams.get("p_lote_id") ?? "";
     const p_inseminador = url.searchParams.get("p_inseminador") ?? "";
     const p_id_rebanho_reprodutor = url.searchParams.get("p_id_rebanho_reprodutor") ?? "";
@@ -76,7 +76,7 @@ serve(async (req) => {
       },
     );
 
-    const { data, error } = await supabaseClient.rpc("calcular_taxa_natalidade", {
+    const { data, error } = await supabaseClient.rpc("calcular_taxa_prenhez2", {
       id_propriedade_param: id_propriedade,
       data_inicio_param: data_inicio,
       data_fim_param: data_fim,
@@ -92,9 +92,7 @@ serve(async (req) => {
       });
     }
 
-    // RPC retorna porcentagem 0–100; TaxaPrenhezChart espera decimal 0–1.
-    // Contagens: pariram / expostas (mesmos aliases que taxa-prenhez2 para o widget).
-    const pickInt = (row: Record<string, unknown>, keys: string[]): number | undefined => {
+    const pickInt = (row: any, keys: string[]): number | undefined => {
       for (const k of keys) {
         const v = row[k];
         if (v == null || v === "") continue;
@@ -104,28 +102,31 @@ serve(async (req) => {
       return undefined;
     };
 
-    const items = (data ?? []).map((r: Record<string, unknown>) => {
+    const items = (data ?? []).map((r: any) => {
       const porcentagemNum = Number(r.porcentagem ?? 0);
-      const total_pariram = pickInt(r, [
-        "total_pariram",
-        "totalPariram",
-        "pariram",
+      const total_prenhe = pickInt(r, [
         "total_prenhe",
         "totalPrenhe",
-        "partos",
+        "prenhe",
+        "qtd_prenhe",
+        "matrizes_prenhes",
+        "prenhez",
       ]);
       const total_expostas = pickInt(r, [
         "total_expostas",
         "totalExpostas",
         "total_inseminadas",
         "totalInseminadas",
-        "expostas",
+        "inseminadas",
+        "qtd_inseminadas",
+        "matrizes_inseminadas",
+        "total_matrizes",
       ]);
       const out: Record<string, unknown> = {
         titulo: String(r.titulo ?? ""),
         porcentagem: porcentagemNum / 100.0,
       };
-      if (total_pariram !== undefined) out.total_prenhe = total_pariram;
+      if (total_prenhe !== undefined) out.total_prenhe = total_prenhe;
       if (total_expostas !== undefined) {
         out.total_expostas = total_expostas;
         out.total_inseminadas = total_expostas;

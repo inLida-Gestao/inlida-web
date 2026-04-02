@@ -16,7 +16,7 @@ class PrenhezDataPoint {
   final String porcentagemFormatada;
   /// Prenhes na categoria (numerador da taxa), quando a API enviar.
   final int? totalPrenhe;
-  /// Total inseminadas na categoria (denominador), quando a API enviar.
+  /// Denominador da taxa (inseminações ou matrizes expostas), quando a API enviar.
   final int? totalInseminadas;
 
   PrenhezDataPoint(
@@ -119,12 +119,16 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
           final prenhe = _countsFromJson(m, const [
             'total_prenhe',
             'totalPrenhe',
+            'total_pariram',
+            'totalPariram',
             'prenhe',
             'qtd_prenhe',
             'matrizes_prenhes',
             'prenhez',
           ]);
           final insem = _countsFromJson(m, const [
+            'total_expostas',
+            'totalExpostas',
             'total_inseminadas',
             'totalInseminadas',
             'inseminadas',

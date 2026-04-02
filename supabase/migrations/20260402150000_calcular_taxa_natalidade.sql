@@ -1,0 +1,134 @@
+-- Taxa de natalidade (painel): denominador = matrizes distintas com atividade reprodutiva no período
+-- (data_inseminacao OU data_inicial no intervalo); numerador = dessas matrizes, as que têm
+-- data_parto no período com diagnóstico diferente de Natimorto (status_reproducao).
+-- Fórmula por categoria: (pariram / expostas) * 100.
+
+CREATE OR REPLACE FUNCTION public.calcular_taxa_natalidade(
+  id_propriedade_param text,
+  data_inicio_param text,
+  data_fim_param text
+)
+RETURNS TABLE (
+  titulo text,
+  porcentagem numeric,
+  total_pariram bigint,
+  total_expostas bigint
+)
+LANGUAGE sql
+STABLE
+AS $function$
+WITH bounds AS (
+  SELECT
+    data_inicio_param::date AS d0,
+    data_fim_param::date    AS d1
+),
+raw_activity AS (
+  SELECT
+    rep.id_rebanho_matriz,
+    lower(
+      coalesce(
+        nullif(btrim(rep.categoria), ''),
+        nullif(btrim(rb.categoria), ''),
+        ''
+      )
+    ) AS cat_l
+  FROM public.reproducao rep
+  LEFT JOIN public.rebanho rb
+    ON rb."idRebanho" = rep.id_rebanho_matriz
+    AND rb."idPropriedade" = id_propriedade_param
+    AND rb.deletado = 'NAO'
+  CROSS JOIN bounds b
+  WHERE rep.id_propriedade = id_propriedade_param
+    AND (rep.deletado IS NULL OR rep.deletado = 'NAO')
+    AND (rep.ressinc IS NULL OR rep.ressinc <> 'SIM')
+    AND rep.id_rebanho_matriz IS NOT NULL
+    AND btrim(rep.id_rebanho_matriz) <> ''
+    AND (
+      (
+        rep.data_inseminacao IS NOT NULL
+        AND rep.data_inseminacao::date >= b.d0
+        AND rep.data_inseminacao::date <= b.d1
+      )
+      OR (
+        rep.data_inicial IS NOT NULL
+        AND rep.data_inicial::date >= b.d0
+        AND rep.data_inicial::date <= b.d1
+      )
+    )
+),
+base_activity AS (
+  SELECT
+    r.id_rebanho_matriz,
+    CASE
+      WHEN r.cat_l LIKE 'novilha%' THEN 'Novilha'
+      WHEN r.cat_l LIKE 'vaca primipara%' OR r.cat_l LIKE 'vaca primípara%' THEN 'Vaca Primípara'
+      WHEN r.cat_l LIKE 'vaca multipara%' OR r.cat_l LIKE 'vaca multípara%' THEN 'Vaca Multípara'
+      ELSE 'Outras'
+    END AS cat_titulo
+  FROM raw_activity r
+),
+per_matriz AS (
+  SELECT
+    b.id_rebanho_matriz,
+    min(b.cat_titulo) AS cat_titulo
+  FROM base_activity b
+  GROUP BY b.id_rebanho_matriz
+),
+pariram_ids AS (
+  SELECT DISTINCT rep.id_rebanho_matriz
+  FROM public.reproducao rep
+  CROSS JOIN bounds b
+  WHERE rep.id_propriedade = id_propriedade_param
+    AND (rep.deletado IS NULL OR rep.deletado = 'NAO')
+    AND (rep.ressinc IS NULL OR rep.ressinc <> 'SIM')
+    AND rep.data_parto IS NOT NULL
+    AND rep.data_parto::date >= b.d0
+    AND rep.data_parto::date <= b.d1
+    AND lower(trim(coalesce(rep.status_reproducao, ''))) NOT LIKE '%natimorto%'
+    AND rep.id_rebanho_matriz IS NOT NULL
+    AND btrim(rep.id_rebanho_matriz) <> ''
+),
+per_matriz_full AS (
+  SELECT
+    p.id_rebanho_matriz,
+    p.cat_titulo,
+    (pi.id_rebanho_matriz IS NOT NULL) AS pariu
+  FROM per_matriz p
+  LEFT JOIN pariram_ids pi ON pi.id_rebanho_matriz = p.id_rebanho_matriz
+),
+agg AS (
+  SELECT
+    f.cat_titulo AS titulo,
+    count(*)::bigint AS total_expostas,
+    count(*) FILTER (WHERE f.pariu)::bigint AS total_pariram
+  FROM per_matriz_full f
+  GROUP BY f.cat_titulo
+)
+SELECT
+  a.titulo,
+  CASE
+    WHEN a.total_expostas > 0 THEN round(100.0 * a.total_pariram / a.total_expostas::numeric, 2)
+    ELSE 0::numeric
+  END AS porcentagem,
+  a.total_pariram,
+  a.total_expostas
+FROM agg a
+WHERE a.titulo IN ('Novilha', 'Vaca Primípara', 'Vaca Multípara')
+ORDER BY
+  CASE a.titulo
+    WHEN 'Novilha' THEN 1
+    WHEN 'Vaca Primípara' THEN 2
+    WHEN 'Vaca Multípara' THEN 3
+    ELSE 9
+  END;
+$function$;
+
+COMMENT ON FUNCTION public.calcular_taxa_natalidade(text, text, text) IS
+  'Taxa de natalidade por categoria: matrizes com parto (não natimorto) no período / matrizes distintas com atividade reprodutiva no período.';
+
+ALTER FUNCTION public.calcular_taxa_natalidade(text, text, text)
+  SECURITY DEFINER
+  SET search_path = public;
+
+GRANT EXECUTE ON FUNCTION public.calcular_taxa_natalidade(text, text, text)
+  TO anon, authenticated, service_role;
