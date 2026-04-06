@@ -12,6 +12,8 @@ import '/flutter_flow/form_field_controller.dart';
 import '/pg_rebanho/pp_filtro_rebanho/pp_filtro_rebanho_widget.dart';
 import 'dart:async';
 import '/actions/actions.dart' as action_blocks;
+import '/custom_code/actions/remover_animal_de_lote_anterior.dart'
+    show removerAnimalDeLoteAnterior;
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
@@ -2632,27 +2634,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                           () async {
                                                                         if (_model
                                                                             .animaisSelecionados
-                                                                            .isNotEmpty) {
-                                                                          _model.animaisDentroLote = _model
-                                                                              .animaisSelecionados
-                                                                              .toList()
-                                                                              .cast<RebanhoDTStruct>();
-                                                                          safeSetState(
-                                                                              () {});
-                                                                          ScaffoldMessenger.of(context)
-                                                                              .showSnackBar(
-                                                                            SnackBar(
-                                                                              content: Text(
-                                                                                'Animais adicionados',
-                                                                                style: TextStyle(
-                                                                                  color: FlutterFlowTheme.of(context).primaryText,
-                                                                                ),
-                                                                              ),
-                                                                              duration: const Duration(milliseconds: 4000),
-                                                                              backgroundColor: FlutterFlowTheme.of(context).secondary,
-                                                                            ),
-                                                                          );
-                                                                        } else {
+                                                                            .isEmpty) {
                                                                           ScaffoldMessenger.of(context)
                                                                               .showSnackBar(
                                                                             SnackBar(
@@ -2666,7 +2648,144 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                               backgroundColor: FlutterFlowTheme.of(context).error,
                                                                             ),
                                                                           );
+                                                                          return;
                                                                         }
+
+                                                                        final idProp = FFAppState()
+                                                                            .propriedadeSelecionada
+                                                                            .idPropriedade;
+                                                                        final destNome = _model
+                                                                                .nomeLoteTextController
+                                                                                .text
+                                                                                .trim()
+                                                                                .isNotEmpty
+                                                                            ? _model
+                                                                                .nomeLoteTextController
+                                                                                .text
+                                                                                .trim()
+                                                                            : (containerLotesRow?.nome ??
+                                                                                    widget.loteNome ??
+                                                                                    '')
+                                                                                .trim();
+                                                                        final destId = (containerLotesRow
+                                                                                    ?.idLote ??
+                                                                                widget.idLote ??
+                                                                                '')
+                                                                            .trim();
+
+                                                                        final conflitos = _model
+                                                                            .animaisSelecionados
+                                                                            .where((a) => functions
+                                                                                .animalEstaEmOutroLote(
+                                                                              a,
+                                                                              nomeLoteDestino: destNome.isEmpty
+                                                                                  ? null
+                                                                                  : destNome,
+                                                                              idLoteDestino: destId.isEmpty
+                                                                                  ? null
+                                                                                  : destId,
+                                                                            ))
+                                                                            .toList();
+
+                                                                        if (conflitos.isNotEmpty) {
+                                                                          final linhas = conflitos
+                                                                              .map((a) {
+                                                                                final prev = a.loteNome.trim().isNotEmpty &&
+                                                                                        a.loteNome.trim().toLowerCase() !=
+                                                                                            'null'
+                                                                                    ? a.loteNome.trim()
+                                                                                    : a.loteID.trim();
+                                                                                return '• ${a.numeroAnimal} — ${a.nome.isNotEmpty ? a.nome : 'sem nome'} (${prev.isEmpty ? 'outro lote' : 'lote: $prev'})';
+                                                                              })
+                                                                              .join('\n');
+
+                                                                          final aceitou = await showDialog<bool>(
+                                                                                context: context,
+                                                                                builder: (alertDialogContext) {
+                                                                                  return AlertDialog(
+                                                                                    title: const Text(
+                                                                                        'Animal em outro lote'),
+                                                                                    content: SingleChildScrollView(
+                                                                                      child: Text(
+                                                                                        'Os animais abaixo já estão cadastrados em outro lote:\n\n$linhas\n\nDeseja removê-los do lote anterior para adicionar a este lote?',
+                                                                                      ),
+                                                                                    ),
+                                                                                    actions: [
+                                                                                      TextButton(
+                                                                                        onPressed: () => Navigator.pop(
+                                                                                            alertDialogContext,
+                                                                                            false),
+                                                                                        child: const Text('Cancelar'),
+                                                                                      ),
+                                                                                      TextButton(
+                                                                                        onPressed: () => Navigator.pop(
+                                                                                            alertDialogContext,
+                                                                                            true),
+                                                                                        child: const Text('Sim, concordo'),
+                                                                                      ),
+                                                                                    ],
+                                                                                  );
+                                                                                },
+                                                                              ) ??
+                                                                              false;
+
+                                                                          if (!aceitou) {
+                                                                            return;
+                                                                          }
+
+                                                                          for (final a in conflitos) {
+                                                                            await removerAnimalDeLoteAnterior(
+                                                                              idPropriedade: idProp,
+                                                                              idRebanho: a.idRebanho,
+                                                                              loteNomeHint: a.loteNome.trim().isNotEmpty &&
+                                                                                      a.loteNome.trim().toLowerCase() !=
+                                                                                          'null'
+                                                                                  ? a.loteNome.trim()
+                                                                                  : null,
+                                                                              loteIdHint: a.loteID.trim().isNotEmpty &&
+                                                                                      a.loteID.trim().toLowerCase() !=
+                                                                                          'null'
+                                                                                  ? a.loteID.trim()
+                                                                                  : null,
+                                                                            );
+                                                                          }
+                                                                        }
+
+                                                                        if (!context.mounted) {
+                                                                          return;
+                                                                        }
+
+                                                                        final idsConflito = conflitos
+                                                                            .map((e) => e.idRebanho)
+                                                                            .toSet();
+                                                                        _model.animaisDentroLote = _model
+                                                                            .animaisSelecionados
+                                                                            .map((a) {
+                                                                              if (idsConflito.contains(a.idRebanho)) {
+                                                                                final m = Map<String, dynamic>.from(
+                                                                                    a.toMap());
+                                                                                m['loteID'] = null;
+                                                                                m['loteNome'] = null;
+                                                                                return RebanhoDTStruct.fromMap(m);
+                                                                              }
+                                                                              return a;
+                                                                            })
+                                                                            .toList();
+
+                                                                        safeSetState(() {});
+                                                                        ScaffoldMessenger.of(context)
+                                                                            .showSnackBar(
+                                                                          SnackBar(
+                                                                            content: Text(
+                                                                              'Animais adicionados',
+                                                                              style: TextStyle(
+                                                                                color: FlutterFlowTheme.of(context).primaryText,
+                                                                              ),
+                                                                            ),
+                                                                            duration: const Duration(milliseconds: 4000),
+                                                                            backgroundColor: FlutterFlowTheme.of(context).secondary,
+                                                                          ),
+                                                                        );
                                                                       },
                                                                     ),
                                                                   ].divide(const SizedBox(
@@ -3586,8 +3705,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                           _model.index = 0;
                                                           safeSetState(() {});
                                                         }
-                                                        // Atualiza todos os animais que ainda pertencem a este lote (por loteID),
-                                                        // para que ao desativar/reativar o status seja aplicado a todos de forma consistente
+                                                        // Atualiza cada animal listado no lote (inclui os vindos de outro lote),
+                                                        // para que nome/status/venda fiquem consistentes ao salvar.
                                                         final novoLoteNome = _model.nomeLoteTextController.text.isNotEmpty
                                                             ? _model.nomeLoteTextController.text
                                                             : containerLotesRow?.nome ?? widget.loteNome;
@@ -3596,22 +3715,27 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                             : ((_model.dropDownLotesValue ?? containerLotesRow?.motivo) == 'Lote vendido')
                                                                 ? 'Vendido'
                                                                 : 'Inativo';
-                                                        await RebanhoTable().update(
-                                                          data: {
-                                                            'loteID': novoLoteNome,
-                                                            'loteNome': novoLoteNome,
-                                                            'updated_at': supaSerialize<DateTime>(getCurrentTimestamp),
-                                                            'dataEntradaLote': supaSerialize<DateTime>(getCurrentTimestamp),
-                                                            'dataVenda': _model.switchValue == true
-                                                                ? null
-                                                                : supaSerialize<DateTime>(_model.datePicked ?? containerLotesRow?.dataMotivo),
-                                                            'valorVenda': _model.switchValue == true
-                                                                ? null
-                                                                : FFAppState().valueDouble2,
-                                                            'status': novoStatus,
-                                                          },
-                                                          matchingRows: (rows) => rows.eqOrNull('loteID', widget.loteNome),
-                                                        );
+                                                        for (final a in _model.animaisDentroLote) {
+                                                          if (a.idRebanho.isEmpty) {
+                                                            continue;
+                                                          }
+                                                          await RebanhoTable().update(
+                                                            data: {
+                                                              'loteID': novoLoteNome,
+                                                              'loteNome': novoLoteNome,
+                                                              'updated_at': supaSerialize<DateTime>(getCurrentTimestamp),
+                                                              'dataEntradaLote': supaSerialize<DateTime>(getCurrentTimestamp),
+                                                              'dataVenda': _model.switchValue == true
+                                                                  ? null
+                                                                  : supaSerialize<DateTime>(_model.datePicked ?? containerLotesRow?.dataMotivo),
+                                                              'valorVenda': _model.switchValue == true
+                                                                  ? null
+                                                                  : FFAppState().valueDouble2,
+                                                              'status': novoStatus,
+                                                            },
+                                                            matchingRows: (rows) => rows.eqOrNull('idRebanho', a.idRebanho),
+                                                          );
+                                                        }
                                                         _model.animaisDentroLote =
                                                             [];
                                                         _model.animaisSelecionados =

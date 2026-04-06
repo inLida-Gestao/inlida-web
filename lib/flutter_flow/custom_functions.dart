@@ -249,3 +249,36 @@ int? converterTextoEmNumero(String? texto) {
   if (texto == null) return null; // Return null if input is null
   return int.tryParse(texto); // Try to parse the string to an integer
 }
+
+/// True se o animal já está em um lote diferente do lote de destino (nome/id).
+bool animalEstaEmOutroLote(
+  RebanhoDTStruct animal, {
+  String? nomeLoteDestino,
+  String? idLoteDestino,
+}) {
+  bool valid(String s) {
+    final t = s.trim();
+    return t.isNotEmpty && t.toLowerCase() != 'null';
+  }
+
+  final destNome = (nomeLoteDestino ?? '').trim();
+  final destId = (idLoteDestino ?? '').trim();
+
+  final aNome = animal.loteNome.trim();
+  final aId = animal.loteID.trim();
+
+  if (!valid(aNome) && !valid(aId)) return false;
+
+  bool mesmoLoteDestino() {
+    if (valid(destNome)) {
+      if (aNome == destNome || aId == destNome) return true;
+    }
+    if (valid(destId)) {
+      if (aNome == destId || aId == destId) return true;
+    }
+    return false;
+  }
+
+  if (mesmoLoteDestino()) return false;
+  return true;
+}
