@@ -29,8 +29,8 @@ import 'package:provider/provider.dart';
 import 'painel_model.dart';
 export 'painel_model.dart';
 
-/// Taxa de natalidade na aba Reprodução: `true` exibe o cartão (só período global, sem Lote/Touro/Inseminador).
-const bool _painelMostrarCartaoTaxaNatalidade = false;
+/// Taxa de natalidade na aba Reprodução: `false` oculta o cartão (só período global, sem Lote/Touro/Inseminador).
+const bool _painelMostrarCartaoTaxaNatalidade = true;
 
 class PainelWidget extends StatefulWidget {
   const PainelWidget({super.key});
