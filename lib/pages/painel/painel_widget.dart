@@ -29,6 +29,9 @@ import 'package:provider/provider.dart';
 import 'painel_model.dart';
 export 'painel_model.dart';
 
+/// Taxa de natalidade na aba Reprodução: `true` exibe o cartão (só período global, sem Lote/Touro/Inseminador).
+const bool _painelMostrarCartaoTaxaNatalidade = false;
+
 class PainelWidget extends StatefulWidget {
   const PainelWidget({super.key});
 
@@ -3676,28 +3679,33 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   0.0,
                                                                   24.0,
                                                                   0.0),
-                                                          child: Row(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .max,
+                                                          child: Wrap(
+                                                            spacing: 24.0,
+                                                            runSpacing: 24.0,
+                                                            alignment:
+                                                                WrapAlignment
+                                                                    .start,
+                                                            crossAxisAlignment:
+                                                                WrapCrossAlignment
+                                                                    .start,
                                                             children: [
                                                               SizedBox(
                                                                 width: 550.0,
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
                                                                   key: ValueKey(
-                                                                    'taxa_prenhez2_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                    'taxa_concepcao_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
                                                                   ),
                                                                   future: () {
-                                                                    final taxaPrenhezKey =
-                                                                        'taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}';
+                                                                    final taxaConcepcaoKey =
+                                                                        'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}';
                                                                     if (_model
-                                                                            .taxaPrenhezFutureKey !=
-                                                                        taxaPrenhezKey) {
-                                                                      _model.taxaPrenhezFutureKey =
-                                                                          taxaPrenhezKey;
-                                                                      _model.taxaPrenhezFuture = SupabaseEdgeGroup
-                                                                          .taxaPrenhezGetCall
+                                                                            .taxaConcepcaoFutureKey !=
+                                                                        taxaConcepcaoKey) {
+                                                                      _model.taxaConcepcaoFutureKey =
+                                                                          taxaConcepcaoKey;
+                                                                      _model.taxaConcepcaoFuture = SupabaseEdgeGroup
+                                                                          .taxaConcepcaoGetCall
                                                                           .call(
                                                                         idPropriedade: FFAppState()
                                                                             .propriedadeSelecionada
@@ -3718,7 +3726,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       );
                                                                     }
                                                                     return _model
-                                                                        .taxaPrenhezFuture;
+                                                                        .taxaConcepcaoFuture;
                                                                   }(),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -3728,7 +3736,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 .waiting ||
                                                                         !snapshot
                                                                             .hasData;
-                                                                    final containerTaxaPrenhezGetResponse = snapshot
+                                                                    final containerTaxaConcepcaoResponse = snapshot
                                                                             .hasData
                                                                         ? snapshot
                                                                             .data!
@@ -4036,23 +4044,23 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             ),
                                                                                           ),
                                                                                         )
-                                                                                      : (containerTaxaPrenhezGetResponse != null && containerTaxaPrenhezGetResponse.succeeded)
+                                                                                      : (containerTaxaConcepcaoResponse != null && containerTaxaConcepcaoResponse.succeeded)
                                                                                           ? SizedBox(
                                                                                               width: double.infinity,
                                                                                               height: double.infinity,
                                                                                               child: custom_widgets.TaxaPrenhezChart(
                                                                                                 key: ValueKey(
-                                                                                                  'taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                                                  'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
-                                                                                                prenhezData: containerTaxaPrenhezGetResponse.bodyText,
+                                                                                                prenhezData: containerTaxaConcepcaoResponse.bodyText,
                                                                                               ),
                                                                                             )
                                                                                           : Center(
                                                                                               child: Text(
-                                                                                                (containerTaxaPrenhezGetResponse != null && !containerTaxaPrenhezGetResponse.succeeded)
-                                                                                                    ? _mensagemErroTaxaConcepcao(containerTaxaPrenhezGetResponse)
+                                                                                                (containerTaxaConcepcaoResponse != null && !containerTaxaConcepcaoResponse.succeeded)
+                                                                                                    ? _mensagemErroTaxaConcepcao(containerTaxaConcepcaoResponse)
                                                                                                     : 'Sem dados de reprodução no período.',
                                                                                                 style: FlutterFlowTheme.of(context).labelMedium,
                                                                                                 textAlign: TextAlign.center,
@@ -4068,26 +4076,24 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   },
                                                                 ),
                                                               ),
-                                                              // Taxa de natalidade: TaxaPrenhezChart + filtros alinhados à taxa de concepção.
                                                               SizedBox(
                                                                 width: 550.0,
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
                                                                   key: ValueKey(
-                                                                    'taxa_natalidade_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                    'taxa_prenhez2_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
                                                                   ),
                                                                   future: () {
-                                                                    final taxaNatalidadeKey =
-                                                                        'taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}';
+                                                                    final taxaPrenhez2Key =
+                                                                        'taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}';
                                                                     if (_model
-                                                                            .taxaNatalidadeFutureKey !=
-                                                                        taxaNatalidadeKey) {
-                                                                      _model.taxaNatalidadeFutureKey =
-                                                                          taxaNatalidadeKey;
-                                                                      _model.taxaNatalidadeFuture =
-                                                                          SupabaseEdgeGroup
-                                                                              .taxaNatalidadeGetCall
-                                                                              .call(
+                                                                            .taxaPrenhez2FutureKey !=
+                                                                        taxaPrenhez2Key) {
+                                                                      _model.taxaPrenhez2FutureKey =
+                                                                          taxaPrenhez2Key;
+                                                                      _model.taxaPrenhez2Future = SupabaseEdgeGroup
+                                                                          .taxaPrenhez2GetCall
+                                                                          .call(
                                                                         idPropriedade: FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
@@ -4107,22 +4113,20 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       );
                                                                     }
                                                                     return _model
-                                                                        .taxaNatalidadeFuture;
+                                                                        .taxaPrenhez2Future;
                                                                   }(),
                                                                   builder: (context,
                                                                       snapshot) {
-                                                                    final isLoading = snapshot
-                                                                                .connectionState ==
+                                                                    final isLoading = snapshot.connectionState ==
                                                                             ConnectionState
                                                                                 .waiting ||
                                                                         !snapshot
                                                                             .hasData;
-                                                                    final containerTaxaNatalidadeResponse =
-                                                                        snapshot
-                                                                                .hasData
-                                                                            ? snapshot
-                                                                                .data!
-                                                                            : null;
+                                                                    final containerTaxaPrenhez2Response = snapshot
+                                                                            .hasData
+                                                                        ? snapshot
+                                                                            .data!
+                                                                        : null;
 
                                                                     final dataInicioStr =
                                                                         _painelPeriodoDataInicio();
@@ -4174,7 +4178,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               Row(
                                                                                 children: [
                                                                                   Text(
-                                                                                    'Taxa de natalidade',
+                                                                                    'Taxa de prenhez',
                                                                                     style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                           font: GoogleFonts.poppins(
                                                                                             fontWeight: FontWeight.w600,
@@ -4196,7 +4200,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                     runSpacing: 8.0,
                                                                                     children: [
                                                                                       FutureBuilder<List<dynamic>>(
-                                                                                        key: ValueKey('lotes_filtro_taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
+                                                                                        key: ValueKey('lotes_filtro_taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
                                                                                         future: () {
                                                                                           final dataInicioFiltro =
                                                                                               _painelPeriodoDataInicio();
@@ -4277,7 +4281,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                         },
                                                                                       ),
                                                                                       FutureBuilder<List<ReproducaoRow>>(
-                                                                                        key: ValueKey('touros_filtro_taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
+                                                                                        key: ValueKey('touros_filtro_taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
                                                                                         future: () {
                                                                                           final dataInicioFiltro =
                                                                                               _painelPeriodoDataInicio();
@@ -4353,7 +4357,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                         },
                                                                                       ),
                                                                                       FutureBuilder<List<ReproducaoRow>>(
-                                                                                        key: ValueKey('inseminadores_filtro_taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}'),
+                                                                                        key: ValueKey('inseminadores_filtro_taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}'),
                                                                                         future: ReproducaoTable().queryRows(
                                                                                           queryFn: (q) => q
                                                                                               .eqOrNull(
@@ -4426,24 +4430,24 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             ),
                                                                                           ),
                                                                                         )
-                                                                                      : (containerTaxaNatalidadeResponse != null && containerTaxaNatalidadeResponse.succeeded)
+                                                                                      : (containerTaxaPrenhez2Response != null && containerTaxaPrenhez2Response.succeeded)
                                                                                           ? SizedBox(
                                                                                               width: double.infinity,
                                                                                               height: double.infinity,
                                                                                               child: custom_widgets.TaxaPrenhezChart(
                                                                                                 key: ValueKey(
-                                                                                                  'taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_${dataInicioStr}-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                                                  'taxa_prenhez2_chart_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
-                                                                                                prenhezData: containerTaxaNatalidadeResponse.bodyText,
+                                                                                                prenhezData: containerTaxaPrenhez2Response.bodyText,
                                                                                               ),
                                                                                             )
                                                                                           : Center(
                                                                                               child: Text(
-                                                                                                (containerTaxaNatalidadeResponse != null && !containerTaxaNatalidadeResponse.succeeded)
-                                                                                                    ? _mensagemErroTaxaNatalidade(containerTaxaNatalidadeResponse)
-                                                                                                    : 'Sem dados de natalidade no período.',
+                                                                                                (containerTaxaPrenhez2Response != null && !containerTaxaPrenhez2Response.succeeded)
+                                                                                                    ? _mensagemErroTaxaPrenhez2(containerTaxaPrenhez2Response)
+                                                                                                    : 'Sem dados de reprodução no período.',
                                                                                                 style: FlutterFlowTheme.of(context).labelMedium,
                                                                                                 textAlign: TextAlign.center,
                                                                                               ),
@@ -4458,30 +4462,182 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   },
                                                                 ),
                                                               ),
-                                                              Expanded(
-                                                                child:
-                                                                    Container(
-                                                                  width: double
-                                                                      .infinity,
-                                                                  constraints:
-                                                                      const BoxConstraints(
-                                                                    minHeight:
-                                                                        433.0,
-                                                                    maxWidth:
-                                                                        550.0,
-                                                                  ),
-                                                                  decoration:
-                                                                      BoxDecoration(
-                                                                    color: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .secondaryBackground,
+                                                              // Taxa de natalidade: edge taxa-natalidade (só período global). Oculto por padrão.
+                                                              if (!_painelMostrarCartaoTaxaNatalidade)
+                                                                const SizedBox.shrink()
+                                                              else
+                                                                SizedBox(
+                                                                  width: 550.0,
+                                                                  child: FutureBuilder<
+                                                                      ApiCallResponse>(
+                                                                    key: ValueKey(
+                                                                      'taxa_natalidade_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}',
+                                                                    ),
+                                                                    future: () {
+                                                                      final taxaNatalidadeKey =
+                                                                          'taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}';
+                                                                      if (_model
+                                                                              .taxaNatalidadeFutureKey !=
+                                                                          taxaNatalidadeKey) {
+                                                                        _model.taxaNatalidadeFutureKey =
+                                                                            taxaNatalidadeKey;
+                                                                        _model.taxaNatalidadeFuture =
+                                                                            SupabaseEdgeGroup
+                                                                                .taxaNatalidadeGetCall
+                                                                                .call(
+                                                                          idPropriedade: FFAppState()
+                                                                              .propriedadeSelecionada
+                                                                              .idPropriedade,
+                                                                          dataInicio:
+                                                                              _painelPeriodoDataInicio(),
+                                                                          dataFim:
+                                                                              _painelPeriodoDataFim(),
+                                                                        );
+                                                                      }
+                                                                      return _model
+                                                                          .taxaNatalidadeFuture;
+                                                                    }(),
+                                                                    builder: (context,
+                                                                        snapshot) {
+                                                                      final isLoading = snapshot
+                                                                                  .connectionState ==
+                                                                              ConnectionState
+                                                                                  .waiting ||
+                                                                          !snapshot
+                                                                              .hasData;
+                                                                      final containerTaxaNatalidadeResponse =
+                                                                          snapshot
+                                                                                  .hasData
+                                                                              ? snapshot
+                                                                                  .data!
+                                                                              : null;
+
+                                                                      final dataInicioStr =
+                                                                          _painelPeriodoDataInicio();
+                                                                      final dataFimStr =
+                                                                          _painelPeriodoDataFim();
+
+                                                                      return Material(
+                                                                        color: Colors
+                                                                            .transparent,
+                                                                        elevation:
+                                                                            2.0,
+                                                                        shape:
+                                                                            RoundedRectangleBorder(
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(6.0),
+                                                                        ),
+                                                                        child:
+                                                                            Container(
+                                                                          width: double
+                                                                              .infinity,
+                                                                          height:
+                                                                              433.0,
+                                                                          constraints:
+                                                                              const BoxConstraints(
+                                                                            maxHeight:
+                                                                                433.0,
+                                                                          ),
+                                                                          decoration:
+                                                                              BoxDecoration(
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).secondaryBackground,
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(6.0),
+                                                                          ),
+                                                                          child:
+                                                                              Padding(
+                                                                            padding: const EdgeInsets
+                                                                                .all(
+                                                                                24.0),
+                                                                            child:
+                                                                                Column(
+                                                                              mainAxisSize:
+                                                                                  MainAxisSize.max,
+                                                                              mainAxisAlignment:
+                                                                                  MainAxisAlignment.start,
+                                                                              crossAxisAlignment:
+                                                                                  CrossAxisAlignment.start,
+                                                                              children: [
+                                                                                Row(
+                                                                                  children: [
+                                                                                    Text(
+                                                                                      'Taxa de natalidade',
+                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                            fontSize: 18.0,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                          ),
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
+                                                                                Padding(
+                                                                                  padding: const EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
+                                                                                  child: Text(
+                                                                                    'Período do painel (sem filtros de lote/touro/inseminador).',
+                                                                                    style: FlutterFlowTheme.of(context).labelSmall,
+                                                                                  ),
+                                                                                ),
+                                                                                Expanded(
+                                                                                  child: Container(
+                                                                                    width: double.infinity,
+                                                                                    height: double.infinity,
+                                                                                    constraints: const BoxConstraints(
+                                                                                      maxHeight: 350.0,
+                                                                                    ),
+                                                                                    decoration: BoxDecoration(
+                                                                                      color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                    ),
+                                                                                    child: isLoading
+                                                                                        ? Center(
+                                                                                            child: SizedBox(
+                                                                                              width: 50.0,
+                                                                                              height: 50.0,
+                                                                                              child: CircularProgressIndicator(
+                                                                                                valueColor: AlwaysStoppedAnimation<Color>(
+                                                                                                  FlutterFlowTheme.of(context).primary,
+                                                                                                ),
+                                                                                              ),
+                                                                                            ),
+                                                                                          )
+                                                                                        : (containerTaxaNatalidadeResponse != null && containerTaxaNatalidadeResponse.succeeded)
+                                                                                            ? SizedBox(
+                                                                                                width: double.infinity,
+                                                                                                height: double.infinity,
+                                                                                                child: custom_widgets.TaxaPrenhezChart(
+                                                                                                  key: ValueKey(
+                                                                                                    'taxa_natalidade_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-$dataFimStr',
+                                                                                                  ),
+                                                                                                  width: double.infinity,
+                                                                                                  height: double.infinity,
+                                                                                                  prenhezData: containerTaxaNatalidadeResponse.bodyText,
+                                                                                                ),
+                                                                                              )
+                                                                                            : Center(
+                                                                                                child: Text(
+                                                                                                  (containerTaxaNatalidadeResponse != null && !containerTaxaNatalidadeResponse.succeeded)
+                                                                                                      ? _mensagemErroTaxaNatalidade(containerTaxaNatalidadeResponse)
+                                                                                                      : 'Sem dados de natalidade no período.',
+                                                                                                  style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                                  textAlign: TextAlign.center,
+                                                                                                ),
+                                                                                              ),
+                                                                                  ),
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    },
                                                                   ),
                                                                 ),
-                                                              ),
-                                                            ].divide(
-                                                                const SizedBox(
-                                                                    width:
-                                                                        24.0)),
+                                                            ],
                                                           ),
                                                         ),
                                                         Padding(
@@ -5695,7 +5851,16 @@ class _PainelWidgetState extends State<PainelWidget>
 
   String _mensagemErroTaxaConcepcao(ApiCallResponse response) {
     var msg =
-        'Não foi possível carregar a taxa de concepção (HTTP ${response.statusCode}). Verifique a função calcular_taxa_prenhez2 e a edge taxa-prenhez2 no Supabase.';
+        'Não foi possível carregar a taxa de concepção (HTTP ${response.statusCode}). Verifique a função calcular_taxa_prenhez e a edge taxa-prenhez no Supabase.';
+    if (response.statusCode == -1 && response.exception != null) {
+      msg = '$msg\n${response.exceptionMessage}';
+    }
+    return msg;
+  }
+
+  String _mensagemErroTaxaPrenhez2(ApiCallResponse response) {
+    var msg =
+        'Não foi possível carregar a taxa de prenhez (HTTP ${response.statusCode}). Verifique a função calcular_taxa_prenhez2 e a edge taxa-prenhez2 no Supabase.';
     if (response.statusCode == -1 && response.exception != null) {
       msg = '$msg\n${response.exceptionMessage}';
     }
@@ -5704,7 +5869,7 @@ class _PainelWidgetState extends State<PainelWidget>
 
   String _mensagemErroTaxaNatalidade(ApiCallResponse response) {
     var msg =
-        'Não foi possível carregar a taxa de natalidade (HTTP ${response.statusCode}). Verifique a função calcular_taxa_natalidade (6 parâmetros, com filtros) e a edge taxa-natalidade no Supabase.';
+        'Não foi possível carregar a taxa de natalidade (HTTP ${response.statusCode}). Verifique a função calcular_taxa_natalidade e a edge taxa-natalidade no Supabase.';
     if (response.statusCode == -1 && response.exception != null) {
       msg = '$msg\n${response.exceptionMessage}';
     }

@@ -1427,7 +1427,8 @@ class SupabaseEdgeGroup {
       VendidosPorCategoriasPeriodoCall();
   static PrecoMedioCategoriaCall precoMedioCategoriaCall =
       PrecoMedioCategoriaCall();
-  static TaxaPrenhezGetCall taxaPrenhezGetCall = TaxaPrenhezGetCall();
+  static TaxaConcepcaoGetCall taxaConcepcaoGetCall = TaxaConcepcaoGetCall();
+  static TaxaPrenhez2GetCall taxaPrenhez2GetCall = TaxaPrenhez2GetCall();
   static TaxaNatalidadeGetCall taxaNatalidadeGetCall = TaxaNatalidadeGetCall();
   static ProjecaoDesmamasCall projecaoDesmamasCall = ProjecaoDesmamasCall();
 }
@@ -1793,7 +1794,9 @@ class PrecoMedioCategoriaCall {
       );
 }
 
-class TaxaPrenhezGetCall {
+/// Taxa de concepção (painel): edge `taxa-prenhez` → RPC `calcular_taxa_prenhez`
+/// (denominador = inseminações no período).
+class TaxaConcepcaoGetCall {
   Future<ApiCallResponse> call({
     String? idPropriedade = '',
     String? dataInicio = '',
@@ -1804,8 +1807,69 @@ class TaxaPrenhezGetCall {
   }) async {
     final baseUrl = SupabaseEdgeGroup.getBaseUrl();
 
-    // Nunca omitir id_propriedade/data_inicio/data_fim: removeWhere com null
-    // tirava as chaves da URL e a edge respondia HTTP 400.
+    final params = <String, dynamic>{
+      'id_propriedade': (idPropriedade ?? '').trim(),
+      'data_inicio': (dataInicio ?? '').trim(),
+      'data_fim': (dataFim ?? '').trim(),
+    };
+    if (pLoteId != null && pLoteId.trim().isNotEmpty) {
+      params['p_lote_id'] = pLoteId.trim();
+    }
+    if (pInseminador != null && pInseminador.trim().isNotEmpty) {
+      params['p_inseminador'] = pInseminador.trim();
+    }
+    if (pIdRebanhoReprodutor != null && pIdRebanhoReprodutor.trim().isNotEmpty) {
+      params['p_id_rebanho_reprodutor'] = pIdRebanhoReprodutor.trim();
+    }
+
+    return ApiManager.instance.makeApiCall(
+      callName: 'taxa concepcao get',
+      apiUrl: '${baseUrl}taxa-prenhez',
+      callType: ApiCallType.GET,
+      headers: SupabaseEdgeGroup.authHeaders,
+      params: params,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  List<String>? titulo(dynamic response) => (getJsonField(
+        response,
+        r'''$[:].titulo''',
+        true,
+      ) as List?)
+          ?.withoutNulls
+          .map((x) => castToType<String>(x))
+          .withoutNulls
+          .toList();
+  List<int>? porcentagem(dynamic response) => (getJsonField(
+        response,
+        r'''$[:].porcentagem''',
+        true,
+      ) as List?)
+          ?.withoutNulls
+          .map((x) => castToType<int>(x))
+          .withoutNulls
+          .toList();
+}
+
+/// Taxa de prenhez (painel): edge `taxa-prenhez2` → RPC `calcular_taxa_prenhez2`
+/// (denominador = matrizes distintas expostas no período).
+class TaxaPrenhez2GetCall {
+  Future<ApiCallResponse> call({
+    String? idPropriedade = '',
+    String? dataInicio = '',
+    String? dataFim = '',
+    String? pLoteId = '',
+    String? pInseminador = '',
+    String? pIdRebanhoReprodutor = '',
+  }) async {
+    final baseUrl = SupabaseEdgeGroup.getBaseUrl();
+
     final params = <String, dynamic>{
       'id_propriedade': (idPropriedade ?? '').trim(),
       'data_inicio': (dataInicio ?? '').trim(),

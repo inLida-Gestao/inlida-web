@@ -58,13 +58,16 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   int? dropDownValue4;
   FormFieldController<int>? dropDownValueController4;
 
-  // Multi-select filters compartilhados: "Taxa de concepção" e "Taxa de natalidade".
+  // Multi-select filters compartilhados: taxa de concepção e taxa de prenhez (natalidade usa só o período do painel).
   List<String> filtroLoteTaxaConcepcaoValues = [];
   List<String> filtroTouroTaxaConcepcaoValues = [];
   List<String> filtroInseminadorTaxaConcepcaoValues = [];
-  // Cache for Taxa de concepção API call.
-  Future<ApiCallResponse>? taxaPrenhezFuture;
-  String? taxaPrenhezFutureKey;
+  // Cache: edge taxa-prenhez → calcular_taxa_prenhez.
+  Future<ApiCallResponse>? taxaConcepcaoFuture;
+  String? taxaConcepcaoFutureKey;
+  // Cache: edge taxa-prenhez2 → calcular_taxa_prenhez2.
+  Future<ApiCallResponse>? taxaPrenhez2Future;
+  String? taxaPrenhez2FutureKey;
   // Cache for Taxa de natalidade API call.
   Future<ApiCallResponse>? taxaNatalidadeFuture;
   String? taxaNatalidadeFutureKey;
