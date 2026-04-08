@@ -2210,7 +2210,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               crossAxisAlignment: CrossAxisAlignment.start,
                                                                               children: [
                                                                                 Text(
-                                                                                  'Taxa de aproveitamento ao desmame (Desmamados/Nascidos) por período (%)',
+                                                                                  'Taxa de desmama por período (KPI %)',
                                                                                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                         font: GoogleFonts.poppins(
                                                                                           fontWeight: FontWeight.w600,
@@ -2223,17 +2223,17 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       ),
                                                                                 ),
                                                                                 Text(
-                                                                                  valueOrDefault<String>(
-                                                                                    '${valueOrDefault<String>(
-                                                                                      FunctionsSupabaseRebanhoGroup.qtdAnimaisDesmamaCall
-                                                                                          .pctDesmamados(
-                                                                                            containerQtdAnimaisDesmamaResponse.jsonBody,
-                                                                                          )
-                                                                                          ?.toString(),
-                                                                                      '0',
-                                                                                    )}%',
-                                                                                    '0',
-                                                                                  ),
+                                                                                  () {
+                                                                                    final pct = FunctionsSupabaseRebanhoGroup
+                                                                                        .qtdAnimaisDesmamaCall
+                                                                                        .pctDesmamados(
+                                                                                      containerQtdAnimaisDesmamaResponse.jsonBody,
+                                                                                    );
+                                                                                    if (pct == null) {
+                                                                                      return '0.00%';
+                                                                                    }
+                                                                                    return '${pct.toStringAsFixed(2)}%';
+                                                                                  }(),
                                                                                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                         font: GoogleFonts.poppins(
                                                                                           fontWeight: FontWeight.w600,

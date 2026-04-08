@@ -1,3 +1,6 @@
+# Supabase CLI – estado local (não versionar)
+supabase/.temp/
+
 # Miscellaneous
 *.class
 *.log

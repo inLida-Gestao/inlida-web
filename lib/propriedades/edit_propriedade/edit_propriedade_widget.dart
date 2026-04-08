@@ -2661,6 +2661,10 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                                             .id,
                                                                       ),
                                                                     );
+                                                                    // usersID em propriedades: trigger users_propriedades_sync_users_id (Supabase).
+                                                                    FFAppState()
+                                                                            .refreshPropriedades =
+                                                                        true;
                                                                     ScaffoldMessenger.of(
                                                                             context)
                                                                         .showSnackBar(

@@ -341,6 +341,8 @@ class _AddUserWidgetState extends State<AddUserWidget> {
                             'idPropriedade': FFAppState().propriedadeEdit,
                             'deletado': 'NAO',
                           });
+                          // usersID em propriedades: trigger users_propriedades_sync_users_id (Supabase).
+                          FFAppState().refreshPropriedades = true;
                           FFAppState().refreshEditProp = true;
                           safeSetState(() {});
                           ScaffoldMessenger.of(context).showSnackBar(
