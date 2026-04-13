@@ -2210,7 +2210,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               crossAxisAlignment: CrossAxisAlignment.start,
                                                                               children: [
                                                                                 Text(
-                                                                                  'Taxa de desmama por período (KPI %)',
+                                                                                  'Taxa de aproveitamento ao Desmame (Desmamados/Nascidos) por período (%)',
                                                                                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                         font: GoogleFonts.poppins(
                                                                                           fontWeight: FontWeight.w600,
