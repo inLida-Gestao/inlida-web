@@ -1136,10 +1136,21 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                   'Fêmea',
                                                                   'Macho'
                                                                 ],
-                                                                onChanged: (val) =>
-                                                                    safeSetState(() =>
-                                                                        _model.dropDownSexoValue =
-                                                                            val),
+                                                                onChanged: (val) {
+                                                                    safeSetState(() {
+                                                                      _model.dropDownSexoValue = val;
+                                                                      // Reset controllers para recriar com valor correto
+                                                                      _model.dDCatRebanhoFemeaValueController?.dispose();
+                                                                      _model.dDCatRebanhoFemeaValueController = null;
+                                                                      _model.dDCatRebanhoMachoValueController?.dispose();
+                                                                      _model.dDCatRebanhoMachoValueController = null;
+                                                                      if (val == 'Fêmea') {
+                                                                        _model.dDCatRebanhoFemeaValue = 'Bezerra';
+                                                                      } else if (val == 'Macho') {
+                                                                        _model.dDCatRebanhoMachoValue = 'Bezerro';
+                                                                      }
+                                                                    });
+                                                                  },
                                                                 height: 56.0,
                                                                 textStyle: FlutterFlowTheme.of(
                                                                         context)
@@ -1882,12 +1893,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                           .dDCatRebanhoFemeaValueController ??=
                                                                       FormFieldController<
                                                                               String>(
-                                                                          null),
+                                                                          'Bezerra'),
                                                                   options: const [
                                                                     'Bezerra',
-                                                                    'Novilha',
-                                                                    'Vaca Multipara',
-                                                                    'Vaca Primipara'
                                                                   ],
                                                                   onChanged: (val) =>
                                                                       safeSetState(() =>
@@ -1960,14 +1968,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                           .dDCatRebanhoMachoValueController ??=
                                                                       FormFieldController<
                                                                               String>(
-                                                                          null),
+                                                                          'Bezerro'),
                                                                   options: const [
-                                                                    'Boi Gordo',
-                                                                    'Boi Magro',
-                                                                    'Garrote',
-                                                                    'Rufião',
-                                                                    'Touro',
-                                                                    'Bezerro'
+                                                                    'Bezerro',
                                                                   ],
                                                                   onChanged: (val) =>
                                                                       safeSetState(() =>
