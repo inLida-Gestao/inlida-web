@@ -1,0 +1,47 @@
+-- Bug #11: view_reproducao_detalhada não incluía as colunas parida e data_parto.
+-- Sem esses campos, o frontend nunca mostrava "Parida" na lista de reprodução.
+
+CREATE OR REPLACE VIEW public.view_reproducao_detalhada AS
+SELECT r.id,
+    r.created_at,
+    r.updated_at,
+    r.id_propriedade,
+    r.tipo_reproducao,
+    r.id_rebanho_matriz,
+    r.score_corporal,
+    r.id_rebanho_reprodutor,
+    r.data_inseminacao,
+    r.data_partida_semen,
+    r.partida_semen,
+    r.previsao_parto,
+    r.id_lote,
+    r.data_inicial,
+    r.data_final,
+    r.status_reproducao,
+    r.inseminador,
+    r.anotacoes,
+    r.id_reproducao,
+    r.deletado,
+    r.categoria,
+    r."numMatriz",
+    r."nomeMatriz",
+    r."nascimentoMatriz",
+    r."numReprodutor",
+    r."nomeReprodutor",
+    r."nascimentoReprodutor",
+    r."loteNome",
+    r.data_status,
+    matriz."numeroAnimal" AS matriz_numeroanimal,
+    matriz.chip AS matriz_chip,
+    matriz.nome AS matriz_nome,
+    matriz."dataNascimento" AS matriz_datanascimento,
+    reprodutor."numeroAnimal" AS reprodutor_numeroanimal,
+    reprodutor.chip AS reprodutor_chip,
+    reprodutor.nome AS reprodutor_nome,
+    reprodutor."dataNascimento" AS reprodutor_datanascimento,
+    r.ressinc,
+    r.parida,
+    r.data_parto
+   FROM reproducao r
+     LEFT JOIN rebanho matriz ON r.id_rebanho_matriz = matriz."idRebanho"
+     LEFT JOIN rebanho reprodutor ON r.id_rebanho_reprodutor = reprodutor."idRebanho";
