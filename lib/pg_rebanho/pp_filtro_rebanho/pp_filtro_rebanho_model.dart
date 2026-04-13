@@ -25,8 +25,8 @@ class PpFiltroRebanhoModel extends FlutterFlowModel<PpFiltroRebanhoWidget> {
       dataNascimentoAteTextControllerValidator;
   DateTime? datePickedAte;
   // State field(s) for DropDownLote widget.
-  String? dropDownLoteValue;
-  FormFieldController<String>? dropDownLoteValueController;
+  List<String>? dropDownLoteValues;
+  FormFieldController<List<String>>? dropDownLoteValueController;
   // State field(s) for DDCatRebanhoFemea widget.
   String? dDCatRebanhoFemeaValue;
   FormFieldController<String>? dDCatRebanhoFemeaValueController;

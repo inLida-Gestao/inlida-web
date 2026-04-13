@@ -842,9 +842,14 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                             ),
                             FlutterFlowDropDown<String>(
                               controller: _model.dropDownLoteValueController ??=
-                                  FormFieldController<String>(
-                                _model.dropDownLoteValue ??=
-                                    FFAppState().filtroLoteId,
+                                  FormFieldController<List<String>>(
+                                _model.dropDownLoteValues ??= FFAppState()
+                                        .filtroLoteId
+                                        .isEmpty
+                                    ? []
+                                    : FFAppState()
+                                        .filtroLoteId
+                                        .split(','),
                               ),
                               options: [
                                 'SEM_LOTE',
@@ -860,23 +865,22 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                     .withoutNulls
                                     .toList(),
                               ],
-                              onChanged: (val) async {
+                              onMultiSelectChanged: (vals) async {
                                 safeSetState(
-                                    () => _model.dropDownLoteValue = val);
+                                    () => _model.dropDownLoteValues = vals);
+                                final selectedIds = vals;
                                 FFAppState().filtroLoteId =
-                                    _model.dropDownLoteValue!;
-                                if (val == 'SEM_LOTE') {
-                                  FFAppState().filtroLoteNome = 'SEM_LOTE';
-                                } else {
-                                  FFAppState().filtroLoteNome =
-                                      containerLotesRowList
-                                          .where((e) =>
-                                              e.idLote ==
-                                              _model.dropDownLoteValue)
+                                    selectedIds.join(',');
+                                final names = selectedIds.map((id) {
+                                  if (id == 'SEM_LOTE') return 'SEM_LOTE';
+                                  return containerLotesRowList
+                                          .where((e) => e.idLote == id)
                                           .map((e) => e.nome)
                                           .firstOrNull ??
                                       '';
-                                }
+                                }).toList();
+                                FFAppState().filtroLoteNome =
+                                    names.join(',');
                                 safeSetState(() {});
                               },
                               height: 56.0,
@@ -896,7 +900,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                         .bodyMedium
                                         .fontStyle,
                                   ),
-                              hintText: 'Selecionar',
+                              hintText: 'Selecionar lotes',
                               icon: Icon(
                                 Icons.keyboard_arrow_down_rounded,
                                 color:
@@ -913,7 +917,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                               hidesUnderline: true,
                               isOverButton: false,
                               isSearchable: true,
-                              isMultiSelect: false,
+                              isMultiSelect: true,
                             ),
                           ].divide(const SizedBox(height: 8.0)),
                         ),
@@ -1281,7 +1285,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                             _model.dropDownStatusValueController?.reset();
                             _model.dropDownStatusValue = null;
                             _model.dropDownLoteValueController?.reset();
-                            _model.dropDownLoteValue = null;
+                            _model.dropDownLoteValues = null;
                             _model.dDCatRebanhoFemeaValueController?.reset();
                             _model.dDCatRebanhoFemeaValue = null;
                             _model.dDCatRebanhoMachoValueController?.reset();
