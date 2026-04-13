@@ -48,109 +48,91 @@ Future countLotes(BuildContext context) async {
   if (propriedadeId.isEmpty) {
     FFAppState().lotesInativos = 0;
     FFAppState().lotesAtivos = 0;
+    FFAppState().qtdAnimaisEmLotesAtivos = 0;
+    FFAppState().update(() {});
     return;
   }
 
-  List<LotesRow>? qtdLotesInativos;
-  List<LotesRow>? qtdLotesAtivos;
+  // Busca todos os lotes da propriedade
+  final todosLotes = await LotesTable().queryRows(
+    queryFn: (q) => q
+        .eq('id_propriedade', propriedadeId)
+        .eqOrNull('deletado', 'NAO'),
+  );
 
-  await Future.wait([
-    Future(() async {
-      qtdLotesInativos = await LotesTable().queryRows(
-        queryFn: (q) => q
-            .eq(
-              'id_propriedade',
-              propriedadeId,
-            )
-            .eq(
-              'ativo',
-              'Inativo',
-            )
-            .eqOrNull(
-              'deletado',
-              'NAO',
-            ),
-      );
-      FFAppState().lotesInativos = valueOrDefault<int>(
-        qtdLotesInativos?.length,
-        0,
-      );
-    }),
-    Future(() async {
-      qtdLotesAtivos = await LotesTable().queryRows(
-        queryFn: (q) => q
-            .eq(
-              'id_propriedade',
-              propriedadeId,
-            )
-            .eq(
-              'ativo',
-              'Ativo',
-            )
-            .eqOrNull(
-              'deletado',
-              'NAO',
-            ),
-      );
-      FFAppState().lotesAtivos = valueOrDefault<int>(
-        qtdLotesAtivos?.length,
-        0,
-      );
-    }),
-  ]);
+  // Aplica mesma lógica de hasExitInfo do pg_lotes_widget para determinar ativo/inativo
+  bool _isLoteAtivo(LotesRow l) {
+    final statusRaw = (l.ativo ?? '').trim().toLowerCase();
+    if (statusRaw != 'ativo') return false;
+    final hasExitInfo =
+        l.dataSaidaPiquete != null ||
+        (l.motivo ?? '').trim().isNotEmpty ||
+        l.dataMotivo != null;
+    return !hasExitInfo;
+  }
 
-  final ativos = qtdLotesAtivos ?? [];
-  final idsLotesAtivos = <String>{};
-  final nomesLotesAtivos = <String>{};
-  final idAnimaisEmLotesAtivos = <String>{};
-  for (final l in ativos) {
+  var lotesAtivosCount = 0;
+  var lotesInativosCount = 0;
+  final idsLotesAll = <String>{};
+  final nomesLotesAll = <String>{};
+  final idAnimaisAll = <String>{};
+
+  for (final l in todosLotes) {
+    if (_isLoteAtivo(l)) {
+      lotesAtivosCount++;
+    } else {
+      lotesInativosCount++;
+    }
+
+    // Coleta IDs e nomes de TODOS os lotes para contar animais
     final idLote = l.idLote?.trim();
     if (idLote != null && idLote.isNotEmpty && idLote != 'null') {
-      idsLotesAtivos.add(idLote);
+      idsLotesAll.add(idLote);
     }
     final nome = l.nome?.trim();
     if (nome != null && nome.isNotEmpty && nome != 'null') {
-      nomesLotesAtivos.add(nome);
+      nomesLotesAll.add(nome);
     }
     final parsed = functions.converterJSONparaLista(l.idAnimais);
     if (parsed != null) {
       for (final id in parsed) {
         final t = id.trim();
         if (t.isNotEmpty && t != 'null') {
-          idAnimaisEmLotesAtivos.add(t);
+          idAnimaisAll.add(t);
         }
       }
     }
   }
 
+  FFAppState().lotesAtivos = lotesAtivosCount;
+  FFAppState().lotesInativos = lotesInativosCount;
+
+  // Conta animais únicos em qualquer lote (ativo ou inativo)
   final rebanhos = await RebanhoTable().queryRows(
     queryFn: (q) => q
-        .eqOrNull(
-          'idPropriedade',
-          FFAppState().propriedadeSelecionada.idPropriedade,
-        )
+        .eqOrNull('idPropriedade', propriedadeId)
         .eqOrNull('deletado', 'NAO'),
   );
 
-  var qtdAnimaisEmLotesAtivos = 0;
+  var qtdAnimaisEmLotes = 0;
   for (final r in rebanhos) {
     final lid = r.loteID?.trim() ?? '';
     final lnome = r.loteNome?.trim() ?? '';
     final idRebanho = r.idRebanho?.trim() ?? '';
     final temLoteId = lid.isNotEmpty && lid != 'null';
     final temLoteNome = lnome.isNotEmpty && lnome != 'null';
-    final emLoteAtivoPorCampo = (temLoteId && idsLotesAtivos.contains(lid))
-        || (temLoteNome && nomesLotesAtivos.contains(lnome))
-        || (temLoteId && nomesLotesAtivos.contains(lid));
-    final emLoteAtivoPorIdAnimais = idRebanho.isNotEmpty &&
+    final emLotePorCampo = (temLoteId && idsLotesAll.contains(lid))
+        || (temLoteNome && nomesLotesAll.contains(lnome))
+        || (temLoteId && nomesLotesAll.contains(lid));
+    final emLotePorIdAnimais = idRebanho.isNotEmpty &&
         idRebanho != 'null' &&
-        idAnimaisEmLotesAtivos.contains(idRebanho);
-    if (emLoteAtivoPorCampo || emLoteAtivoPorIdAnimais) {
-      qtdAnimaisEmLotesAtivos++;
+        idAnimaisAll.contains(idRebanho);
+    if (emLotePorCampo || emLotePorIdAnimais) {
+      qtdAnimaisEmLotes++;
     }
   }
 
-  FFAppState().qtdAnimaisEmLotesAtivos = qtdAnimaisEmLotesAtivos;
+  FFAppState().qtdAnimaisEmLotesAtivos = qtdAnimaisEmLotes;
   FFAppState().update(() {});
 }
 
