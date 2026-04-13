@@ -1006,11 +1006,14 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                 onChanged: (val) {
                                                     safeSetState(() {
                                                       _model.dropDownSexoValue = val;
+                                                      // Reset controllers para recriar com valor correto
+                                                      _model.dDCatRebanhoFemeaValueController?.dispose();
+                                                      _model.dDCatRebanhoFemeaValueController = null;
+                                                      _model.dDCatRebanhoMachoValueController?.dispose();
+                                                      _model.dDCatRebanhoMachoValueController = null;
                                                       if (val == 'Fêmea') {
-                                                        _model.dDCatRebanhoFemeaValueController?.value = 'Bezerra';
                                                         _model.dDCatRebanhoFemeaValue = 'Bezerra';
                                                       } else if (val == 'Macho') {
-                                                        _model.dDCatRebanhoMachoValueController?.value = 'Bezerro';
                                                         _model.dDCatRebanhoMachoValue = 'Bezerro';
                                                       }
                                                     });
