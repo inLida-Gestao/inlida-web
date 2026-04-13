@@ -2082,7 +2082,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                       if (newValue!) {
                                                                                         _model.animaisSelecionados = [];
                                                                                         safeSetState(() {});
-                                                                                        _model.animaisSelecionados = (pgEditLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.toList().cast<RebanhoDTStruct>();
+                                                                                        _model.animaisSelecionados = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') || (e.status != 'Fora da propriedade')).toList().cast<RebanhoDTStruct>();
                                                                                         safeSetState(() {});
                                                                                       } else {
                                                                                         _model.animaisSelecionados = [];
@@ -2098,7 +2098,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                   ),
                                                                                 ),
                                                                                 Text(
-                                                                                  'Selecionar todos da página',
+                                                                                  'Selecionar todos',
                                                                                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                         font: GoogleFonts.poppins(
                                                                                           fontWeight: FontWeight.w600,
