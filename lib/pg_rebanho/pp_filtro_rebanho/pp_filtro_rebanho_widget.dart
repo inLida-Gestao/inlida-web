@@ -846,27 +846,37 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                 _model.dropDownLoteValue ??=
                                     FFAppState().filtroLoteId,
                               ),
-                              options: List<String>.from(containerLotesRowList
-                                  .map((e) => e.idLote)
-                                  .withoutNulls
-                                  .toList()),
-                              optionLabels: containerLotesRowList
-                                  .map((e) => e.nome)
-                                  .withoutNulls
-                                  .toList(),
+                              options: [
+                                'SEM_LOTE',
+                                ...containerLotesRowList
+                                    .map((e) => e.idLote)
+                                    .withoutNulls
+                                    .toList(),
+                              ],
+                              optionLabels: [
+                                'Sem lote',
+                                ...containerLotesRowList
+                                    .map((e) => e.nome)
+                                    .withoutNulls
+                                    .toList(),
+                              ],
                               onChanged: (val) async {
                                 safeSetState(
                                     () => _model.dropDownLoteValue = val);
                                 FFAppState().filtroLoteId =
                                     _model.dropDownLoteValue!;
-                                FFAppState().filtroLoteNome =
-                                    containerLotesRowList
-                                        .where((e) =>
-                                            e.idLote ==
-                                            _model.dropDownLoteValue)
-                                        .map((e) => e.nome)
-                                        .firstOrNull ??
-                                    '';
+                                if (val == 'SEM_LOTE') {
+                                  FFAppState().filtroLoteNome = 'SEM_LOTE';
+                                } else {
+                                  FFAppState().filtroLoteNome =
+                                      containerLotesRowList
+                                          .where((e) =>
+                                              e.idLote ==
+                                              _model.dropDownLoteValue)
+                                          .map((e) => e.nome)
+                                          .firstOrNull ??
+                                      '';
+                                }
                                 safeSetState(() {});
                               },
                               height: 56.0,
