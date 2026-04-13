@@ -8307,8 +8307,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                 String?
                                                                     jsonList,
                                                                 String?
-                                                                    outros,
-                                                              ) {
+                                                                    outros, {
+                                                                String? obs,
+                                                              }) {
                                                                 final values = functions
                                                                         .converterJSONparaLista(
                                                                             jsonList)
@@ -8328,6 +8329,17 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         '[]') {
                                                                   values.add(
                                                                       outrosTrim);
+                                                                }
+                                                                final obsTrim =
+                                                                    (obs ?? '')
+                                                                        .trim();
+                                                                if (obsTrim
+                                                                        .isNotEmpty &&
+                                                                    obsTrim
+                                                                            .toLowerCase() !=
+                                                                        'null') {
+                                                                  values.add(
+                                                                      'Obs.: $obsTrim');
                                                                 }
                                                                 return values;
                                                               }
@@ -8654,6 +8666,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                             .vacinacao,
                                                                         sanidadeItem
                                                                             .vacinacaoOutros,
+                                                                        obs: sanidadeItem
+                                                                            .vacinacaoObs,
                                                                       ),
                                                                     ),
                                                                     buildChips(
@@ -8662,6 +8676,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                             .antiparasitario,
                                                                         sanidadeItem
                                                                             .antiparasitarioOutros,
+                                                                        obs: sanidadeItem
+                                                                            .antiparasitarioObs,
                                                                       ),
                                                                     ),
                                                                     buildChips(
@@ -8670,13 +8686,16 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                             .tratamento,
                                                                         sanidadeItem
                                                                             .tratamentoOutros,
+                                                                        obs: sanidadeItem
+                                                                            .tratamentoObs,
                                                                       ),
                                                                     ),
                                                                     buildChips(
                                                                       mergeTextOnly(
                                                                         sanidadeItem
                                                                             .protocoloReprodutivo,
-                                                                        null,
+                                                                        sanidadeItem
+                                                                            .protocoloReprodutivoOutros,
                                                                       ),
                                                                     ),
                                                                     Text(
