@@ -1003,10 +1003,18 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                     FormFieldController<String>(
                                                         null),
                                                 options: const ['Fêmea', 'Macho'],
-                                                onChanged: (val) =>
-                                                    safeSetState(() => _model
-                                                            .dropDownSexoValue =
-                                                        val),
+                                                onChanged: (val) {
+                                                    safeSetState(() {
+                                                      _model.dropDownSexoValue = val;
+                                                      if (val == 'Fêmea') {
+                                                        _model.dDCatRebanhoFemeaValueController?.value = 'Bezerra';
+                                                        _model.dDCatRebanhoFemeaValue = 'Bezerra';
+                                                      } else if (val == 'Macho') {
+                                                        _model.dDCatRebanhoMachoValueController?.value = 'Bezerro';
+                                                        _model.dDCatRebanhoMachoValue = 'Bezerro';
+                                                      }
+                                                    });
+                                                  },
                                                 height: 56.0,
                                                 textStyle: FlutterFlowTheme.of(
                                                         context)
@@ -1700,7 +1708,7 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                   controller: _model
                                                           .dDCatRebanhoFemeaValueController ??=
                                                       FormFieldController<
-                                                          String>(null),
+                                                          String>('Bezerra'),
                                                   options: const [
                                                     'Bezerra',
                                                     'Novilha',
@@ -1770,7 +1778,7 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                   controller: _model
                                                           .dDCatRebanhoMachoValueController ??=
                                                       FormFieldController<
-                                                          String>(null),
+                                                          String>('Bezerro'),
                                                   options: const [
                                                     'Boi Gordo',
                                                     'Boi Magro',
