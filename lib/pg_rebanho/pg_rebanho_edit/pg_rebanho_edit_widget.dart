@@ -1777,6 +1777,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                         false,
                                                                     isSearchable:
                                                                         false,
+                                                                    allowClear:
+                                                                        true,
                                                                     isMultiSelect:
                                                                         false,
                                                                   ),
@@ -1976,6 +1978,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                           false,
                                                                       isSearchable:
                                                                           false,
+                                                                      allowClear:
+                                                                          true,
                                                                       isMultiSelect:
                                                                           false,
                                                                     ),
@@ -2117,6 +2121,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                         false,
                                                                     isSearchable:
                                                                         false,
+                                                                    allowClear:
+                                                                        true,
                                                                     isMultiSelect:
                                                                         false,
                                                                   ),
@@ -2269,6 +2275,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             false,
                                                                         isSearchable:
                                                                             false,
+                                                                        allowClear:
+                                                                            true,
                                                                         isMultiSelect:
                                                                             false,
                                                                       );
@@ -5238,6 +5246,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                           false,
                                                                       isSearchable:
                                                                           false,
+                                                                      allowClear:
+                                                                          true,
                                                                       isMultiSelect:
                                                                           false,
                                                                     ),
