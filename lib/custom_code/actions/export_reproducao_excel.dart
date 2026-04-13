@@ -175,28 +175,28 @@ Future<bool> exportReproducaoExcel(String nameExcel, String idPropriedade) async
                   .value = TextCellValue(value.toString());
             }
           } else if (dateColumns.contains(columnName)) {
-            // Tratamento de data
+            // Tratamento de data — usa DateCellValue para Excel reconhecer como data
+            final cell = sheet.cell(CellIndex.indexByColumnRow(
+                columnIndex: colIndex, rowIndex: rowIndex + 1));
             if (value == null) {
-              sheet
-                  .cell(CellIndex.indexByColumnRow(
-                      columnIndex: colIndex, rowIndex: rowIndex + 1))
-                  .value = TextCellValue('');
+              cell.value = TextCellValue('');
             } else {
-              String dateStr;
-              if (value is DateTime) {
-                dateStr = DateFormat('dd/MM/yyyy').format(value);
-              } else {
-                try {
-                  DateTime date = DateTime.parse(value.toString());
-                  dateStr = DateFormat('dd/MM/yyyy').format(date);
-                } catch (e) {
-                  dateStr = value.toString();
+              try {
+                DateTime date;
+                if (value is DateTime) {
+                  date = value;
+                } else {
+                  date = DateTime.parse(value.toString());
                 }
+                cell.value = DateCellValue(
+                  year: date.year,
+                  month: date.month,
+                  day: date.day,
+                );
+                cell.cellStyle = CellStyle(numberFormat: NumFormat.defaultDate);
+              } catch (e) {
+                cell.value = TextCellValue(value.toString());
               }
-              sheet
-                  .cell(CellIndex.indexByColumnRow(
-                      columnIndex: colIndex, rowIndex: rowIndex + 1))
-                  .value = TextCellValue(dateStr);
             }
           } else {
             // Tratamento padrão
