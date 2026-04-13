@@ -841,8 +841,9 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                   ),
                             ),
                             FlutterFlowDropDown<String>(
-                              controller: _model.dropDownLoteValueController ??=
-                                  FormFieldController<List<String>>(
+                              multiSelectController: _model
+                                      .dropDownLoteValueController ??=
+                                  FormFieldController<List<String>?>(
                                 _model.dropDownLoteValues ??= FFAppState()
                                         .filtroLoteId
                                         .isEmpty
@@ -868,7 +869,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                               onMultiSelectChanged: (vals) async {
                                 safeSetState(
                                     () => _model.dropDownLoteValues = vals);
-                                final selectedIds = vals;
+                                final selectedIds = vals ?? [];
                                 FFAppState().filtroLoteId =
                                     selectedIds.join(',');
                                 final names = selectedIds.map((id) {
