@@ -1894,6 +1894,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                           0.0,
                                                                           12.0,
                                                                           0.0),
+                                                                      allowClear:
+                                                                          true,
                                                                       hidesUnderline:
                                                                           true,
                                                                       isOverButton:
@@ -4023,6 +4025,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             0.0,
                                                                             12.0,
                                                                             0.0),
+                                                                    allowClear:
+                                                                        true,
                                                                     hidesUnderline:
                                                                         true,
                                                                     isOverButton:
@@ -4145,6 +4149,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             0.0,
                                                                             12.0,
                                                                             0.0),
+                                                                    allowClear:
+                                                                        true,
                                                                     hidesUnderline:
                                                                         true,
                                                                     isOverButton:
