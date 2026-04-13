@@ -94,10 +94,9 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
         }));
   }
 
-  /// Carrega os animais do lote.
-  /// Prioridade: id_animais do lote (fonte de verdade quando populado).
-  /// Fallback: rebanho com loteID = este lote e idPropriedade = propriedade do lote
-  /// (evita animais de outra fazenda e cobre lotes onde id_animais não foi sincronizado).
+  /// Carrega os animais do lote usando lógica inclusiva (OR).
+  /// Combina: id_animais do lote + rebanho com loteID + rebanho com loteNome.
+  /// Desduplicação por idRebanho — mesma lógica da contagem em lotes_filtros().
   Future<List<RebanhoDTStruct>> _loadAnimaisDoLote() async {
     if (widget.idLote == null || widget.idLote!.isEmpty) return [];
     final lotes = await LotesTable().queryRows(
@@ -106,60 +105,57 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
     final lote = lotes.firstOrNull;
     if (lote == null) return [];
 
-    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
-    final hasIdAnimais = idAnimais.any((id) => id.trim().isNotEmpty);
-
-    if (hasIdAnimais) {
-      // Fonte de verdade: lista de IDs cadastrada no lote (só não-deletados, para bater com a lista principal)
-      final list = <RebanhoDTStruct>[];
-      for (final idRebanho in idAnimais) {
-        if (idRebanho.trim().isEmpty) continue;
-        final rows = await RebanhoTable().queryRows(
-          queryFn: (q) => q
-              .eqOrNull('idRebanho', idRebanho)
-              .eqOrNull('deletado', 'NAO'),
-        );
-        final row = rows.firstOrNull;
-        if (row == null) continue;
-        list.add(_rowToStruct(row));
-      }
-      return list;
-    }
-
-    // Fallback: animais com loteID = id_lote OU loteNome = nome do lote (mesma propriedade, não deletados).
-    // A lista principal pode contar por loteNome; sem isso animais com só loteNome preenchido não apareciam.
     final idPropriedadeLote = lote.idPropriedade;
-    final nomeLote = lote.nome;
     if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) return [];
 
+    final idsSeen = <String>{};
+    final list = <RebanhoDTStruct>[];
+
+    void addIfNew(RebanhoRow row) {
+      final id = row.idRebanho;
+      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+        list.add(_rowToStruct(row));
+      }
+    }
+
+    // 1. Animais no JSON id_animais
+    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
+    for (final idRebanho in idAnimais) {
+      if (idRebanho.trim().isEmpty) continue;
+      final rows = await RebanhoTable().queryRows(
+        queryFn: (q) => q
+            .eqOrNull('idRebanho', idRebanho)
+            .eqOrNull('deletado', 'NAO'),
+      );
+      final row = rows.firstOrNull;
+      if (row != null) addIfNew(row);
+    }
+
+    // 2. Animais com loteID = id_lote
     final byLoteID = await RebanhoTable().queryRows(
       queryFn: (q) => q
           .eqOrNull('loteID', widget.idLote)
           .eqOrNull('idPropriedade', idPropriedadeLote)
           .eqOrNull('deletado', 'NAO'),
     );
-    final byLoteNome = (nomeLote != null && nomeLote.trim().isNotEmpty)
-        ? await RebanhoTable().queryRows(
-            queryFn: (q) => q
-                .eqOrNull('loteNome', nomeLote.trim())
-                .eqOrNull('idPropriedade', idPropriedadeLote)
-                .eqOrNull('deletado', 'NAO'),
-          )
-        : <RebanhoRow>[];
-    final idsSeen = <String>{};
-    final list = <RebanhoDTStruct>[];
     for (final row in byLoteID) {
-      final id = row.idRebanho;
-      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
-        list.add(_rowToStruct(row));
+      addIfNew(row);
+    }
+
+    // 3. Animais com loteNome = nome do lote
+    final nomeLote = lote.nome;
+    if (nomeLote != null && nomeLote.trim().isNotEmpty) {
+      final byLoteNome = await RebanhoTable().queryRows(
+        queryFn: (q) => q
+            .eqOrNull('loteNome', nomeLote.trim())
+            .eqOrNull('idPropriedade', idPropriedadeLote)
+            .eqOrNull('deletado', 'NAO'),
+      );
+      for (final row in byLoteNome) {
+        addIfNew(row);
       }
     }
-    for (final row in byLoteNome) {
-      final id = row.idRebanho;
-      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
-        list.add(_rowToStruct(row));
-      }
-    }
+
     return list;
   }
 
