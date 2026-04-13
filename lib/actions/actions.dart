@@ -139,9 +139,9 @@ Future countLotes(BuildContext context) async {
     final idRebanho = r.idRebanho?.trim() ?? '';
     final temLoteId = lid.isNotEmpty && lid != 'null';
     final temLoteNome = lnome.isNotEmpty && lnome != 'null';
-    final emLoteAtivoPorCampo = temLoteId
-        ? idsLotesAtivos.contains(lid)
-        : (temLoteNome && nomesLotesAtivos.contains(lnome));
+    final emLoteAtivoPorCampo = (temLoteId && idsLotesAtivos.contains(lid))
+        || (temLoteNome && nomesLotesAtivos.contains(lnome))
+        || (temLoteId && nomesLotesAtivos.contains(lid));
     final emLoteAtivoPorIdAnimais = idRebanho.isNotEmpty &&
         idRebanho != 'null' &&
         idAnimaisEmLotesAtivos.contains(idRebanho);

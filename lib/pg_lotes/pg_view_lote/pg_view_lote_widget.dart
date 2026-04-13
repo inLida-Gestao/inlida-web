@@ -154,6 +154,17 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
       for (final row in byLoteNome) {
         addIfNew(row);
       }
+
+      // 4. Animais com loteID = nome do lote (bug legado: loteID recebia o nome)
+      final byLoteIDAsName = await RebanhoTable().queryRows(
+        queryFn: (q) => q
+            .eqOrNull('loteID', nomeLote.trim())
+            .eqOrNull('idPropriedade', idPropriedadeLote)
+            .eqOrNull('deletado', 'NAO'),
+      );
+      for (final row in byLoteIDAsName) {
+        addIfNew(row);
+      }
     }
 
     return list;

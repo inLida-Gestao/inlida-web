@@ -111,62 +111,76 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
   }
 
   /// Alinhado a [PgViewLoteWidget._loadAnimaisDoLote].
+  /// Carrega animais do lote usando lógica inclusiva (OR).
+  /// Combina: id_animais do lote + rebanho com loteID + rebanho com loteNome.
+  /// Desduplicação por idRebanho — mesma lógica de PgViewLoteWidget._loadAnimaisDoLote.
   Future<List<RebanhoDTStruct>> _loadAnimaisDoLoteParaEdicao() async {
     if (widget.idLote == null || widget.idLote!.isEmpty) return [];
     final lote = _model.loteEdit?.firstOrNull;
     if (lote == null) return [];
 
-    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
-    final hasIdAnimais = idAnimais.any((id) => id.trim().isNotEmpty);
-
-    if (hasIdAnimais) {
-      final list = <RebanhoDTStruct>[];
-      for (final idRebanho in idAnimais) {
-        if (idRebanho.trim().isEmpty) continue;
-        final rows = await RebanhoTable().queryRows(
-          queryFn: (q) => q
-              .eqOrNull('idRebanho', idRebanho)
-              .eqOrNull('deletado', 'NAO'),
-        );
-        final row = rows.firstOrNull;
-        if (row == null) continue;
-        list.add(_rebanhoRowToStruct(row));
-      }
-      return list;
-    }
-
     final idPropriedadeLote = lote.idPropriedade;
-    final nomeLote = lote.nome;
     if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) return [];
 
+    final idsSeen = <String>{};
+    final list = <RebanhoDTStruct>[];
+
+    void addIfNew(RebanhoRow row) {
+      final id = row.idRebanho;
+      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+        list.add(_rebanhoRowToStruct(row));
+      }
+    }
+
+    // 1. Animais no JSON id_animais
+    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
+    for (final idRebanho in idAnimais) {
+      if (idRebanho.trim().isEmpty) continue;
+      final rows = await RebanhoTable().queryRows(
+        queryFn: (q) => q
+            .eqOrNull('idRebanho', idRebanho)
+            .eqOrNull('deletado', 'NAO'),
+      );
+      final row = rows.firstOrNull;
+      if (row != null) addIfNew(row);
+    }
+
+    // 2. Animais com loteID = id_lote
     final byLoteID = await RebanhoTable().queryRows(
       queryFn: (q) => q
           .eqOrNull('loteID', widget.idLote)
           .eqOrNull('idPropriedade', idPropriedadeLote)
           .eqOrNull('deletado', 'NAO'),
     );
-    final byLoteNome = (nomeLote != null && nomeLote.trim().isNotEmpty)
-        ? await RebanhoTable().queryRows(
-            queryFn: (q) => q
-                .eqOrNull('loteNome', nomeLote.trim())
-                .eqOrNull('idPropriedade', idPropriedadeLote)
-                .eqOrNull('deletado', 'NAO'),
-          )
-        : <RebanhoRow>[];
-    final idsSeen = <String>{};
-    final list = <RebanhoDTStruct>[];
     for (final row in byLoteID) {
-      final id = row.idRebanho;
-      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
-        list.add(_rebanhoRowToStruct(row));
+      addIfNew(row);
+    }
+
+    // 3. Animais com loteNome = nome do lote
+    final nomeLote = lote.nome;
+    if (nomeLote != null && nomeLote.trim().isNotEmpty) {
+      final byLoteNome = await RebanhoTable().queryRows(
+        queryFn: (q) => q
+            .eqOrNull('loteNome', nomeLote.trim())
+            .eqOrNull('idPropriedade', idPropriedadeLote)
+            .eqOrNull('deletado', 'NAO'),
+      );
+      for (final row in byLoteNome) {
+        addIfNew(row);
+      }
+
+      // 4. Animais com loteID = nome do lote (bug legado: loteID recebia o nome)
+      final byLoteIDAsName = await RebanhoTable().queryRows(
+        queryFn: (q) => q
+            .eqOrNull('loteID', nomeLote.trim())
+            .eqOrNull('idPropriedade', idPropriedadeLote)
+            .eqOrNull('deletado', 'NAO'),
+      );
+      for (final row in byLoteIDAsName) {
+        addIfNew(row);
       }
     }
-    for (final row in byLoteNome) {
-      final id = row.idRebanho;
-      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
-        list.add(_rebanhoRowToStruct(row));
-      }
-    }
+
     return list;
   }
 
@@ -3727,7 +3741,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                           }
                                                           await RebanhoTable().update(
                                                             data: {
-                                                              'loteID': novoLoteNome,
+                                                              'loteID': containerLotesRow?.idLote ?? widget.idLote,
                                                               'loteNome': novoLoteNome,
                                                               'updated_at': supaSerialize<DateTime>(getCurrentTimestamp),
                                                               'dataEntradaLote': supaSerialize<DateTime>(getCurrentTimestamp),
