@@ -1711,9 +1711,6 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                           String>('Bezerra'),
                                                   options: const [
                                                     'Bezerra',
-                                                    'Novilha',
-                                                    'Vaca Multipara',
-                                                    'Vaca Primipara'
                                                   ],
                                                   onChanged: (val) =>
                                                       safeSetState(() => _model
@@ -1780,12 +1777,7 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       FormFieldController<
                                                           String>('Bezerro'),
                                                   options: const [
-                                                    'Boi Gordo',
-                                                    'Boi Magro',
-                                                    'Garrote',
-                                                    'Rufião',
-                                                    'Touro',
-                                                    'Bezerro'
+                                                    'Bezerro',
                                                   ],
                                                   onChanged: (val) =>
                                                       safeSetState(() => _model
