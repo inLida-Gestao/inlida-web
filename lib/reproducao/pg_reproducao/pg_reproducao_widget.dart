@@ -88,6 +88,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
         s.filtroDataDiagnosticoDe != null ||
         s.filtroDataDiagnosticoAte != null ||
         s.filtroCategoriaRepro.isNotEmpty ||
+        s.filtroTipoReproducao.isNotEmpty ||
         s.filtroLoteNome.isNotEmpty ||
         s.filtroInseminador.isNotEmpty ||
         s.filtroIDMatriz.isNotEmpty ||
@@ -141,7 +142,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
               pMatriz: FFAppState().filtroIDMatriz,
               pPesquisa: _model.textController.text,
               pReprodutor: FFAppState().filtroIDReprodutor,
-              pTipoReproducao: FFAppState().filtroCategoriaRepro,
+              pTipoReproducao: FFAppState().filtroTipoReproducao,
               pSortColumn: _model.sortColumn,
               pSortDirection: _model.sortDirection,
             )))
@@ -734,6 +735,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                 s.filtroDataDiagnosticoDe = null;
                                                 s.filtroDataDiagnosticoAte = null;
                                                 s.filtroCategoriaRepro = '';
+                                                s.filtroTipoReproducao = '';
                                                 s.filtroInseminador = '';
                                                 s.filtroIDMatriz = '';
                                                 s.filtroIDReprodutor = '';
@@ -2652,7 +2654,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                         pReprodutor: FFAppState()
                                                             .filtroIDReprodutor,
                                                         pTipoReproducao: FFAppState()
-                                                            .filtroCategoriaRepro,
+                                                            .filtroTipoReproducao,
                                                       )))
                                                 .future,
                                             builder: (context, snapshot) {

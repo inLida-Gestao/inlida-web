@@ -902,7 +902,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                   12.0, 0.0, 12.0, 0.0),
                               hidesUnderline: true,
                               isOverButton: false,
-                              isSearchable: false,
+                              isSearchable: true,
                               isMultiSelect: false,
                             ),
                           ].divide(const SizedBox(height: 8.0)),

@@ -1675,6 +1675,91 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
+                              'Tipo de reprodução',
+                              style: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    fontSize: 16.0,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                            ),
+                            FlutterFlowDropDown<String>(
+                              controller: _model.dDTipoReproducaoValueController ??=
+                                  FormFieldController<String>(
+                                _model.dDTipoReproducaoValue ??=
+                                    FFAppState().filtroTipoReproducao,
+                              ),
+                              options: const [
+                                'Inseminação',
+                                'Monta Natural',
+                              ],
+                              onChanged: (val) async {
+                                safeSetState(
+                                    () => _model.dDTipoReproducaoValue = val);
+                                FFAppState().filtroTipoReproducao =
+                                    _model.dDTipoReproducaoValue!;
+                                safeSetState(() {});
+                              },
+                              height: 56.0,
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    fontSize: 16.0,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                              hintText: 'Selecionar',
+                              icon: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color:
+                                    FlutterFlowTheme.of(context).secondaryText,
+                                size: 24.0,
+                              ),
+                              fillColor: const Color(0xFFF1F1F1),
+                              elevation: 2.0,
+                              borderColor: Colors.transparent,
+                              borderWidth: 0.0,
+                              borderRadius: 8.0,
+                              margin: const EdgeInsetsDirectional.fromSTEB(
+                                  12.0, 0.0, 12.0, 0.0),
+                              hidesUnderline: true,
+                              isOverButton: false,
+                              isSearchable: false,
+                              isMultiSelect: false,
+                            ),
+                          ].divide(const SizedBox(height: 8.0)),
+                        ),
+                      ),
+                    ].divide(const SizedBox(width: 24.0)),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
                               'Lote',
                               style: FlutterFlowTheme.of(context)
                                   .bodyMedium
@@ -2294,6 +2379,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                           FFAppState().filtroDataDiagnosticoDe = null;
                           FFAppState().filtroDataDiagnosticoAte = null;
                           FFAppState().filtroCategoriaRepro = '';
+                          FFAppState().filtroTipoReproducao = '';
                           FFAppState().filtroLoteNome = '';
                           FFAppState().filtroInseminador = '';
                           FFAppState().filtroIDMatriz = '';
@@ -2306,6 +2392,8 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                           safeSetState(() {
                             _model.dDCatRebanhoValueController?.reset();
                             _model.dDCatRebanhoValue = null;
+                            _model.dDTipoReproducaoValueController?.reset();
+                            _model.dDTipoReproducaoValue = null;
                             _model.dropDownLoteValueController?.reset();
                             _model.dropDownLoteValue = null;
                             _model.dropDownInseminadorValueController?.reset();

@@ -839,6 +839,12 @@ class FFAppState extends ChangeNotifier {
     _filtroCategoriaRepro = value;
   }
 
+  String _filtroTipoReproducao = '';
+  String get filtroTipoReproducao => _filtroTipoReproducao;
+  set filtroTipoReproducao(String value) {
+    _filtroTipoReproducao = value;
+  }
+
   String _filtroLoteNome = '';
   String get filtroLoteNome => _filtroLoteNome;
   set filtroLoteNome(String value) {

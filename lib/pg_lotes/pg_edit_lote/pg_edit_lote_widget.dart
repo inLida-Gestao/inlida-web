@@ -81,6 +81,12 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
         _model.addToAnimaisDentroLote(struct);
       }
       safeSetState(() {});
+
+      _model.disposeRefreshListener =
+          FFAppState().onRefresh('refreshRebanho', () {
+        FFAppState().refreshRebanho = false;
+        safeSetState(() => _model.apiRequestCompleter = null);
+      });
     });
 
     _model.tabBarController = TabController(

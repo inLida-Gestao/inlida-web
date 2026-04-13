@@ -47,6 +47,9 @@ class PpFiltroReproducaoModel
   // State field(s) for DDCatRebanho widget.
   String? dDCatRebanhoValue;
   FormFieldController<String>? dDCatRebanhoValueController;
+
+  String? dDTipoReproducaoValue;
+  FormFieldController<String>? dDTipoReproducaoValueController;
   // Lotes future for dropdown
   Future<List<LotesRow>>? lotesFuture;
   // Reprodução future for inseminador dropdown

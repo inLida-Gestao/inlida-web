@@ -118,6 +118,7 @@ class PgEditLoteModel extends FlutterFlowModel<PgEditLoteWidget> {
   TextEditingController? pesquisaTextController;
   String? Function(BuildContext, String?)? pesquisaTextControllerValidator;
   Completer<ApiCallResponse>? apiRequestCompleter;
+  VoidCallback? disposeRefreshListener;
   // State field(s) for Checkbox widget.
   bool? checkboxValue;
   // State field(s) for pesquisaDentro widget.
@@ -134,6 +135,7 @@ class PgEditLoteModel extends FlutterFlowModel<PgEditLoteWidget> {
 
   @override
   void dispose() {
+    disposeRefreshListener?.call();
     headerModel.dispose();
     sideBarModel.dispose();
     tabBarController?.dispose();
