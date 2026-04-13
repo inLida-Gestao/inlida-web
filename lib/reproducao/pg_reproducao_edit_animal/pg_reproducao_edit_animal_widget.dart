@@ -3692,11 +3692,11 @@ class _PgReproducaoEditAnimalWidgetState
                                                 ),
                                               ].divide(const SizedBox(width: 16.0)),
                                             ),
-                                            if ((pgReproducaoEditAnimalReproducaoRow?.tipoReproducao == 'Inseminação') &&
-                                                (pgReproducaoEditAnimalReproducaoRow?.dataInseminacao != null))
                                               Row(
                                                 crossAxisAlignment: CrossAxisAlignment.end,
                                                 children: [
+                                            if ((pgReproducaoEditAnimalReproducaoRow?.tipoReproducao == 'Inseminação') &&
+                                                (pgReproducaoEditAnimalReproducaoRow?.dataInseminacao != null))
                                                   Expanded(
                                                     child: Column(
                                                       mainAxisSize: MainAxisSize.max,
@@ -4285,10 +4285,9 @@ class _PgReproducaoEditAnimalWidgetState
                                             if (_model.parida == true)
                                               Builder(
                                                 builder: (context) {
-                                                  final dataInsem = _model.datePicked1
-                                                      ?? (_model.tipoReproducao == 'Inseminação'
-                                                          ? pgReproducaoEditAnimalReproducaoRow?.dataInseminacao
-                                                          : (_model.datePicked2 ?? pgReproducaoEditAnimalReproducaoRow?.dataInseminacao));
+                                                  final dataInsem = _model.tipoReproducao == 'Inseminação'
+                                                      ? (_model.datePicked1 ?? pgReproducaoEditAnimalReproducaoRow?.dataInseminacao)
+                                                      : (_model.datePicked3 ?? pgReproducaoEditAnimalReproducaoRow?.dataInicial);
                                                   final dataParto = _model.dataPartoCleared
                                                       ? null
                                                       : (_model.datePicked5 ??
