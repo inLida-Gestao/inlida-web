@@ -3048,7 +3048,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                 ),
                                                                                 paginated: true,
                                                                                 selectable: false,
-                                                                                height: 1100.0,
+                                                                                height: (64.0 + (rebanhos.length < 10 ? rebanhos.length : 10) * 56.0 + 56.0).clamp(180.0, 1100.0),
                                                                                 headingRowHeight: 56.0,
                                                                                 dataRowHeight: 48.0,
                                                                                 columnSpacing: 20.0,
