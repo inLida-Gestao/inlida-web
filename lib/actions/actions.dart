@@ -85,18 +85,21 @@ Future countLotes(BuildContext context) async {
   FFAppState().lotesAtivos = lotesAtivosCount;
   FFAppState().lotesInativos = lotesInativosCount;
 
-  // Conta animais que têm loteID preenchido (estão em algum lote)
-  final rebanhos = await RebanhoTable().queryRows(
-    queryFn: (q) => q
-        .eqOrNull('idPropriedade', propriedadeId)
-        .eqOrNull('deletado', 'NAO'),
+  // Conta animais que têm loteID preenchido via função SQL (sem limite de rows)
+  final countResult =
+      await FunctionsSupabaseRebanhoGroup.countRebanhosComLoteCall.call(
+    propriedade: propriedadeId,
   );
 
   var qtdAnimaisEmLotes = 0;
-  for (final r in rebanhos) {
-    final lid = r.loteID?.trim() ?? '';
-    if (lid.isNotEmpty && lid != 'null') {
-      qtdAnimaisEmLotes++;
+  if (countResult.succeeded) {
+    final body = countResult.jsonBody;
+    if (body is int) {
+      qtdAnimaisEmLotes = body;
+    } else if (body is num) {
+      qtdAnimaisEmLotes = body.toInt();
+    } else {
+      qtdAnimaisEmLotes = int.tryParse('$body') ?? 0;
     }
   }
 

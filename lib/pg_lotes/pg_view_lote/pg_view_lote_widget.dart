@@ -94,9 +94,10 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
         }));
   }
 
-  /// Carrega os animais do lote usando lógica inclusiva (OR).
-  /// Combina: id_animais do lote + rebanho com loteID + rebanho com loteNome.
-  /// Desduplicação por idRebanho — mesma lógica da contagem em lotes_filtros().
+  /// Carrega os animais do lote.
+  /// Prioridade: id_animais do lote (fonte de verdade quando populado).
+  /// Fallback: rebanho com loteID = este lote e idPropriedade = propriedade do lote
+  /// (evita animais de outra fazenda e cobre lotes onde id_animais não foi sincronizado).
   Future<List<RebanhoDTStruct>> _loadAnimaisDoLote() async {
     if (widget.idLote == null || widget.idLote!.isEmpty) return [];
     final lotes = await LotesTable().queryRows(
@@ -105,68 +106,60 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
     final lote = lotes.firstOrNull;
     if (lote == null) return [];
 
-    final idPropriedadeLote = lote.idPropriedade;
-    if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) return [];
+    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
+    final hasIdAnimais = idAnimais.any((id) => id.trim().isNotEmpty);
 
-    final idsSeen = <String>{};
-    final list = <RebanhoDTStruct>[];
-
-    void addIfNew(RebanhoRow row) {
-      final id = row.idRebanho;
-      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+    if (hasIdAnimais) {
+      // Fonte de verdade: lista de IDs cadastrada no lote (só não-deletados, para bater com a lista principal)
+      final list = <RebanhoDTStruct>[];
+      for (final idRebanho in idAnimais) {
+        if (idRebanho.trim().isEmpty) continue;
+        final rows = await RebanhoTable().queryRows(
+          queryFn: (q) => q
+              .eqOrNull('idRebanho', idRebanho)
+              .eqOrNull('deletado', 'NAO'),
+        );
+        final row = rows.firstOrNull;
+        if (row == null) continue;
         list.add(_rowToStruct(row));
       }
+      return list;
     }
 
-    // 1. Animais no JSON id_animais
-    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
-    for (final idRebanho in idAnimais) {
-      if (idRebanho.trim().isEmpty) continue;
-      final rows = await RebanhoTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('idRebanho', idRebanho)
-            .eqOrNull('deletado', 'NAO'),
-      );
-      final row = rows.firstOrNull;
-      if (row != null) addIfNew(row);
-    }
+    // Fallback: animais com loteID = id_lote OU loteNome = nome do lote (mesma propriedade, não deletados).
+    // A lista principal pode contar por loteNome; sem isso animais com só loteNome preenchido não apareciam.
+    final idPropriedadeLote = lote.idPropriedade;
+    final nomeLote = lote.nome;
+    if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) return [];
 
-    // 2. Animais com loteID = id_lote
     final byLoteID = await RebanhoTable().queryRows(
       queryFn: (q) => q
           .eqOrNull('loteID', widget.idLote)
           .eqOrNull('idPropriedade', idPropriedadeLote)
           .eqOrNull('deletado', 'NAO'),
     );
+    final byLoteNome = (nomeLote != null && nomeLote.trim().isNotEmpty)
+        ? await RebanhoTable().queryRows(
+            queryFn: (q) => q
+                .eqOrNull('loteNome', nomeLote.trim())
+                .eqOrNull('idPropriedade', idPropriedadeLote)
+                .eqOrNull('deletado', 'NAO'),
+          )
+        : <RebanhoRow>[];
+    final idsSeen = <String>{};
+    final list = <RebanhoDTStruct>[];
     for (final row in byLoteID) {
-      addIfNew(row);
-    }
-
-    // 3. Animais com loteNome = nome do lote
-    final nomeLote = lote.nome;
-    if (nomeLote != null && nomeLote.trim().isNotEmpty) {
-      final byLoteNome = await RebanhoTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('loteNome', nomeLote.trim())
-            .eqOrNull('idPropriedade', idPropriedadeLote)
-            .eqOrNull('deletado', 'NAO'),
-      );
-      for (final row in byLoteNome) {
-        addIfNew(row);
-      }
-
-      // 4. Animais com loteID = nome do lote (bug legado: loteID recebia o nome)
-      final byLoteIDAsName = await RebanhoTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('loteID', nomeLote.trim())
-            .eqOrNull('idPropriedade', idPropriedadeLote)
-            .eqOrNull('deletado', 'NAO'),
-      );
-      for (final row in byLoteIDAsName) {
-        addIfNew(row);
+      final id = row.idRebanho;
+      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+        list.add(_rowToStruct(row));
       }
     }
-
+    for (final row in byLoteNome) {
+      final id = row.idRebanho;
+      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+        list.add(_rowToStruct(row));
+      }
+    }
     return list;
   }
 
@@ -310,15 +303,15 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                   alignment: const AlignmentDirectional(0.0, 0.0),
                                   child: Container(
                                     width: 920.0,
+                                    height: double.infinity,
                                     decoration: BoxDecoration(
                                       color: FlutterFlowTheme.of(context)
                                           .secondaryBackground,
                                     ),
-                                    child: SingleChildScrollView(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(24.0),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24.0),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.max,
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
@@ -468,8 +461,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                               ),
                                             ],
                                           ),
-                                          SizedBox(
-                                            height: 700.0,
+                                          Expanded(
                                             child: Column(
                                               children: [
                                                 Align(
@@ -3052,9 +3044,9 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                 emptyBuilder: () => const Center(
                                                                                   child: EmptyWidget(),
                                                                                 ),
-                                                                                paginated: true,
+                                                                                paginated: false,
                                                                                 selectable: false,
-                                                                                numRows: animaisNesteLote.length,
+                                                                                height: 1100.0,
                                                                                 headingRowHeight: 56.0,
                                                                                 dataRowHeight: 48.0,
                                                                                 columnSpacing: 20.0,
@@ -3070,6 +3062,302 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                               );
                                                                             },
                                                                           ),
+                                                                        ),
+                                                                        Row(
+                                                                          mainAxisSize:
+                                                                              MainAxisSize.max,
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.center,
+                                                                          children: [
+                                                                            FutureBuilder<ApiCallResponse>(
+                                                                              future: FunctionsSupabaseRebanhoGroup.countRebanhoFiltrosCall.call(
+                                                                                pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                pCategoria: FFAppState().filtroCategoria,
+                                                                                pDataNascimentoDe: dateTimeFormat(
+                                                                                  "yyyy-MM-dd",
+                                                                                  FFAppState().filtroDataNacimentoDe,
+                                                                                ),
+                                                                                pDataNascimentoAte: dateTimeFormat(
+                                                                                  "yyyy-MM-dd",
+                                                                                  FFAppState().filtroDataNacimentoAte,
+                                                                                ),
+                                                                                pLoteID: FFAppState().filtroLoteId,
+                                                                                pOrigem: FFAppState().filtroOrigem,
+                                                                                pRaca: FFAppState().filtroRaca,
+                                                                                pSexo: FFAppState().filtroSexo,
+                                                                                pStatus: FFAppState().filtroStatusRebanho,
+                                                                                pPesquisa: _model.pesquisaTextController.text,
+                                                                              ),
+                                                                              builder: (context, snapshot) {
+                                                                                // Customize what your widget looks like when it's loading.
+                                                                                if (!snapshot.hasData) {
+                                                                                  return Center(
+                                                                                    child: SizedBox(
+                                                                                      width: 50.0,
+                                                                                      height: 50.0,
+                                                                                      child: CircularProgressIndicator(
+                                                                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                                                                          FlutterFlowTheme.of(context).primary,
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  );
+                                                                                }
+                                                                                if (snapshot.hasError) {
+                                                                                  return Center(
+                                                                                    child: Column(
+                                                                                      mainAxisSize: MainAxisSize.min,
+                                                                                      children: [
+                                                                                        Icon(
+                                                                                          Icons.error_outline_rounded,
+                                                                                          color: FlutterFlowTheme.of(context).error,
+                                                                                          size: 36.0,
+                                                                                        ),
+                                                                                        const SizedBox(height: 8.0),
+                                                                                        Text(
+                                                                                          'Erro ao carregar',
+                                                                                          style: FlutterFlowTheme.of(context).bodySmall,
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
+                                                                                  );
+                                                                                }
+                                                                                final containerCountRebanhoFiltrosResponse = snapshot.data!;
+
+                                                                                return Container(
+                                                                                  height: 56.0,
+                                                                                  decoration: BoxDecoration(
+                                                                                    borderRadius: BorderRadius.circular(6.0),
+                                                                                    border: Border.all(
+                                                                                      color: FlutterFlowTheme.of(context).customColor5,
+                                                                                    ),
+                                                                                  ),
+                                                                                  child: Row(
+                                                                                    mainAxisSize: MainAxisSize.max,
+                                                                                    children: [
+                                                                                      InkWell(
+                                                                                        splashColor: Colors.transparent,
+                                                                                        focusColor: Colors.transparent,
+                                                                                        hoverColor: Colors.transparent,
+                                                                                        highlightColor: Colors.transparent,
+                                                                                        onTap: () async {
+                                                                                          _model.pageNumAdd = 1;
+                                                                                          safeSetState(() {});
+                                                                                          safeSetState(() => _model.apiRequestCompleter = null);
+                                                                                        },
+                                                                                        child: Container(
+                                                                                          height: double.infinity,
+                                                                                          decoration: BoxDecoration(
+                                                                                            color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                            borderRadius: const BorderRadius.only(
+                                                                                              bottomLeft: Radius.circular(6.0),
+                                                                                              bottomRight: Radius.circular(0.0),
+                                                                                              topLeft: Radius.circular(6.0),
+                                                                                              topRight: Radius.circular(0.0),
+                                                                                            ),
+                                                                                            border: Border.all(
+                                                                                              color: FlutterFlowTheme.of(context).customColor5,
+                                                                                            ),
+                                                                                          ),
+                                                                                          child: Padding(
+                                                                                            padding: const EdgeInsetsDirectional.fromSTEB(12.0, 12.0, 12.0, 12.0),
+                                                                                            child: Icon(
+                                                                                              Icons.keyboard_double_arrow_left,
+                                                                                              color: valueOrDefault<Color>(
+                                                                                                _model.pageNumAdd > 1 ? FlutterFlowTheme.of(context).primaryText : FlutterFlowTheme.of(context).accent3,
+                                                                                                FlutterFlowTheme.of(context).primaryText,
+                                                                                              ),
+                                                                                              size: 24.0,
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      InkWell(
+                                                                                        splashColor: Colors.transparent,
+                                                                                        focusColor: Colors.transparent,
+                                                                                        hoverColor: Colors.transparent,
+                                                                                        highlightColor: Colors.transparent,
+                                                                                        onTap: () async {
+                                                                                          if (_model.pageNumAdd > 1) {
+                                                                                            _model.pageNumAdd = _model.pageNumAdd + -1;
+                                                                                            safeSetState(() {});
+                                                                                            safeSetState(() => _model.apiRequestCompleter = null);
+                                                                                          }
+                                                                                        },
+                                                                                        child: Container(
+                                                                                          height: double.infinity,
+                                                                                          decoration: BoxDecoration(
+                                                                                            color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                            border: Border.all(
+                                                                                              color: FlutterFlowTheme.of(context).customColor5,
+                                                                                            ),
+                                                                                          ),
+                                                                                          child: Padding(
+                                                                                            padding: const EdgeInsets.all(12.0),
+                                                                                            child: Icon(
+                                                                                              Icons.keyboard_arrow_left_sharp,
+                                                                                              color: valueOrDefault<Color>(
+                                                                                                _model.pageNumAdd > 1 ? FlutterFlowTheme.of(context).primaryText : FlutterFlowTheme.of(context).accent3,
+                                                                                                FlutterFlowTheme.of(context).primaryText,
+                                                                                              ),
+                                                                                              size: 24.0,
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      Padding(
+                                                                                        padding: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                                                                                        child: RichText(
+                                                                                          textScaler: MediaQuery.of(context).textScaler,
+                                                                                          text: TextSpan(
+                                                                                            children: [
+                                                                                              TextSpan(
+                                                                                                text: valueOrDefault<String>(
+                                                                                                  _model.pageNumAdd.toString(),
+                                                                                                  '1',
+                                                                                                ),
+                                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                      font: GoogleFonts.poppins(
+                                                                                                        fontWeight: FontWeight.w600,
+                                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                      ),
+                                                                                                      fontSize: 16.0,
+                                                                                                      letterSpacing: 0.0,
+                                                                                                      fontWeight: FontWeight.w600,
+                                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                    ),
+                                                                                              ),
+                                                                                              const TextSpan(
+                                                                                                text: ' de ',
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 16.0,
+                                                                                                ),
+                                                                                              ),
+                                                                                              TextSpan(
+                                                                                                text: valueOrDefault<String>(
+                                                                                                  ((containerCountRebanhoFiltrosResponse.jsonBody / FFAppConstants.limit).ceil()).toString(),
+                                                                                                  '1',
+                                                                                                ),
+                                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                      font: GoogleFonts.poppins(
+                                                                                                        fontWeight: FontWeight.w500,
+                                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                      ),
+                                                                                                      color: FlutterFlowTheme.of(context).accent3,
+                                                                                                      fontSize: 16.0,
+                                                                                                      letterSpacing: 0.0,
+                                                                                                      fontWeight: FontWeight.w500,
+                                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                    ),
+                                                                                              )
+                                                                                            ],
+                                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                  font: GoogleFonts.poppins(
+                                                                                                    fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                  ),
+                                                                                                  letterSpacing: 0.0,
+                                                                                                  fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      InkWell(
+                                                                                        splashColor: Colors.transparent,
+                                                                                        focusColor: Colors.transparent,
+                                                                                        hoverColor: Colors.transparent,
+                                                                                        highlightColor: Colors.transparent,
+                                                                                        onTap: () async {
+                                                                                          if (_model.pageNumAdd <
+                                                                                              valueOrDefault<int>(
+                                                                                                (containerCountRebanhoFiltrosResponse.jsonBody / FFAppConstants.limit).ceil(),
+                                                                                                1,
+                                                                                              )) {
+                                                                                            _model.pageNumAdd = _model.pageNumAdd + 1;
+                                                                                            safeSetState(() {});
+                                                                                            safeSetState(() => _model.apiRequestCompleter = null);
+                                                                                          }
+                                                                                        },
+                                                                                        child: Container(
+                                                                                          height: double.infinity,
+                                                                                          decoration: BoxDecoration(
+                                                                                            color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                            border: Border.all(
+                                                                                              color: FlutterFlowTheme.of(context).customColor5,
+                                                                                            ),
+                                                                                          ),
+                                                                                          child: Padding(
+                                                                                            padding: const EdgeInsets.all(12.0),
+                                                                                            child: Icon(
+                                                                                              Icons.keyboard_arrow_right_sharp,
+                                                                                              color: valueOrDefault<Color>(
+                                                                                                _model.pageNumAdd <
+                                                                                                        valueOrDefault<int>(
+                                                                                                          (containerCountRebanhoFiltrosResponse.jsonBody / FFAppConstants.limit).ceil(),
+                                                                                                          1,
+                                                                                                        )
+                                                                                                    ? FlutterFlowTheme.of(context).primaryText
+                                                                                                    : FlutterFlowTheme.of(context).accent3,
+                                                                                                FlutterFlowTheme.of(context).primaryText,
+                                                                                              ),
+                                                                                              size: 24.0,
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      InkWell(
+                                                                                        splashColor: Colors.transparent,
+                                                                                        focusColor: Colors.transparent,
+                                                                                        hoverColor: Colors.transparent,
+                                                                                        highlightColor: Colors.transparent,
+                                                                                        onTap: () async {
+                                                                                          _model.pageNumAdd = valueOrDefault<int>(
+                                                                                            (containerCountRebanhoFiltrosResponse.jsonBody / FFAppConstants.limit).ceil(),
+                                                                                            1,
+                                                                                          );
+                                                                                          safeSetState(() {});
+                                                                                          safeSetState(() => _model.apiRequestCompleter = null);
+                                                                                        },
+                                                                                        child: Container(
+                                                                                          height: double.infinity,
+                                                                                          decoration: BoxDecoration(
+                                                                                            color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                            borderRadius: const BorderRadius.only(
+                                                                                              bottomLeft: Radius.circular(0.0),
+                                                                                              bottomRight: Radius.circular(6.0),
+                                                                                              topLeft: Radius.circular(0.0),
+                                                                                              topRight: Radius.circular(6.0),
+                                                                                            ),
+                                                                                            border: Border.all(
+                                                                                              color: FlutterFlowTheme.of(context).customColor5,
+                                                                                            ),
+                                                                                          ),
+                                                                                          child: Padding(
+                                                                                            padding: const EdgeInsets.all(12.0),
+                                                                                            child: Icon(
+                                                                                              Icons.keyboard_double_arrow_right_outlined,
+                                                                                              color: valueOrDefault<Color>(
+                                                                                                _model.pageNumAdd ==
+                                                                                                        valueOrDefault<int>(
+                                                                                                          (containerCountRebanhoFiltrosResponse.jsonBody / FFAppConstants.limit).ceil(),
+                                                                                                          1,
+                                                                                                        )
+                                                                                                    ? FlutterFlowTheme.of(context).accent3
+                                                                                                    : FlutterFlowTheme.of(context).primaryText,
+                                                                                                FlutterFlowTheme.of(context).primaryText,
+                                                                                              ),
+                                                                                              size: 24.0,
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
+                                                                                );
+                                                                              },
+                                                                            ),
+                                                                          ],
                                                                         ),
                                                                       ].divide(const SizedBox(
                                                                               height: 16.0)),
@@ -3233,7 +3521,6 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                               ].divide(const SizedBox(width: 24.0)),
                                             ),
                                         ].divide(const SizedBox(height: 24.0)),
-                                        ),
                                       ),
                                     ),
                                   ),
