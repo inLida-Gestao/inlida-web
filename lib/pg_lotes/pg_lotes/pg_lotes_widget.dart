@@ -79,6 +79,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
     context.watch<FFAppState>();
 
     return FutureBuilder<ApiCallResponse>(
+      key: ValueKey('lotes_page_${_model.pageNum}'),
       future: (_model.apiRequestCompleter ??= Completer<ApiCallResponse>()
             ..complete(
                 FunctionsSupabaseRebanhoGroup.buscarLotesFiltrosCall.call(
