@@ -310,15 +310,15 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                   alignment: const AlignmentDirectional(0.0, 0.0),
                                   child: Container(
                                     width: 920.0,
-                                    height: double.infinity,
                                     decoration: BoxDecoration(
                                       color: FlutterFlowTheme.of(context)
                                           .secondaryBackground,
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(24.0),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.max,
+                                    child: SingleChildScrollView(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(24.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
@@ -468,7 +468,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                               ),
                                             ],
                                           ),
-                                          Expanded(
+                                          SizedBox(
+                                            height: 700.0,
                                             child: Column(
                                               children: [
                                                 Align(
@@ -3232,6 +3233,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                               ].divide(const SizedBox(width: 24.0)),
                                             ),
                                         ].divide(const SizedBox(height: 24.0)),
+                                        ),
                                       ),
                                     ),
                                   ),
