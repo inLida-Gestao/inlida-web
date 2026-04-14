@@ -198,18 +198,18 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                               alignment: const AlignmentDirectional(0.0, 0.0),
                               child: Container(
                                 width: 920.0,
-                                height: double.infinity,
                                 decoration: BoxDecoration(
                                   color: FlutterFlowTheme.of(context)
                                       .secondaryBackground,
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.max,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
+                                child: SingleChildScrollView(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24.0),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
                                       Text(
                                         'Adicionar lote',
                                         style: FlutterFlowTheme.of(context)
@@ -231,7 +231,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                       .fontStyle,
                                             ),
                                       ),
-                                      Expanded(
+                                      SizedBox(
+                                        height: 700.0,
                                         child: Column(
                                           children: [
                                             Align(
@@ -3681,6 +3682,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                           ].divide(const SizedBox(width: 24.0)),
                                         ),
                                     ].divide(const SizedBox(height: 24.0)),
+                                  ),
                                   ),
                                 ),
                               ),

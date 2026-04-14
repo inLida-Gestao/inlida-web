@@ -446,17 +446,17 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
 
                                       return Container(
                                         width: 920.0,
-                                        height: double.infinity,
                                         decoration: BoxDecoration(
                                           color: FlutterFlowTheme.of(context)
                                               .secondaryBackground,
                                         ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(24.0),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.max,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                        child: SingleChildScrollView(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(24.0),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 'Editar lote',
@@ -484,7 +484,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                               .fontStyle,
                                                     ),
                                               ),
-                                              Expanded(
+                                              SizedBox(
+                                                height: 700.0,
                                                 child: Column(
                                                   children: [
                                                     Align(
@@ -3862,6 +3863,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                       const SizedBox(width: 24.0)),
                                                 ),
                                             ].divide(const SizedBox(height: 24.0)),
+                                          ),
                                           ),
                                         ),
                                       );
