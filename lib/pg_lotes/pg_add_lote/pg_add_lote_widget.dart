@@ -1423,8 +1423,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                       24.0)),
                                                     ),
                                                   ),
-                                                  SingleChildScrollView(
-                                                    child: Padding(
+                                                  Padding(
                                                     padding:
                                                         const EdgeInsetsDirectional
                                                             .fromSTEB(0.0, 24.0,
@@ -1446,9 +1445,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                   2.0),
                                                           child: Container(
                                                             width: 378.0,
-                                                             constraints: const BoxConstraints(
-                                                               minHeight: 600.0,
-                                                             ),
+                                                            height: 600.0,
+
                                                             decoration:
                                                                 BoxDecoration(
                                                               color: FlutterFlowTheme
@@ -1696,11 +1694,11 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                 child: const PpFiltroRebanhoWidget(),
                                                                               ),
                                                                             );
+                                                                            safeSetState(() {
+                                                                              _model.apiRequestCompleter = null;
+                                                                            });
                                                                           },
                                                                         );
-                                                                        safeSetState(() {
-                                                                          _model.apiRequestCompleter = null;
-                                                                        });
                                                                       },
                                                                       text:
                                                                           'Filtrar',
@@ -2609,9 +2607,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                   2.0),
                                                           child: Container(
                                                             width: 378.0,
-                                                             constraints: const BoxConstraints(
-                                                               minHeight: 600.0,
-                                                             ),
+                                                            height: 600.0,
+
                                                             decoration:
                                                                 BoxDecoration(
                                                               color: FlutterFlowTheme
@@ -2850,11 +2847,11 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                 child: const PpFiltroRebanhoWidget(),
                                                                               ),
                                                                             );
+                                                                            safeSetState(() {
+                                                                              _model.apiRequestCompleter = null;
+                                                                            });
                                                                           },
                                                                         );
-                                                                        safeSetState(() {
-                                                                          _model.apiRequestCompleter = null;
-                                                                        });
                                                                       },
                                                                       text:
                                                                           'Filtrar',
@@ -3436,8 +3433,6 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                         ),
                                                       ],
                                                     ),
-                                                  )
-
                                                   ),
                                                 ],
                                               ),
