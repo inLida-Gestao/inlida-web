@@ -137,6 +137,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
           .eqOrNull('loteID', widget.idLote)
           .eqOrNull('idPropriedade', idPropriedadeLote)
           .eqOrNull('deletado', 'NAO'),
+      limit: 10000,
     );
     final byLoteNome = (nomeLote != null && nomeLote.trim().isNotEmpty)
         ? await RebanhoTable().queryRows(
@@ -144,6 +145,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                 .eqOrNull('loteNome', nomeLote.trim())
                 .eqOrNull('idPropriedade', idPropriedadeLote)
                 .eqOrNull('deletado', 'NAO'),
+            limit: 10000,
           )
         : <RebanhoRow>[];
     final idsSeen = <String>{};

@@ -151,6 +151,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
           .eqOrNull('loteID', widget.idLote)
           .eqOrNull('idPropriedade', idPropriedadeLote)
           .eqOrNull('deletado', 'NAO'),
+      limit: 10000,
     );
     for (final row in byLoteID) {
       addIfNew(row);
@@ -164,6 +165,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
             .eqOrNull('loteNome', nomeLote.trim())
             .eqOrNull('idPropriedade', idPropriedadeLote)
             .eqOrNull('deletado', 'NAO'),
+        limit: 10000,
       );
       for (final row in byLoteNome) {
         addIfNew(row);
@@ -175,6 +177,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
             .eqOrNull('loteID', nomeLote.trim())
             .eqOrNull('idPropriedade', idPropriedadeLote)
             .eqOrNull('deletado', 'NAO'),
+        limit: 10000,
       );
       for (final row in byLoteIDAsName) {
         addIfNew(row);
@@ -2063,18 +2066,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                 ),
                                                                               ),
                                                                             ),
-                                                                          if (responsiveVisibility(
-                                                                            context:
-                                                                                context,
-                                                                            phone:
-                                                                                false,
-                                                                            tablet:
-                                                                                false,
-                                                                            tabletLandscape:
-                                                                                false,
-                                                                            desktop:
-                                                                                false,
-                                                                          ))
                                                                             Row(
                                                                               mainAxisSize: MainAxisSize.max,
                                                                               children: [
@@ -2094,12 +2085,25 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                     onChanged: (newValue) async {
                                                                                       safeSetState(() => _model.checkboxValue = newValue!);
                                                                                       if (newValue!) {
-                                                                                        _model.animaisSelecionados = [];
-                                                                                        safeSetState(() {});
-                                                                                        _model.animaisSelecionados = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') || (e.status != 'Fora da propriedade')).toList().cast<RebanhoDTStruct>();
+                                                                                        final todosAnimais = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>)
+                                                                                            .withoutNulls
+                                                                                            .where((e) => (e.status != 'Sêmen') && (e.status != 'Fora da propriedade'))
+                                                                                            .where((e) => !(_model.animaisDentroLote.where((d) => d.idRebanho == e.idRebanho).toList().isNotEmpty))
+                                                                                            .toList();
+                                                                                        for (final item in todosAnimais) {
+                                                                                          if (!_model.animaisSelecionados.contains(item)) {
+                                                                                            _model.addToAnimaisSelecionados(item);
+                                                                                          }
+                                                                                        }
                                                                                         safeSetState(() {});
                                                                                       } else {
-                                                                                        _model.animaisSelecionados = [];
+                                                                                        final todosAnimais = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>)
+                                                                                            .withoutNulls
+                                                                                            .where((e) => (e.status != 'Sêmen') && (e.status != 'Fora da propriedade'))
+                                                                                            .toList();
+                                                                                        for (final item in todosAnimais) {
+                                                                                          _model.removeFromAnimaisSelecionados(item);
+                                                                                        }
                                                                                         safeSetState(() {});
                                                                                       }
                                                                                     },
@@ -2112,7 +2116,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                   ),
                                                                                 ),
                                                                                 Text(
-                                                                                  'Selecionar todos',
+                                                                                  'Selecionar todos da página',
                                                                                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                         font: GoogleFonts.poppins(
                                                                                           fontWeight: FontWeight.w600,
