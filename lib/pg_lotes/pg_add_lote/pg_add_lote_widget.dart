@@ -90,8 +90,12 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
             ..complete(
                 FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
               pCategoria: FFAppState().filtroCategoria,
-              pDataNascimentoDe: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataNacimentoDe),
-              pDataNascimentoAte: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataNacimentoAte),
+              pDataNascimentoDe: FFAppState().filtroDataNacimentoDe != null
+                  ? dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataNacimentoDe)
+                  : '',
+              pDataNascimentoAte: FFAppState().filtroDataNacimentoAte != null
+                  ? dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataNacimentoAte)
+                  : '',
               pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
               pLoteNome: FFAppState().filtroLoteNome,
               pOrigem: FFAppState().filtroOrigem,
@@ -1219,9 +1223,6 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                         Container(
                                                           width:
                                                               double.infinity,
-                                                          constraints: const BoxConstraints(
-                                                            minHeight: 600.0,
-                                                          ),
                                                           decoration:
                                                               BoxDecoration(
                                                             color: FlutterFlowTheme
@@ -1422,13 +1423,12 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                       24.0)),
                                                     ),
                                                   ),
-                                                  SingleChildScrollView(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsetsDirectional
-                                                              .fromSTEB(0.0, 24.0,
-                                                              0.0, 0.0),
-                                                      child: Row(
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsetsDirectional
+                                                            .fromSTEB(0.0, 24.0,
+                                                            0.0, 0.0),
+                                                    child: Row(
                                                       mainAxisSize:
                                                           MainAxisSize.max,
                                                       mainAxisAlignment:
@@ -1445,9 +1445,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                   2.0),
                                                           child: Container(
                                                             width: 378.0,
-                                                            constraints: const BoxConstraints(
-                                                              minHeight: 600.0,
-                                                            ),
+                                                            height:
+                                                                double.infinity,
                                                             decoration:
                                                                 BoxDecoration(
                                                               color: FlutterFlowTheme
@@ -1697,8 +1696,9 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                             );
                                                                           },
                                                                         );
-                                                                        _model.pageNumAdd = 1;
-                                                                        safeSetState(() => _model.apiRequestCompleter = null);
+                                                                        safeSetState(() {
+                                                                          _model.apiRequestCompleter = null;
+                                                                        });
                                                                       },
                                                                       text:
                                                                           'Filtrar',
@@ -2156,8 +2156,12 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                               .propriedadeSelecionada
                                                                               .idPropriedade,
                                                                           pCategoria: FFAppState().filtroCategoria,
-                                                                          pDataNascimentoDe: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataNacimentoDe),
-                                                                          pDataNascimentoAte: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataNacimentoAte),
+                                                                          pDataNascimentoDe: FFAppState().filtroDataNacimentoDe != null
+                                                                              ? dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataNacimentoDe)
+                                                                              : '',
+                                                                          pDataNascimentoAte: FFAppState().filtroDataNacimentoAte != null
+                                                                              ? dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataNacimentoAte)
+                                                                              : '',
                                                                           pLoteID:
                                                                               FFAppState().filtroLoteId,
                                                                           pOrigem: FFAppState().filtroOrigem,
@@ -2603,9 +2607,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                   2.0),
                                                           child: Container(
                                                             width: 378.0,
-                                                            constraints: const BoxConstraints(
-                                                              minHeight: 600.0,
-                                                            ),
+                                                            height:
+                                                                double.infinity,
                                                             decoration:
                                                                 BoxDecoration(
                                                               color: FlutterFlowTheme
@@ -2846,8 +2849,9 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                             );
                                                                           },
                                                                         );
-                                                                        _model.pageNumAdd = 1;
-                                                                        safeSetState(() => _model.apiRequestCompleter = null);
+                                                                        safeSetState(() {
+                                                                          _model.apiRequestCompleter = null;
+                                                                        });
                                                                       },
                                                                       text:
                                                                           'Filtrar',
@@ -3429,7 +3433,6 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                         ),
                                                       ],
                                                     ),
-                                                     ),
                                                   ),
                                                 ],
                                               ),

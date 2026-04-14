@@ -1368,9 +1368,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                 Container(
                                                                   width: double
                                                                       .infinity,
-                                                                  constraints: const BoxConstraints(
-                                                                    minHeight: 600.0,
-                                                                  ),
                                                                   decoration:
                                                                       BoxDecoration(
                                                                     color: FlutterFlowTheme.of(
@@ -1709,16 +1706,15 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                               24.0)),
                                                             ),
                                                           ),
-                                                          SingleChildScrollView(
-                                                            child: Padding(
-                                                              padding:
-                                                                  const EdgeInsetsDirectional
-                                                                      .fromSTEB(
-                                                                          0.0,
-                                                                          24.0,
-                                                                          0.0,
-                                                                          0.0),
-                                                              child: Row(
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsetsDirectional
+                                                                    .fromSTEB(
+                                                                        0.0,
+                                                                        24.0,
+                                                                        0.0,
+                                                                        0.0),
+                                                            child: Row(
                                                               mainAxisSize:
                                                                   MainAxisSize
                                                                       .max,
@@ -1737,9 +1733,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                       Container(
                                                                     width:
                                                                         378.0,
-                                                                    constraints: const BoxConstraints(
-                                                                      minHeight: 600.0,
-                                                                    ),
+                                                                    height: double
+                                                                        .infinity,
                                                                     decoration:
                                                                         BoxDecoration(
                                                                       color: FlutterFlowTheme.of(
@@ -2828,9 +2823,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                       Container(
                                                                     width:
                                                                         378.0,
-                                                                    constraints: const BoxConstraints(
-                                                                      minHeight: 600.0,
-                                                                    ),
+                                                                    height: double
+                                                                        .infinity,
                                                                     decoration:
                                                                         BoxDecoration(
                                                                       color: FlutterFlowTheme.of(
@@ -3553,7 +3547,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                 ),
                                                               ],
                                                             ),
-                                                             ),
                                                           ),
                                                         ],
                                                       ),
