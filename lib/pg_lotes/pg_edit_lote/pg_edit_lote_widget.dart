@@ -1711,14 +1711,14 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                           ),
                                                           SingleChildScrollView(
                                                             child: Padding(
-                                                            padding:
-                                                                const EdgeInsetsDirectional
-                                                                    .fromSTEB(
-                                                                        0.0,
-                                                                        24.0,
-                                                                        0.0,
-                                                                        0.0),
-                                                            child: Row(
+                                                              padding:
+                                                                  const EdgeInsetsDirectional
+                                                                      .fromSTEB(
+                                                                          0.0,
+                                                                          24.0,
+                                                                          0.0,
+                                                                          0.0),
+                                                              child: Row(
                                                               mainAxisSize:
                                                                   MainAxisSize
                                                                       .max,
