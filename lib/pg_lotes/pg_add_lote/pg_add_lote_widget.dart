@@ -1423,7 +1423,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                       24.0)),
                                                     ),
                                                   ),
-                                                  Padding(
+                                                  SingleChildScrollView(
+                                                    child: Padding(
                                                     padding:
                                                         const EdgeInsetsDirectional
                                                             .fromSTEB(0.0, 24.0,
@@ -1445,8 +1446,9 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                   2.0),
                                                           child: Container(
                                                             width: 378.0,
-                                                            height:
-                                                                double.infinity,
+                                                             constraints: const BoxConstraints(
+                                                               minHeight: 600.0,
+                                                             ),
                                                             decoration:
                                                                 BoxDecoration(
                                                               color: FlutterFlowTheme
@@ -2607,8 +2609,9 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                   2.0),
                                                           child: Container(
                                                             width: 378.0,
-                                                            height:
-                                                                double.infinity,
+                                                             constraints: const BoxConstraints(
+                                                               minHeight: 600.0,
+                                                             ),
                                                             decoration:
                                                                 BoxDecoration(
                                                               color: FlutterFlowTheme
@@ -3433,6 +3436,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                         ),
                                                       ],
                                                     ),
+                                                  )
+
                                                   ),
                                                 ],
                                               ),
