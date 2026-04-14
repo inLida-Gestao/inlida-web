@@ -1427,7 +1427,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                         const EdgeInsetsDirectional
                                                             .fromSTEB(0.0, 24.0,
                                                             0.0, 0.0),
-                                                    child: Row(
+                                                    child: IntrinsicHeight(
+                                                      child: Row(
                                                       mainAxisSize:
                                                           MainAxisSize.max,
                                                       mainAxisAlignment:
@@ -1444,8 +1445,6 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                   2.0),
                                                           child: Container(
                                                             width: 378.0,
-                                                            height:
-                                                                double.infinity,
                                                             constraints: const BoxConstraints(
                                                               minHeight: 600.0,
                                                             ),
@@ -2604,8 +2603,6 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                   2.0),
                                                           child: Container(
                                                             width: 378.0,
-                                                            height:
-                                                                double.infinity,
                                                             constraints: const BoxConstraints(
                                                               minHeight: 600.0,
                                                             ),
@@ -3432,6 +3429,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                         ),
                                                       ],
                                                     ),
+                                                     ),
                                                   ),
                                                 ],
                                               ),
