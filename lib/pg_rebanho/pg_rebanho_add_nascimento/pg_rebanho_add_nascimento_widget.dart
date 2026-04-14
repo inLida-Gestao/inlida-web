@@ -1834,6 +1834,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     false,
                                                                 isMultiSelect:
                                                                     false,
+                                                                 allowClear:
+                                                                     true,
                                                               ),
                                                             ].divide(
                                                                 const SizedBox(
@@ -2181,6 +2183,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     false,
                                                                 isMultiSelect:
                                                                     false,
+                                                                 allowClear:
+                                                                     true,
                                                               ),
                                                             ].divide(
                                                                 const SizedBox(
@@ -2316,6 +2320,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     false,
                                                                 isMultiSelect:
                                                                     false,
+                                                                 allowClear:
+                                                                     true,
                                                               ),
                                                             ].divide(
                                                                 const SizedBox(
