@@ -1422,13 +1422,13 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                       24.0)),
                                                     ),
                                                   ),
-                                                  Padding(
+                                                  SingleChildScrollView(
+                                                    child: Padding(
                                                     padding:
                                                         const EdgeInsetsDirectional
                                                             .fromSTEB(0.0, 24.0,
                                                             0.0, 0.0),
-                                                    child: IntrinsicHeight(
-                                                      child: Row(
+                                                    child: Row(
                                                       mainAxisSize:
                                                           MainAxisSize.max,
                                                       mainAxisAlignment:

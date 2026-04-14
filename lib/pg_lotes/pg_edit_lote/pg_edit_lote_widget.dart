@@ -1368,6 +1368,9 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                 Container(
                                                                   width: double
                                                                       .infinity,
+                                                                  constraints: const BoxConstraints(
+                                                                    minHeight: 600.0,
+                                                                  ),
                                                                   decoration:
                                                                       BoxDecoration(
                                                                     color: FlutterFlowTheme.of(
@@ -1706,7 +1709,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                               24.0)),
                                                             ),
                                                           ),
-                                                          Padding(
+                                                          SingleChildScrollView(
+                                                            child: Padding(
                                                             padding:
                                                                 const EdgeInsetsDirectional
                                                                     .fromSTEB(
@@ -1733,8 +1737,9 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                       Container(
                                                                     width:
                                                                         378.0,
-                                                                    height: double
-                                                                        .infinity,
+                                                                    constraints: const BoxConstraints(
+                                                                      minHeight: 600.0,
+                                                                    ),
                                                                     decoration:
                                                                         BoxDecoration(
                                                                       color: FlutterFlowTheme.of(
@@ -2823,8 +2828,9 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                       Container(
                                                                     width:
                                                                         378.0,
-                                                                    height: double
-                                                                        .infinity,
+                                                                    constraints: const BoxConstraints(
+                                                                      minHeight: 600.0,
+                                                                    ),
                                                                     decoration:
                                                                         BoxDecoration(
                                                                       color: FlutterFlowTheme.of(
@@ -3547,6 +3553,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                 ),
                                                               ],
                                                             ),
+                                                             ),
                                                           ),
                                                         ],
                                                       ),
