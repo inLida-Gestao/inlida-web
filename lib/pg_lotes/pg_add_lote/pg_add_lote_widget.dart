@@ -1492,14 +1492,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                 children: [
                                                                   Text(
                                                                     'Animais da propriedade (${valueOrDefault<String>(
-                                                                      (pgAddLoteBuscarRebanhoFiltrosResponse
-                                                                              .jsonBody
-                                                                              .toList()
-                                                                              .map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap)
-                                                                              .toList() as Iterable<RebanhoDTStruct?>)
-                                                                          .withoutNulls
-                                                                          .length
-                                                                          .toString(),
+                                                                      FFAppState().qtdAnimaisNaPropriedade.toString(),
                                                                       '0',
                                                                     )})',
                                                                     style: FlutterFlowTheme.of(
@@ -1695,11 +1688,11 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                 child: const PpFiltroRebanhoWidget(),
                                                                               ),
                                                                             );
-                                                                            safeSetState(() {
-                                                                              _model.apiRequestCompleter = null;
-                                                                            });
                                                                           },
                                                                         );
+                                                        safeSetState(() {
+                                                          _model.apiRequestCompleter = null;
+                                                        });
                                                                       },
                                                                       text:
                                                                           'Filtrar',
@@ -1901,9 +1894,24 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                             safeSetState(() =>
                                                                                 _model.checkboxValue1 = newValue!);
                                                                             if (newValue!) {
-                                                                              _model.animaisSelecionados = [];
+                                                                              final todosAnimais = (pgAddLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>)
+                                                                                  .withoutNulls
+                                                                                  .where((e) => (e.status != 'Sêmen') && (e.status != 'Fora da propriedade'))
+                                                                                  .toList();
+                                                                              _model.animaisSelecionados = todosAnimais;
+                                                                              for (final item in todosAnimais) {
+                                                                                _model.checkboxValueMap2[item] = true;
+                                                                              }
                                                                               safeSetState(() {});
-                                                                              _model.animaisSelecionados = (pgAddLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.toList().cast<RebanhoDTStruct>();
+                                                                            } else {
+                                                                              final todosAnimais = (pgAddLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>)
+                                                                                  .withoutNulls
+                                                                                  .where((e) => (e.status != 'Sêmen') && (e.status != 'Fora da propriedade'))
+                                                                                  .toList();
+                                                                              for (final item in todosAnimais) {
+                                                                                _model.animaisSelecionados.remove(item);
+                                                                                _model.checkboxValueMap2[item] = false;
+                                                                              }
                                                                               safeSetState(() {});
                                                                             }
                                                                           },
@@ -2848,11 +2856,11 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                 child: const PpFiltroRebanhoWidget(),
                                                                               ),
                                                                             );
-                                                                            safeSetState(() {
-                                                                              _model.apiRequestCompleter = null;
-                                                                            });
                                                                           },
                                                                         );
+                                                        safeSetState(() {
+                                                          _model.apiRequestCompleter = null;
+                                                        });
                                                                       },
                                                                       text:
                                                                           'Filtrar',

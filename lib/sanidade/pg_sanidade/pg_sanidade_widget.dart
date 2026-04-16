@@ -273,21 +273,19 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     required String? obs,
     required String genericWhenEmptyParse,
   }) {
-    final items = _sanidadeDisplayMerged(primary, outros);
+    final items = functions.converterJSONparaLista(primary) ?? const <String>[];
+    final seen = <String>{};
     final out = <String>[];
-    if (items.isNotEmpty) {
-      out.addAll(items);
-      if (_hasValue(obs)) {
-        out.add('Obs.: ${_truncateForChip(obs!, 44)}');
-      }
-    } else if (_sanidadeJsonFieldPopulated(primary ?? '') ||
-        _hasValue(outros)) {
+    for (final x in items) {
+      final t = x.trim();
+      if (t.isEmpty || t == '[]') continue;
+      final key = t.toLowerCase();
+      if (seen.contains(key)) continue;
+      seen.add(key);
+      out.add(t);
+    }
+    if (out.isEmpty && _sanidadeJsonFieldPopulated(primary ?? '')) {
       out.add(genericWhenEmptyParse);
-      if (_hasValue(obs)) {
-        out.add('Obs.: ${_truncateForChip(obs!, 44)}');
-      }
-    } else if (_hasValue(obs)) {
-      out.add(_truncateForChip(obs!));
     }
     return out;
   }

@@ -100,69 +100,15 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
   /// (evita animais de outra fazenda e cobre lotes onde id_animais não foi sincronizado).
   Future<List<RebanhoDTStruct>> _loadAnimaisDoLote() async {
     if (widget.idLote == null || widget.idLote!.isEmpty) return [];
-    final lotes = await LotesTable().queryRows(
-      queryFn: (q) => q.eqOrNull('id_lote', widget.idLote),
-    );
-    final lote = lotes.firstOrNull;
-    if (lote == null) return [];
 
-    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
-    final hasIdAnimais = idAnimais.any((id) => id.trim().isNotEmpty);
-
-    if (hasIdAnimais) {
-      // Fonte de verdade: lista de IDs cadastrada no lote (só não-deletados, para bater com a lista principal)
-      final list = <RebanhoDTStruct>[];
-      for (final idRebanho in idAnimais) {
-        if (idRebanho.trim().isEmpty) continue;
-        final rows = await RebanhoTable().queryRows(
-          queryFn: (q) => q
-              .eqOrNull('idRebanho', idRebanho)
-              .eqOrNull('deletado', 'NAO'),
-        );
-        final row = rows.firstOrNull;
-        if (row == null) continue;
-        list.add(_rowToStruct(row));
-      }
-      return list;
-    }
-
-    // Fallback: animais com loteID = id_lote OU loteNome = nome do lote (mesma propriedade, não deletados).
-    // A lista principal pode contar por loteNome; sem isso animais com só loteNome preenchido não apareciam.
-    final idPropriedadeLote = lote.idPropriedade;
-    final nomeLote = lote.nome;
-    if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) return [];
-
-    final byLoteID = await RebanhoTable().queryRows(
+    final rows = await RebanhoTable().queryRows(
       queryFn: (q) => q
           .eqOrNull('loteID', widget.idLote)
-          .eqOrNull('idPropriedade', idPropriedadeLote)
           .eqOrNull('deletado', 'NAO'),
       limit: 10000,
     );
-    final byLoteNome = (nomeLote != null && nomeLote.trim().isNotEmpty)
-        ? await RebanhoTable().queryRows(
-            queryFn: (q) => q
-                .eqOrNull('loteNome', nomeLote.trim())
-                .eqOrNull('idPropriedade', idPropriedadeLote)
-                .eqOrNull('deletado', 'NAO'),
-            limit: 10000,
-          )
-        : <RebanhoRow>[];
-    final idsSeen = <String>{};
-    final list = <RebanhoDTStruct>[];
-    for (final row in byLoteID) {
-      final id = row.idRebanho;
-      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
-        list.add(_rowToStruct(row));
-      }
-    }
-    for (final row in byLoteNome) {
-      final id = row.idRebanho;
-      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
-        list.add(_rowToStruct(row));
-      }
-    }
-    return list;
+
+    return rows.map(_rowToStruct).toList();
   }
 
   RebanhoDTStruct _rowToStruct(RebanhoRow row) {

@@ -206,6 +206,11 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                       ),
                     ],
                   ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                   Row(
                     mainAxisSize: MainAxisSize.max,
                     children: [
@@ -2364,6 +2369,10 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                           ),
                         ),
                       ].divide(const SizedBox(width: 24.0)),
+                    ),
+                  ),
+                        ].divide(const SizedBox(height: 24.0)),
+                      ),
                     ),
                   ),
                   Row(
