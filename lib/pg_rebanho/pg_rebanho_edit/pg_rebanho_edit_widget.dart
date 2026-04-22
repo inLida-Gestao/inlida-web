@@ -6456,10 +6456,13 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                                 FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
                                                                       keyboardType:
-                                                                          TextInputType
-                                                                              .number,
+                                                                          const TextInputType
+                                                                              .numberWithOptions(
+                                                                              decimal:
+                                                                                  true),
                                                                       inputFormatters: [
-                                                                        FilteringTextInputFormatter.digitsOnly,
+                                                                        FilteringTextInputFormatter.allow(
+                                                                            RegExp(r'[0-9.,]')),
                                                                       ],
                                                                       cursorColor:
                                                                           FlutterFlowTheme.of(context)
@@ -6531,7 +6534,9 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                   'peso': double
                                                                       .tryParse(_model
                                                                           .pesoAddTextController
-                                                                          .text),
+                                                                          .text
+                                                                          .trim()
+                                                                          .replaceAll(',', '.')),
                                                                   'deletado':
                                                                       'NAO',
                                                                 });

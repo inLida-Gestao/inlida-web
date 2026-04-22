@@ -464,9 +464,12 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                                       .bodyMedium
                                       .fontStyle,
                                 ),
-                            keyboardType: TextInputType.number,
+                            keyboardType:
+                                const TextInputType.numberWithOptions(
+                                    decimal: true),
                             inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'[0-9.,]')),
                             ],
                             cursorColor:
                                 FlutterFlowTheme.of(context).primaryText,
@@ -523,10 +526,11 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                     ),
                     FFButtonWidget(
                       onPressed: () async {
-                        final pesoInteiro = int.tryParse(
-                                _model.pesoAddTextController.text) ??
-                            double.tryParse(_model.pesoAddTextController.text)
-                                ?.toInt();
+                        final pesoTextoNorm = _model
+                            .pesoAddTextController.text
+                            .trim()
+                            .replaceAll(',', '.');
+                        final pesoDouble = double.tryParse(pesoTextoNorm);
                         final idRebanho = containerRebanhoRow?.idRebanho;
                         await HistoricoPesagensTable().insert({
                           'idRebanho': idRebanho,
@@ -536,7 +540,7 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                           'dataPesagem':
                               supaSerialize<DateTime>(_model.datePicked),
                           'tipo': 'Atual',
-                          'peso': pesoInteiro?.toDouble(),
+                          'peso': pesoDouble,
                           'deletado': 'NAO',
                         });
                         // Atualiza ficha com a pesagem mais recente (última por data)
