@@ -8,6 +8,16 @@ import 'package:flutter/services.dart';
 class PesoDecimalInputFormatter extends TextInputFormatter {
   const PesoDecimalInputFormatter();
 
+  /// Converte um valor numérico em string formatada "X,YY" para exibição
+  /// inicial em controllers que usam este formatter.
+  static String formatDouble(num? value) {
+    if (value == null) return '';
+    final cents = (value * 100).round();
+    final integerPart = (cents ~/ 100).toString();
+    final decimalPart = (cents.abs() % 100).toString().padLeft(2, '0');
+    return '$integerPart,$decimalPart';
+  }
+
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,

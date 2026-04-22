@@ -7,6 +7,7 @@ import '/flutter_flow/form_field_controller.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
+import '/pg_rebanho/peso_decimal_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1599,8 +1600,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                             .bodyMedium
                                                             .fontStyle,
                                                   ),
-                                              keyboardType:
-                                                  TextInputType.number,
+                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                              inputFormatters: const [PesoDecimalInputFormatter()],
                                               cursorColor:
                                                   FlutterFlowTheme.of(context)
                                                       .primaryText,
@@ -3273,8 +3274,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                             .bodyMedium
                                                             .fontStyle,
                                                   ),
-                                              keyboardType:
-                                                  TextInputType.number,
+                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                              inputFormatters: const [PesoDecimalInputFormatter()],
                                               cursorColor:
                                                   FlutterFlowTheme.of(context)
                                                       .primaryText,
@@ -3775,8 +3776,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                             .bodyMedium
                                                             .fontStyle,
                                                   ),
-                                              keyboardType:
-                                                  TextInputType.number,
+                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                              inputFormatters: const [PesoDecimalInputFormatter()],
                                               cursorColor:
                                                   FlutterFlowTheme.of(context)
                                                       .primaryText,
@@ -4738,10 +4739,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                         // - Se pesoAtual vazio e pesoDesmama informado, usa pesoDesmama
                         //   (e dataUltimaPesagem = dataDesmama).
                         // - Se só pesoNascimento informado, NÃO setar pesoAtual.
-                        final double? pesoDesmamaParsedCC = double.tryParse(
-                            _model.pesoDesmamaTextController.text);
-                        final double? pesoAtualDigitadoCC = double.tryParse(
-                            _model.pesoAtualTextController.text);
+                        final double? pesoDesmamaParsedCC = double.tryParse(_model.pesoDesmamaTextController.text.replaceAll(',', '.'));
+                        final double? pesoAtualDigitadoCC = double.tryParse(_model.pesoAtualTextController.text.replaceAll(',', '.'));
                         final double? pesoAtualFinalCC =
                             pesoAtualDigitadoCC ?? pesoDesmamaParsedCC;
                         final DateTime? dataUltimaPesagemFinalCC =
@@ -4763,8 +4762,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                               : _model.dDCatRebanhoFemeaValue,
                           'dataNascimento':
                               supaSerialize<DateTime>(_model.datePicked1),
-                          'pesoNascimento': double.tryParse(
-                              _model.pesoNascimentoTextController.text),
+                          'pesoNascimento': double.tryParse(_model.pesoNascimentoTextController.text.replaceAll(',', '.')),
                           'porte': _model.dropDownPorteValue,
                           'raca': _model.dropDownRacaValue,
                           'loteID': _model.dropDownLotesValue,
@@ -4774,8 +4772,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                           'rebanhoIdReprodutor': _model.dropDownReprodutorValue,
                           'dataDesmama':
                               supaSerialize<DateTime>(_model.datePicked3),
-                          'pesoDesmama': double.tryParse(
-                              _model.pesoDesmamaTextController.text),
+                          'pesoDesmama': double.tryParse(_model.pesoDesmamaTextController.text.replaceAll(',', '.')),
                           'pesoAtual': pesoAtualFinalCC,
                           'status': _model.dropDownStatusValue,
                           'origem': _model.dropDownOrigemValue,
@@ -4811,8 +4808,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                             'dataPesagem':
                                 supaSerialize<DateTime>(_model.datePicked1),
                             'tipo': 'Nascimento',
-                            'peso': double.tryParse(
-                                _model.pesoNascimentoTextController.text),
+                            'peso': double.tryParse(_model.pesoNascimentoTextController.text.replaceAll(',', '.')),
                             'deletado': 'NAO',
                           });
                         }
@@ -4825,8 +4821,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                             'dataPesagem':
                                 supaSerialize<DateTime>(_model.datePicked3),
                             'tipo': 'Desmama',
-                            'peso': double.tryParse(
-                                _model.pesoDesmamaTextController.text),
+                            'peso': double.tryParse(_model.pesoDesmamaTextController.text.replaceAll(',', '.')),
                             'deletado': 'NAO',
                           });
                         }
@@ -4839,8 +4834,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                             'dataPesagem':
                                 supaSerialize<DateTime>(_model.datePicked4),
                             'tipo': 'Atual',
-                            'peso': double.tryParse(
-                                _model.pesoAtualTextController.text),
+                            'peso': double.tryParse(_model.pesoAtualTextController.text.replaceAll(',', '.')),
                             'deletado': 'NAO',
                           });
                         }

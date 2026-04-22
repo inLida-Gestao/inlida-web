@@ -11,6 +11,7 @@ import '/flutter_flow/form_field_controller.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
+import '/pg_rebanho/peso_decimal_formatter.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1734,8 +1735,12 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                           .fontStyle,
                                                                     ),
                                                                 keyboardType:
-                                                                    TextInputType
-                                                                        .number,
+                                                                     const TextInputType
+                                                                         .numberWithOptions(
+                                                                         decimal: true),
+                                                                 inputFormatters: const [
+                                                                   PesoDecimalInputFormatter()
+                                                                 ],
                                                                 cursorColor:
                                                                     FlutterFlowTheme.of(
                                                                             context)
@@ -3603,8 +3608,12 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                           .fontStyle,
                                                                     ),
                                                                 keyboardType:
-                                                                    TextInputType
-                                                                        .number,
+                                                                     const TextInputType
+                                                                         .numberWithOptions(
+                                                                         decimal: true),
+                                                                 inputFormatters: const [
+                                                                   PesoDecimalInputFormatter()
+                                                                 ],
                                                                 cursorColor:
                                                                     FlutterFlowTheme.of(
                                                                             context)
@@ -6540,11 +6549,11 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                           final double? pesoDesmamaParsedAdd =
                                               double.tryParse(_model
                                                   .pesoDesmamaTextController
-                                                  .text);
+                                                  .text.replaceAll(',', '.'));
                                           final double? pesoAtualDigitadoAdd =
                                               double.tryParse(_model
                                                   .pesoAtualTextController
-                                                  .text);
+                                                  .text.replaceAll(',', '.'));
                                           final double? pesoAtualFinalAdd =
                                               pesoAtualDigitadoAdd ??
                                                   pesoDesmamaParsedAdd;
@@ -6577,10 +6586,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             'dataNascimento':
                                                 supaSerialize<DateTime>(
                                                     _model.datePicked1),
-                                            'pesoNascimento': double.tryParse(
-                                                _model
+                                            'pesoNascimento': double.tryParse(_model
                                                     .pesoNascimentoTextController
-                                                    .text),
+                                                    .text.replaceAll(',', '.')),
                                             'porte': _model.dropDownPorteValue,
                                             'raca': _model.dropDownRacaValue,
                                             'loteID': _model.dropDownLotesValue,
@@ -6590,9 +6598,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             'dataDesmama':
                                                 supaSerialize<DateTime>(
                                                     _model.datePicked3),
-                                            'pesoDesmama': double.tryParse(
-                                                _model.pesoDesmamaTextController
-                                                    .text),
+                                            'pesoDesmama': double.tryParse(_model.pesoDesmamaTextController
+                                                    .text.replaceAll(',', '.')),
                                             'pesoAtual': pesoAtualFinalAdd,
                                             'status':
                                                 _model.dropDownStatusValue,
@@ -6698,7 +6705,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                               'tipo': 'Nascimento',
                                               'peso': double.tryParse(_model
                                                   .pesoNascimentoTextController
-                                                  .text),
+                                                  .text.replaceAll(',', '.')),
                                               'deletado': 'NAO',
                                             });
                                           }
@@ -6717,7 +6724,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                               'tipo': 'Desmama',
                                               'peso': double.tryParse(_model
                                                   .pesoDesmamaTextController
-                                                  .text),
+                                                  .text.replaceAll(',', '.')),
                                               'deletado': 'NAO',
                                             });
                                           }
@@ -6736,7 +6743,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                               'tipo': 'Atual',
                                               'peso': double.tryParse(_model
                                                   .pesoAtualTextController
-                                                  .text),
+                                                  .text.replaceAll(',', '.')),
                                               'deletado': 'NAO',
                                             });
                                           }

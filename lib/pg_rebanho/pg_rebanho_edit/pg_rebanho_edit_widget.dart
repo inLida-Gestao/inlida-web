@@ -1519,10 +1519,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             TextEditingController(
                                                                       text: valueOrDefault<
                                                                           String>(
-                                                                        pgRebanhoEditRebanhoRow
-                                                                            ?.pesoNascimento
-                                                                            ?.toString(),
-                                                                        '0',
+                                                                        PesoDecimalInputFormatter.formatDouble(pgRebanhoEditRebanhoRow?.pesoNascimento),
+                                                                        '',
                                                                       ),
                                                                     ),
                                                                     focusNode:
@@ -1652,8 +1650,12 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               .fontStyle,
                                                                         ),
                                                                     keyboardType:
-                                                                        TextInputType
-                                                                            .number,
+                                                                         const TextInputType
+                                                                             .numberWithOptions(
+                                                                             decimal: true),
+                                                                     inputFormatters: const [
+                                                                       PesoDecimalInputFormatter()
+                                                                     ],
                                                                     cursorColor:
                                                                         FlutterFlowTheme.of(context)
                                                                             .primaryText,
@@ -3290,10 +3292,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             TextEditingController(
                                                                       text: valueOrDefault<
                                                                           String>(
-                                                                        pgRebanhoEditRebanhoRow
-                                                                            ?.pesoDesmama
-                                                                            ?.toString(),
-                                                                        '0',
+                                                                        PesoDecimalInputFormatter.formatDouble(pgRebanhoEditRebanhoRow?.pesoDesmama),
+                                                                        '',
                                                                       ),
                                                                     ),
                                                                     focusNode:
@@ -3328,9 +3328,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                       hintText:
                                                                           valueOrDefault<
                                                                               String>(
-                                                                        pgRebanhoEditRebanhoRow
-                                                                            ?.pesoDesmama
-                                                                            ?.toString(),
+                                                                        PesoDecimalInputFormatter.formatDouble(pgRebanhoEditRebanhoRow?.pesoDesmama),
                                                                         '0',
                                                                       ),
                                                                       hintStyle: FlutterFlowTheme.of(
@@ -3429,8 +3427,12 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               .fontStyle,
                                                                         ),
                                                                     keyboardType:
-                                                                        TextInputType
-                                                                            .number,
+                                                                         const TextInputType
+                                                                             .numberWithOptions(
+                                                                             decimal: true),
+                                                                     inputFormatters: const [
+                                                                       PesoDecimalInputFormatter()
+                                                                     ],
                                                                     cursorColor:
                                                                         FlutterFlowTheme.of(context)
                                                                             .primaryText,
@@ -3762,10 +3764,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             TextEditingController(
                                                                       text: valueOrDefault<
                                                                           String>(
-                                                                        pgRebanhoEditRebanhoRow
-                                                                            ?.pesoAtual
-                                                                            ?.toString(),
-                                                                        '0',
+                                                                        PesoDecimalInputFormatter.formatDouble(pgRebanhoEditRebanhoRow?.pesoAtual),
+                                                                        '',
                                                                       ),
                                                                     ),
                                                                     focusNode:
@@ -3800,9 +3800,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                       hintText:
                                                                           valueOrDefault<
                                                                               String>(
-                                                                        pgRebanhoEditRebanhoRow
-                                                                            ?.pesoAtual
-                                                                            ?.toString(),
+                                                                        PesoDecimalInputFormatter.formatDouble(pgRebanhoEditRebanhoRow?.pesoAtual),
                                                                         '0',
                                                                       ),
                                                                       hintStyle: FlutterFlowTheme.of(
@@ -3901,8 +3899,12 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               .fontStyle,
                                                                         ),
                                                                     keyboardType:
-                                                                        TextInputType
-                                                                            .number,
+                                                                         const TextInputType
+                                                                             .numberWithOptions(
+                                                                             decimal: true),
+                                                                     inputFormatters: const [
+                                                                       PesoDecimalInputFormatter()
+                                                                     ],
                                                                     cursorColor:
                                                                         FlutterFlowTheme.of(context)
                                                                             .primaryText,
@@ -7143,12 +7145,12 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                     pesoDesmamaParsedEdit =
                                                     double.tryParse(_model
                                                         .pesoDesmamaTextController
-                                                        .text);
+                                                        .text.replaceAll(',', '.'));
                                                 final double?
                                                     pesoAtualDigitadoEdit =
                                                     double.tryParse(_model
                                                         .pesoAtualTextController
-                                                        .text);
+                                                        .text.replaceAll(',', '.'));
                                                 final DateTime?
                                                     effectiveDataDesmamaEdit =
                                                     _model.datePicked3 ??
@@ -7201,7 +7203,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                     'pesoNascimento':
                                                         double.tryParse(_model
                                                             .pesoNascimentoTextController
-                                                            .text),
+                                                            .text.replaceAll(',', '.')),
                                                     'porte': _model
                                                         .dropDownPorteValue,
                                                     'raca': _model
@@ -7215,7 +7217,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                     'pesoDesmama':
                                                         double.tryParse(_model
                                                             .pesoDesmamaTextController
-                                                            .text),
+                                                            .text.replaceAll(',', '.')),
                                                     'pesoAtual':
                                                         pesoAtualFinalEdit,
                                                     'status': _model
