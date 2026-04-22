@@ -13,10 +13,10 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
+import '/pg_rebanho/peso_decimal_formatter.dart';
 import '/index.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6460,9 +6460,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               .numberWithOptions(
                                                                               decimal:
                                                                                   true),
-                                                                      inputFormatters: [
-                                                                        FilteringTextInputFormatter.allow(
-                                                                            RegExp(r'[0-9.,]')),
+                                                                      inputFormatters: const [
+                                                                        PesoDecimalInputFormatter(),
                                                                       ],
                                                                       cursorColor:
                                                                           FlutterFlowTheme.of(context)

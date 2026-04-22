@@ -3,8 +3,8 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '/pg_rebanho/peso_decimal_formatter.dart';
 import 'pp_add_pessagem_model.dart';
 export 'pp_add_pessagem_model.dart';
 
@@ -467,9 +467,8 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                             keyboardType:
                                 const TextInputType.numberWithOptions(
                                     decimal: true),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                  RegExp(r'[0-9.,]')),
+                            inputFormatters: const [
+                              PesoDecimalInputFormatter(),
                             ],
                             cursorColor:
                                 FlutterFlowTheme.of(context).primaryText,
