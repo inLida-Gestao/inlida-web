@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
+import '/pg_rebanho/peso_decimal_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -1565,8 +1566,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                               .bodyMedium
                                                               .fontStyle,
                                                     ),
-                                                keyboardType:
-                                                    TextInputType.number,
+                                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                                inputFormatters: const [PesoDecimalInputFormatter()],
                                                 cursorColor:
                                                     FlutterFlowTheme.of(context)
                                                         .primaryText,
@@ -3190,8 +3191,7 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                 : (_model.dDCatRebanhoFemeaValue ?? 'Bezerra'),
                             'dataNascimento':
                                 supaSerialize<DateTime>(_model.datePicked1),
-                            'pesoNascimento': double.tryParse(
-                                _model.pesoNascimentoTextController.text),
+                            'pesoNascimento': double.tryParse(_model.pesoNascimentoTextController.text.replaceAll(',', '.')),
                             'porte': _model.dropDownPorteValue,
                             'raca': _model.dropDownRacaValue,
                             'loteID': _model.dropDownLotesValue,
@@ -3229,8 +3229,7 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                               'dataPesagem':
                                   supaSerialize<DateTime>(_model.datePicked1),
                               'tipo': 'Nascimento',
-                              'peso': double.tryParse(
-                                  _model.pesoNascimentoTextController.text),
+                              'peso': double.tryParse(_model.pesoNascimentoTextController.text.replaceAll(',', '.')),
                               'deletado': 'NAO',
                             });
                           }
