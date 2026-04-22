@@ -6532,6 +6532,30 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             true,
                                           );
                                           safeSetState(() {});
+                                          // Regra de pesoAtual:
+                                          // - Se usuário informou pesoAtual, usa o valor digitado.
+                                          // - Se pesoAtual vazio e pesoDesmama informado, usa pesoDesmama
+                                          //   (e dataUltimaPesagem = dataDesmama).
+                                          // - Se só pesoNascimento informado, NÃO setar pesoAtual.
+                                          final double? pesoDesmamaParsedAdd =
+                                              double.tryParse(_model
+                                                  .pesoDesmamaTextController
+                                                  .text);
+                                          final double? pesoAtualDigitadoAdd =
+                                              double.tryParse(_model
+                                                  .pesoAtualTextController
+                                                  .text);
+                                          final double? pesoAtualFinalAdd =
+                                              pesoAtualDigitadoAdd ??
+                                                  pesoDesmamaParsedAdd;
+                                          final DateTime?
+                                              dataUltimaPesagemFinalAdd =
+                                              pesoAtualDigitadoAdd != null
+                                                  ? _model.datePicked4
+                                                  : (pesoDesmamaParsedAdd !=
+                                                          null
+                                                      ? _model.datePicked3
+                                                      : null);
                                           await RebanhoTable().insert({
                                             'idPropriedade': FFAppState()
                                                 .propriedadeSelecionada
@@ -6569,8 +6593,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             'pesoDesmama': double.tryParse(
                                                 _model.pesoDesmamaTextController
                                                     .text),
-                                            'pesoAtual': double.tryParse(_model
-                                                .pesoAtualTextController.text),
+                                            'pesoAtual': pesoAtualFinalAdd,
                                             'status':
                                                 _model.dropDownStatusValue,
                                             'origem':
@@ -6594,7 +6617,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                 FFAppState().valueDouble,
                                             'dataUltimaPesagem':
                                                 supaSerialize<DateTime>(
-                                                    _model.datePicked4),
+                                                    dataUltimaPesagemFinalAdd),
                                             'nomeConcat':
                                                 '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${dateTimeFormat(
                                               "d/M/y",

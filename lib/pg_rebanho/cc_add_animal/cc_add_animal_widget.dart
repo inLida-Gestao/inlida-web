@@ -4733,6 +4733,23 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                           true,
                         );
                         safeSetState(() {});
+                        // Regra de pesoAtual:
+                        // - Se usuário informou pesoAtual, usa o valor digitado.
+                        // - Se pesoAtual vazio e pesoDesmama informado, usa pesoDesmama
+                        //   (e dataUltimaPesagem = dataDesmama).
+                        // - Se só pesoNascimento informado, NÃO setar pesoAtual.
+                        final double? pesoDesmamaParsedCC = double.tryParse(
+                            _model.pesoDesmamaTextController.text);
+                        final double? pesoAtualDigitadoCC = double.tryParse(
+                            _model.pesoAtualTextController.text);
+                        final double? pesoAtualFinalCC =
+                            pesoAtualDigitadoCC ?? pesoDesmamaParsedCC;
+                        final DateTime? dataUltimaPesagemFinalCC =
+                            pesoAtualDigitadoCC != null
+                                ? _model.datePicked4
+                                : (pesoDesmamaParsedCC != null
+                                    ? _model.datePicked3
+                                    : null);
                         await RebanhoTable().insert({
                           'idPropriedade':
                               FFAppState().propriedadeSelecionada.idPropriedade,
@@ -4759,8 +4776,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                               supaSerialize<DateTime>(_model.datePicked3),
                           'pesoDesmama': double.tryParse(
                               _model.pesoDesmamaTextController.text),
-                          'pesoAtual': double.tryParse(
-                              _model.pesoAtualTextController.text),
+                          'pesoAtual': pesoAtualFinalCC,
                           'status': _model.dropDownStatusValue,
                           'origem': _model.dropDownOrigemValue,
                           'anotacoes': _model.anotacoesTextController.text,
@@ -4778,7 +4794,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                               supaSerialize<DateTime>(_model.datePicked5),
                           'valorCompra': FFAppState().valueDouble,
                           'dataUltimaPesagem':
-                              supaSerialize<DateTime>(_model.datePicked4),
+                              supaSerialize<DateTime>(dataUltimaPesagemFinalCC),
                           'nomeConcat':
                               '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${dateTimeFormat(
                             "d/M/y",

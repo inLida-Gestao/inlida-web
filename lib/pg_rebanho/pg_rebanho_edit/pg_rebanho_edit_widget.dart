@@ -7130,6 +7130,44 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         : (_model.datePicked1 ??
                                                             pgRebanhoEditRebanhoRow
                                                                 ?.dataNascimento);
+                                                // Regra de pesoAtual na edição:
+                                                // - Se usuário informou pesoAtual, usa o valor digitado.
+                                                // - Se pesoAtual vazio e pesoDesmama informado, usa pesoDesmama
+                                                //   (e dataUltimaPesagem = dataDesmama).
+                                                // - Se só pesoNascimento informado, NÃO setar pesoAtual.
+                                                final double?
+                                                    pesoDesmamaParsedEdit =
+                                                    double.tryParse(_model
+                                                        .pesoDesmamaTextController
+                                                        .text);
+                                                final double?
+                                                    pesoAtualDigitadoEdit =
+                                                    double.tryParse(_model
+                                                        .pesoAtualTextController
+                                                        .text);
+                                                final DateTime?
+                                                    effectiveDataDesmamaEdit =
+                                                    _model.datePicked3 ??
+                                                        pgRebanhoEditRebanhoRow
+                                                            ?.dataDesmama;
+                                                final DateTime?
+                                                    effectiveDataUltimaPesagemEdit =
+                                                    _model.datePicked4 ??
+                                                        pgRebanhoEditRebanhoRow
+                                                            ?.dataUltimaPesagem;
+                                                final double?
+                                                    pesoAtualFinalEdit =
+                                                    pesoAtualDigitadoEdit ??
+                                                        pesoDesmamaParsedEdit;
+                                                final DateTime?
+                                                    dataUltimaPesagemFinalEdit =
+                                                    pesoAtualDigitadoEdit !=
+                                                            null
+                                                        ? effectiveDataUltimaPesagemEdit
+                                                        : (pesoDesmamaParsedEdit !=
+                                                                null
+                                                            ? effectiveDataDesmamaEdit
+                                                            : effectiveDataUltimaPesagemEdit);
                                                 await RebanhoTable().update(
                                                   data: {
                                                     'numeroAnimal': _model
@@ -7175,9 +7213,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                             .pesoDesmamaTextController
                                                             .text),
                                                     'pesoAtual':
-                                                        double.tryParse(_model
-                                                            .pesoAtualTextController
-                                                            .text),
+                                                        pesoAtualFinalEdit,
                                                     'status': _model
                                                         .dropDownStatusValue,
                                                     'origem': _model
@@ -7194,8 +7230,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                     'valorCompra': FFAppState()
                                                         .valueDouble,
                                                     'dataUltimaPesagem': supaSerialize<
-                                                        DateTime>(_model.datePicked4 ?? pgRebanhoEditRebanhoRow
-                                                            ?.dataUltimaPesagem),
+                                                            DateTime>(
+                                                        dataUltimaPesagemFinalEdit),
                                                     'nomeConcat':
                                                         '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${effectiveDataNascimentoForSave != null ? dateTimeFormat(
                                                       "d/M/y",
@@ -7271,216 +7307,6 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                     widget.rebanhoId,
                                                   ),
                                                 );
-                                                  final dataNascimentoHistorico =
-                                                      effectiveDataNascimentoForSave;
-                                                  final pesoNascimentoHistorico =
-                                                    double.tryParse(_model
-                                                      .pesoNascimentoTextController
-                                                      .text);
-                                                  if ((pgRebanhoEditRebanhoRow
-                                                          ?.idRebanho !=
-                                                        null) &&
-                                                    (dataNascimentoHistorico !=
-                                                      null) &&
-                                                    (pesoNascimentoHistorico !=
-                                                      null) &&
-                                                    (pesoNascimentoHistorico >
-                                                      0)) {
-                                                    final historicosNascimento =
-                                                      await HistoricoPesagensTable()
-                                                        .queryRows(
-                                                    queryFn: (q) => q
-                                                      .eqOrNull(
-                                                        'idRebanho',
-                                                        pgRebanhoEditRebanhoRow
-                                                          ?.idRebanho)
-                                                      .eqOrNull('tipo',
-                                                        'Nascimento'),
-                                                    );
-                                                    if (historicosNascimento
-                                                      .isNotEmpty) {
-                                                    await HistoricoPesagensTable()
-                                                      .update(
-                                                      data: {
-                                                      'dataPesagem':
-                                                        supaSerialize<
-                                                            DateTime>(
-                                                          dataNascimentoHistorico),
-                                                      'peso':
-                                                        pesoNascimentoHistorico,
-                                                      },
-                                                      matchingRows: (rows) =>
-                                                        rows
-                                                          .eqOrNull(
-                                                            'idRebanho',
-                                                            pgRebanhoEditRebanhoRow
-                                                              ?.idRebanho)
-                                                          .eqOrNull('tipo',
-                                                            'Nascimento'),
-                                                    );
-                                                    } else {
-                                                    await HistoricoPesagensTable()
-                                                      .insert({
-                                                      'idRebanho':
-                                                        pgRebanhoEditRebanhoRow
-                                                          ?.idRebanho,
-                                                      'id_propriedade':
-                                                        FFAppState()
-                                                          .propriedadeSelecionada
-                                                          .idPropriedade,
-                                                      'dataPesagem':
-                                                        supaSerialize<
-                                                            DateTime>(
-                                                          dataNascimentoHistorico),
-                                                      'tipo': 'Nascimento',
-                                                      'peso':
-                                                        pesoNascimentoHistorico,
-                                                      'deletado': 'NAO',
-                                                    });
-                                                    }
-                                                  }
-                                                  // Upsert pesoDesmama no historico_pesagens
-                                                  final dataDesmamaHistorico =
-                                                    _model.datePicked3 ??
-                                                      pgRebanhoEditRebanhoRow
-                                                        ?.dataDesmama;
-                                                  final pesoDesmamaHistorico =
-                                                    double.tryParse(_model
-                                                      .pesoDesmamaTextController
-                                                      .text);
-                                                  if ((pgRebanhoEditRebanhoRow
-                                                          ?.idRebanho !=
-                                                        null) &&
-                                                    (dataDesmamaHistorico !=
-                                                      null) &&
-                                                    (pesoDesmamaHistorico !=
-                                                      null) &&
-                                                    (pesoDesmamaHistorico >
-                                                      0)) {
-                                                    final historicosDesmama =
-                                                      await HistoricoPesagensTable()
-                                                        .queryRows(
-                                                    queryFn: (q) => q
-                                                      .eqOrNull(
-                                                        'idRebanho',
-                                                        pgRebanhoEditRebanhoRow
-                                                          ?.idRebanho)
-                                                      .eqOrNull('tipo',
-                                                        'Desmama'),
-                                                    );
-                                                    if (historicosDesmama
-                                                      .isNotEmpty) {
-                                                    await HistoricoPesagensTable()
-                                                      .update(
-                                                      data: {
-                                                      'dataPesagem':
-                                                        supaSerialize<
-                                                            DateTime>(
-                                                          dataDesmamaHistorico),
-                                                      'peso':
-                                                        pesoDesmamaHistorico,
-                                                      },
-                                                      matchingRows: (rows) =>
-                                                        rows
-                                                          .eqOrNull(
-                                                            'idRebanho',
-                                                            pgRebanhoEditRebanhoRow
-                                                              ?.idRebanho)
-                                                          .eqOrNull('tipo',
-                                                            'Desmama'),
-                                                    );
-                                                    } else {
-                                                    await HistoricoPesagensTable()
-                                                      .insert({
-                                                      'idRebanho':
-                                                        pgRebanhoEditRebanhoRow
-                                                          ?.idRebanho,
-                                                      'id_propriedade':
-                                                        FFAppState()
-                                                          .propriedadeSelecionada
-                                                          .idPropriedade,
-                                                      'dataPesagem':
-                                                        supaSerialize<
-                                                            DateTime>(
-                                                          dataDesmamaHistorico),
-                                                      'tipo': 'Desmama',
-                                                      'peso':
-                                                        pesoDesmamaHistorico,
-                                                      'deletado': 'NAO',
-                                                    });
-                                                    }
-                                                  }
-                                                  // Upsert pesoAtual no historico_pesagens
-                                                  final dataAtualHistorico =
-                                                    _model.datePicked4 ??
-                                                      pgRebanhoEditRebanhoRow
-                                                        ?.dataUltimaPesagem;
-                                                  final pesoAtualHistorico =
-                                                    double.tryParse(_model
-                                                      .pesoAtualTextController
-                                                      .text);
-                                                  if ((pgRebanhoEditRebanhoRow
-                                                          ?.idRebanho !=
-                                                        null) &&
-                                                    (dataAtualHistorico !=
-                                                      null) &&
-                                                    (pesoAtualHistorico !=
-                                                      null) &&
-                                                    (pesoAtualHistorico >
-                                                      0)) {
-                                                    final historicosAtual =
-                                                      await HistoricoPesagensTable()
-                                                        .queryRows(
-                                                    queryFn: (q) => q
-                                                      .eqOrNull(
-                                                        'idRebanho',
-                                                        pgRebanhoEditRebanhoRow
-                                                          ?.idRebanho)
-                                                      .eqOrNull('tipo',
-                                                        'Atual'),
-                                                    );
-                                                    if (historicosAtual
-                                                      .isNotEmpty) {
-                                                    await HistoricoPesagensTable()
-                                                      .update(
-                                                      data: {
-                                                      'dataPesagem':
-                                                        supaSerialize<
-                                                            DateTime>(
-                                                          dataAtualHistorico),
-                                                      'peso':
-                                                        pesoAtualHistorico,
-                                                      },
-                                                      matchingRows: (rows) =>
-                                                        rows
-                                                          .eqOrNull(
-                                                            'idRebanho',
-                                                            pgRebanhoEditRebanhoRow
-                                                              ?.idRebanho)
-                                                          .eqOrNull('tipo',
-                                                            'Atual'),
-                                                    );
-                                                    } else {
-                                                    await HistoricoPesagensTable()
-                                                      .insert({
-                                                      'idRebanho':
-                                                        pgRebanhoEditRebanhoRow
-                                                          ?.idRebanho,
-                                                      'id_propriedade':
-                                                        FFAppState()
-                                                          .propriedadeSelecionada
-                                                          .idPropriedade,
-                                                      'dataPesagem':
-                                                        supaSerialize<
-                                                            DateTime>(
-                                                          dataAtualHistorico),
-                                                      'tipo': 'Atual',
-                                                      'peso':
-                                                        pesoAtualHistorico,
-                                                      'deletado': 'NAO',
-                                                    });
-                                                    }
-                                                  }
                                                 // Sincronizar id_animais do(s) lote(s): remover do lote antigo e incluir no novo
                                                 final idRebanhoAnimal =
                                                     pgRebanhoEditRebanhoRow
