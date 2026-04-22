@@ -12,6 +12,7 @@ import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/index.dart';
+import '/pg_rebanho/peso_decimal_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -1705,8 +1706,12 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                           .fontStyle,
                                                                     ),
                                                                 keyboardType:
-                                                                    TextInputType
-                                                                        .number,
+                                                                     const TextInputType
+                                                                         .numberWithOptions(
+                                                                         decimal: true),
+                                                                 inputFormatters: const [
+                                                                   PesoDecimalInputFormatter()
+                                                                 ],
                                                                 cursorColor:
                                                                     FlutterFlowTheme.of(
                                                                             context)
@@ -4408,10 +4413,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                             'dataNascimento':
                                                 supaSerialize<DateTime>(
                                                     _model.datePicked1),
-                                            'pesoNascimento': double.tryParse(
-                                                _model
+                                            'pesoNascimento': double.tryParse(_model
                                                     .pesoNascimentoTextController
-                                                    .text),
+                                                    .text.replaceAll(',', '.')),
                                             'porte': _model.dropDownPorteValue,
                                             'raca': _model.dropDownRacaValue,
                                             'loteID': _model.dropDownLotesValue,
@@ -4508,7 +4512,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                               'tipo': 'Nascimento',
                                               'peso': double.tryParse(_model
                                                   .pesoNascimentoTextController
-                                                  .text),
+                                                  .text.replaceAll(',', '.')),
                                               'deletado': 'NAO',
                                             });
                                           }
