@@ -168,6 +168,63 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
               .cast<RebanhoDTStruct>();
           safeSetState(() {});
         }
+        // Atualiza os cards de contagem (total de animais, na propriedade e
+        // paginacao) apos alteracoes como exclusao/edicao de animal.
+        final qtdAnimaisRefresh = await FunctionsSupabaseRebanhoGroup
+            .qTDRebanhoPropriedadeCall
+            .call(
+          pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+        );
+        FFAppState().qtdAnimaisRebanho = valueOrDefault<int>(
+          (qtdAnimaisRefresh.jsonBody ?? ''),
+          0,
+        );
+        final qtdNaPropUpperRefresh = await FunctionsSupabaseRebanhoGroup
+            .countRebanhoFiltrosCall
+            .call(
+          pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+          pStatus: 'Na Propriedade',
+        );
+        final qtdNaPropLowerRefresh = await FunctionsSupabaseRebanhoGroup
+            .countRebanhoFiltrosCall
+            .call(
+          pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+          pStatus: 'Na propriedade',
+        );
+        final qtdUpperRefresh = valueOrDefault<int>(
+          (qtdNaPropUpperRefresh.jsonBody ?? ''),
+          0,
+        );
+        final qtdLowerRefresh = valueOrDefault<int>(
+          (qtdNaPropLowerRefresh.jsonBody ?? ''),
+          0,
+        );
+        FFAppState().qtdAnimaisNaPropriedade = qtdUpperRefresh == qtdLowerRefresh
+            ? qtdUpperRefresh
+            : (qtdUpperRefresh + qtdLowerRefresh);
+        _model.countRebanhos = await FunctionsSupabaseRebanhoGroup
+            .countRebanhoFiltrosCall
+            .call(
+          pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+          pCategoria: FFAppState().filtroCategoria,
+          pDataNascimentoDe: dateTimeFormat(
+            "yyyy-MM-dd",
+            FFAppState().filtroDataNacimentoDe,
+            locale: FFLocalizations.of(context).languageCode,
+          ),
+          pDataNascimentoAte: dateTimeFormat(
+            "yyyy-MM-dd",
+            FFAppState().filtroDataNacimentoAte,
+            locale: FFLocalizations.of(context).languageCode,
+          ),
+          pLoteID: FFAppState().filtroLoteNome,
+          pOrigem: FFAppState().filtroOrigem,
+          pRaca: FFAppState().filtroRaca,
+          pSexo: FFAppState().filtroSexo,
+          pStatus: FFAppState().filtroStatusRebanho,
+          pPesquisa: _model.textController.text,
+        );
+        _model.pageTotal = (_model.countRebanhos?.jsonBody ?? '');
         safeSetState(() {});
       });
     });
