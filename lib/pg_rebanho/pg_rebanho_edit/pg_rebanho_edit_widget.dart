@@ -7142,10 +7142,17 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                 //   (e dataUltimaPesagem = dataDesmama).
                                                 // - Se só pesoNascimento informado, NÃO setar pesoAtual.
                                                 final double?
+                                                    pesoNascimentoParsedEdit =
+                                                    double.tryParse(_model
+                                                        .pesoNascimentoTextController
+                                                        .text
+                                                        .replaceAll(',', '.'));
+                                                final double?
                                                     pesoDesmamaParsedEdit =
                                                     double.tryParse(_model
                                                         .pesoDesmamaTextController
-                                                        .text.replaceAll(',', '.'));
+                                                        .text
+                                                        .replaceAll(',', '.'));
                                                 final double?
                                                     pesoAtualDigitadoEdit =
                                                     double.tryParse(_model
@@ -7201,9 +7208,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         DateTime>(
                                                         effectiveDataNascimentoForSave),
                                                     'pesoNascimento':
-                                                        double.tryParse(_model
-                                                            .pesoNascimentoTextController
-                                                            .text.replaceAll(',', '.')),
+                                                        pesoNascimentoParsedEdit,
                                                     'porte': _model
                                                         .dropDownPorteValue,
                                                     'raca': _model
@@ -7215,9 +7220,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         DateTime>(_model.datePicked3 ?? pgRebanhoEditRebanhoRow
                                                             ?.dataDesmama),
                                                     'pesoDesmama':
-                                                        double.tryParse(_model
-                                                            .pesoDesmamaTextController
-                                                            .text.replaceAll(',', '.')),
+                                                        pesoDesmamaParsedEdit,
                                                     'pesoAtual':
                                                         pesoAtualFinalEdit,
                                                     'status': _model
@@ -7313,6 +7316,92 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                     widget.rebanhoId,
                                                   ),
                                                 );
+                                                // Sincroniza pesoNascimento e pesoDesmama com a tabela
+                                                // historico_pesagens (apenas atualiza registros existentes;
+                                                // novos registros continuam sendo criados apenas pelo modal de
+                                                // pesagem ou na criação do animal).
+                                                final idRebanhoSync =
+                                                    pgRebanhoEditRebanhoRow
+                                                        ?.idRebanho;
+                                                if (idRebanhoSync != null) {
+                                                  if (pesoNascimentoParsedEdit !=
+                                                      null) {
+                                                    final existentesNasc =
+                                                        await HistoricoPesagensTable()
+                                                            .queryRows(
+                                                      queryFn: (q) => q
+                                                          .eqOrNull('idRebanho',
+                                                              idRebanhoSync)
+                                                          .eqOrNull(
+                                                              'tipo',
+                                                              'Nascimento')
+                                                          .eqOrNull('deletado',
+                                                              'NAO'),
+                                                    );
+                                                    if (existentesNasc
+                                                        .isNotEmpty) {
+                                                      await HistoricoPesagensTable()
+                                                          .update(
+                                                        data: {
+                                                          'peso':
+                                                              pesoNascimentoParsedEdit,
+                                                          if (effectiveDataNascimentoForSave !=
+                                                              null)
+                                                            'dataPesagem': supaSerialize<
+                                                                    DateTime>(
+                                                                effectiveDataNascimentoForSave),
+                                                        },
+                                                        matchingRows: (rows) => rows
+                                                            .eqOrNull(
+                                                                'idRebanho',
+                                                                idRebanhoSync)
+                                                            .eqOrNull('tipo',
+                                                                'Nascimento')
+                                                            .eqOrNull(
+                                                                'deletado',
+                                                                'NAO'),
+                                                      );
+                                                    }
+                                                  }
+                                                  if (pesoDesmamaParsedEdit !=
+                                                      null) {
+                                                    final existentesDesm =
+                                                        await HistoricoPesagensTable()
+                                                            .queryRows(
+                                                      queryFn: (q) => q
+                                                          .eqOrNull('idRebanho',
+                                                              idRebanhoSync)
+                                                          .eqOrNull(
+                                                              'tipo', 'Desmama')
+                                                          .eqOrNull('deletado',
+                                                              'NAO'),
+                                                    );
+                                                    if (existentesDesm
+                                                        .isNotEmpty) {
+                                                      await HistoricoPesagensTable()
+                                                          .update(
+                                                        data: {
+                                                          'peso':
+                                                              pesoDesmamaParsedEdit,
+                                                          if (effectiveDataDesmamaEdit !=
+                                                              null)
+                                                            'dataPesagem': supaSerialize<
+                                                                    DateTime>(
+                                                                effectiveDataDesmamaEdit),
+                                                        },
+                                                        matchingRows: (rows) => rows
+                                                            .eqOrNull(
+                                                                'idRebanho',
+                                                                idRebanhoSync)
+                                                            .eqOrNull('tipo',
+                                                                'Desmama')
+                                                            .eqOrNull(
+                                                                'deletado',
+                                                                'NAO'),
+                                                      );
+                                                    }
+                                                  }
+                                                }
                                                 // Sincronizar id_animais do(s) lote(s): remover do lote antigo e incluir no novo
                                                 final idRebanhoAnimal =
                                                     pgRebanhoEditRebanhoRow
