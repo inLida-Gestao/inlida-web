@@ -7484,6 +7484,32 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                       });
                                                     }
                                                   }
+                                                  // Quando o pesoAtual e' alterado na ficha do animal,
+                                                  // registra a alteracao em historico_pesagens com a data
+                                                  // atual (tipo 'Atual'). So insere quando o usuario digitou
+                                                  // um valor diferente do que ja estava salvo.
+                                                  if (pesoAtualDigitadoEdit !=
+                                                          null &&
+                                                      pesoAtualDigitadoEdit !=
+                                                          pgRebanhoEditRebanhoRow
+                                                              ?.pesoAtual) {
+                                                    await HistoricoPesagensTable()
+                                                        .insert({
+                                                      'idRebanho':
+                                                          idRebanhoSync,
+                                                      'id_propriedade':
+                                                          FFAppState()
+                                                              .propriedadeSelecionada
+                                                              .idPropriedade,
+                                                      'dataPesagem': supaSerialize<
+                                                              DateTime>(
+                                                          getCurrentTimestamp),
+                                                      'tipo': 'Atual',
+                                                      'peso':
+                                                          pesoAtualDigitadoEdit,
+                                                      'deletado': 'NAO',
+                                                    });
+                                                  }
                                                 }
                                                 // Sincronizar id_animais do(s) lote(s): remover do lote antigo e incluir no novo
                                                 final idRebanhoAnimal =
