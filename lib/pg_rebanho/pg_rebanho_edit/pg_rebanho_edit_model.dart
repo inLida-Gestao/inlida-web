@@ -107,6 +107,8 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
   TextEditingController? dataDesmamaTextController;
   String? Function(BuildContext, String?)? dataDesmamaTextControllerValidator;
   DateTime? datePicked3;
+  /// Quando true, salva `dataDesmama` como null (campo limpo pelo usuário).
+  bool dataDesmamaCleared = false;
   // State field(s) for pesoDesmama widget.
   FocusNode? pesoDesmamaFocusNode;
   TextEditingController? pesoDesmamaTextController;

@@ -3014,7 +3014,25 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               .fontStyle,
                                                                         ),
                                                                   ),
-                                                                  Stack(
+                                                                  Builder(
+                                                                    builder:
+                                                                        (context) {
+                                                                      final rowDesm =
+                                                                          pgRebanhoEditRebanhoRow
+                                                                              ?.dataDesmama;
+                                                                      final hasDataDesmama = !_model
+                                                                              .dataDesmamaCleared &&
+                                                                          (_model.datePicked3 !=
+                                                                                  null ||
+                                                                              rowDesm !=
+                                                                                  null);
+                                                                      return Row(
+                                                                        crossAxisAlignment:
+                                                                            CrossAxisAlignment.start,
+                                                                        children: [
+                                                                          Expanded(
+                                                                            child:
+                                                                                Stack(
                                                                     children: [
                                                                       TextFormField(
                                                                         controller:
@@ -3022,20 +3040,22 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                                 TextEditingController(
                                                                           text:
                                                                               valueOrDefault<String>(
-                                                                            _model.datePicked3 != null
-                                                                                ? dateTimeFormat(
-                                                                                    "d/M/y",
-                                                                                    _model.datePicked3,
-                                                                                    locale: FFLocalizations.of(context).languageCode,
-                                                                                  )
-                                                                                : valueOrDefault<String>(
-                                                                                    dateTimeFormat(
-                                                                                      "d/M/y",
-                                                                                      pgRebanhoEditRebanhoRow?.dataDesmama,
-                                                                                      locale: FFLocalizations.of(context).languageCode,
-                                                                                    ),
-                                                                                    'dd/mm/aaaa',
-                                                                                  ),
+                                                                            _model.dataDesmamaCleared
+                                                                                ? 'dd/mm/aaaa'
+                                                                                : (_model.datePicked3 != null
+                                                                                    ? dateTimeFormat(
+                                                                                        "d/M/y",
+                                                                                        _model.datePicked3,
+                                                                                        locale: FFLocalizations.of(context).languageCode,
+                                                                                      )
+                                                                                    : valueOrDefault<String>(
+                                                                                        dateTimeFormat(
+                                                                                          "d/M/y",
+                                                                                          rowDesm,
+                                                                                          locale: FFLocalizations.of(context).languageCode,
+                                                                                        ),
+                                                                                        'dd/mm/aaaa',
+                                                                                      )),
                                                                             'dd/mm/aaaa',
                                                                           ),
                                                                         ),
@@ -3065,20 +3085,22 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               ),
                                                                           hintText:
                                                                               valueOrDefault<String>(
-                                                                            _model.datePicked3 != null
-                                                                                ? dateTimeFormat(
-                                                                                    "d/M/y",
-                                                                                    _model.datePicked3,
-                                                                                    locale: FFLocalizations.of(context).languageCode,
-                                                                                  )
-                                                                                : valueOrDefault<String>(
-                                                                                    dateTimeFormat(
-                                                                                      "d/M/y",
-                                                                                      pgRebanhoEditRebanhoRow?.dataDesmama,
-                                                                                      locale: FFLocalizations.of(context).languageCode,
-                                                                                    ),
-                                                                                    'dd/mm/aaaa',
-                                                                                  ),
+                                                                            _model.dataDesmamaCleared
+                                                                                ? 'dd/mm/aaaa'
+                                                                                : (_model.datePicked3 != null
+                                                                                    ? dateTimeFormat(
+                                                                                        "d/M/y",
+                                                                                        _model.datePicked3,
+                                                                                        locale: FFLocalizations.of(context).languageCode,
+                                                                                      )
+                                                                                    : valueOrDefault<String>(
+                                                                                        dateTimeFormat(
+                                                                                          "d/M/y",
+                                                                                          rowDesm,
+                                                                                          locale: FFLocalizations.of(context).languageCode,
+                                                                                        ),
+                                                                                        'dd/mm/aaaa',
+                                                                                      )),
                                                                             'dd/mm/aaaa',
                                                                           ),
                                                                           hintStyle: FlutterFlowTheme.of(context)
@@ -3219,11 +3241,13 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                                 datePicked3Date.month,
                                                                                 datePicked3Date.day,
                                                                               );
+                                                                              _model.dataDesmamaCleared = false;
                                                                             });
                                                                           } else if (_model.datePicked3 !=
                                                                               null) {
                                                                             safeSetState(() {
                                                                               _model.datePicked3 = getCurrentTimestamp;
+                                                                              _model.dataDesmamaCleared = false;
                                                                             });
                                                                           }
                                                                           safeSetState(
@@ -3247,6 +3271,28 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                         ),
                                                                       ),
                                                                     ],
+                                                                  ),
+                                                                          ),
+                                                                          if (hasDataDesmama) ...[
+                                                                            const SizedBox(width: 8.0),
+                                                                            IconButton(
+                                                                              icon: Icon(
+                                                                                Icons.close,
+                                                                                color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                size: 20.0,
+                                                                              ),
+                                                                              onPressed: () async {
+                                                                                safeSetState(() {
+                                                                                  _model.dataDesmamaCleared = true;
+                                                                                  _model.datePicked3 = null;
+                                                                                  _model.dataDesmamaTextController?.text = 'dd/mm/aaaa';
+                                                                                });
+                                                                              },
+                                                                            ),
+                                                                          ],
+                                                                        ],
+                                                                      );
+                                                                    },
                                                                   ),
                                                                 ].divide(const SizedBox(
                                                                     height:
@@ -7160,9 +7206,11 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         .text.replaceAll(',', '.'));
                                                 final DateTime?
                                                     effectiveDataDesmamaEdit =
-                                                    _model.datePicked3 ??
-                                                        pgRebanhoEditRebanhoRow
-                                                            ?.dataDesmama;
+                                                    _model.dataDesmamaCleared
+                                                        ? null
+                                                        : (_model.datePicked3 ??
+                                                            pgRebanhoEditRebanhoRow
+                                                                ?.dataDesmama);
                                                 final DateTime?
                                                     effectiveDataUltimaPesagemEdit =
                                                     _model.datePicked4 ??
@@ -7217,8 +7265,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         DateTime>(_model.datePicked2 ?? pgRebanhoEditRebanhoRow
                                                             ?.dataEntradaLote),
                                                     'dataDesmama': supaSerialize<
-                                                        DateTime>(_model.datePicked3 ?? pgRebanhoEditRebanhoRow
-                                                            ?.dataDesmama),
+                                                        DateTime>(effectiveDataDesmamaEdit),
                                                     'pesoDesmama':
                                                         pesoDesmamaParsedEdit,
                                                     'pesoAtual':

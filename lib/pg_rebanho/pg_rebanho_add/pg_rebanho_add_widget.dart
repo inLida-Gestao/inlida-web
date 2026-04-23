@@ -1284,7 +1284,14 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                           .fontStyle,
                                                                     ),
                                                               ),
-                                                              Stack(
+                                                              Builder(
+                                                                builder: (context) {
+                                                                  final hasDataNascimento = _model.datePicked1 != null;
+                                                                  return Row(
+                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                    children: [
+                                                                      Expanded(
+                                                                        child: Stack(
                                                                 children: [
                                                                   TextFormField(
                                                                     controller:
@@ -1532,12 +1539,33 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       width: double
                                                                           .infinity,
                                                                       height:
-                                                                          56.0,
+                                                                       56.0,
                                                                       decoration:
                                                                           const BoxDecoration(),
                                                                     ),
                                                                   ),
                                                                 ],
+                                                              ),
+                                                                      ),
+                                                                      if (hasDataNascimento) ...[
+                                                                        const SizedBox(width: 8.0),
+                                                                        IconButton(
+                                                                          icon: Icon(
+                                                                            Icons.close,
+                                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                                            size: 20.0,
+                                                                          ),
+                                                                          onPressed: () async {
+                                                                            safeSetState(() {
+                                                                              _model.datePicked1 = null;
+                                                                              _model.dataNascimentoTextController?.text = '';
+                                                                            });
+                                                                          },
+                                                                        ),
+                                                                      ],
+                                                                    ],
+                                                                  );
+                                                                },
                                                               ),
                                                             ].divide(
                                                                 const SizedBox(
@@ -3164,7 +3192,14 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                           .fontStyle,
                                                                     ),
                                                               ),
-                                                              Stack(
+                                                              Builder(
+                                                                builder: (context) {
+                                                                  final hasDataDesmama = _model.datePicked3 != null;
+                                                                  return Row(
+                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                    children: [
+                                                                      Expanded(
+                                                                        child: Stack(
                                                                 children: [
                                                                   TextFormField(
                                                                     controller:
@@ -3418,6 +3453,27 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     ),
                                                                   ),
                                                                 ],
+                                                              ),
+                                                                      ),
+                                                                      if (hasDataDesmama) ...[
+                                                                        const SizedBox(width: 8.0),
+                                                                        IconButton(
+                                                                          icon: Icon(
+                                                                            Icons.close,
+                                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                                            size: 20.0,
+                                                                          ),
+                                                                          onPressed: () async {
+                                                                            safeSetState(() {
+                                                                              _model.datePicked3 = null;
+                                                                              _model.dataDesmamaTextController?.text = '';
+                                                                            });
+                                                                          },
+                                                                        ),
+                                                                      ],
+                                                                    ],
+                                                                  );
+                                                                },
                                                               ),
                                                             ].divide(
                                                                 const SizedBox(
