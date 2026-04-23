@@ -7364,9 +7364,11 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                   ),
                                                 );
                                                 // Sincroniza pesoNascimento e pesoDesmama com a tabela
-                                                // historico_pesagens (apenas atualiza registros existentes;
-                                                // novos registros continuam sendo criados apenas pelo modal de
-                                                // pesagem ou na criação do animal).
+                                                // historico_pesagens:
+                                                // - Se existe registro do tipo (Nascimento/Desmama) e nao
+                                                //   deletado, atualiza peso (e dataPesagem quando data
+                                                //   informada).
+                                                // - Se nao existe nenhum, cria UMA UNICA VEZ.
                                                 final idRebanhoSync =
                                                     pgRebanhoEditRebanhoRow
                                                         ?.idRebanho;
@@ -7408,6 +7410,23 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                 'deletado',
                                                                 'NAO'),
                                                       );
+                                                    } else {
+                                                      await HistoricoPesagensTable()
+                                                          .insert({
+                                                        'idRebanho':
+                                                            idRebanhoSync,
+                                                        'id_propriedade':
+                                                            FFAppState()
+                                                                .propriedadeSelecionada
+                                                                .idPropriedade,
+                                                        'dataPesagem': supaSerialize<
+                                                                DateTime>(
+                                                            effectiveDataNascimentoForSave),
+                                                        'tipo': 'Nascimento',
+                                                        'peso':
+                                                            pesoNascimentoParsedEdit,
+                                                        'deletado': 'NAO',
+                                                      });
                                                     }
                                                   }
                                                   if (pesoDesmamaParsedEdit !=
@@ -7446,6 +7465,23 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                 'deletado',
                                                                 'NAO'),
                                                       );
+                                                    } else {
+                                                      await HistoricoPesagensTable()
+                                                          .insert({
+                                                        'idRebanho':
+                                                            idRebanhoSync,
+                                                        'id_propriedade':
+                                                            FFAppState()
+                                                                .propriedadeSelecionada
+                                                                .idPropriedade,
+                                                        'dataPesagem': supaSerialize<
+                                                                DateTime>(
+                                                            effectiveDataDesmamaEdit),
+                                                        'tipo': 'Desmama',
+                                                        'peso':
+                                                            pesoDesmamaParsedEdit,
+                                                        'deletado': 'NAO',
+                                                      });
                                                     }
                                                   }
                                                 }
