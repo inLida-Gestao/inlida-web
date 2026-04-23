@@ -6745,10 +6745,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                 .reprodutorSelecionado
                                                 .idAnimal,
                                           });
-                                          if (_model
-                                                  .pesoNascimentoTextController
-                                                  .text !=
-                                              '') {
+                                          final _pesoPesoNascimentoHist = double.tryParse(_model.pesoNascimentoTextController.text.replaceAll(',', '.'));
+                                          if (_pesoPesoNascimentoHist != null && _pesoPesoNascimentoHist > 0) {
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
@@ -6759,15 +6757,12 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                   supaSerialize<DateTime>(
                                                       _model.datePicked1),
                                               'tipo': 'Nascimento',
-                                              'peso': double.tryParse(_model
-                                                  .pesoNascimentoTextController
-                                                  .text.replaceAll(',', '.')),
+                                              'peso': _pesoPesoNascimentoHist,
                                               'deletado': 'NAO',
                                             });
                                           }
-                                          if (_model.pesoDesmamaTextController
-                                                  .text !=
-                                              '') {
+                                          final _pesoPesoDesmamaHist = double.tryParse(_model.pesoDesmamaTextController.text.replaceAll(',', '.'));
+                                          if (_pesoPesoDesmamaHist != null && _pesoPesoDesmamaHist > 0) {
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
@@ -6778,15 +6773,12 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                   supaSerialize<DateTime>(
                                                       _model.datePicked3),
                                               'tipo': 'Desmama',
-                                              'peso': double.tryParse(_model
-                                                  .pesoDesmamaTextController
-                                                  .text.replaceAll(',', '.')),
+                                              'peso': _pesoPesoDesmamaHist,
                                               'deletado': 'NAO',
                                             });
                                           }
-                                          if (_model.pesoAtualTextController
-                                                  .text !=
-                                              '') {
+                                          final _pesoPesoAtualHist = double.tryParse(_model.pesoAtualTextController.text.replaceAll(',', '.'));
+                                          if (_pesoPesoAtualHist != null && _pesoPesoAtualHist > 0) {
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
@@ -6797,9 +6789,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                   supaSerialize<DateTime>(
                                                       _model.datePicked4),
                                               'tipo': 'Atual',
-                                              'peso': double.tryParse(_model
-                                                  .pesoAtualTextController
-                                                  .text.replaceAll(',', '.')),
+                                              'peso': _pesoPesoAtualHist,
                                               'deletado': 'NAO',
                                             });
                                           }

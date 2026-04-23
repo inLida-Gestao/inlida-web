@@ -4496,10 +4496,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                 .reprodutorSelecionado
                                                 .idAnimal,
                                           });
-                                          if (_model
-                                                  .pesoNascimentoTextController
-                                                  .text !=
-                                              '') {
+                                          final _pesoPesoNascimentoHist = double.tryParse(_model.pesoNascimentoTextController.text.replaceAll(',', '.'));
+                                          if (_pesoPesoNascimentoHist != null && _pesoPesoNascimentoHist > 0) {
                                             await HistoricoPesagensTable()
                                                 .insert({
                                               'idRebanho': _model.idRebanho,
@@ -4510,9 +4508,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                                   supaSerialize<DateTime>(
                                                       _model.datePicked1),
                                               'tipo': 'Nascimento',
-                                              'peso': double.tryParse(_model
-                                                  .pesoNascimentoTextController
-                                                  .text.replaceAll(',', '.')),
+                                              'peso': _pesoPesoNascimentoHist,
                                               'deletado': 'NAO',
                                             });
                                           }

@@ -6560,6 +6560,26 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                   );
                                                                   return;
                                                                 }
+                                                                final pesoAddDouble = double.tryParse(_model
+                                                                    .pesoAddTextController
+                                                                    .text
+                                                                    .trim()
+                                                                    .replaceAll(',', '.'));
+                                                                if (pesoAddDouble == null || pesoAddDouble <= 0) {
+                                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                                    SnackBar(
+                                                                      content: Text(
+                                                                        'Informe um peso maior que zero.',
+                                                                        style: TextStyle(
+                                                                          color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                        ),
+                                                                      ),
+                                                                      duration: const Duration(milliseconds: 3000),
+                                                                      backgroundColor: FlutterFlowTheme.of(context).error,
+                                                                    ),
+                                                                  );
+                                                                  return;
+                                                                }
                                                                 final idRebanhoEdit =
                                                                     pgRebanhoEditRebanhoRow
                                                                         ?.idRebanho;
@@ -6578,12 +6598,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               .datePicked10),
                                                                   'tipo':
                                                                       'Atual',
-                                                                  'peso': double
-                                                                      .tryParse(_model
-                                                                          .pesoAddTextController
-                                                                          .text
-                                                                          .trim()
-                                                                          .replaceAll(',', '.')),
+                                                                  'peso': pesoAddDouble,
                                                                   'deletado':
                                                                       'NAO',
                                                                 });
@@ -7374,7 +7389,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         ?.idRebanho;
                                                 if (idRebanhoSync != null) {
                                                   if (pesoNascimentoParsedEdit !=
-                                                      null) {
+                                                          null &&
+                                                      pesoNascimentoParsedEdit > 0) {
                                                     final existentesNasc =
                                                         await HistoricoPesagensTable()
                                                             .queryRows(
@@ -7430,7 +7446,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                     }
                                                   }
                                                   if (pesoDesmamaParsedEdit !=
-                                                      null) {
+                                                          null &&
+                                                      pesoDesmamaParsedEdit > 0) {
                                                     final existentesDesm =
                                                         await HistoricoPesagensTable()
                                                             .queryRows(
@@ -7490,6 +7507,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                   // um valor diferente do que ja estava salvo.
                                                   if (pesoAtualDigitadoEdit !=
                                                           null &&
+                                                      pesoAtualDigitadoEdit > 0 &&
                                                       pesoAtualDigitadoEdit !=
                                                           pgRebanhoEditRebanhoRow
                                                               ?.pesoAtual) {

@@ -530,6 +530,21 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                             .trim()
                             .replaceAll(',', '.');
                         final pesoDouble = double.tryParse(pesoTextoNorm);
+                        if (pesoDouble == null || pesoDouble <= 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Informe um peso maior que zero.',
+                                style: TextStyle(
+                                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                                ),
+                              ),
+                              duration: const Duration(milliseconds: 3000),
+                              backgroundColor: FlutterFlowTheme.of(context).error,
+                            ),
+                          );
+                          return;
+                        }
                         final idRebanho = containerRebanhoRow?.idRebanho;
                         await HistoricoPesagensTable().insert({
                           'idRebanho': idRebanho,
