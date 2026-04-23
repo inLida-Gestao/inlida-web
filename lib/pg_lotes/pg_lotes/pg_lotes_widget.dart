@@ -94,8 +94,14 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
             )))
           .future,
       builder: (context, snapshot) {
-        // Customize what your widget looks like when it's loading.
-        if (!snapshot.hasData) {
+        // Mantem dados anteriores visiveis enquanto recarrega (evita flash cinza ao paginar).
+        if (snapshot.hasData) {
+          _model.lastLotesResponse = snapshot.data;
+          _model.isPaginating = false;
+        }
+        final hasCachedData = _model.lastLotesResponse != null;
+        // So mostra a tela cheia de loading na primeira carga (sem cache).
+        if (!snapshot.hasData && !hasCachedData) {
           return Scaffold(
             backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
             body: Center(
@@ -111,7 +117,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
             ),
           );
         }
-        if (snapshot.hasError) {
+        if (snapshot.hasError && !hasCachedData) {
           return Scaffold(
             backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
             body: Center(
@@ -144,7 +150,9 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
             ),
           );
         }
-        final pgLotesBuscarLotesFiltrosResponse = snapshot.data!;
+        final pgLotesBuscarLotesFiltrosResponse =
+            snapshot.data ?? _model.lastLotesResponse!;
+        final isLoadingPage = !snapshot.hasData;
 
 
         return GestureDetector(
@@ -1012,7 +1020,9 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                         ].divide(const SizedBox(width: 24.0)),
                                       ),
                                       Expanded(
-                                        child: Builder(
+                                        child: Stack(
+                                          children: [
+                                            Builder(
                                           builder: (context) {
                                             final selectedProperty = FFAppState().propriedadeSelecionada.idPropriedade;
                                             final lote =
@@ -1474,6 +1484,33 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                               addVerticalDivider: false,
                                             );
                                           },
+                                        ),
+                                            if (isLoadingPage)
+                                              Positioned.fill(
+                                                child: Container(
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .primaryBackground
+                                                      .withOpacity(0.55),
+                                                  child: Center(
+                                                    child: SizedBox(
+                                                      width: 40.0,
+                                                      height: 40.0,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        valueColor:
+                                                            AlwaysStoppedAnimation<
+                                                                Color>(
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .primary,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
                                         ),
                                       ),
                                       Row(

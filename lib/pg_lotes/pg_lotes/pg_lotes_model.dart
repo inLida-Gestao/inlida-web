@@ -34,6 +34,9 @@ class PgLotesModel extends FlutterFlowModel<PgLotesWidget> {
 
   VoidCallback? disposeRefreshListener;
   Completer<ApiCallResponse>? apiRequestCompleter;
+  // Cache do ultimo resultado bem-sucedido para evitar tela cinza ao paginar.
+  ApiCallResponse? lastLotesResponse;
+  bool isPaginating = false;
   // Model for header component.
   late HeaderModel headerModel;
   // Model for sideBar component.
