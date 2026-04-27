@@ -156,11 +156,9 @@ class _PainelWidgetState extends State<PainelWidget>
                     child: const HeaderWidget(),
                   ),
                   Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      height: 100.0,
-                      decoration: const BoxDecoration(),
+                    child: SizedBox.expand(
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           wrapWithModel(
@@ -170,8 +168,7 @@ class _PainelWidgetState extends State<PainelWidget>
                           ),
                           Expanded(
                             child: Container(
-                              width: MediaQuery.sizeOf(context).width * 1.0,
-                              height: MediaQuery.sizeOf(context).height * 1.0,
+                              width: double.infinity,
                               decoration: BoxDecoration(
                                 color: FlutterFlowTheme.of(context)
                                     .secondaryBackground,
@@ -3217,27 +3214,27 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             crossAxisAlignment:
                                                                                 CrossAxisAlignment.center,
                                                                             children: [
-                                                                              Row(
-                                                                                mainAxisSize: MainAxisSize.max,
-                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                children: [
-                                                                                  Flexible(
-                                                                                    child: Row(
+                                                                              SingleChildScrollView(
+                                                                                scrollDirection: Axis.horizontal,
+                                                                                child: Row(
+                                                                                  mainAxisSize: MainAxisSize.min,
+                                                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                                                  children: [
+                                                                                    Row(
+                                                                                      mainAxisSize: MainAxisSize.min,
                                                                                       children: [
-                                                                                        Flexible(
-                                                                                          child: Text(
-                                                                                            'Projeção de desmamas no período (cabeça)',
-                                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                                  font: GoogleFonts.poppins(
-                                                                                                    fontWeight: FontWeight.w600,
-                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                  ),
-                                                                                                  fontSize: 18.0,
-                                                                                                  letterSpacing: 0.0,
+                                                                                        Text(
+                                                                                          'Projeção de desmamas no período (cabeça)',
+                                                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                font: GoogleFonts.poppins(
                                                                                                   fontWeight: FontWeight.w600,
                                                                                                   fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                                 ),
-                                                                                          ),
+                                                                                                fontSize: 18.0,
+                                                                                                letterSpacing: 0.0,
+                                                                                                fontWeight: FontWeight.w600,
+                                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                              ),
                                                                                         ),
                                                                                         const SizedBox(width: 12.0),
                                                                                         _buildTotalBadge(
@@ -3255,56 +3252,58 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                         ),
                                                                                       ],
                                                                                     ),
-                                                                                  ),
-                                                                                  _buildMultiFilterChip(
-                                                                                    context,
-                                                                                    label: 'Sexo',
-                                                                                    selectedValues: _model.filtroSexoProjDesmamaValues,
-                                                                                    options: const [
-                                                                                      'Macho',
-                                                                                      'Fêmea'
-                                                                                    ],
-                                                                                    optionLabels: const [
-                                                                                      'Macho',
-                                                                                      'Fêmea'
-                                                                                    ],
-                                                                                    onChanged: (vals) {
-                                                                                      safeSetState(() {
-                                                                                        _model.filtroSexoProjDesmamaValues = vals;
-                                                                                      });
-                                                                                    },
-                                                                                    onClear: () {
-                                                                                      safeSetState(() {
-                                                                                        _model.filtroSexoProjDesmamaValues = [];
-                                                                                      });
-                                                                                    },
-                                                                                  ),
-                                                                                  _buildSingleFilterChip(
-                                                                                    context,
-                                                                                    label: 'Meses',
-                                                                                    selectedValue: _model.ddMesesValue,
-                                                                                    options: const [
-                                                                                      '6',
-                                                                                      '7',
-                                                                                      '8'
-                                                                                    ],
-                                                                                    optionLabels: const [
-                                                                                      '6 meses',
-                                                                                      '7 meses',
-                                                                                      '8 meses'
-                                                                                    ],
-                                                                                    onChanged: (val) {
-                                                                                      safeSetState(() {
-                                                                                        _model.ddMesesValue = val;
-                                                                                      });
-                                                                                    },
-                                                                                    onClear: () {
-                                                                                      safeSetState(() {
-                                                                                        _model.ddMesesValue = '6';
-                                                                                      });
-                                                                                    },
-                                                                                  ),
-                                                                                ].divide(const SizedBox(width: 12.0)),
+                                                                                    const SizedBox(width: 12.0),
+                                                                                    _buildMultiFilterChip(
+                                                                                      context,
+                                                                                      label: 'Sexo',
+                                                                                      selectedValues: _model.filtroSexoProjDesmamaValues,
+                                                                                      options: const [
+                                                                                        'Macho',
+                                                                                        'Fêmea'
+                                                                                      ],
+                                                                                      optionLabels: const [
+                                                                                        'Macho',
+                                                                                        'Fêmea'
+                                                                                      ],
+                                                                                      onChanged: (vals) {
+                                                                                        safeSetState(() {
+                                                                                          _model.filtroSexoProjDesmamaValues = vals;
+                                                                                        });
+                                                                                      },
+                                                                                      onClear: () {
+                                                                                        safeSetState(() {
+                                                                                          _model.filtroSexoProjDesmamaValues = [];
+                                                                                        });
+                                                                                      },
+                                                                                    ),
+                                                                                    const SizedBox(width: 12.0),
+                                                                                    _buildSingleFilterChip(
+                                                                                      context,
+                                                                                      label: 'Meses',
+                                                                                      selectedValue: _model.ddMesesValue,
+                                                                                      options: const [
+                                                                                        '6',
+                                                                                        '7',
+                                                                                        '8'
+                                                                                      ],
+                                                                                      optionLabels: const [
+                                                                                        '6 meses',
+                                                                                        '7 meses',
+                                                                                        '8 meses'
+                                                                                      ],
+                                                                                      onChanged: (val) {
+                                                                                        safeSetState(() {
+                                                                                          _model.ddMesesValue = val;
+                                                                                        });
+                                                                                      },
+                                                                                      onClear: () {
+                                                                                        safeSetState(() {
+                                                                                          _model.ddMesesValue = '6';
+                                                                                        });
+                                                                                      },
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
                                                                               ),
                                                                               Expanded(
                                                                                 child: Container(
@@ -3363,6 +3362,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                           .fromSTEB(
                                                           0.0, 24.0, 0.0, 0.0),
                                                   child: SingleChildScrollView(
+                                                    physics: const AlwaysScrollableScrollPhysics(
+                                                      parent: BouncingScrollPhysics(),
+                                                    ),
                                                     child: Column(
                                                       mainAxisSize:
                                                           MainAxisSize.max,
@@ -4898,20 +4900,17 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                   ),
                                                                                 ],
                                                                               ),
-                                                                              Container(
-                                                                                width: double.infinity,
-                                                                                height: double.infinity,
-                                                                                constraints: const BoxConstraints(
-                                                                                  maxHeight: 350.0,
-                                                                                ),
-                                                                                decoration: BoxDecoration(
-                                                                                  color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                ),
+                                                                              Expanded(
                                                                                 child: Padding(
                                                                                   padding: const EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
-                                                                                  child: SizedBox(
+                                                                                  child: Container(
                                                                                     width: double.infinity,
-                                                                                    height: double.infinity,
+                                                                                    constraints: const BoxConstraints(
+                                                                                      maxHeight: 350.0,
+                                                                                    ),
+                                                                                    decoration: BoxDecoration(
+                                                                                      color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                    ),
                                                                                     child: custom_widgets.ProjecaoPartosChart(
                                                                                       width: double.infinity,
                                                                                       height: double.infinity,
@@ -5139,6 +5138,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                               Expanded(
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
+                                                                  key: ValueKey(
+                                                                    'relatorio_estacao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_painelPeriodoDataInicio()}_${_painelPeriodoDataFim()}',
+                                                                  ),
                                                                   future: SupaEdgeGroup
                                                                       .reproducaoDiagnosticosPeriodoCall
                                                                       .call(
@@ -5146,13 +5148,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
-                                                                    mes: _model
-                                                                        .dDInicioMesValue,
-                                                                    ano: functions
-                                                                        .converterTextoEmNumero(
-                                                                      _model
-                                                                          .dDInicioAnoValue,
-                                                                    ),
+                                                                    dataInicial:
+                                                                        _painelPeriodoDataInicio(),
+                                                                    dataFinal:
+                                                                        _painelPeriodoDataFim(),
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -5193,11 +5192,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       child:
                                                                           Container(
                                                                         height:
-                                                                            433.0,
+                                                                            460.0,
                                                                         constraints:
                                                                             const BoxConstraints(
                                                                           maxHeight:
-                                                                              433.0,
+                                                                              460.0,
                                                                         ),
                                                                         decoration:
                                                                             BoxDecoration(
@@ -5225,7 +5224,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                 children: [
                                                                                   Text(
-                                                                                    'Diagnósticos realizados no período',
+                                                                                    'Relatório da estação',
                                                                                     style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                           font: GoogleFonts.poppins(
                                                                                             fontWeight: FontWeight.w600,
@@ -5240,11 +5239,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                   const SizedBox(width: 12.0),
                                                                                   _buildTotalBadge(
                                                                                     context,
-                                                                                    _sumDiagnosticosPeriodo(
-                                                                                      getJsonField(
-                                                                                        containerReproducaoDiagnosticosPeriodoResponse.jsonBody,
-                                                                                        r'''$.items''',
-                                                                                      ),
+                                                                                    _expostasTotalRelatorioEstacao(
+                                                                                      containerReproducaoDiagnosticosPeriodoResponse.jsonBody,
                                                                                     ),
                                                                                   ),
                                                                                 ],
@@ -5252,24 +5248,15 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               Expanded(
                                                                                 child: Container(
                                                                                   width: double.infinity,
-                                                                                  height: double.infinity,
                                                                                   constraints: const BoxConstraints(
-                                                                                    maxHeight: 350.0,
+                                                                                    maxHeight: 380.0,
                                                                                   ),
                                                                                   decoration: BoxDecoration(
                                                                                     color: FlutterFlowTheme.of(context).secondaryBackground,
                                                                                   ),
-                                                                                  child: SizedBox(
+                                                                                  child: custom_widgets.DiagnosticosPeriodoTable(
                                                                                     width: double.infinity,
-                                                                                    height: double.infinity,
-                                                                                    child: custom_widgets.DiagnosticosPeriodoTable(
-                                                                                      width: double.infinity,
-                                                                                      height: double.infinity,
-                                                                                      items: getJsonField(
-                                                                                        containerReproducaoDiagnosticosPeriodoResponse.jsonBody,
-                                                                                        r'''$.items''',
-                                                                                      ),
-                                                                                    ),
+                                                                                    jsonBody: containerReproducaoDiagnosticosPeriodoResponse.jsonBody,
                                                                                   ),
                                                                                 ),
                                                                               ),
@@ -5977,29 +5964,13 @@ class _PainelWidgetState extends State<PainelWidget>
     return total;
   }
 
-  /// Extrai o total da linha "Total" nos diagnósticos realizados no período.
-  int _sumDiagnosticosPeriodo(dynamic items) {
-    if (items == null) return 0;
-    List<dynamic> list;
-    if (items is List) {
-      list = items;
-    } else if (items is Map && items['items'] is List) {
-      list = items['items'] as List;
-    } else {
-      return 0;
-    }
-    // Procura a linha "Total" ou soma todos os totais excluindo a linha Total
-    int sum = 0;
-    for (final e in list) {
-      if (e is Map) {
-        final situacao = (e['situacao'] as String?) ?? '';
-        if (situacao == 'Total') {
-          return ((e['total'] as num?) ?? 0).toInt();
-        }
-        sum += ((e['total'] as num?) ?? 0).toInt();
-      }
-    }
-    return sum;
+  /// Matrizes distintas expostas no período (relatório da estação / edge).
+  int _expostasTotalRelatorioEstacao(dynamic jsonBody) {
+    if (jsonBody == null) return 0;
+    final v = getJsonField(jsonBody, r'''$.expostas_total''');
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v) ?? 0;
+    return 0;
   }
 
   /// Soma o campo 'todos' (ou 'Todos') de uma lista de itens vendidos.

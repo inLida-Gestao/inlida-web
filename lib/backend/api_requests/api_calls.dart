@@ -2644,10 +2644,11 @@ class ReproducaoDiagnosticosCategoriaCall {
 }
 
 class ReproducaoDiagnosticosPeriodoCall {
+  /// [dataInicial] e [dataFinal] em ISO (yyyy-MM-dd), alinhados ao filtro do painel.
   Future<ApiCallResponse> call({
     String? idPropriedade = '',
-    int? mes = 1,
-    int? ano = 2023,
+    String? dataInicial = '',
+    String? dataFinal = '',
   }) async {
     final baseUrl = SupaEdgeGroup.getBaseUrl();
 
@@ -2664,8 +2665,8 @@ class ReproducaoDiagnosticosPeriodoCall {
       },
       params: {
         'idPropriedade': idPropriedade,
-        'mes': mes?.toString(),
-        'ano': ano?.toString(),
+        'inicio': dataInicial,
+        'fim': dataFinal,
       },
       returnBody: true,
       encodeBodyUtf8: false,
@@ -2676,26 +2677,22 @@ class ReproducaoDiagnosticosPeriodoCall {
     );
   }
 
-  List? items(dynamic response) => getJsonField(
-        response,
-        r'''$.items''',
-        true,
-      ) as List?;
   bool? ok(dynamic response) => castToType<bool>(getJsonField(
         response,
-        r'''$.items''',
+        r'''$.ok''',
       ));
-  String? itemssituacao(dynamic response) => castToType<String>(getJsonField(
+  List? linhas(dynamic response) => getJsonField(
         response,
-        r'''$.items[:].situacao''',
+        r'''$.linhas''',
+        true,
+      ) as List?;
+  int? expostasTotal(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.expostas_total''',
       ));
-  int? itemstotal(dynamic response) => castToType<int>(getJsonField(
+  String? dataUltimoDg(dynamic response) => castToType<String>(getJsonField(
         response,
-        r'''$.items[:].total''',
-      ));
-  double? itemsporcentagem(dynamic response) => castToType<double>(getJsonField(
-        response,
-        r'''$.items[:].porcentagem''',
+        r'''$.data_ultimo_dg''',
       ));
 }
 

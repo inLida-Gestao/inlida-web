@@ -112,10 +112,18 @@ class _DiagnosticosCategoriaChartState extends State<DiagnosticosCategoriaChart>
         : ((maxStack + interval - 1) ~/ interval) * interval;
     final int maxY = computedMax < 100 ? 100 : computedMax;
 
+    const colunasFinais = BorderRadius.only(
+      topLeft: Radius.circular(4),
+      topRight: Radius.circular(4),
+    );
+
     return SizedBox(
       width: w,
       height: h,
       child: SfCartesianChart(
+        margin: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+        plotAreaBorderWidth: 0,
+        backgroundColor: Colors.transparent,
         legend: const Legend(
           isVisible: true,
           position: LegendPosition.top,
@@ -126,14 +134,21 @@ class _DiagnosticosCategoriaChartState extends State<DiagnosticosCategoriaChart>
         tooltipBehavior: TooltipBehavior(enable: true),
         primaryXAxis: CategoryAxis(
           labelRotation: rotate,
+          labelPosition: ChartDataLabelPosition.outside,
+          labelIntersectAction: AxisLabelIntersectAction.hide,
           majorGridLines: const MajorGridLines(width: 0),
+          labelStyle: const TextStyle(fontSize: 10.5, height: 1.0),
         ),
         primaryYAxis: NumericAxis(
           minimum: 0,
           maximum: maxY.toDouble(),
           interval: interval.toDouble(),
           axisLine: const AxisLine(width: 0),
-          majorGridLines: const MajorGridLines(width: 0),
+          majorGridLines: MajorGridLines(
+            width: 0.5,
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+            dashArray: const <double>[3, 3],
+          ),
         ),
         series: <CartesianSeries<_DiagnosticoPorPeriodo, String>>[
           StackedColumnSeries<_DiagnosticoPorPeriodo, String>(
@@ -142,6 +157,9 @@ class _DiagnosticosCategoriaChartState extends State<DiagnosticosCategoriaChart>
             dataSource: data,
             xValueMapper: (p, _) => p.label,
             yValueMapper: (p, _) => p.novilha,
+            width: 0.9,
+            spacing: 0.1,
+            borderRadius: colunasFinais,
           ),
           StackedColumnSeries<_DiagnosticoPorPeriodo, String>(
             name: 'Multípara',
@@ -149,6 +167,9 @@ class _DiagnosticosCategoriaChartState extends State<DiagnosticosCategoriaChart>
             dataSource: data,
             xValueMapper: (p, _) => p.label,
             yValueMapper: (p, _) => p.multipara,
+            width: 0.9,
+            spacing: 0.1,
+            borderRadius: colunasFinais,
           ),
           StackedColumnSeries<_DiagnosticoPorPeriodo, String>(
             name: 'Primípara',
@@ -156,6 +177,9 @@ class _DiagnosticosCategoriaChartState extends State<DiagnosticosCategoriaChart>
             dataSource: data,
             xValueMapper: (p, _) => p.label,
             yValueMapper: (p, _) => p.primipara,
+            width: 0.9,
+            spacing: 0.1,
+            borderRadius: colunasFinais,
           ),
         ],
       ),
