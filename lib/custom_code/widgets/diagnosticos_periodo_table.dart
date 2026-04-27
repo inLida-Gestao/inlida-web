@@ -251,7 +251,6 @@ class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
             Scrollbar(
               controller: _scrollHorizontal,
               thumbVisibility: true,
-              trackVisibility: true,
               thickness: 6,
               radius: const Radius.circular(4),
               child: SingleChildScrollView(
