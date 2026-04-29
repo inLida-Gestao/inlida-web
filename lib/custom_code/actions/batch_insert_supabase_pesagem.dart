@@ -185,6 +185,50 @@ double? _parseDoubleSafe(dynamic value) {
   return double.tryParse(normalized);
 }
 
+String _normalizeTipoPesagem(dynamic value) {
+  final tipo = _fixEncoding((value ?? 'Atual').toString().trim());
+  return tipo.isEmpty ? 'Atual' : tipo;
+}
+
+String _composePesagemDedupKey({
+  required String idRebanho,
+  required String tipo,
+  required String? dataPesagem,
+  required double? peso,
+}) =>
+    '$idRebanho|$tipo|${dataPesagem ?? ''}|${peso?.toStringAsFixed(6) ?? ''}';
+
+String _nextIsoDate(String isoDate) {
+  final parsed = DateTime.parse(isoDate);
+  return parsed.add(const Duration(days: 1)).toIso8601String().split('T').first;
+}
+
+Future<bool> _pesagemAtivaJaExiste({
+  required String idRebanho,
+  required String tipo,
+  required String? dataPesagem,
+  required double? peso,
+}) async {
+  if (idRebanho.trim().isEmpty || dataPesagem == null || peso == null) {
+    return false;
+  }
+
+  final rows = await Supabase.instance.client
+      .from('historico_pesagens')
+      .select('id,deletado')
+      .eq('idRebanho', idRebanho)
+      .eq('tipo', tipo)
+      .eq('peso', peso)
+      .gte('dataPesagem', dataPesagem)
+      .lt('dataPesagem', _nextIsoDate(dataPesagem))
+      .limit(20);
+
+  return (rows as List).any((row) {
+    final map = Map<String, dynamic>.from(row as Map);
+    return map['deletado']?.toString().trim().toUpperCase() != 'SIM';
+  });
+}
+
 String _composeFiveFieldKey({
   required String numero,
   required String nome,
@@ -476,74 +520,87 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
       final chunk = foundRows.sublist(i, end);
 
       final List<Map<String, dynamic>> pesagemRecords = [];
+      final List<Map<String, dynamic>> rowsParaInserir = [];
+      final List<Map<String, dynamic>> rowsParaAtualizar = [];
+      final dedupKeysNoChunk = <String>{};
 
       for (final row in chunk) {
         final idRebanho = row['_idRebanho'] as String;
         final dataPesagem = _convertDateFormat(
             (row['dataPesagem'] ?? '').toString());
-        final tipo = _fixEncoding(
-            (row['tipo'] ?? 'Atual').toString().trim());
+        final tipo = _normalizeTipoPesagem(row['tipo']);
         final peso = _parseDoubleSafe(row['peso']);
+        final dedupKey = _composePesagemDedupKey(
+          idRebanho: idRebanho,
+          tipo: tipo,
+          dataPesagem: dataPesagem,
+          peso: peso,
+        );
+
+        if (!dedupKeysNoChunk.add(dedupKey)) {
+          continue;
+        }
+
+        if (await _pesagemAtivaJaExiste(
+          idRebanho: idRebanho,
+          tipo: tipo,
+          dataPesagem: dataPesagem,
+          peso: peso,
+        )) {
+          rowsParaAtualizar.add(row);
+          continue;
+        }
 
         pesagemRecords.add({
           'idRebanho': idRebanho,
           'dataPesagem': dataPesagem,
-          'tipo': tipo.isEmpty ? 'Atual' : tipo,
+          'tipo': tipo,
           'peso': peso,
           'deletado': null,
           'id_propriedade': idPropriedade,
         });
+        rowsParaInserir.add(row);
       }
 
       try {
-        await Supabase.instance.client
-            .from('historico_pesagens')
-            .insert(pesagemRecords);
+        if (pesagemRecords.isNotEmpty) {
+          await Supabase.instance.client
+              .from('historico_pesagens')
+              .insert(pesagemRecords);
 
-        for (final row in chunk) {
-          final idRebanho = row['_idRebanho'] as String;
-          final tipo = _fixEncoding(
-              (row['tipo'] ?? 'Atual').toString().trim());
-          final peso = _parseDoubleSafe(row['peso']);
-          final dataPesagem = _convertDateFormat(
-              (row['dataPesagem'] ?? '').toString());
-
-          await _updateRebanhoAfterPesagem(
-            idRebanho: idRebanho,
-            tipo: tipo.isEmpty ? 'Atual' : tipo,
-            peso: peso,
-            dataPesagem: dataPesagem,
-          );
+          rowsParaAtualizar.addAll(rowsParaInserir);
+          totalInserted += pesagemRecords.length;
         }
-
-        totalInserted += chunk.length;
-      } catch (chunkError) {
-        for (int ci = 0; ci < chunk.length; ci++) {
-          final row = chunk[ci];
+      } catch (insertError) {
+        for (int ci = 0; ci < rowsParaInserir.length; ci++) {
+          final row = rowsParaInserir[ci];
           try {
             final idRebanho = row['_idRebanho'] as String;
             final dataPesagem = _convertDateFormat(
                 (row['dataPesagem'] ?? '').toString());
-            final tipo = _fixEncoding(
-                (row['tipo'] ?? 'Atual').toString().trim());
+            final tipo = _normalizeTipoPesagem(row['tipo']);
             final peso = _parseDoubleSafe(row['peso']);
+
+            if (await _pesagemAtivaJaExiste(
+              idRebanho: idRebanho,
+              tipo: tipo,
+              dataPesagem: dataPesagem,
+              peso: peso,
+            )) {
+              rowsParaAtualizar.add(row);
+              continue;
+            }
 
             await Supabase.instance.client.from('historico_pesagens').insert({
               'idRebanho': idRebanho,
               'dataPesagem': dataPesagem,
-              'tipo': tipo.isEmpty ? 'Atual' : tipo,
+              'tipo': tipo,
               'peso': peso,
               'deletado': null,
               'id_propriedade': idPropriedade,
             });
 
-            await _updateRebanhoAfterPesagem(
-              idRebanho: idRebanho,
-              tipo: tipo.isEmpty ? 'Atual' : tipo,
-              peso: peso,
-              dataPesagem: dataPesagem,
-            );
-
+            rowsParaAtualizar.add(row);
             totalInserted++;
           } catch (recordError) {
             totalFailed++;
@@ -556,6 +613,21 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
             });
           }
         }
+      }
+
+      for (final row in rowsParaAtualizar) {
+        final idRebanho = row['_idRebanho'] as String;
+        final tipo = _normalizeTipoPesagem(row['tipo']);
+        final peso = _parseDoubleSafe(row['peso']);
+        final dataPesagem =
+            _convertDateFormat((row['dataPesagem'] ?? '').toString());
+
+        await _updateRebanhoAfterPesagem(
+          idRebanho: idRebanho,
+          tipo: tipo,
+          peso: peso,
+          dataPesagem: dataPesagem,
+        );
       }
     }
   } catch (e, stack) {

@@ -29,6 +29,10 @@ class PgRebanhoViewModel extends FlutterFlowModel<PgRebanhoViewWidget> {
 
   RebanhoRow? animalSelecionado;
 
+  DateTime? gmdDataInicial;
+
+  DateTime? gmdDataFinal;
+
   ///  State fields for stateful widgets in this page.
 
   VoidCallback? disposeRefreshListener;

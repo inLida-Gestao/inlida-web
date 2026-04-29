@@ -1042,15 +1042,75 @@ void _addPesagemRecord({
   });
 }
 
+String _composePesagemRecordKey(Map<String, dynamic> pesagem) =>
+    '${pesagem['idRebanho'] ?? ''}|${pesagem['tipo'] ?? ''}|${pesagem['dataPesagem'] ?? ''}|${(pesagem['peso'] as num?)?.toStringAsFixed(6) ?? ''}';
+
+String _nextIsoDate(String isoDate) {
+  final parsed = DateTime.parse(isoDate);
+  return parsed.add(const Duration(days: 1)).toIso8601String().split('T').first;
+}
+
+Future<bool> _pesagemAtivaJaExiste(Map<String, dynamic> pesagem) async {
+  final idRebanho = pesagem['idRebanho']?.toString();
+  final tipo = pesagem['tipo']?.toString();
+  final dataPesagem = pesagem['dataPesagem']?.toString();
+  final peso = pesagem['peso'];
+
+  if (idRebanho == null ||
+      idRebanho.trim().isEmpty ||
+      tipo == null ||
+      tipo.trim().isEmpty ||
+      !_isValidDate(dataPesagem) ||
+      peso == null) {
+    return false;
+  }
+
+  final dataPesagemIso = dataPesagem!;
+  final rows = await Supabase.instance.client
+      .from('historico_pesagens')
+      .select('id,deletado')
+      .eq('idRebanho', idRebanho)
+      .eq('tipo', tipo)
+      .eq('peso', peso)
+      .gte('dataPesagem', dataPesagemIso)
+      .lt('dataPesagem', _nextIsoDate(dataPesagemIso))
+      .limit(20);
+
+  return (rows as List).any((row) {
+    final map = Map<String, dynamic>.from(row as Map);
+    return map['deletado']?.toString().trim().toUpperCase() != 'SIM';
+  });
+}
+
 // Função auxiliar para inserir pesagens
 Future<void> _insertPesagens(List<Map<String, dynamic>> pesagens) async {
+  final dedupKeys = <String>{};
+  final pesagensNovas = <Map<String, dynamic>>[];
+
+  for (final pesagem in pesagens) {
+    if (!dedupKeys.add(_composePesagemRecordKey(pesagem))) {
+      continue;
+    }
+    if (await _pesagemAtivaJaExiste(pesagem)) {
+      continue;
+    }
+    pesagensNovas.add(pesagem);
+  }
+
+  if (pesagensNovas.isEmpty) return;
+
   try {
-    await Supabase.instance.client.from('historico_pesagens').insert(pesagens);
+    await Supabase.instance.client
+        .from('historico_pesagens')
+        .insert(pesagensNovas);
   } catch (e) {
     print('Erro ao inserir pesagens: $e');
     // Tentar inserir uma por uma em caso de erro
-    for (final pesagem in pesagens) {
+    for (final pesagem in pesagensNovas) {
       try {
+        if (await _pesagemAtivaJaExiste(pesagem)) {
+          continue;
+        }
         await Supabase.instance.client
             .from('historico_pesagens')
             .insert(pesagem);

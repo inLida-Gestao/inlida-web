@@ -1,4 +1,3 @@
-import '/backend/api_requests/api_calls.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/supabase/supabase.dart';
 import '/componentes/header/header_widget.dart';
@@ -27,6 +26,40 @@ import 'package:provider/provider.dart';
 import 'pg_view_lote_model.dart';
 export 'pg_view_lote_model.dart';
 
+class _LoteGmdAnimalResult {
+  const _LoteGmdAnimalResult({
+    required this.animal,
+    this.pesoInicial,
+    this.pesoFinal,
+    this.dataInicial,
+    this.dataFinal,
+    this.diasAvaliados,
+    this.gmd,
+    this.motivoNaoCalculavel,
+  });
+
+  final RebanhoDTStruct animal;
+  final double? pesoInicial;
+  final double? pesoFinal;
+  final DateTime? dataInicial;
+  final DateTime? dataFinal;
+  final int? diasAvaliados;
+  final double? gmd;
+  final String? motivoNaoCalculavel;
+
+  bool get calculavel => gmd != null;
+}
+
+class _LoteGmdPesagem {
+  const _LoteGmdPesagem({
+    required this.data,
+    required this.peso,
+  });
+
+  final DateTime data;
+  final double peso;
+}
+
 class PgViewLoteWidget extends StatefulWidget {
   const PgViewLoteWidget({
     super.key,
@@ -50,6 +83,933 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  DateTime _dateOnly(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
+
+  String _normalizeIdRebanho(String? value) => value?.trim() ?? '';
+
+  bool _pesagemLoteAtiva(HistoricoPesagensRow pesagem) =>
+      pesagem.deletado?.trim().toUpperCase() != 'SIM';
+
+  bool _rebanhoLoteAtivo(RebanhoRow row) =>
+      row.deletado?.trim().toUpperCase() != 'SIM';
+
+  DateTime? _parseLoteDate(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+
+    final parsed = DateTime.tryParse(trimmed);
+    if (parsed != null) return parsed;
+
+    final parts = trimmed.split('/');
+    if (parts.length == 3) {
+      final day = int.tryParse(parts[0]);
+      final month = int.tryParse(parts[1]);
+      final year = int.tryParse(parts[2]);
+      if (day != null && month != null && year != null) {
+        return DateTime(year, month, day);
+      }
+    }
+
+    return null;
+  }
+
+  int _comparePesagensLote(
+    HistoricoPesagensRow a,
+    HistoricoPesagensRow b,
+  ) {
+    final dataCompare = a.dataPesagem!.compareTo(b.dataPesagem!);
+    if (dataCompare != 0) return dataCompare;
+
+    final createdCompare = a.createdAt.compareTo(b.createdAt);
+    if (createdCompare != 0) return createdCompare;
+
+    return a.id.compareTo(b.id);
+  }
+
+  String _gmdLoteAnimaisKey(List<RebanhoDTStruct> animais) {
+    final ids = animais
+        .map((animal) {
+          final id = _normalizeIdRebanho(animal.idRebanho);
+          if (id.isEmpty) return '';
+          return [
+            id,
+            animal.pesoAtual.toString(),
+            animal.dataUltimaPesagem,
+          ].join(':');
+        })
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    return ids.join('|');
+  }
+
+  String _formatKg(double? value) {
+    if (value == null) return '-';
+    return '${value.toStringAsFixed(2).replaceAll('.', ',')} kg';
+  }
+
+  String _formatKgDia(double? value) {
+    if (value == null) return '-';
+    final prefix = value > 0 ? '+' : '';
+    return '$prefix${value.toStringAsFixed(3).replaceAll('.', ',')} kg/d';
+  }
+
+  String _formatGmdLoteDate(DateTime? value) {
+    if (value == null) return 'Selecionar';
+    return dateTimeFormat(
+      'd/M/y',
+      value,
+      locale: FFLocalizations.of(context).languageCode,
+    );
+  }
+
+  Color _gmdLoteColor(double? value) {
+    if (value == null || value == 0) {
+      return FlutterFlowTheme.of(context).secondaryText;
+    }
+    return value > 0
+        ? FlutterFlowTheme.of(context).success
+        : FlutterFlowTheme.of(context).error;
+  }
+
+  Future<List<HistoricoPesagensRow>> _loadPesagensDoLote(
+    List<RebanhoDTStruct> animais,
+  ) async {
+    final ids = animais
+        .map((animal) => _normalizeIdRebanho(animal.idRebanho))
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    if (ids.isEmpty) return [];
+
+    final pesagens = <HistoricoPesagensRow>[];
+    final pesagensIds = <int>{};
+    void addPesagens(Iterable<HistoricoPesagensRow> rows) {
+      for (final row in rows) {
+        if (!_pesagemLoteAtiva(row)) continue;
+        if (pesagensIds.add(row.id)) {
+          pesagens.add(row);
+        }
+      }
+    }
+
+    const chunkSize = 100;
+    for (var start = 0; start < ids.length; start += chunkSize) {
+      final chunk = ids.sublist(
+        start,
+        start + chunkSize > ids.length ? ids.length : start + chunkSize,
+      );
+      final rows = await HistoricoPesagensTable().queryRows(
+        queryFn: (q) =>
+            q.inFilterOrNull('idRebanho', chunk).order('dataPesagem'),
+        limit: 10000,
+      );
+      addPesagens(rows);
+    }
+
+    final propriedades = animais
+        .map((animal) => animal.idPropriedade.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    for (final idPropriedade in propriedades) {
+      final rows = await HistoricoPesagensTable().queryRows(
+        queryFn: (q) =>
+            q.eqOrNull('id_propriedade', idPropriedade).order('dataPesagem'),
+        limit: 10000,
+      );
+      addPesagens(
+        rows.where((row) => ids.contains(_normalizeIdRebanho(row.idRebanho))),
+      );
+    }
+
+    return pesagens;
+  }
+
+  List<_LoteGmdPesagem> _buildPesagensGmdAnimal(
+    RebanhoDTStruct animal,
+    List<HistoricoPesagensRow> pesagens,
+  ) {
+    final idRebanho = _normalizeIdRebanho(animal.idRebanho);
+    final porDia = <DateTime, _LoteGmdPesagem>{};
+
+    void addPesagem(DateTime? data, double? peso) {
+      if (data == null || peso == null) return;
+      final dataDia = _dateOnly(data);
+      porDia[dataDia] = _LoteGmdPesagem(
+        data: dataDia,
+        peso: peso,
+      );
+    }
+
+    if (animal.hasPesoNascimento()) {
+      addPesagem(_parseLoteDate(animal.dataNascimento), animal.pesoNascimento);
+    }
+    if (animal.hasPesoDesmama()) {
+      addPesagem(_parseLoteDate(animal.dataDesmama), animal.pesoDesmama);
+    }
+    if (animal.hasPesoAtual()) {
+      addPesagem(_parseLoteDate(animal.dataUltimaPesagem), animal.pesoAtual);
+    }
+
+    final pesagensHistorico = pesagens
+        .where((p) =>
+            _normalizeIdRebanho(p.idRebanho) == idRebanho &&
+            p.dataPesagem != null &&
+            p.peso != null &&
+            _pesagemLoteAtiva(p))
+        .toList()
+      ..sort(_comparePesagensLote);
+
+    for (final pesagem in pesagensHistorico) {
+      addPesagem(pesagem.dataPesagem, pesagem.peso);
+    }
+
+    return porDia.values.toList()..sort((a, b) => a.data.compareTo(b.data));
+  }
+
+  List<_LoteGmdPesagem> _allPesagensGmdLote(
+    List<RebanhoDTStruct> animais,
+    List<HistoricoPesagensRow> pesagens,
+  ) {
+    return animais
+        .expand((animal) => _buildPesagensGmdAnimal(animal, pesagens))
+        .toList()
+      ..sort((a, b) => a.data.compareTo(b.data));
+  }
+
+  List<_LoteGmdAnimalResult> _calculateGmdLote(
+    List<RebanhoDTStruct> animais,
+    List<HistoricoPesagensRow> pesagens,
+  ) {
+    if (animais.isEmpty) return const [];
+
+    final todasPesagens = _allPesagensGmdLote(animais, pesagens);
+    if (todasPesagens.isEmpty) {
+      return animais
+          .map(
+            (animal) => _LoteGmdAnimalResult(
+              animal: animal,
+              motivoNaoCalculavel: 'Sem pesagens cadastradas',
+            ),
+          )
+          .toList();
+    }
+
+    final dataInicial =
+        _dateOnly(_model.gmdLoteDataInicial ?? todasPesagens.first.data);
+    final dataFinal =
+        _dateOnly(_model.gmdLoteDataFinal ?? todasPesagens.last.data);
+
+    if (dataFinal.isBefore(dataInicial)) return const [];
+
+    final results = <_LoteGmdAnimalResult>[];
+    for (final animal in animais) {
+      final idRebanho = _normalizeIdRebanho(animal.idRebanho);
+      if (idRebanho.isEmpty) {
+        results.add(
+          _LoteGmdAnimalResult(
+            animal: animal,
+            motivoNaoCalculavel: 'Animal sem idRebanho',
+          ),
+        );
+        continue;
+      }
+
+      final animalPesagens = _buildPesagensGmdAnimal(animal, pesagens)
+          .where((pesagem) =>
+              !pesagem.data.isBefore(dataInicial) &&
+              !pesagem.data.isAfter(dataFinal))
+          .toList();
+
+      if (animalPesagens.length < 2) {
+        results.add(
+          _LoteGmdAnimalResult(
+            animal: animal,
+            motivoNaoCalculavel: 'Menos de duas datas de pesagem no período',
+          ),
+        );
+        continue;
+      }
+
+      final inicial = animalPesagens[animalPesagens.length - 2];
+      final finalPesagem = animalPesagens.last;
+      final diasAvaliados = finalPesagem.data.difference(inicial.data).inDays;
+      if (diasAvaliados <= 0) {
+        results.add(
+          _LoteGmdAnimalResult(
+            animal: animal,
+            pesoInicial: inicial.peso,
+            pesoFinal: finalPesagem.peso,
+            dataInicial: inicial.data,
+            dataFinal: finalPesagem.data,
+            motivoNaoCalculavel: 'Pesagens na mesma data',
+          ),
+        );
+        continue;
+      }
+
+      results.add(
+        _LoteGmdAnimalResult(
+          animal: animal,
+          pesoInicial: inicial.peso,
+          pesoFinal: finalPesagem.peso,
+          dataInicial: inicial.data,
+          dataFinal: finalPesagem.data,
+          diasAvaliados: diasAvaliados,
+          gmd: (finalPesagem.peso - inicial.peso) / diasAvaliados,
+        ),
+      );
+    }
+
+    return results;
+  }
+
+  double? _average(Iterable<double?> values) {
+    final list = values.whereType<double>().toList();
+    if (list.isEmpty) return null;
+    return list.reduce((a, b) => a + b) / list.length;
+  }
+
+  Future<void> _pickGmdLoteDate({
+    required bool isStart,
+    required List<HistoricoPesagensRow> pesagens,
+  }) async {
+    final datas = pesagens
+        .where((p) => p.dataPesagem != null && _pesagemLoteAtiva(p))
+        .map((p) => _dateOnly(p.dataPesagem!))
+        .toList()
+      ..sort();
+
+    final fallback = datas.isNotEmpty ? datas.first : getCurrentTimestamp;
+    final current =
+        isStart ? _model.gmdLoteDataInicial : _model.gmdLoteDataFinal;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate:
+          current ?? (isStart || datas.isEmpty ? fallback : datas.last),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2050),
+      builder: (context, child) {
+        return wrapInMaterialDatePickerTheme(
+          context,
+          child!,
+          headerBackgroundColor: FlutterFlowTheme.of(context).primary,
+          headerForegroundColor: FlutterFlowTheme.of(context).info,
+          headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
+                font: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontStyle:
+                      FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                ),
+                fontSize: 32.0,
+                letterSpacing: 0.0,
+                fontWeight: FontWeight.w600,
+                fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+              ),
+          pickerBackgroundColor:
+              FlutterFlowTheme.of(context).secondaryBackground,
+          pickerForegroundColor: FlutterFlowTheme.of(context).primaryText,
+          selectedDateTimeBackgroundColor: FlutterFlowTheme.of(context).primary,
+          selectedDateTimeForegroundColor: FlutterFlowTheme.of(context).info,
+          actionButtonForegroundColor: FlutterFlowTheme.of(context).primaryText,
+          iconSize: 24.0,
+        );
+      },
+    );
+
+    if (picked == null) return;
+    safeSetState(() {
+      if (isStart) {
+        _model.gmdLoteDataInicial = _dateOnly(picked);
+      } else {
+        _model.gmdLoteDataFinal = _dateOnly(picked);
+      }
+    });
+  }
+
+  Widget _buildGmdLoteDateFilter({
+    required String label,
+    required DateTime? value,
+    required VoidCallback onTap,
+  }) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 180.0, maxWidth: 260.0),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8.0),
+        child: Container(
+          height: 48.0,
+          decoration: BoxDecoration(
+            color: FlutterFlowTheme.of(context).customColor2,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          padding: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: FlutterFlowTheme.of(context).labelSmall,
+                    ),
+                    Text(
+                      _formatGmdLoteDate(value),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            font: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
+                            letterSpacing: 0.0,
+                            fontWeight: FontWeight.w500,
+                            fontStyle: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .fontStyle,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.calendar_today_outlined,
+                color: FlutterFlowTheme.of(context).secondaryText,
+                size: 18.0,
+              ),
+            ].divide(const SizedBox(width: 8.0)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGmdLoteMetricCard({
+    required String label,
+    required String value,
+    Color? valueColor,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 180.0),
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(
+          color: FlutterFlowTheme.of(context).customColor5,
+        ),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: FlutterFlowTheme.of(context).labelMedium,
+          ),
+          const SizedBox(height: 8.0),
+          Text(
+            value,
+            style: FlutterFlowTheme.of(context).headlineSmall.override(
+                  font: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w700,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).headlineSmall.fontStyle,
+                  ),
+                  color: valueColor ?? FlutterFlowTheme.of(context).primaryText,
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w700,
+                  fontStyle:
+                      FlutterFlowTheme.of(context).headlineSmall.fontStyle,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGmdLoteEmptyState({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(
+          color: FlutterFlowTheme.of(context).customColor5,
+        ),
+      ),
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: FlutterFlowTheme.of(context).secondaryText,
+            size: 36.0,
+          ),
+          const SizedBox(height: 12.0),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: FlutterFlowTheme.of(context).bodyLarge.override(
+                  font: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontStyle: FlutterFlowTheme.of(context).bodyLarge.fontStyle,
+                  ),
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w600,
+                  fontStyle: FlutterFlowTheme.of(context).bodyLarge.fontStyle,
+                ),
+          ),
+          const SizedBox(height: 6.0),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: FlutterFlowTheme.of(context).labelMedium,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _animalGmdLabel(RebanhoDTStruct animal) {
+    if (animal.numeroAnimal.trim().isNotEmpty) {
+      return animal.numeroAnimal;
+    }
+    if (animal.nome.trim().isNotEmpty) {
+      return animal.nome;
+    }
+    if (animal.chip.trim().isNotEmpty) {
+      return animal.chip;
+    }
+    return animal.idRebanho.trim().isNotEmpty ? animal.idRebanho : 'Animal';
+  }
+
+  Text _buildGmdLoteTableText(
+    String value, {
+    Color? color,
+    FontWeight? fontWeight,
+  }) {
+    return Text(
+      value,
+      style: FlutterFlowTheme.of(context).bodyMedium.override(
+            font: GoogleFonts.poppins(
+              fontWeight: fontWeight ??
+                  FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+            ),
+            color: color ?? FlutterFlowTheme.of(context).primaryText,
+            letterSpacing: 0.0,
+            fontWeight: fontWeight ??
+                FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+          ),
+    );
+  }
+
+  DataColumn _buildGmdLoteDataColumn(String label) {
+    return DataColumn(
+      label: Text(
+        label,
+        style: FlutterFlowTheme.of(context).labelMedium.override(
+              font: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+              ),
+              color: FlutterFlowTheme.of(context).primaryText,
+              letterSpacing: 0.0,
+              fontWeight: FontWeight.w600,
+              fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildGmdLoteAnimalValues(List<_LoteGmdAnimalResult> results) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(
+          color: FlutterFlowTheme.of(context).customColor5,
+        ),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Valores por animal',
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  font: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                  ),
+                  fontSize: 18.0,
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w600,
+                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                ),
+          ),
+          const SizedBox(height: 4.0),
+          Text(
+            'Cada linha usa as duas últimas datas de pesagem válidas do animal dentro do período.',
+            style: FlutterFlowTheme.of(context).labelMedium,
+          ),
+          const SizedBox(height: 16.0),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingRowColor: WidgetStateProperty.all(
+                FlutterFlowTheme.of(context).customColor11,
+              ),
+              headingRowHeight: 48.0,
+              dataRowMinHeight: 48.0,
+              dataRowMaxHeight: 56.0,
+              columnSpacing: 24.0,
+              dividerThickness: 1.0,
+              columns: [
+                _buildGmdLoteDataColumn('Animal'),
+                _buildGmdLoteDataColumn('Data inicial'),
+                _buildGmdLoteDataColumn('Peso inicial'),
+                _buildGmdLoteDataColumn('Data final'),
+                _buildGmdLoteDataColumn('Peso final'),
+                _buildGmdLoteDataColumn('Dias'),
+                _buildGmdLoteDataColumn('GMD'),
+                _buildGmdLoteDataColumn('Status'),
+              ],
+              rows: results.map((result) {
+                return DataRow(
+                  cells: [
+                    DataCell(
+                      _buildGmdLoteTableText(
+                        _animalGmdLabel(result.animal),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    DataCell(
+                      _buildGmdLoteTableText(
+                        _formatGmdLoteDate(result.dataInicial),
+                      ),
+                    ),
+                    DataCell(
+                        _buildGmdLoteTableText(_formatKg(result.pesoInicial))),
+                    DataCell(
+                      _buildGmdLoteTableText(
+                        _formatGmdLoteDate(result.dataFinal),
+                      ),
+                    ),
+                    DataCell(
+                        _buildGmdLoteTableText(_formatKg(result.pesoFinal))),
+                    DataCell(
+                      _buildGmdLoteTableText(
+                        result.diasAvaliados?.toString() ?? '-',
+                      ),
+                    ),
+                    DataCell(
+                      _buildGmdLoteTableText(
+                        _formatKgDia(result.gmd),
+                        color: _gmdLoteColor(result.gmd),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    DataCell(
+                      _buildGmdLoteTableText(
+                        result.calculavel
+                            ? 'Calculado'
+                            : result.motivoNaoCalculavel ?? 'Não calculável',
+                        color: result.calculavel
+                            ? FlutterFlowTheme.of(context).success
+                            : FlutterFlowTheme.of(context).secondaryText,
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGmdLoteContent({
+    required List<RebanhoDTStruct> animais,
+    required List<HistoricoPesagensRow> pesagens,
+  }) {
+    final pesagensValidas = _allPesagensGmdLote(animais, pesagens);
+
+    final dataInicial = pesagensValidas.isNotEmpty
+        ? _dateOnly(_model.gmdLoteDataInicial ?? pesagensValidas.first.data)
+        : null;
+    final dataFinal = pesagensValidas.isNotEmpty
+        ? _dateOnly(_model.gmdLoteDataFinal ?? pesagensValidas.last.data)
+        : null;
+    final periodoInvalido = dataInicial != null &&
+        dataFinal != null &&
+        dataFinal.isBefore(dataInicial);
+    final results = periodoInvalido
+        ? <_LoteGmdAnimalResult>[]
+        : _calculateGmdLote(animais, pesagens);
+    final resultsCalculaveis =
+        results.where((result) => result.calculavel).toList();
+    final gmdMedio = _average(resultsCalculaveis.map((result) => result.gmd));
+    final pesoMedioInicial =
+        _average(resultsCalculaveis.map((result) => result.pesoInicial));
+    final pesoMedioFinal =
+        _average(resultsCalculaveis.map((result) => result.pesoFinal));
+
+    return SingleChildScrollView(
+      primary: false,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(24.0, 24.0, 24.0, 32.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: FlutterFlowTheme.of(context).secondaryBackground,
+                borderRadius: BorderRadius.circular(8.0),
+                border: Border.all(
+                  color: FlutterFlowTheme.of(context).customColor5,
+                ),
+              ),
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'GMD do lote',
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          font: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontStyle: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .fontStyle,
+                          ),
+                          fontSize: 18.0,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w600,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
+                  ),
+                  const SizedBox(height: 4.0),
+                  Text(
+                    'Média dos GMDs individuais calculados com as duas últimas datas de pesagem válidas de cada animal no período.',
+                    style: FlutterFlowTheme.of(context).labelMedium,
+                  ),
+                  const SizedBox(height: 16.0),
+                  Wrap(
+                    spacing: 12.0,
+                    runSpacing: 12.0,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      _buildGmdLoteDateFilter(
+                        label: 'Data inicial',
+                        value: dataInicial,
+                        onTap: () =>
+                            _pickGmdLoteDate(isStart: true, pesagens: pesagens),
+                      ),
+                      _buildGmdLoteDateFilter(
+                        label: 'Data final',
+                        value: dataFinal,
+                        onTap: () => _pickGmdLoteDate(
+                            isStart: false, pesagens: pesagens),
+                      ),
+                      if (_model.gmdLoteDataInicial != null ||
+                          _model.gmdLoteDataFinal != null)
+                        FFButtonWidget(
+                          onPressed: () async {
+                            safeSetState(() {
+                              _model.gmdLoteDataInicial = null;
+                              _model.gmdLoteDataFinal = null;
+                            });
+                          },
+                          text: 'Limpar filtros',
+                          options: FFButtonOptions(
+                            height: 48.0,
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                16.0, 0.0, 16.0, 0.0),
+                            iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                                0.0, 0.0, 0.0, 0.0),
+                            color: FlutterFlowTheme.of(context)
+                                .secondaryBackground,
+                            textStyle: FlutterFlowTheme.of(context)
+                                .titleSmall
+                                .override(
+                                  font: GoogleFonts.poppins(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .titleSmall
+                                        .fontStyle,
+                                  ),
+                                  color:
+                                      FlutterFlowTheme.of(context).primaryText,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .titleSmall
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .titleSmall
+                                      .fontStyle,
+                                ),
+                            elevation: 0.0,
+                            borderSide: BorderSide(
+                              color: FlutterFlowTheme.of(context).customColor5,
+                            ),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (pesagensValidas.isEmpty)
+              _buildGmdLoteEmptyState(
+                icon: Icons.monitor_weight_outlined,
+                title: 'Nenhuma pesagem encontrada',
+                description:
+                    'Cadastre pelo menos duas pesagens para os animais deste lote para calcular o GMD.',
+              )
+            else if (periodoInvalido)
+              _buildGmdLoteEmptyState(
+                icon: Icons.date_range_outlined,
+                title: 'Período inválido',
+                description:
+                    'A data final precisa ser igual ou posterior à data inicial.',
+              )
+            else if (results.isEmpty)
+              _buildGmdLoteEmptyState(
+                icon: Icons.table_chart_outlined,
+                title: 'Sem animais avaliáveis no período',
+                description:
+                    'Cada animal precisa ter pelo menos duas datas de pesagem válidas no período para entrar no cálculo.',
+              )
+            else ...[
+              Text(
+                'Resumo do lote',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      font: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                      ),
+                      fontSize: 18.0,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w600,
+                      fontStyle:
+                          FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                    ),
+              ),
+              Wrap(
+                spacing: 16.0,
+                runSpacing: 16.0,
+                children: [
+                  _buildGmdLoteMetricCard(
+                    label: 'Número de animais avaliados',
+                    value: results.length.toString(),
+                  ),
+                  _buildGmdLoteMetricCard(
+                    label: 'Com GMD calculado',
+                    value: resultsCalculaveis.length.toString(),
+                  ),
+                  _buildGmdLoteMetricCard(
+                    label: 'GMD médio (kg/dia)',
+                    value: _formatKgDia(gmdMedio),
+                    valueColor: _gmdLoteColor(gmdMedio),
+                  ),
+                  _buildGmdLoteMetricCard(
+                    label: 'Peso médio inicial',
+                    value: _formatKg(pesoMedioInicial),
+                  ),
+                  _buildGmdLoteMetricCard(
+                    label: 'Peso médio final',
+                    value: _formatKg(pesoMedioFinal),
+                  ),
+                ],
+              ),
+              _buildGmdLoteAnimalValues(results),
+            ],
+          ].divide(const SizedBox(height: 24.0)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGmdLoteTab(List<RebanhoDTStruct> animais) {
+    if (animais.isEmpty) {
+      return SingleChildScrollView(
+        primary: false,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(24.0, 24.0, 24.0, 32.0),
+          child: _buildGmdLoteEmptyState(
+            icon: Icons.groups_outlined,
+            title: 'Nenhum animal no lote',
+            description:
+                'Adicione animais ao lote para acompanhar o ganho médio diário.',
+          ),
+        ),
+      );
+    }
+
+    final animaisKey = _gmdLoteAnimaisKey(animais);
+    if (_model.gmdLoteAnimaisKey != animaisKey) {
+      _model.gmdLoteAnimaisKey = animaisKey;
+      _model.gmdLotePesagensCompleter = null;
+    }
+
+    return FutureBuilder<List<HistoricoPesagensRow>>(
+      future: (_model.gmdLotePesagensCompleter ??=
+              Completer<List<HistoricoPesagensRow>>()
+                ..complete(_loadPesagensDoLote(animais)))
+          .future,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(
+            child: SizedBox(
+              width: 50.0,
+              height: 50.0,
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  FlutterFlowTheme.of(context).primary,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return _buildGmdLoteContent(
+          animais: animais,
+          pesagens: snapshot.data!,
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -71,7 +1031,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
 
     _model.tabBarController = TabController(
       vsync: this,
-      length: 2,
+      length: 3,
       initialIndex: 0,
     )..addListener(() => safeSetState(() {}));
 
@@ -114,20 +1074,20 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
     final list = <RebanhoDTStruct>[];
 
     void addIfNew(RebanhoRow row) {
-      final id = row.idRebanho;
-      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+      final id = _normalizeIdRebanho(row.idRebanho);
+      if (id.isNotEmpty && _rebanhoLoteAtivo(row) && idsSeen.add(id)) {
         list.add(_rowToStruct(row));
       }
     }
 
     final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
     for (final idRebanho in idAnimais) {
-      if (idRebanho.trim().isEmpty) continue;
+      final idAnimal = _normalizeIdRebanho(idRebanho);
+      if (idAnimal.isEmpty) continue;
       final rows = await RebanhoTable().queryRows(
         queryFn: (q) => q
-            .eqOrNull('idRebanho', idRebanho)
-            .eqOrNull('idPropriedade', idPropriedadeLote)
-            .eqOrNull('deletado', 'NAO'),
+            .eqOrNull('idRebanho', idAnimal)
+            .eqOrNull('idPropriedade', idPropriedadeLote),
       );
       final row = rows.firstOrNull;
       if (row != null) addIfNew(row);
@@ -136,8 +1096,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
     final byLoteID = await RebanhoTable().queryRows(
       queryFn: (q) => q
           .eqOrNull('loteID', widget.idLote)
-          .eqOrNull('idPropriedade', idPropriedadeLote)
-          .eqOrNull('deletado', 'NAO'),
+          .eqOrNull('idPropriedade', idPropriedadeLote),
       limit: 10000,
     );
     for (final row in byLoteID) {
@@ -149,8 +1108,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
       final byLoteNome = await RebanhoTable().queryRows(
         queryFn: (q) => q
             .eqOrNull('loteNome', nomeLote.trim())
-            .eqOrNull('idPropriedade', idPropriedadeLote)
-            .eqOrNull('deletado', 'NAO'),
+            .eqOrNull('idPropriedade', idPropriedadeLote),
         limit: 10000,
       );
       for (final row in byLoteNome) {
@@ -160,8 +1118,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
       final byLoteIDAsName = await RebanhoTable().queryRows(
         queryFn: (q) => q
             .eqOrNull('loteID', nomeLote.trim())
-            .eqOrNull('idPropriedade', idPropriedadeLote)
-            .eqOrNull('deletado', 'NAO'),
+            .eqOrNull('idPropriedade', idPropriedadeLote),
         limit: 10000,
       );
       for (final row in byLoteIDAsName) {
@@ -243,9 +1200,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
           );
         }
         final animaisNesteLote = snapshot.data ?? <RebanhoDTStruct>[];
-        final animaisComPesagemAtual = animaisNesteLote
-            .where((e) => e.hasPesoAtual())
-            .toList();
+        final animaisComPesagemAtual =
+            animaisNesteLote.where((e) => e.hasPesoAtual()).toList();
 
         return GestureDetector(
           onTap: () {
@@ -309,7 +1265,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                               ),
                               Flexible(
                                 child: Align(
-                                  alignment: const AlignmentDirectional(0.0, 0.0),
+                                  alignment:
+                                      const AlignmentDirectional(0.0, 0.0),
                                   child: Container(
                                     width: 920.0,
                                     height: double.infinity,
@@ -414,8 +1371,9 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                           100.0),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           8.0, 2.0, 8.0, 2.0),
                                                   child: Row(
                                                     mainAxisSize:
@@ -463,8 +1421,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                       .fontStyle,
                                                                 ),
                                                       ),
-                                                    ].divide(
-                                                        const SizedBox(width: 8.0)),
+                                                    ].divide(const SizedBox(
+                                                        width: 8.0)),
                                                   ),
                                                 ),
                                               ),
@@ -474,7 +1432,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                             child: Column(
                                               children: [
                                                 Align(
-                                                  alignment: const Alignment(0.0, 0),
+                                                  alignment:
+                                                      const Alignment(0.0, 0),
                                                   child: TabBar(
                                                     labelColor:
                                                         FlutterFlowTheme.of(
@@ -553,11 +1512,15 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                       Tab(
                                                         text: 'Animais',
                                                       ),
+                                                      Tab(
+                                                        text: 'GMD do lote',
+                                                      ),
                                                     ],
                                                     controller:
                                                         _model.tabBarController,
                                                     onTap: (i) async {
                                                       [
+                                                        () async {},
                                                         () async {},
                                                         () async {}
                                                       ][i]();
@@ -717,8 +1680,10 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                             8.0)),
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  width: 24.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          24.0)),
                                                             ),
                                                             Column(
                                                               mainAxisSize:
@@ -914,8 +1879,10 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                             context),
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(
-                                                                  height: 8.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          8.0)),
                                                             ),
                                                             Container(
                                                               width: double
@@ -954,7 +1921,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                 padding:
                                                                     const EdgeInsets
                                                                         .all(
-                                                                            24.0),
+                                                                        24.0),
                                                                 child: Row(
                                                                   mainAxisSize:
                                                                       MainAxisSize
@@ -1111,7 +2078,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                               0.0,
                                                                           borderRadius:
                                                                               8.0,
-                                                                          margin: const EdgeInsetsDirectional.fromSTEB(
+                                                                          margin: const EdgeInsetsDirectional
+                                                                              .fromSTEB(
                                                                               12.0,
                                                                               0.0,
                                                                               12.0,
@@ -1314,9 +2282,10 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                               height: 8.0)),
                                                                     ),
                                                                   ),
-                                                                ].divide(const SizedBox(
-                                                                    width:
-                                                                        24.0)),
+                                                                ].divide(
+                                                                    const SizedBox(
+                                                                        width:
+                                                                            24.0)),
                                                               ),
                                                             Container(
                                                               width: double
@@ -1354,7 +2323,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                 padding:
                                                                     const EdgeInsets
                                                                         .all(
-                                                                            24.0),
+                                                                        24.0),
                                                                 child: Column(
                                                                   mainAxisSize:
                                                                       MainAxisSize
@@ -1423,7 +2392,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                         ),
                                                                       ],
                                                                     ),
-                                                                    if (animaisNesteLote.isEmpty)
+                                                                    if (animaisNesteLote
+                                                                        .isEmpty)
                                                                       InkWell(
                                                                         splashColor:
                                                                             Colors.transparent,
@@ -1499,8 +2469,9 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                           Builder(
                                                                         builder:
                                                                             (context) {
-                                                                          final animais =
-                                                                              animaisNesteLote.take(3).toList();
+                                                                          final animais = animaisNesteLote
+                                                                              .take(3)
+                                                                              .toList();
 
                                                                           return ListView
                                                                               .builder(
@@ -1669,8 +2640,10 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                               ),
                                                             ),
                                                           ]
-                                                              .divide(const SizedBox(
-                                                                  height: 24.0))
+                                                              .divide(
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          24.0))
                                                               .addToStart(
                                                                   const SizedBox(
                                                                       height:
@@ -1680,11 +2653,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                       Padding(
                                                         padding:
                                                             const EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    0.0,
-                                                                    24.0,
-                                                                    0.0,
-                                                                    0.0),
+                                                                .fromSTEB(0.0,
+                                                                24.0, 0.0, 0.0),
                                                         child:
                                                             SingleChildScrollView(
                                                           child: Column(
@@ -1692,7 +2662,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                 MainAxisSize
                                                                     .max,
                                                             children: [
-                                                              if (animaisNesteLote.isNotEmpty)
+                                                              if (animaisNesteLote
+                                                                  .isNotEmpty)
                                                                 Row(
                                                                   mainAxisSize:
                                                                       MainAxisSize
@@ -1729,8 +2700,9 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(24.0),
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
                                                                           child:
                                                                               Column(
                                                                             mainAxisSize:
@@ -1819,8 +2791,9 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(24.0),
+                                                                          padding: const EdgeInsets
+                                                                              .all(
+                                                                              24.0),
                                                                           child:
                                                                               Column(
                                                                             mainAxisSize:
@@ -1851,9 +2824,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                       animaisComPesagemAtual.isEmpty
                                                                                           ? 0.0
                                                                                           : (functions.somarTotal(
-                                                                                                    animaisComPesagemAtual
-                                                                                                        .map((e) => e.pesoAtual)
-                                                                                                        .toList(),
+                                                                                                    animaisComPesagemAtual.map((e) => e.pesoAtual).toList(),
                                                                                                   ) ??
                                                                                                   0.0) /
                                                                                               animaisComPesagemAtual.length,
@@ -1880,9 +2851,10 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                         ),
                                                                       ),
                                                                     ),
-                                                                  ].divide(const SizedBox(
-                                                                      width:
-                                                                          32.0)),
+                                                                  ].divide(
+                                                                      const SizedBox(
+                                                                          width:
+                                                                              32.0)),
                                                                 ),
                                                               Container(
                                                                 width: double
@@ -1920,7 +2892,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                   padding:
                                                                       const EdgeInsets
                                                                           .all(
-                                                                              24.0),
+                                                                          24.0),
                                                                   child: Column(
                                                                     mainAxisSize:
                                                                         MainAxisSize
@@ -1946,7 +2918,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                             ),
                                                                       ),
                                                                       Padding(
-                                                                        padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        padding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             0.0,
                                                                             42.0,
                                                                             0.0,
@@ -2190,7 +3163,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                         ].divide(const SizedBox(width: 24.0)),
                                                                       ),
                                                                       Padding(
-                                                                        padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                        padding: const EdgeInsetsDirectional
+                                                                            .fromSTEB(
                                                                             0.0,
                                                                             24.0,
                                                                             0.0,
@@ -2419,10 +3393,10 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                 padding:
                                                                     const EdgeInsetsDirectional
                                                                         .fromSTEB(
-                                                                            0.0,
-                                                                            0.0,
-                                                                            0.0,
-                                                                            2.0),
+                                                                        0.0,
+                                                                        0.0,
+                                                                        0.0,
+                                                                        2.0),
                                                                 child:
                                                                     Container(
                                                                   decoration:
@@ -2457,7 +3431,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                   child:
                                                                       Padding(
                                                                     padding:
-                                                                        const EdgeInsets.all(
+                                                                        const EdgeInsets
+                                                                            .all(
                                                                             24.0),
                                                                     child:
                                                                         Column(
@@ -2631,9 +3606,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                         },
                                                                                       );
                                                                                       _model.pageNumAdd = 1;
-                                                                                      safeSetState(() =>
-                                                                                          _model.apiRequestCompleter =
-                                                                                              null);
+                                                                                      safeSetState(() => _model.apiRequestCompleter = null);
                                                                                     },
                                                                                     text: 'Filtrar',
                                                                                     icon: const Icon(
@@ -3072,18 +4045,23 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                             },
                                                                           ),
                                                                         ),
-                                                                        const SizedBox.shrink(),
+                                                                        const SizedBox
+                                                                            .shrink(),
                                                                       ].divide(const SizedBox(
                                                                               height: 16.0)),
                                                                     ),
                                                                   ),
                                                                 ),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                height: 24.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    height:
+                                                                        24.0)),
                                                           ),
                                                         ),
                                                       ),
+                                                      _buildGmdLoteTab(
+                                                          animaisNesteLote),
                                                     ],
                                                   ),
                                                 ),
@@ -3109,43 +4087,43 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                     padding:
                                                         const EdgeInsetsDirectional
                                                             .fromSTEB(16.0, 0.0,
-                                                                16.0, 0.0),
+                                                            16.0, 0.0),
                                                     iconPadding:
                                                         const EdgeInsetsDirectional
-                                                            .fromSTEB(0.0, 0.0,
-                                                                0.0, 0.0),
+                                                            .fromSTEB(
+                                                            0.0, 0.0, 0.0, 0.0),
                                                     color: Colors.white,
-                                                    textStyle: FlutterFlowTheme
-                                                            .of(context)
-                                                        .titleSmall
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
+                                                    textStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .titleSmall
+                                                            .override(
+                                                              font: GoogleFonts
+                                                                  .poppins(
+                                                                fontWeight: FlutterFlowTheme.of(
                                                                         context)
                                                                     .titleSmall
                                                                     .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
+                                                                fontStyle: FlutterFlowTheme.of(
                                                                         context)
                                                                     .titleSmall
                                                                     .fontStyle,
-                                                          ),
-                                                          color:
-                                                              const Color(0xFF28A365),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .titleSmall
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .titleSmall
-                                                                  .fontStyle,
-                                                        ),
+                                                              ),
+                                                              color: const Color(
+                                                                  0xFF28A365),
+                                                              letterSpacing:
+                                                                  0.0,
+                                                              fontWeight:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontWeight,
+                                                              fontStyle:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .fontStyle,
+                                                            ),
                                                     elevation: 0.0,
                                                     borderSide: BorderSide(
                                                       color:
@@ -3188,11 +4166,11 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                     padding:
                                                         const EdgeInsetsDirectional
                                                             .fromSTEB(16.0, 0.0,
-                                                                16.0, 0.0),
+                                                            16.0, 0.0),
                                                     iconPadding:
                                                         const EdgeInsetsDirectional
-                                                            .fromSTEB(0.0, 0.0,
-                                                                0.0, 0.0),
+                                                            .fromSTEB(
+                                                            0.0, 0.0, 0.0, 0.0),
                                                     color: FlutterFlowTheme.of(
                                                             context)
                                                         .primary,
@@ -3232,7 +4210,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                             8.0),
                                                   ),
                                                 ),
-                                              ].divide(const SizedBox(width: 24.0)),
+                                              ].divide(
+                                                  const SizedBox(width: 24.0)),
                                             ),
                                         ].divide(const SizedBox(height: 24.0)),
                                       ),

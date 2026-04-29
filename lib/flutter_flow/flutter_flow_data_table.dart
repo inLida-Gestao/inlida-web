@@ -230,6 +230,10 @@ class _FlutterFlowDataTableState<T> extends State<FlutterFlowDataTable<T>> {
   @override
   void didUpdateWidget(FlutterFlowDataTable<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    controller.init(
+      dataRowBuilder: widget.dataRowBuilder,
+      selectable: widget.selectable,
+    );
     // Evita sobrescrever ordenação feita no controller (ex.: onSortChanged) quando o
     // pai ainda passa a mesma instância de lista.
     if (!identical(oldWidget.data, widget.data) ||
@@ -338,8 +342,9 @@ class _FlutterFlowDataTableState<T> extends State<FlutterFlowDataTable<T>> {
               dividerThickness:
                   widget.hideDefaultHorizontalDivider ? 0.0 : null,
               headingRowColor: WidgetStateProperty.all(widget.headingRowColor),
-                headingRowHeight: widget.headingRowHeight + _kTableRowHeightIncrease,
-                dataRowHeight: widget.dataRowHeight + _kTableRowHeightIncrease,
+              headingRowHeight:
+                  widget.headingRowHeight + _kTableRowHeightIncrease,
+              dataRowHeight: widget.dataRowHeight + _kTableRowHeightIncrease,
               showFirstLastButtons: widget.showFirstLastButtons,
               minWidth:
                   math.max(widget.minWidth ?? 0, _getColumnsWidth(columns)),
@@ -397,8 +402,9 @@ class _FlutterFlowDataTableState<T> extends State<FlutterFlowDataTable<T>> {
               dividerThickness:
                   widget.hideDefaultHorizontalDivider ? 0.0 : null,
               headingRowColor: WidgetStateProperty.all(widget.headingRowColor),
-                headingRowHeight: widget.headingRowHeight + _kTableRowHeightIncrease,
-                dataRowHeight: widget.dataRowHeight + _kTableRowHeightIncrease,
+              headingRowHeight:
+                  widget.headingRowHeight + _kTableRowHeightIncrease,
+              dataRowHeight: widget.dataRowHeight + _kTableRowHeightIncrease,
               showFirstLastButtons: widget.showFirstLastButtons,
               minWidth:
                   math.max(widget.minWidth ?? 0, _getColumnsWidth(columns)),

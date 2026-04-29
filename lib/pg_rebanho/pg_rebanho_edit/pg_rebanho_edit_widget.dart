@@ -44,6 +44,140 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
   late PgRebanhoEditModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _salvandoPesagem = false;
+
+  DateTime _dateOnly(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
+
+  bool _pesagemAtiva(HistoricoPesagensRow pesagem) =>
+      pesagem.deletado?.trim().toUpperCase() != 'SIM';
+
+  Future<HistoricoPesagensRow?> _buscarPesagemExistente({
+    required String idRebanho,
+    required String tipo,
+    required DateTime dataPesagem,
+    required double peso,
+  }) async {
+    final inicioDia = _dateOnly(dataPesagem);
+    final existentes = await HistoricoPesagensTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('idRebanho', idRebanho)
+          .eqOrNull('tipo', tipo)
+          .eqOrNull('peso', peso)
+          .gteOrNull('dataPesagem', supaSerialize<DateTime>(inicioDia))
+          .ltOrNull(
+            'dataPesagem',
+            supaSerialize<DateTime>(inicioDia.add(const Duration(days: 1))),
+          )
+          .order('id', ascending: false),
+      limit: 20,
+    );
+
+    return existentes.where(_pesagemAtiva).firstOrNull;
+  }
+
+  Future<HistoricoPesagensRow> _registrarPesagemSeNaoExistir({
+    required String idRebanho,
+    required String? idPropriedade,
+    required String tipo,
+    required DateTime dataPesagem,
+    required double peso,
+  }) async {
+    final existente = await _buscarPesagemExistente(
+      idRebanho: idRebanho,
+      tipo: tipo,
+      dataPesagem: dataPesagem,
+      peso: peso,
+    );
+    if (existente != null) {
+      return existente;
+    }
+
+    try {
+      return await HistoricoPesagensTable().insert({
+        'idRebanho': idRebanho,
+        'id_propriedade': idPropriedade,
+        'dataPesagem': supaSerialize<DateTime>(dataPesagem),
+        'tipo': tipo,
+        'peso': peso,
+        'deletado': 'NAO',
+      });
+    } catch (e) {
+      final erro = e.toString().toLowerCase();
+      if (erro.contains('duplicate key') || erro.contains('unique')) {
+        final existenteAposConflito = await _buscarPesagemExistente(
+          idRebanho: idRebanho,
+          tipo: tipo,
+          dataPesagem: dataPesagem,
+          peso: peso,
+        );
+        if (existenteAposConflito != null) {
+          return existenteAposConflito;
+        }
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> _marcarPesagemComoDeletada(
+    HistoricoPesagensRow pesagem,
+    String? idRebanho,
+  ) async {
+    if (idRebanho != null &&
+        idRebanho.trim().isNotEmpty &&
+        pesagem.dataPesagem != null &&
+        pesagem.peso != null) {
+      final inicioDia = _dateOnly(pesagem.dataPesagem!);
+      await HistoricoPesagensTable().update(
+        data: {
+          'deletado': 'SIM',
+        },
+        matchingRows: (rows) => rows
+            .eqOrNull('idRebanho', idRebanho)
+            .eqOrNull('peso', pesagem.peso)
+            .gteOrNull('dataPesagem', supaSerialize<DateTime>(inicioDia))
+            .ltOrNull(
+              'dataPesagem',
+              supaSerialize<DateTime>(inicioDia.add(const Duration(days: 1))),
+            ),
+      );
+      return;
+    }
+
+    await HistoricoPesagensTable().update(
+      data: {
+        'deletado': 'SIM',
+      },
+      matchingRows: (rows) => rows.eqOrNull('id', pesagem.id),
+    );
+  }
+
+  Future<HistoricoPesagensRow?> _syncPesoAtualAposPesagem({
+    required int? rebanhoId,
+    required String? idRebanho,
+  }) async {
+    if (rebanhoId == null || idRebanho == null || idRebanho.trim().isEmpty) {
+      return null;
+    }
+
+    final pesagens = await HistoricoPesagensTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('idRebanho', idRebanho)
+          .order('dataPesagem', ascending: false),
+      limit: 100,
+    );
+    final ultima = pesagens.where(_pesagemAtiva).firstOrNull;
+
+    await RebanhoTable().update(
+      data: {
+        'pesoAtual': ultima?.peso,
+        'dataUltimaPesagem': supaSerialize<DateTime>(ultima?.dataPesagem),
+      },
+      matchingRows: (rows) => rows.eqOrNull('id', rebanhoId),
+    );
+
+    return ultima;
+  }
 
   @override
   void initState() {
@@ -100,6 +234,12 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
 
     _model.dataPesagemTextController ??= TextEditingController();
     _model.dataPesagemFocusNode ??= FocusNode();
+
+    _model.datePicked10 = DateTime(
+      getCurrentTimestamp.year,
+      getCurrentTimestamp.month,
+      getCurrentTimestamp.day,
+    );
 
     _model.pesoAddTextController ??= TextEditingController();
     _model.pesoAddFocusNode ??= FocusNode();
@@ -6580,86 +6720,106 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                   );
                                                                   return;
                                                                 }
-                                                                final idRebanhoEdit =
-                                                                    pgRebanhoEditRebanhoRow
-                                                                        ?.idRebanho;
-                                                                await HistoricoPesagensTable()
-                                                                    .insert({
-                                                                  'idRebanho':
-                                                                      idRebanhoEdit,
-                                                                  'id_propriedade':
-                                                                      FFAppState()
-                                                                          .propriedadeSelecionada
-                                                                          .idPropriedade,
-                                                                  'dataPesagem':
-                                                                      supaSerialize<
-                                                                              DateTime>(
-                                                                          _model
-                                                                              .datePicked10),
-                                                                  'tipo':
-                                                                      'Atual',
-                                                                  'peso': pesoAddDouble,
-                                                                  'deletado':
-                                                                      'NAO',
-                                                                });
-                                                                // Atualiza ficha com a pesagem mais recente (última por data)
-                                                                final ultimasEdit =
-                                                                    await HistoricoPesagensTable()
-                                                                        .queryRows(
-                                                                  queryFn: (q) => q
-                                                                      .eqOrNull(
-                                                                          'idRebanho',
-                                                                          idRebanhoEdit)
-                                                                      .eqOrNull(
-                                                                          'deletado',
-                                                                          'NAO')
-                                                                      .order('dataPesagem',
-                                                                          ascending: false)
-                                                                      .limit(1),
-                                                                );
-                                                                if (ultimasEdit.isNotEmpty) {
-                                                                  final ultimaEdit =
-                                                                      ultimasEdit.first;
-                                                                  await RebanhoTable()
-                                                                      .update(
-                                                                    data: {
-                                                                      'pesoAtual':
-                                                                          ultimaEdit.peso,
-                                                                      'dataUltimaPesagem':
-                                                                          supaSerialize<
-                                                                                  DateTime>(
-                                                                              ultimaEdit.dataPesagem),
-                                                                    },
-                                                                    matchingRows:
-                                                                        (rows) =>
-                                                                            rows.eqOrNull(
-                                                                      'idRebanho',
-                                                                      idRebanhoEdit,
-                                                                    ),
-                                                                  );
-                                                                }
-                                                                safeSetState(
-                                                                    () {
-                                                                  _model
-                                                                      .pesoAddTextController
-                                                                      ?.clear();
-                                                                  _model.dataPesagemTextController
-                                                                          ?.text =
-                                                                      dateTimeFormat(
-                                                                    "d/M/y",
-                                                                    _model
-                                                                        .datePicked10,
-                                                                    locale: FFLocalizations.of(
-                                                                            context)
-                                                                        .languageCode,
-                                                                  );
-                                                                });
-                                                                safeSetState(() =>
-                                                                    _model.requestCompleter =
-                                                                        null);
-                                                                await _model
-                                                                    .waitForRequestCompleted();
-                                                              },
+                                                                 final idRebanhoEdit =
+                                                                     pgRebanhoEditRebanhoRow
+                                                                         ?.idRebanho;
+                                                                 if (idRebanhoEdit == null ||
+                                                                     idRebanhoEdit
+                                                                         .trim()
+                                                                         .isEmpty) {
+                                                                   ScaffoldMessenger.of(context).showSnackBar(
+                                                                     SnackBar(
+                                                                       content: Text(
+                                                                         'Não foi possível identificar o animal da pesagem.',
+                                                                         style: TextStyle(
+                                                                           color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                         ),
+                                                                       ),
+                                                                       duration: const Duration(milliseconds: 3000),
+                                                                       backgroundColor: FlutterFlowTheme.of(context).error,
+                                                                     ),
+                                                                   );
+                                                                   return;
+                                                                 }
+                                                                 if (_salvandoPesagem) {
+                                                                   return;
+                                                                 }
+
+                                                                 _salvandoPesagem = true;
+                                                                 safeSetState(() {});
+                                                                 try {
+                                                                   await _registrarPesagemSeNaoExistir(
+                                                                     idRebanho:
+                                                                         idRebanhoEdit,
+                                                                     idPropriedade:
+                                                                         FFAppState()
+                                                                             .propriedadeSelecionada
+                                                                             .idPropriedade,
+                                                                     tipo:
+                                                                         'Atual',
+                                                                     dataPesagem:
+                                                                         _model
+                                                                             .datePicked10!,
+                                                                     peso:
+                                                                         pesoAddDouble,
+                                                                   );
+                                                                   // Atualiza ficha com a pesagem mais recente (última por data)
+                                                                   final ultimaEdit =
+                                                                       await _syncPesoAtualAposPesagem(
+                                                                     rebanhoId:
+                                                                         pgRebanhoEditRebanhoRow
+                                                                             ?.id,
+                                                                     idRebanho:
+                                                                         idRebanhoEdit,
+                                                                   );
+                                                                   safeSetState(
+                                                                       () {
+                                                                     _model
+                                                                         .pesoAddTextController
+                                                                         ?.clear();
+                                                                      _model.dataPesagemTextController
+                                                                              ?.text =
+                                                                          dateTimeFormat(
+                                                                       "d/M/y",
+                                                                       _model
+                                                                           .datePicked10,
+                                                                        locale: FFLocalizations.of(
+                                                                                context)
+                                                                            .languageCode,
+                                                                      );
+                                                                     if (ultimaEdit != null) {
+                                                                       _model.pesoAtualTextController
+                                                                               ?.text =
+                                                                           PesoDecimalInputFormatter.formatDouble(
+                                                                               ultimaEdit.peso);
+                                                                       _model.datePicked4 =
+                                                                           ultimaEdit.dataPesagem;
+                                                                       _model.dataUltimaPesagemTextController
+                                                                               ?.text =
+                                                                           dateTimeFormat(
+                                                                         "d/M/y",
+                                                                         ultimaEdit
+                                                                             .dataPesagem,
+                                                                         locale: FFLocalizations.of(
+                                                                                 context)
+                                                                             .languageCode,
+                                                                       );
+                                                                     }
+                                                                   });
+                                                                   safeSetState(() =>
+                                                                       _model.requestCompleter =
+                                                                           null);
+                                                                   await _model
+                                                                       .waitForRequestCompleted();
+                                                                 } finally {
+                                                                   _salvandoPesagem =
+                                                                       false;
+                                                                   if (mounted) {
+                                                                     safeSetState(
+                                                                         () {});
+                                                                   }
+                                                                 }
+                                                               },
                                                               text:
                                                                   'Adicionar pesagem',
                                                               icon: const Icon(
@@ -6773,6 +6933,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                               final seenKey = <String>{};
                                                               final pesagens =
                                                                   containerPesagemHistoricoPesagensRowList
+                                                                      .where(_pesagemAtiva)
                                                                       .where((p) {
                                                                 final dateKey = p.dataPesagem != null
                                                                     ? p.dataPesagem!.toIso8601String().substring(0, 10)
@@ -6995,13 +7156,29 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                                       ) ??
                                                                                       false;
                                                                                   if (confirmDialogResponse) {
-                                                                                    await HistoricoPesagensTable().delete(
-                                                                                      matchingRows: (rows) => rows.eqOrNull(
-                                                                                        'id',
-                                                                                        pesagensItem.id,
-                                                                                      ),
+                                                                                    await _marcarPesagemComoDeletada(
+                                                                                      pesagensItem,
+                                                                                      pgRebanhoEditRebanhoRow?.idRebanho,
                                                                                     );
-                                                                                    safeSetState(() => _model.requestCompleter = null);
+                                                                                    final ultimaPesagemAtiva =
+                                                                                        await _syncPesoAtualAposPesagem(
+                                                                                      rebanhoId: pgRebanhoEditRebanhoRow?.id,
+                                                                                      idRebanho: pgRebanhoEditRebanhoRow?.idRebanho,
+                                                                                    );
+                                                                                    safeSetState(() {
+                                                                                      _model.requestCompleter = null;
+                                                                                      _model.pesoAtualTextController?.text =
+                                                                                          PesoDecimalInputFormatter.formatDouble(ultimaPesagemAtiva?.peso);
+                                                                                      _model.datePicked4 = ultimaPesagemAtiva?.dataPesagem;
+                                                                                      _model.dataUltimaPesagemTextController?.text =
+                                                                                          ultimaPesagemAtiva?.dataPesagem != null
+                                                                                              ? dateTimeFormat(
+                                                                                                  "d/M/y",
+                                                                                                  ultimaPesagemAtiva?.dataPesagem,
+                                                                                                  locale: FFLocalizations.of(context).languageCode,
+                                                                                                )
+                                                                                              : '';
+                                                                                    });
                                                                                     await _model.waitForRequestCompleted();
                                                                                   }
                                                                                 },
@@ -7391,45 +7568,62 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                   if (pesoNascimentoParsedEdit !=
                                                           null &&
                                                       pesoNascimentoParsedEdit > 0) {
-                                                    final existentesNasc =
-                                                        await HistoricoPesagensTable()
-                                                            .queryRows(
-                                                      queryFn: (q) => q
-                                                          .eqOrNull('idRebanho',
-                                                              idRebanhoSync)
-                                                          .eqOrNull(
-                                                              'tipo',
-                                                              'Nascimento')
-                                                          .eqOrNull('deletado',
-                                                              'NAO'),
-                                                    );
-                                                    if (existentesNasc
-                                                        .isNotEmpty) {
-                                                      await HistoricoPesagensTable()
-                                                          .update(
-                                                        data: {
-                                                          'peso':
-                                                              pesoNascimentoParsedEdit,
+                                                     final existentesNasc =
+                                                         await HistoricoPesagensTable()
+                                                             .queryRows(
+                                                       queryFn: (q) => q
+                                                           .eqOrNull('idRebanho',
+                                                               idRebanhoSync)
+                                                           .eqOrNull(
+                                                               'tipo',
+                                                               'Nascimento')
+                                                           .order('id',
+                                                               ascending:
+                                                                   false),
+                                                     );
+                                                     final existenteNasc =
+                                                         existentesNasc
+                                                             .where(
+                                                                 _pesagemAtiva)
+                                                             .firstOrNull;
+                                                     if (existenteNasc !=
+                                                         null) {
+                                                       await HistoricoPesagensTable()
+                                                           .update(
+                                                         data: {
+                                                           'peso':
+                                                               pesoNascimentoParsedEdit,
                                                           if (effectiveDataNascimentoForSave !=
                                                               null)
                                                             'dataPesagem': supaSerialize<
-                                                                    DateTime>(
-                                                                effectiveDataNascimentoForSave),
-                                                        },
-                                                        matchingRows: (rows) => rows
-                                                            .eqOrNull(
-                                                                'idRebanho',
-                                                                idRebanhoSync)
-                                                            .eqOrNull('tipo',
-                                                                'Nascimento')
-                                                            .eqOrNull(
-                                                                'deletado',
-                                                                'NAO'),
-                                                      );
-                                                    } else {
-                                                      await HistoricoPesagensTable()
-                                                          .insert({
-                                                        'idRebanho':
+                                                                 DateTime>(
+                                                                 effectiveDataNascimentoForSave),
+                                                         },
+                                                         matchingRows: (rows) => rows
+                                                             .eqOrNull(
+                                                                 'id',
+                                                                 existenteNasc
+                                                                     .id),
+                                                       );
+                                                     } else if (effectiveDataNascimentoForSave !=
+                                                         null) {
+                                                       await _registrarPesagemSeNaoExistir(
+                                                         idRebanho:
+                                                             idRebanhoSync,
+                                                         idPropriedade:
+                                                             FFAppState()
+                                                                 .propriedadeSelecionada
+                                                                 .idPropriedade,
+                                                         tipo: 'Nascimento',
+                                                         dataPesagem:
+                                                             effectiveDataNascimentoForSave,
+                                                         peso:
+                                                             pesoNascimentoParsedEdit,
+                                                       );
+                                                     } else {
+                                                       await HistoricoPesagensTable()
+                                                           .insert({
+                                                         'idRebanho':
                                                             idRebanhoSync,
                                                         'id_propriedade':
                                                             FFAppState()
@@ -7448,44 +7642,61 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                   if (pesoDesmamaParsedEdit !=
                                                           null &&
                                                       pesoDesmamaParsedEdit > 0) {
-                                                    final existentesDesm =
-                                                        await HistoricoPesagensTable()
-                                                            .queryRows(
-                                                      queryFn: (q) => q
-                                                          .eqOrNull('idRebanho',
-                                                              idRebanhoSync)
-                                                          .eqOrNull(
-                                                              'tipo', 'Desmama')
-                                                          .eqOrNull('deletado',
-                                                              'NAO'),
-                                                    );
-                                                    if (existentesDesm
-                                                        .isNotEmpty) {
-                                                      await HistoricoPesagensTable()
-                                                          .update(
-                                                        data: {
-                                                          'peso':
-                                                              pesoDesmamaParsedEdit,
+                                                     final existentesDesm =
+                                                         await HistoricoPesagensTable()
+                                                             .queryRows(
+                                                       queryFn: (q) => q
+                                                           .eqOrNull('idRebanho',
+                                                               idRebanhoSync)
+                                                           .eqOrNull(
+                                                               'tipo', 'Desmama')
+                                                           .order('id',
+                                                               ascending:
+                                                                   false),
+                                                     );
+                                                     final existenteDesm =
+                                                         existentesDesm
+                                                             .where(
+                                                                 _pesagemAtiva)
+                                                             .firstOrNull;
+                                                     if (existenteDesm !=
+                                                         null) {
+                                                       await HistoricoPesagensTable()
+                                                           .update(
+                                                         data: {
+                                                           'peso':
+                                                               pesoDesmamaParsedEdit,
                                                           if (effectiveDataDesmamaEdit !=
                                                               null)
                                                             'dataPesagem': supaSerialize<
-                                                                    DateTime>(
-                                                                effectiveDataDesmamaEdit),
-                                                        },
-                                                        matchingRows: (rows) => rows
-                                                            .eqOrNull(
-                                                                'idRebanho',
-                                                                idRebanhoSync)
-                                                            .eqOrNull('tipo',
-                                                                'Desmama')
-                                                            .eqOrNull(
-                                                                'deletado',
-                                                                'NAO'),
-                                                      );
-                                                    } else {
-                                                      await HistoricoPesagensTable()
-                                                          .insert({
-                                                        'idRebanho':
+                                                                 DateTime>(
+                                                                 effectiveDataDesmamaEdit),
+                                                         },
+                                                         matchingRows: (rows) => rows
+                                                             .eqOrNull(
+                                                                 'id',
+                                                                 existenteDesm
+                                                                     .id),
+                                                       );
+                                                     } else if (effectiveDataDesmamaEdit !=
+                                                         null) {
+                                                       await _registrarPesagemSeNaoExistir(
+                                                         idRebanho:
+                                                             idRebanhoSync,
+                                                         idPropriedade:
+                                                             FFAppState()
+                                                                 .propriedadeSelecionada
+                                                                 .idPropriedade,
+                                                         tipo: 'Desmama',
+                                                         dataPesagem:
+                                                             effectiveDataDesmamaEdit,
+                                                         peso:
+                                                             pesoDesmamaParsedEdit,
+                                                       );
+                                                     } else {
+                                                       await HistoricoPesagensTable()
+                                                           .insert({
+                                                         'idRebanho':
                                                             idRebanhoSync,
                                                         'id_propriedade':
                                                             FFAppState()
@@ -7505,29 +7716,27 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                   // registra a alteracao em historico_pesagens com a data
                                                   // atual (tipo 'Atual'). So insere quando o usuario digitou
                                                   // um valor diferente do que ja estava salvo.
-                                                  if (pesoAtualDigitadoEdit !=
-                                                          null &&
-                                                      pesoAtualDigitadoEdit > 0 &&
-                                                      pesoAtualDigitadoEdit !=
-                                                          pgRebanhoEditRebanhoRow
-                                                              ?.pesoAtual) {
-                                                    await HistoricoPesagensTable()
-                                                        .insert({
-                                                      'idRebanho':
-                                                          idRebanhoSync,
-                                                      'id_propriedade':
-                                                          FFAppState()
-                                                              .propriedadeSelecionada
-                                                              .idPropriedade,
-                                                      'dataPesagem': supaSerialize<
-                                                              DateTime>(
-                                                          getCurrentTimestamp),
-                                                      'tipo': 'Atual',
-                                                      'peso':
-                                                          pesoAtualDigitadoEdit,
-                                                      'deletado': 'NAO',
-                                                    });
-                                                  }
+                                                   if (pesoAtualDigitadoEdit !=
+                                                           null &&
+                                                       pesoAtualDigitadoEdit > 0 &&
+                                                       pesoAtualDigitadoEdit !=
+                                                           pgRebanhoEditRebanhoRow
+                                                               ?.pesoAtual) {
+                                                     await _registrarPesagemSeNaoExistir(
+                                                       idRebanho:
+                                                           idRebanhoSync,
+                                                       idPropriedade:
+                                                           FFAppState()
+                                                               .propriedadeSelecionada
+                                                               .idPropriedade,
+                                                       tipo: 'Atual',
+                                                       dataPesagem:
+                                                           dataUltimaPesagemFinalEdit ??
+                                                               getCurrentTimestamp,
+                                                       peso:
+                                                           pesoAtualDigitadoEdit,
+                                                     );
+                                                   }
                                                 }
                                                 // Sincronizar id_animais do(s) lote(s): remover do lote antigo e incluir no novo
                                                 final idRebanhoAnimal =

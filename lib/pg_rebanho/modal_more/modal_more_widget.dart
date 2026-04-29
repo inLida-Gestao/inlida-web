@@ -287,9 +287,9 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                 context.pushNamed(
                   PgRebanhoViewWidget.routeName,
                   queryParameters: {
-                    'rebanhoId': serializeParam(
-                      widget.rebanhoId,
-                      ParamType.int,
+                    'idRebanho': serializeParam(
+                      _model.rebanho?.firstOrNull?.idRebanho,
+                      ParamType.String,
                     ),
                   }.withoutNulls,
                   extra: <String, dynamic>{

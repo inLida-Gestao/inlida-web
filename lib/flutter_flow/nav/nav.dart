@@ -141,10 +141,14 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           path: PgRebanhoViewWidget.routePath,
           requireAuth: true,
           builder: (context, params) => PgRebanhoViewWidget(
-            rebanhoId: params.getParam(
-              'rebanhoId',
-              ParamType.int,
-            ),
+            idRebanho: params.getParam(
+                  'idRebanho',
+                  ParamType.String,
+                ) ??
+                params.getParam(
+                  'rebanhoId',
+                  ParamType.String,
+                ),
           ),
         ),
         FFRoute(

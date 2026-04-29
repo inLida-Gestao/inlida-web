@@ -54,6 +54,12 @@ class PgViewLoteModel extends FlutterFlowModel<PgViewLoteWidget> {
 
   bool ativo = true;
 
+  DateTime? gmdLoteDataInicial;
+
+  DateTime? gmdLoteDataFinal;
+
+  String? gmdLoteAnimaisKey;
+
   ///  State fields for stateful widgets in this page.
 
   // Stores action output result for [Backend Call - Query Rows] action in pgViewLote widget.
@@ -92,6 +98,7 @@ class PgViewLoteModel extends FlutterFlowModel<PgViewLoteWidget> {
   TextEditingController? pesquisaTextController;
   String? Function(BuildContext, String?)? pesquisaTextControllerValidator;
   Completer<ApiCallResponse>? apiRequestCompleter;
+  Completer<List<HistoricoPesagensRow>>? gmdLotePesagensCompleter;
   // State field(s) for PaginatedDataTable widget.
   final paginatedDataTableController =
       FlutterFlowDataTableController<RebanhoDTStruct>();

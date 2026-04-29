@@ -22,6 +22,7 @@ class PpAddPessagemWidget extends StatefulWidget {
 
 class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
   late PpAddPessagemModel _model;
+  bool _salvandoPesagem = false;
 
   @override
   void setState(VoidCallback callback) {
@@ -29,10 +30,85 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
     _model.onUpdate();
   }
 
+  DateTime _dateOnly(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
+
+  bool _pesagemAtiva(HistoricoPesagensRow pesagem) =>
+      pesagem.deletado?.trim().toUpperCase() != 'SIM';
+
+  Future<HistoricoPesagensRow?> _buscarPesagemAtualExistente({
+    required String idRebanho,
+    required DateTime dataPesagem,
+    required double peso,
+  }) async {
+    final inicioDia = _dateOnly(dataPesagem);
+    final existentes = await HistoricoPesagensTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('idRebanho', idRebanho)
+          .eqOrNull('tipo', 'Atual')
+          .eqOrNull('peso', peso)
+          .gteOrNull('dataPesagem', supaSerialize<DateTime>(inicioDia))
+          .ltOrNull(
+            'dataPesagem',
+            supaSerialize<DateTime>(inicioDia.add(const Duration(days: 1))),
+          )
+          .order('id', ascending: false),
+      limit: 20,
+    );
+
+    return existentes.where(_pesagemAtiva).firstOrNull;
+  }
+
+  Future<HistoricoPesagensRow> _registrarPesagemAtualSeNaoExistir({
+    required String idRebanho,
+    required String? idPropriedade,
+    required DateTime dataPesagem,
+    required double peso,
+  }) async {
+    final existente = await _buscarPesagemAtualExistente(
+      idRebanho: idRebanho,
+      dataPesagem: dataPesagem,
+      peso: peso,
+    );
+    if (existente != null) {
+      return existente;
+    }
+
+    try {
+      return await HistoricoPesagensTable().insert({
+        'idRebanho': idRebanho,
+        'id_propriedade': idPropriedade,
+        'dataPesagem': supaSerialize<DateTime>(dataPesagem),
+        'tipo': 'Atual',
+        'peso': peso,
+        'deletado': 'NAO',
+      });
+    } catch (e) {
+      final erro = e.toString().toLowerCase();
+      if (erro.contains('duplicate key') || erro.contains('unique')) {
+        final existenteAposConflito = await _buscarPesagemAtualExistente(
+          idRebanho: idRebanho,
+          dataPesagem: dataPesagem,
+          peso: peso,
+        );
+        if (existenteAposConflito != null) {
+          return existenteAposConflito;
+        }
+      }
+      rethrow;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => PpAddPessagemModel());
+
+    _model.datePicked = DateTime(
+      getCurrentTimestamp.year,
+      getCurrentTimestamp.month,
+      getCurrentTimestamp.day,
+    );
 
     _model.dataPesagemTextController ??= TextEditingController();
     _model.dataPesagemFocusNode ??= FocusNode();
@@ -258,7 +334,8 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                                 onTap: () async {
                                   final datePickedDate = await showDatePicker(
                                     context: context,
-                                    initialDate: getCurrentTimestamp,
+                                    initialDate:
+                                        _model.datePicked ?? getCurrentTimestamp,
                                     firstDate: DateTime(1900),
                                     lastDate: DateTime(2050),
                                     builder: (context, child) {
@@ -525,6 +602,23 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                     ),
                     FFButtonWidget(
                       onPressed: () async {
+                        if (_model.datePicked == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Informe a data da pesagem.',
+                                style: TextStyle(
+                                  color: FlutterFlowTheme.of(context)
+                                      .secondaryBackground,
+                                ),
+                              ),
+                              duration: const Duration(milliseconds: 3000),
+                              backgroundColor:
+                                  FlutterFlowTheme.of(context).error,
+                            ),
+                          );
+                          return;
+                        }
                         final pesoTextoNorm = _model
                             .pesoAddTextController.text
                             .trim()
@@ -546,59 +640,94 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                           return;
                         }
                         final idRebanho = containerRebanhoRow?.idRebanho;
-                        await HistoricoPesagensTable().insert({
-                          'idRebanho': idRebanho,
-                          'id_propriedade': FFAppState()
-                              .propriedadeSelecionada
-                              .idPropriedade,
-                          'dataPesagem':
-                              supaSerialize<DateTime>(_model.datePicked),
-                          'tipo': 'Atual',
-                          'peso': pesoDouble,
-                          'deletado': 'NAO',
-                        });
-                        // Atualiza ficha com a pesagem mais recente (última por data)
-                        final ultimas =
-                            await HistoricoPesagensTable().queryRows(
-                          queryFn: (q) => q
-                              .eqOrNull('idRebanho', idRebanho)
-                              .eqOrNull('deletado', 'NAO')
-                              .order('dataPesagem', ascending: false)
-                              .limit(1),
-                        );
-                        if (ultimas.isNotEmpty) {
-                          final ultima = ultimas.first;
-                          await RebanhoTable().update(
-                            data: {
-                              'pesoAtual': ultima.peso,
-                              'dataUltimaPesagem':
-                                  supaSerialize<DateTime>(ultima.dataPesagem),
-                            },
-                            matchingRows: (rows) => rows.eqOrNull(
-                              'idRebanho',
-                              idRebanho,
+                        if (widget.rebanhoId == null ||
+                            idRebanho == null ||
+                            idRebanho.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Não foi possível identificar o animal da pesagem.',
+                                style: TextStyle(
+                                  color: FlutterFlowTheme.of(context)
+                                      .secondaryBackground,
+                                ),
+                              ),
+                              duration: const Duration(milliseconds: 3000),
+                              backgroundColor:
+                                  FlutterFlowTheme.of(context).error,
                             ),
                           );
+                          return;
                         }
-                        FFAppState().refreshPesagem = true;
+                        if (_salvandoPesagem) {
+                          return;
+                        }
+
+                        _salvandoPesagem = true;
                         safeSetState(() {});
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Pesagem adicionada',
-                              style: TextStyle(
-                                color: FlutterFlowTheme.of(context)
-                                    .secondaryBackground,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16.0,
+                        try {
+                          await _registrarPesagemAtualSeNaoExistir(
+                            idRebanho: idRebanho,
+                            idPropriedade: FFAppState()
+                                .propriedadeSelecionada
+                                .idPropriedade,
+                            dataPesagem: _model.datePicked!,
+                            peso: pesoDouble,
+                          );
+                          // Atualiza ficha com a pesagem mais recente (última por data)
+                          final ultimas =
+                              await HistoricoPesagensTable().queryRows(
+                            queryFn: (q) => q
+                                .eqOrNull('idRebanho', idRebanho)
+                                .order('dataPesagem', ascending: false)
+                                .limit(100),
+                          );
+                          final ultima = ultimas
+                              .where((pesagem) =>
+                                  pesagem.deletado?.trim().toUpperCase() !=
+                                  'SIM')
+                              .firstOrNull;
+                          if (ultima != null) {
+                            await RebanhoTable().update(
+                              data: {
+                                'pesoAtual': ultima.peso,
+                                'dataUltimaPesagem':
+                                    supaSerialize<DateTime>(ultima.dataPesagem),
+                              },
+                              matchingRows: (rows) => rows.eqOrNull(
+                                'idRebanho',
+                                idRebanho,
                               ),
+                            );
+                          }
+                          FFAppState().refreshPesagem = true;
+                          if (!context.mounted) {
+                            return;
+                          }
+                          safeSetState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Pesagem adicionada',
+                                style: TextStyle(
+                                  color: FlutterFlowTheme.of(context)
+                                      .secondaryBackground,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16.0,
+                                ),
+                              ),
+                              duration: const Duration(milliseconds: 4000),
+                              backgroundColor:
+                                  FlutterFlowTheme.of(context).secondary,
                             ),
-                            duration: const Duration(milliseconds: 4000),
-                            backgroundColor:
-                                FlutterFlowTheme.of(context).secondary,
-                          ),
-                        );
-                        Navigator.pop(context);
+                          );
+                          Navigator.pop(context, true);
+                        } finally {
+                          _salvandoPesagem = false;
+                          if (mounted) {
+                            safeSetState(() {});
+                          }
+                        }
                       },
                       text: 'Adicionar',
                       options: FFButtonOptions(

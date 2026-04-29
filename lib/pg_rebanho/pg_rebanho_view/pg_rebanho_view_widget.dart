@@ -15,6 +15,7 @@ import 'dart:async';
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'package:aligned_dialog/aligned_dialog.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -115,13 +116,29 @@ List<ReproducaoRow> _sortReproducoesFichaAnimal(
   return copy;
 }
 
+class _GmdEvolutionPoint {
+  const _GmdEvolutionPoint({
+    required this.current,
+    required this.previous,
+    required this.diasAvaliados,
+    required this.gmd,
+  });
+
+  final HistoricoPesagensRow current;
+  final HistoricoPesagensRow previous;
+  final int diasAvaliados;
+  final double? gmd;
+
+  bool get calculavel => gmd != null;
+}
+
 class PgRebanhoViewWidget extends StatefulWidget {
   const PgRebanhoViewWidget({
     super.key,
-    required this.rebanhoId,
+    required this.idRebanho,
   });
 
-  final int? rebanhoId;
+  final String? idRebanho;
 
   static String routeName = 'pgRebanhoView';
   static String routePath = '/viewrebanho';
@@ -136,6 +153,711 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  DateTime _dateOnly(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
+
+  bool _pesagemAtiva(HistoricoPesagensRow pesagem) =>
+      pesagem.deletado?.trim().toUpperCase() != 'SIM';
+
+  Future<void> _marcarPesagemComoDeletada(
+    HistoricoPesagensRow pesagem,
+    String? idRebanho,
+  ) async {
+    if (idRebanho != null &&
+        idRebanho.trim().isNotEmpty &&
+        pesagem.dataPesagem != null &&
+        pesagem.peso != null) {
+      final inicioDia = _dateOnly(pesagem.dataPesagem!);
+      await HistoricoPesagensTable().update(
+        data: {
+          'deletado': 'SIM',
+        },
+        matchingRows: (rows) => rows
+            .eqOrNull('idRebanho', idRebanho)
+            .eqOrNull('peso', pesagem.peso)
+            .gteOrNull('dataPesagem', supaSerialize<DateTime>(inicioDia))
+            .ltOrNull(
+              'dataPesagem',
+              supaSerialize<DateTime>(inicioDia.add(const Duration(days: 1))),
+            ),
+      );
+      return;
+    }
+
+    await HistoricoPesagensTable().update(
+      data: {
+        'deletado': 'SIM',
+      },
+      matchingRows: (rows) => rows.eqOrNull('id', pesagem.id),
+    );
+  }
+
+  Future<HistoricoPesagensRow?> _syncPesoAtualAposPesagem({
+    required int? rebanhoId,
+    required String? idRebanho,
+  }) async {
+    if (rebanhoId == null || idRebanho == null || idRebanho.trim().isEmpty) {
+      return null;
+    }
+
+    final pesagens = await HistoricoPesagensTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('idRebanho', idRebanho)
+          .order('dataPesagem', ascending: false),
+      limit: 100,
+    );
+    final ultima = pesagens.where(_pesagemAtiva).firstOrNull;
+
+    await RebanhoTable().update(
+      data: {
+        'pesoAtual': ultima?.peso,
+        'dataUltimaPesagem': supaSerialize<DateTime>(ultima?.dataPesagem),
+      },
+      matchingRows: (rows) => rows.eqOrNull('id', rebanhoId),
+    );
+
+    return ultima;
+  }
+
+  String _formatKg(double? value) {
+    if (value == null) return '-';
+    return '${value.toStringAsFixed(2).replaceAll('.', ',')} kg';
+  }
+
+  String _formatSignedKgDia(double? value) {
+    if (value == null) return '-';
+    final prefix = value > 0 ? '+' : '';
+    return '$prefix${value.toStringAsFixed(3).replaceAll('.', ',')} kg/d';
+  }
+
+  String _formatGmdDate(DateTime? value) {
+    if (value == null) return 'Selecionar';
+    return dateTimeFormat(
+      'd/M/y',
+      value,
+      locale: FFLocalizations.of(context).languageCode,
+    );
+  }
+
+  String _formatPesagemDate(DateTime? value) {
+    if (value == null) return '-';
+    return dateTimeFormat(
+      'd/M/y',
+      value,
+      locale: FFLocalizations.of(context).languageCode,
+    );
+  }
+
+  List<_GmdEvolutionPoint> _buildGmdEvolution(
+      List<HistoricoPesagensRow> pesagens) {
+    final validas = pesagens
+        .where((p) => p.dataPesagem != null && p.peso != null)
+        .toList()
+      ..sort((a, b) => a.dataPesagem!.compareTo(b.dataPesagem!));
+
+    final pontos = <_GmdEvolutionPoint>[];
+    for (var index = 1; index < validas.length; index++) {
+      final previous = validas[index - 1];
+      final current = validas[index];
+      final diasAvaliados = _dateOnly(current.dataPesagem!)
+          .difference(_dateOnly(previous.dataPesagem!))
+          .inDays;
+      final gmd = diasAvaliados > 0
+          ? (current.peso! - previous.peso!) / diasAvaliados
+          : null;
+      pontos.add(
+        _GmdEvolutionPoint(
+          current: current,
+          previous: previous,
+          diasAvaliados: diasAvaliados,
+          gmd: gmd,
+        ),
+      );
+    }
+
+    return pontos;
+  }
+
+  Map<int, _GmdEvolutionPoint> _buildGmdByPesagemId(
+    List<_GmdEvolutionPoint> pontos,
+  ) =>
+      {
+        for (final ponto in pontos) ponto.current.id: ponto,
+      };
+
+  List<_GmdEvolutionPoint> _filterGmdChartPoints(
+    List<_GmdEvolutionPoint> pontos,
+  ) {
+    if (pontos.isEmpty) return const [];
+
+    final dataInicial = _dateOnly(
+      _model.gmdDataInicial ?? pontos.first.current.dataPesagem!,
+    );
+    final dataFinal = _dateOnly(
+      _model.gmdDataFinal ?? pontos.last.current.dataPesagem!,
+    );
+
+    if (dataFinal.isBefore(dataInicial)) return const [];
+
+    return pontos.where((ponto) {
+      final data = _dateOnly(ponto.current.dataPesagem!);
+      return !data.isBefore(dataInicial) && !data.isAfter(dataFinal);
+    }).toList();
+  }
+
+  Color _gmdColor(double? value) {
+    if (value == null || value == 0) {
+      return FlutterFlowTheme.of(context).secondaryText;
+    }
+    return value > 0
+        ? FlutterFlowTheme.of(context).success
+        : FlutterFlowTheme.of(context).error;
+  }
+
+  Future<void> _pickGmdDate({
+    required bool isStart,
+    required List<HistoricoPesagensRow> pesagens,
+  }) async {
+    final datas = pesagens
+        .where((p) => p.dataPesagem != null)
+        .map((p) => _dateOnly(p.dataPesagem!))
+        .toList()
+      ..sort();
+
+    final fallback = datas.isNotEmpty ? datas.first : getCurrentTimestamp;
+    final current = isStart ? _model.gmdDataInicial : _model.gmdDataFinal;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate:
+          current ?? (isStart ? fallback : (datas.lastOrNull ?? fallback)),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2050),
+      builder: (context, child) {
+        return wrapInMaterialDatePickerTheme(
+          context,
+          child!,
+          headerBackgroundColor: FlutterFlowTheme.of(context).primary,
+          headerForegroundColor: FlutterFlowTheme.of(context).info,
+          headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
+                font: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontStyle:
+                      FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                ),
+                fontSize: 32.0,
+                letterSpacing: 0.0,
+                fontWeight: FontWeight.w600,
+                fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+              ),
+          pickerBackgroundColor:
+              FlutterFlowTheme.of(context).secondaryBackground,
+          pickerForegroundColor: FlutterFlowTheme.of(context).primaryText,
+          selectedDateTimeBackgroundColor: FlutterFlowTheme.of(context).primary,
+          selectedDateTimeForegroundColor: FlutterFlowTheme.of(context).info,
+          actionButtonForegroundColor: FlutterFlowTheme.of(context).primaryText,
+          iconSize: 24.0,
+        );
+      },
+    );
+
+    if (picked == null) return;
+    safeSetState(() {
+      if (isStart) {
+        _model.gmdDataInicial = _dateOnly(picked);
+      } else {
+        _model.gmdDataFinal = _dateOnly(picked);
+      }
+    });
+  }
+
+  Widget _buildGmdDateFilter({
+    required String label,
+    required DateTime? value,
+    required VoidCallback onTap,
+  }) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 180.0, maxWidth: 260.0),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8.0),
+        child: Container(
+          height: 48.0,
+          decoration: BoxDecoration(
+            color: FlutterFlowTheme.of(context).customColor2,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          padding: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: FlutterFlowTheme.of(context).labelSmall,
+                    ),
+                    Text(
+                      _formatGmdDate(value),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            font: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600,
+                              fontStyle: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .fontStyle,
+                            ),
+                            letterSpacing: 0.0,
+                            fontWeight: FontWeight.w600,
+                            fontStyle: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .fontStyle,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.calendar_today,
+                color: FlutterFlowTheme.of(context).secondaryText,
+                size: 20.0,
+              ),
+            ].divide(const SizedBox(width: 8.0)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGmdTableValue(_GmdEvolutionPoint? ponto) {
+    if (ponto?.gmd == null) {
+      return Text(
+        '-',
+        style: FlutterFlowTheme.of(context).bodyMedium.override(
+              font: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+              ),
+              color: FlutterFlowTheme.of(context).secondaryText,
+              letterSpacing: 0.0,
+              fontWeight: FontWeight.w500,
+              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+            ),
+      );
+    }
+
+    final color = _gmdColor(ponto!.gmd);
+    return Tooltip(
+      message:
+          '${_formatKg(ponto.previous.peso)} → ${_formatKg(ponto.current.peso)} em ${ponto.diasAvaliados} dias',
+      child: Text(
+        _formatSignedKgDia(ponto.gmd),
+        style: FlutterFlowTheme.of(context).bodyMedium.override(
+              font: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+              ),
+              color: color,
+              letterSpacing: 0.0,
+              fontWeight: FontWeight.w600,
+              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildGmdInfoMessage(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).customColor2,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(
+          color: FlutterFlowTheme.of(context).customColor5,
+        ),
+      ),
+      child: Text(
+        message,
+        style: FlutterFlowTheme.of(context).bodyMedium.override(
+              font: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+              ),
+              color: FlutterFlowTheme.of(context).primaryText,
+              letterSpacing: 0.0,
+              fontWeight: FontWeight.w500,
+              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildGmdLegendItem({
+    required Color color,
+    required String label,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12.0,
+          height: 12.0,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3.0),
+          ),
+        ),
+        Text(
+          label,
+          style: FlutterFlowTheme.of(context).labelMedium,
+        ),
+      ].divide(const SizedBox(width: 6.0)),
+    );
+  }
+
+  Widget _buildGmdLineChart(List<_GmdEvolutionPoint> pontos) {
+    final valores = pontos.map((ponto) => ponto.gmd!).toList();
+    final minValue = valores.reduce((a, b) => a < b ? a : b);
+    final maxValue = valores.reduce((a, b) => a > b ? a : b);
+    var minY = minValue < 0 ? minValue * 1.2 : 0.0;
+    var maxY = maxValue > 0 ? maxValue * 1.2 : 0.0;
+    if (minY == maxY) {
+      minY = minY < 0 ? minY : 0.0;
+      maxY = maxY > 0 ? maxY : 1.0;
+    }
+
+    final labelStyle = FlutterFlowTheme.of(context).labelSmall.override(
+          font: GoogleFonts.poppins(
+            fontWeight: FlutterFlowTheme.of(context).labelSmall.fontWeight,
+            fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
+          ),
+          color: FlutterFlowTheme.of(context).secondaryText,
+          letterSpacing: 0.0,
+          fontWeight: FlutterFlowTheme.of(context).labelSmall.fontWeight,
+          fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
+        );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final minChartWidth = pontos.length * 96.0 + 96.0;
+        final chartWidth = minChartWidth > constraints.maxWidth
+            ? minChartWidth
+            : constraints.maxWidth;
+        final lineSpots = pontos
+            .asMap()
+            .entries
+            .map((entry) => FlSpot(entry.key.toDouble(), entry.value.gmd!))
+            .toList();
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: chartWidth,
+            height: 300.0,
+            child: LineChart(
+              LineChartData(
+                minX: -0.45,
+                maxX: pontos.length > 1 ? pontos.length - 0.55 : 1.0,
+                minY: minY,
+                maxY: maxY,
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  handleBuiltInTouches: true,
+                  getTouchedSpotIndicator: (barData, spotIndexes) {
+                    return spotIndexes.map((spotIndex) {
+                      final value = spotIndex >= 0 && spotIndex < pontos.length
+                          ? pontos[spotIndex].gmd
+                          : null;
+                      final color = _gmdColor(value);
+                      return TouchedSpotIndicatorData(
+                        FlLine(
+                          color: color,
+                          strokeWidth: 2.5,
+                        ),
+                        FlDotData(
+                          show: true,
+                          getDotPainter: (spot, percent, barData, index) =>
+                              FlDotCirclePainter(
+                            radius: 6.0,
+                            color: color,
+                            strokeWidth: 2.0,
+                            strokeColor: FlutterFlowTheme.of(context)
+                                .secondaryBackground,
+                          ),
+                        ),
+                      );
+                    }).toList();
+                  },
+                  touchTooltipData: LineTouchTooltipData(
+                    fitInsideHorizontally: true,
+                    fitInsideVertically: true,
+                    maxContentWidth: 160.0,
+                    tooltipPadding: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 8.0,
+                    ),
+                    getTooltipColor: (_) => FlutterFlowTheme.of(context)
+                        .primaryText
+                        .withValues(alpha: 0.92),
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        final index = spot.x.toInt();
+                        if (index < 0 || index >= pontos.length) return null;
+                        final ponto = pontos[index];
+                        return LineTooltipItem(
+                          '${dateTimeFormat(
+                            'd/M/y',
+                            ponto.current.dataPesagem,
+                            locale: FFLocalizations.of(context).languageCode,
+                          )}\n${_formatSignedKgDia(ponto.gmd)}',
+                          GoogleFonts.poppins(
+                            color: FlutterFlowTheme.of(context)
+                                .secondaryBackground,
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: lineSpots,
+                    isCurved: true,
+                    curveSmoothness: 0.22,
+                    color: FlutterFlowTheme.of(context).primary,
+                    barWidth: 3.0,
+                    isStrokeCapRound: true,
+                    preventCurveOverShooting: true,
+                    belowBarData: BarAreaData(show: false),
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        final value = index >= 0 && index < pontos.length
+                            ? pontos[index].gmd
+                            : null;
+                        return FlDotCirclePainter(
+                          radius: 5.0,
+                          color: _gmdColor(value),
+                          strokeWidth: 2.0,
+                          strokeColor:
+                              FlutterFlowTheme.of(context).secondaryBackground,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (_) => FlLine(
+                    color: FlutterFlowTheme.of(context).customColor5,
+                    strokeWidth: 1.0,
+                  ),
+                ),
+                extraLinesData: ExtraLinesData(
+                  horizontalLines: [
+                    HorizontalLine(
+                      y: 0.0,
+                      color: FlutterFlowTheme.of(context)
+                          .secondaryText
+                          .withValues(alpha: 0.45),
+                      strokeWidth: 1.2,
+                      dashArray: [6, 4],
+                    ),
+                  ],
+                ),
+                borderData: FlBorderData(
+                  show: true,
+                  border: Border(
+                    left: BorderSide(
+                      color: FlutterFlowTheme.of(context).customColor5,
+                    ),
+                    bottom: BorderSide(
+                      color: FlutterFlowTheme.of(context).customColor5,
+                    ),
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 54.0,
+                      getTitlesWidget: (value, meta) => Text(
+                        value.toStringAsFixed(2).replaceAll('.', ','),
+                        style: labelStyle,
+                      ),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 48.0,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.round();
+                        if ((value - index).abs() > 0.01) {
+                          return const SizedBox.shrink();
+                        }
+                        if (index < 0 || index >= pontos.length) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Transform.rotate(
+                            angle: -0.55,
+                            child: Text(
+                              dateTimeFormat(
+                                'd/M',
+                                pontos[index].current.dataPesagem,
+                                locale:
+                                    FFLocalizations.of(context).languageCode,
+                              ),
+                              style: labelStyle,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGmdCard(List<HistoricoPesagensRow> pesagens) {
+    final pontos = _buildGmdEvolution(pesagens);
+    final dataInicial = pontos.isNotEmpty
+        ? _dateOnly(_model.gmdDataInicial ?? pontos.first.current.dataPesagem!)
+        : null;
+    final dataFinal = pontos.isNotEmpty
+        ? _dateOnly(_model.gmdDataFinal ?? pontos.last.current.dataPesagem!)
+        : null;
+    final periodoInvalido = dataInicial != null &&
+        dataFinal != null &&
+        dataFinal.isBefore(dataInicial);
+    final pontosFiltrados = periodoInvalido
+        ? <_GmdEvolutionPoint>[]
+        : _filterGmdChartPoints(pontos)
+            .where((ponto) => ponto.calculavel)
+            .toList();
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(
+          color: FlutterFlowTheme.of(context).customColor5,
+        ),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Evolução do GMD',
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  font: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                  ),
+                  fontSize: 18.0,
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w600,
+                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                ),
+          ),
+          const SizedBox(height: 4.0),
+          Text(
+            'Ganho médio diário entre pesagens consecutivas.',
+            style: FlutterFlowTheme.of(context).labelMedium,
+          ),
+          const SizedBox(height: 16.0),
+          Wrap(
+            spacing: 12.0,
+            runSpacing: 12.0,
+            children: [
+              _buildGmdDateFilter(
+                label: 'Data inicial',
+                value: dataInicial,
+                onTap: () => _pickGmdDate(isStart: true, pesagens: pesagens),
+              ),
+              _buildGmdDateFilter(
+                label: 'Data final',
+                value: dataFinal,
+                onTap: () => _pickGmdDate(isStart: false, pesagens: pesagens),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16.0),
+          Wrap(
+            spacing: 16.0,
+            runSpacing: 8.0,
+            children: [
+              _buildGmdLegendItem(
+                color: FlutterFlowTheme.of(context).success,
+                label: 'Ganho de peso',
+              ),
+              _buildGmdLegendItem(
+                color: FlutterFlowTheme.of(context).error,
+                label: 'Perda de peso',
+              ),
+            ],
+          ),
+          const SizedBox(height: 16.0),
+          if (pontos.isEmpty)
+            _buildGmdInfoMessage(
+              'É necessário ter pelo menos duas pesagens com data e peso para montar a evolução do GMD.',
+            )
+          else if (periodoInvalido)
+            _buildGmdInfoMessage(
+              'A data final deve ser igual ou posterior à data inicial.',
+            )
+          else if (pontosFiltrados.isEmpty)
+            _buildGmdInfoMessage(
+              'Não há pontos de GMD calculáveis no período selecionado.',
+            )
+          else
+            _buildGmdLineChart(pontosFiltrados),
+        ],
+      ),
+    );
+  }
+
+  void _resetPesagensCache() {
+    _model.requestCompleter = null;
+    _model.dataDesmamaTextController2?.dispose();
+    _model.dataDesmamaTextController2 = null;
+    _model.pesoDesmamaTextController2?.dispose();
+    _model.pesoDesmamaTextController2 = null;
+  }
+
+  Future<void> _recarregarPesagens() async {
+    safeSetState(_resetPesagensCache);
+    await _model.waitForRequestCompleted();
+    if (mounted) {
+      safeSetState(() {});
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -143,16 +865,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.disposeRefreshListener = FFAppState().onRefresh('refreshPesagem', () {
+      _model.disposeRefreshListener =
+          FFAppState().onRefresh('refreshPesagem', () {
         FFAppState().refreshPesagem = false;
-        safeSetState(() {
-          _model.requestCompleter = null;
-          // Resetar controllers de peso para que sejam recriados com dados atualizados
-          _model.dataDesmamaTextController2?.dispose();
-          _model.dataDesmamaTextController2 = null;
-          _model.pesoDesmamaTextController2?.dispose();
-          _model.pesoDesmamaTextController2 = null;
-        });
+        safeSetState(_resetPesagensCache);
       });
     });
 
@@ -233,8 +949,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     return FutureBuilder<List<RebanhoRow>>(
       future: RebanhoTable().querySingleRow(
         queryFn: (q) => q.eqOrNull(
-          'id',
-          widget.rebanhoId,
+          'idRebanho',
+          widget.idRebanho,
         ),
       ),
       builder: (context, snapshot) {
@@ -414,7 +1130,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                   builder: (context) =>
                                                       FFButtonWidget(
                                                     onPressed: () async {
-                                                      await showDialog(
+                                                      final pesagemAdicionada =
+                                                          await showDialog<
+                                                              bool>(
                                                         context: context,
                                                         builder:
                                                             (dialogContext) {
@@ -451,6 +1169,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                           );
                                                         },
                                                       );
+                                                      if (pesagemAdicionada ==
+                                                          true) {
+                                                        await _recarregarPesagens();
+                                                      }
                                                     },
                                                     text: 'Adicionar pesagem',
                                                     icon: const Icon(
@@ -4560,10 +5282,13 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     child:
                                                                         Column(
                                                                       mainAxisSize:
-                                                                          MainAxisSize.max,
+                                                                          MainAxisSize
+                                                                              .max,
                                                                       crossAxisAlignment:
-                                                                          CrossAxisAlignment.start,
-                                                                      children: [
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children:
+                                                                          [
                                                                         Text(
                                                                           'Data da compra',
                                                                           style: FlutterFlowTheme.of(context)
@@ -4634,38 +5359,46 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   fontWeight: FontWeight.w600,
                                                                                   fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
                                                                                 ),
-                                                                            enabledBorder: OutlineInputBorder(
+                                                                            enabledBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: const BorderSide(
                                                                                 color: Color(0x00000000),
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            focusedBorder: OutlineInputBorder(
+                                                                            focusedBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: const BorderSide(
                                                                                 color: Color(0x00000000),
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            errorBorder: OutlineInputBorder(
+                                                                            errorBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: BorderSide(
                                                                                 color: FlutterFlowTheme.of(context).error,
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            focusedErrorBorder: OutlineInputBorder(
+                                                                            focusedErrorBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: BorderSide(
                                                                                 color: FlutterFlowTheme.of(context).error,
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            filled: true,
-                                                                            fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                                            filled:
+                                                                                true,
+                                                                            fillColor:
+                                                                                FlutterFlowTheme.of(context).customColor2,
                                                                           ),
-                                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                          style: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .override(
                                                                                 font: GoogleFonts.poppins(
                                                                                   fontWeight: FontWeight.w600,
                                                                                   fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
@@ -4683,7 +5416,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                               .dataCompraViewTextControllerValidator
                                                                               .asValidator(context),
                                                                         ),
-                                                                      ].divide(const SizedBox(height: 8.0)),
+                                                                      ].divide(const SizedBox(
+                                                                              height: 8.0)),
                                                                     ),
                                                                   ),
                                                                 ),
@@ -4695,10 +5429,13 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     child:
                                                                         Column(
                                                                       mainAxisSize:
-                                                                          MainAxisSize.max,
+                                                                          MainAxisSize
+                                                                              .max,
                                                                       crossAxisAlignment:
-                                                                          CrossAxisAlignment.start,
-                                                                      children: [
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children:
+                                                                          [
                                                                         Text(
                                                                           'Valor da compra (R\$)',
                                                                           style: FlutterFlowTheme.of(context)
@@ -4717,15 +5454,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         TextFormField(
                                                                           controller: _model.valorCompraViewTextController ??=
                                                                               TextEditingController(
-                                                                            text:
-                                                                                pgRebanhoViewRebanhoRow?.valorCompra != null
-                                                                                    ? formatNumber(
-                                                                                        pgRebanhoViewRebanhoRow!.valorCompra,
-                                                                                        formatType: FormatType.decimal,
-                                                                                        decimalType: DecimalType.commaDecimal,
-                                                                                        currency: 'R\$ ',
-                                                                                      )
-                                                                                    : 'N/A',
+                                                                            text: pgRebanhoViewRebanhoRow?.valorCompra != null
+                                                                                ? formatNumber(
+                                                                                    pgRebanhoViewRebanhoRow!.valorCompra,
+                                                                                    formatType: FormatType.decimal,
+                                                                                    decimalType: DecimalType.commaDecimal,
+                                                                                    currency: 'R\$ ',
+                                                                                  )
+                                                                                : 'N/A',
                                                                           ),
                                                                           focusNode:
                                                                               _model.valorCompraViewFocusNode,
@@ -4749,15 +5485,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
                                                                                   fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
                                                                                 ),
-                                                                            hintText:
-                                                                                pgRebanhoViewRebanhoRow?.valorCompra != null
-                                                                                    ? formatNumber(
-                                                                                        pgRebanhoViewRebanhoRow!.valorCompra,
-                                                                                        formatType: FormatType.decimal,
-                                                                                        decimalType: DecimalType.commaDecimal,
-                                                                                        currency: 'R\$ ',
-                                                                                      )
-                                                                                    : 'N/A',
+                                                                            hintText: pgRebanhoViewRebanhoRow?.valorCompra != null
+                                                                                ? formatNumber(
+                                                                                    pgRebanhoViewRebanhoRow!.valorCompra,
+                                                                                    formatType: FormatType.decimal,
+                                                                                    decimalType: DecimalType.commaDecimal,
+                                                                                    currency: 'R\$ ',
+                                                                                  )
+                                                                                : 'N/A',
                                                                             hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
                                                                                   font: GoogleFonts.poppins(
                                                                                     fontWeight: FontWeight.w600,
@@ -4769,38 +5504,46 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   fontWeight: FontWeight.w600,
                                                                                   fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
                                                                                 ),
-                                                                            enabledBorder: OutlineInputBorder(
+                                                                            enabledBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: const BorderSide(
                                                                                 color: Color(0x00000000),
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            focusedBorder: OutlineInputBorder(
+                                                                            focusedBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: const BorderSide(
                                                                                 color: Color(0x00000000),
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            errorBorder: OutlineInputBorder(
+                                                                            errorBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: BorderSide(
                                                                                 color: FlutterFlowTheme.of(context).error,
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            focusedErrorBorder: OutlineInputBorder(
+                                                                            focusedErrorBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: BorderSide(
                                                                                 color: FlutterFlowTheme.of(context).error,
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            filled: true,
-                                                                            fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                                            filled:
+                                                                                true,
+                                                                            fillColor:
+                                                                                FlutterFlowTheme.of(context).customColor2,
                                                                           ),
-                                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                          style: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .override(
                                                                                 font: GoogleFonts.poppins(
                                                                                   fontWeight: FontWeight.w600,
                                                                                   fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
@@ -4818,11 +5561,15 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                               .valorCompraViewTextControllerValidator
                                                                               .asValidator(context),
                                                                         ),
-                                                                      ].divide(const SizedBox(height: 8.0)),
+                                                                      ].divide(const SizedBox(
+                                                                              height: 8.0)),
                                                                     ),
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(width: 24.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          24.0)),
                                                             ),
                                                           ),
                                                         if (valueOrDefault<
@@ -5177,10 +5924,13 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     child:
                                                                         Column(
                                                                       mainAxisSize:
-                                                                          MainAxisSize.max,
+                                                                          MainAxisSize
+                                                                              .max,
                                                                       crossAxisAlignment:
-                                                                          CrossAxisAlignment.start,
-                                                                      children: [
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children:
+                                                                          [
                                                                         Text(
                                                                           'Data da venda',
                                                                           style: FlutterFlowTheme.of(context)
@@ -5251,38 +6001,46 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   fontWeight: FontWeight.w600,
                                                                                   fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
                                                                                 ),
-                                                                            enabledBorder: OutlineInputBorder(
+                                                                            enabledBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: const BorderSide(
                                                                                 color: Color(0x00000000),
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            focusedBorder: OutlineInputBorder(
+                                                                            focusedBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: const BorderSide(
                                                                                 color: Color(0x00000000),
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            errorBorder: OutlineInputBorder(
+                                                                            errorBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: BorderSide(
                                                                                 color: FlutterFlowTheme.of(context).error,
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            focusedErrorBorder: OutlineInputBorder(
+                                                                            focusedErrorBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: BorderSide(
                                                                                 color: FlutterFlowTheme.of(context).error,
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            filled: true,
-                                                                            fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                                            filled:
+                                                                                true,
+                                                                            fillColor:
+                                                                                FlutterFlowTheme.of(context).customColor2,
                                                                           ),
-                                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                          style: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .override(
                                                                                 font: GoogleFonts.poppins(
                                                                                   fontWeight: FontWeight.w600,
                                                                                   fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
@@ -5300,7 +6058,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                               .dataVendaViewTextControllerValidator
                                                                               .asValidator(context),
                                                                         ),
-                                                                      ].divide(const SizedBox(height: 8.0)),
+                                                                      ].divide(const SizedBox(
+                                                                              height: 8.0)),
                                                                     ),
                                                                   ),
                                                                 ),
@@ -5312,10 +6071,13 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     child:
                                                                         Column(
                                                                       mainAxisSize:
-                                                                          MainAxisSize.max,
+                                                                          MainAxisSize
+                                                                              .max,
                                                                       crossAxisAlignment:
-                                                                          CrossAxisAlignment.start,
-                                                                      children: [
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children:
+                                                                          [
                                                                         Text(
                                                                           'Valor da venda (R\$)',
                                                                           style: FlutterFlowTheme.of(context)
@@ -5334,15 +6096,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         TextFormField(
                                                                           controller: _model.valorVendaViewTextController ??=
                                                                               TextEditingController(
-                                                                            text:
-                                                                                pgRebanhoViewRebanhoRow?.valorVenda != null
-                                                                                    ? formatNumber(
-                                                                                        pgRebanhoViewRebanhoRow!.valorVenda,
-                                                                                        formatType: FormatType.decimal,
-                                                                                        decimalType: DecimalType.commaDecimal,
-                                                                                        currency: 'R\$ ',
-                                                                                      )
-                                                                                    : 'N/A',
+                                                                            text: pgRebanhoViewRebanhoRow?.valorVenda != null
+                                                                                ? formatNumber(
+                                                                                    pgRebanhoViewRebanhoRow!.valorVenda,
+                                                                                    formatType: FormatType.decimal,
+                                                                                    decimalType: DecimalType.commaDecimal,
+                                                                                    currency: 'R\$ ',
+                                                                                  )
+                                                                                : 'N/A',
                                                                           ),
                                                                           focusNode:
                                                                               _model.valorVendaViewFocusNode,
@@ -5366,15 +6127,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
                                                                                   fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
                                                                                 ),
-                                                                            hintText:
-                                                                                pgRebanhoViewRebanhoRow?.valorVenda != null
-                                                                                    ? formatNumber(
-                                                                                        pgRebanhoViewRebanhoRow!.valorVenda,
-                                                                                        formatType: FormatType.decimal,
-                                                                                        decimalType: DecimalType.commaDecimal,
-                                                                                        currency: 'R\$ ',
-                                                                                      )
-                                                                                    : 'N/A',
+                                                                            hintText: pgRebanhoViewRebanhoRow?.valorVenda != null
+                                                                                ? formatNumber(
+                                                                                    pgRebanhoViewRebanhoRow!.valorVenda,
+                                                                                    formatType: FormatType.decimal,
+                                                                                    decimalType: DecimalType.commaDecimal,
+                                                                                    currency: 'R\$ ',
+                                                                                  )
+                                                                                : 'N/A',
                                                                             hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
                                                                                   font: GoogleFonts.poppins(
                                                                                     fontWeight: FontWeight.w600,
@@ -5386,38 +6146,46 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   fontWeight: FontWeight.w600,
                                                                                   fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
                                                                                 ),
-                                                                            enabledBorder: OutlineInputBorder(
+                                                                            enabledBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: const BorderSide(
                                                                                 color: Color(0x00000000),
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            focusedBorder: OutlineInputBorder(
+                                                                            focusedBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: const BorderSide(
                                                                                 color: Color(0x00000000),
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            errorBorder: OutlineInputBorder(
+                                                                            errorBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: BorderSide(
                                                                                 color: FlutterFlowTheme.of(context).error,
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            focusedErrorBorder: OutlineInputBorder(
+                                                                            focusedErrorBorder:
+                                                                                OutlineInputBorder(
                                                                               borderSide: BorderSide(
                                                                                 color: FlutterFlowTheme.of(context).error,
                                                                                 width: 1.0,
                                                                               ),
                                                                               borderRadius: BorderRadius.circular(8.0),
                                                                             ),
-                                                                            filled: true,
-                                                                            fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                                            filled:
+                                                                                true,
+                                                                            fillColor:
+                                                                                FlutterFlowTheme.of(context).customColor2,
                                                                           ),
-                                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                          style: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .override(
                                                                                 font: GoogleFonts.poppins(
                                                                                   fontWeight: FontWeight.w600,
                                                                                   fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
@@ -5435,11 +6203,15 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                               .valorVendaViewTextControllerValidator
                                                                               .asValidator(context),
                                                                         ),
-                                                                      ].divide(const SizedBox(height: 8.0)),
+                                                                      ].divide(const SizedBox(
+                                                                              height: 8.0)),
                                                                     ),
                                                                   ),
                                                                 ),
-                                                              ].divide(const SizedBox(width: 24.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          24.0)),
                                                             ),
                                                           ),
                                                         Column(
@@ -6372,21 +7144,33 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                             const SizedBox(
                                                                 height: 24.0)),
                                                   ),
-                                                  Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.max,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        'Histórico de pesagens',
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
+                                                  SingleChildScrollView(
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          'Histórico de pesagens',
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                fontSize: 24.0,
+                                                                letterSpacing:
+                                                                    0.0,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w600,
@@ -6395,21 +7179,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     .bodyMedium
                                                                     .fontStyle,
                                                               ),
-                                                              fontSize: 24.0,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                            ),
-                                                      ),
-                                                      Expanded(
-                                                        child: FutureBuilder<
+                                                        ),
+                                                        FutureBuilder<
                                                             List<
                                                                 HistoricoPesagensRow>>(
                                                           future: (_model
@@ -6454,15 +7225,27 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                 containerPesagemHistoricoPesagensRowList =
                                                                 snapshot.data!;
                                                             // Remove duplicatas: mesmo peso na mesma data exibido apenas uma vez
-                                                            final seenKey = <String>{};
+                                                            final seenKey =
+                                                                <String>{};
                                                             final pesagens =
                                                                 containerPesagemHistoricoPesagensRowList
+                                                                    .where(
+                                                                        _pesagemAtiva)
                                                                     .where((p) {
-                                                              final dateKey = p.dataPesagem != null
-                                                                  ? p.dataPesagem!.toIso8601String().substring(0, 10)
+                                                              final dateKey = p
+                                                                          .dataPesagem !=
+                                                                      null
+                                                                  ? p.dataPesagem!
+                                                                      .toIso8601String()
+                                                                      .substring(
+                                                                          0, 10)
                                                                   : '';
-                                                              final key = '${dateKey}_${p.peso ?? ''}';
-                                                              if (seenKey.contains(key)) return false;
+                                                              final key =
+                                                                  '${dateKey}_${p.peso ?? ''}';
+                                                              if (seenKey
+                                                                  .contains(
+                                                                      key))
+                                                                return false;
                                                               seenKey.add(key);
                                                               return true;
                                                             }).toList();
@@ -6479,281 +7262,299 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     );
                                                                   }
 
-                                                                  return FlutterFlowDataTable<
-                                                                      HistoricoPesagensRow>(
-                                                                    controller:
-                                                                        _model
-                                                                            .paginatedDataTableController2,
-                                                                    data:
-                                                                        pesagens,
-                                                                    columnsBuilder:
-                                                                        (onSortChanged) =>
-                                                                            [
-                                                                      DataColumn2(
-                                                                        label: DefaultTextStyle
-                                                                            .merge(
-                                                                          softWrap:
-                                                                              true,
-                                                                          child:
-                                                                              Text(
-                                                                            'Peso (kg)',
-                                                                            style: FlutterFlowTheme.of(context).labelLarge.override(
-                                                                                  font: GoogleFonts.poppins(
-                                                                                    fontWeight: FontWeight.w500,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                                  ),
-                                                                                  fontSize: 12.0,
-                                                                                  letterSpacing: 0.0,
-                                                                                  fontWeight: FontWeight.w500,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                  final gmdPontos =
+                                                                      _buildGmdEvolution(
+                                                                          pesagens);
+                                                                  final gmdPorPesagemId =
+                                                                      _buildGmdByPesagemId(
+                                                                          gmdPontos);
+                                                                  final visiblePesagensRows =
+                                                                      pesagens.length <
+                                                                              5
+                                                                          ? pesagens
+                                                                              .length
+                                                                          : 5;
+                                                                  final pesagensTableHeight = 170.0 +
+                                                                      (visiblePesagensRows *
+                                                                          58.0);
+
+                                                                  return Column(
+                                                                    mainAxisSize:
+                                                                        MainAxisSize
+                                                                            .min,
+                                                                    children: [
+                                                                      SizedBox(
+                                                                        height:
+                                                                            pesagensTableHeight,
+                                                                        child: FlutterFlowDataTable<
+                                                                            HistoricoPesagensRow>(
+                                                                          controller:
+                                                                              _model.paginatedDataTableController2,
+                                                                          data:
+                                                                              pesagens,
+                                                                          columnsBuilder:
+                                                                              (onSortChanged) => [
+                                                                            DataColumn2(
+                                                                              label: DefaultTextStyle.merge(
+                                                                                softWrap: true,
+                                                                                child: Text(
+                                                                                  'Peso (kg)',
+                                                                                  style: FlutterFlowTheme.of(context).labelLarge.override(
+                                                                                        font: GoogleFonts.poppins(
+                                                                                          fontWeight: FontWeight.w500,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                                        ),
+                                                                                        fontSize: 12.0,
+                                                                                        letterSpacing: 0.0,
+                                                                                        fontWeight: FontWeight.w500,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                                      ),
                                                                                 ),
-                                                                          ),
-                                                                        ),
-                                                                        onSort:
-                                                                            onSortChanged,
-                                                                      ),
-                                                                      DataColumn2(
-                                                                        label: DefaultTextStyle
-                                                                            .merge(
-                                                                          softWrap:
-                                                                              true,
-                                                                          child:
-                                                                              Text(
-                                                                            'Data da pesagem',
-                                                                            style: FlutterFlowTheme.of(context).labelLarge.override(
-                                                                                  font: GoogleFonts.poppins(
-                                                                                    fontWeight: FontWeight.w500,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                                  ),
-                                                                                  fontSize: 12.0,
-                                                                                  letterSpacing: 0.0,
-                                                                                  fontWeight: FontWeight.w500,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                                ),
-                                                                          ),
-                                                                        ),
-                                                                        onSort:
-                                                                            onSortChanged,
-                                                                      ),
-                                                                      DataColumn2(
-                                                                        label: DefaultTextStyle
-                                                                            .merge(
-                                                                          softWrap:
-                                                                              true,
-                                                                          child:
-                                                                              Text(
-                                                                            ' ',
-                                                                            style: FlutterFlowTheme.of(context).labelLarge.override(
-                                                                                  font: GoogleFonts.poppins(
-                                                                                    fontWeight: FontWeight.w500,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                                  ),
-                                                                                  fontSize: 12.0,
-                                                                                  letterSpacing: 0.0,
-                                                                                  fontWeight: FontWeight.w500,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                                ),
-                                                                          ),
-                                                                        ),
-                                                                        fixedWidth:
-                                                                            60.0,
-                                                                        onSort:
-                                                                            onSortChanged,
-                                                                      ),
-                                                                    ],
-                                                                    dataRowBuilder: (pesagensItem,
-                                                                            pesagensIndex,
-                                                                            selected,
-                                                                            onSelectChanged) =>
-                                                                        DataRow(
-                                                                      color: WidgetStateProperty
-                                                                          .all(
-                                                                        pesagensIndex % 2 ==
-                                                                                0
-                                                                            ? FlutterFlowTheme.of(context).secondaryBackground
-                                                                            : FlutterFlowTheme.of(context).customColor11,
-                                                                      ),
-                                                                      cells: [
-                                                                        Text(
-                                                                          '${pesagensItem.peso?.toString()} kg',
-                                                                          style: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .override(
-                                                                                font: GoogleFonts.poppins(
-                                                                                  fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                ),
-                                                                                letterSpacing: 0.0,
-                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                        ),
-                                                                        Row(
-                                                                          mainAxisSize:
-                                                                              MainAxisSize.max,
-                                                                          children:
-                                                                              [
-                                                                            Text(
-                                                                              dateTimeFormat(
-                                                                                "d/M/y",
-                                                                                pesagensItem.dataPesagem!,
-                                                                                locale: FFLocalizations.of(context).languageCode,
+                                                                              onSort: onSortChanged,
+                                                                            ),
+                                                                            DataColumn2(
+                                                                              label: DefaultTextStyle.merge(
+                                                                                softWrap: true,
+                                                                                child: Text(
+                                                                                  'Data da pesagem',
+                                                                                  style: FlutterFlowTheme.of(context).labelLarge.override(
+                                                                                        font: GoogleFonts.poppins(
+                                                                                          fontWeight: FontWeight.w500,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                                        ),
+                                                                                        fontSize: 12.0,
+                                                                                        letterSpacing: 0.0,
+                                                                                        fontWeight: FontWeight.w500,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                                      ),
+                                                                                ),
                                                                               ),
-                                                                              style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                    font: GoogleFonts.poppins(
+                                                                              onSort: onSortChanged,
+                                                                            ),
+                                                                            DataColumn2(
+                                                                              label: DefaultTextStyle.merge(
+                                                                                softWrap: true,
+                                                                                child: Text(
+                                                                                  'GMD (kg/d)',
+                                                                                  style: FlutterFlowTheme.of(context).labelLarge.override(
+                                                                                        font: GoogleFonts.poppins(
+                                                                                          fontWeight: FontWeight.w500,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                                        ),
+                                                                                        fontSize: 12.0,
+                                                                                        letterSpacing: 0.0,
+                                                                                        fontWeight: FontWeight.w500,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                                      ),
+                                                                                ),
+                                                                              ),
+                                                                              fixedWidth: 130.0,
+                                                                              onSort: onSortChanged,
+                                                                            ),
+                                                                            DataColumn2(
+                                                                              label: DefaultTextStyle.merge(
+                                                                                softWrap: true,
+                                                                                child: Text(
+                                                                                  ' ',
+                                                                                  style: FlutterFlowTheme.of(context).labelLarge.override(
+                                                                                        font: GoogleFonts.poppins(
+                                                                                          fontWeight: FontWeight.w500,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                                        ),
+                                                                                        fontSize: 12.0,
+                                                                                        letterSpacing: 0.0,
+                                                                                        fontWeight: FontWeight.w500,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                                      ),
+                                                                                ),
+                                                                              ),
+                                                                              fixedWidth: 60.0,
+                                                                              onSort: onSortChanged,
+                                                                            ),
+                                                                          ],
+                                                                          dataRowBuilder: (pesagensItem, pesagensIndex, selected, onSelectChanged) =>
+                                                                              DataRow(
+                                                                            color:
+                                                                                WidgetStateProperty.all(
+                                                                              pesagensIndex % 2 == 0 ? FlutterFlowTheme.of(context).secondaryBackground : FlutterFlowTheme.of(context).customColor11,
+                                                                            ),
+                                                                            cells:
+                                                                                [
+                                                                              Text(
+                                                                                pesagensItem.peso != null ? '${pesagensItem.peso?.toString()} kg' : '-',
+                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                      font: GoogleFonts.poppins(
+                                                                                        fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                      ),
+                                                                                      letterSpacing: 0.0,
                                                                                       fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                       fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                     ),
-                                                                                    letterSpacing: 0.0,
-                                                                                    fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                  ),
-                                                                            ),
-                                                                            if ((pesagensItem.tipo == 'Nascimento') ||
-                                                                                (pesagensItem.tipo == 'Desmama'))
-                                                                              Container(
-                                                                                height: 32.0,
-                                                                                decoration: BoxDecoration(
-                                                                                  color: FlutterFlowTheme.of(context).accent2,
-                                                                                  borderRadius: BorderRadius.circular(4.0),
-                                                                                ),
-                                                                                child: Align(
-                                                                                  alignment: const AlignmentDirectional(0.0, 0.0),
-                                                                                  child: Padding(
-                                                                                    padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                                                                                    child: Text(
-                                                                                      valueOrDefault<String>(
-                                                                                        pesagensItem.tipo,
-                                                                                        '...',
-                                                                                      ),
-                                                                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                            font: GoogleFonts.poppins(
-                                                                                              fontWeight: FontWeight.w600,
-                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                            ),
-                                                                                            color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                                            fontSize: 16.0,
-                                                                                            letterSpacing: 0.0,
-                                                                                            fontWeight: FontWeight.w600,
+                                                                              ),
+                                                                              Row(
+                                                                                mainAxisSize: MainAxisSize.max,
+                                                                                children: [
+                                                                                  Text(
+                                                                                    _formatPesagemDate(pesagensItem.dataPesagem),
+                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                          font: GoogleFonts.poppins(
+                                                                                            fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                             fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                           ),
-                                                                                    ),
+                                                                                          letterSpacing: 0.0,
+                                                                                          fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                        ),
                                                                                   ),
-                                                                                ),
-                                                                              ),
-                                                                          ].divide(const SizedBox(width: 16.0)),
-                                                                        ),
-                                                                        Row(
-                                                                          mainAxisSize:
-                                                                              MainAxisSize.max,
-                                                                          mainAxisAlignment:
-                                                                              MainAxisAlignment.end,
-                                                                          children:
-                                                                              [
-                                                                            FlutterFlowIconButton(
-                                                                              borderRadius: 8.0,
-                                                                              buttonSize: 40.0,
-                                                                              fillColor: const Color(0x0028A365),
-                                                                              icon: FaIcon(
-                                                                                FontAwesomeIcons.trashAlt,
-                                                                                color: FlutterFlowTheme.of(context).error,
-                                                                                size: 20.0,
-                                                                              ),
-                                                                              onPressed: () async {
-                                                                                var confirmDialogResponse = await showDialog<bool>(
-                                                                                      context: context,
-                                                                                      builder: (alertDialogContext) {
-                                                                                        return AlertDialog(
-                                                                                          title: const Text('Deletar pesagem'),
-                                                                                          content: const Text('Deseja realmente deletar esta pesagem ?'),
-                                                                                          actions: [
-                                                                                            TextButton(
-                                                                                              onPressed: () => Navigator.pop(alertDialogContext, false),
-                                                                                              child: const Text('Não'),
+                                                                                  if ((pesagensItem.tipo == 'Nascimento') || (pesagensItem.tipo == 'Desmama'))
+                                                                                    Container(
+                                                                                      height: 32.0,
+                                                                                      decoration: BoxDecoration(
+                                                                                        color: FlutterFlowTheme.of(context).accent2,
+                                                                                        borderRadius: BorderRadius.circular(4.0),
+                                                                                      ),
+                                                                                      child: Align(
+                                                                                        alignment: const AlignmentDirectional(0.0, 0.0),
+                                                                                        child: Padding(
+                                                                                          padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                                                          child: Text(
+                                                                                            valueOrDefault<String>(
+                                                                                              pesagensItem.tipo,
+                                                                                              '...',
                                                                                             ),
-                                                                                            TextButton(
-                                                                                              onPressed: () => Navigator.pop(alertDialogContext, true),
-                                                                                              child: const Text('Sim'),
-                                                                                            ),
-                                                                                          ],
-                                                                                        );
-                                                                                      },
-                                                                                    ) ??
-                                                                                    false;
-                                                                                if (confirmDialogResponse) {
-                                                                                  await HistoricoPesagensTable().delete(
-                                                                                    matchingRows: (rows) => rows.eqOrNull(
-                                                                                      'id',
-                                                                                      pesagensItem.id,
+                                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                  font: GoogleFonts.poppins(
+                                                                                                    fontWeight: FontWeight.w600,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                  ),
+                                                                                                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                                  fontSize: 16.0,
+                                                                                                  letterSpacing: 0.0,
+                                                                                                  fontWeight: FontWeight.w600,
+                                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                                ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
                                                                                     ),
-                                                                                  );
-                                                                                  safeSetState(() => _model.requestCompleter = null);
-                                                                                  await _model.waitForRequestCompleted();
-                                                                                }
-                                                                              },
-                                                                            ),
-                                                                          ].divide(const SizedBox(width: 8.0)),
+                                                                                ].divide(const SizedBox(width: 16.0)),
+                                                                              ),
+                                                                              _buildGmdTableValue(
+                                                                                gmdPorPesagemId[pesagensItem.id],
+                                                                              ),
+                                                                              Row(
+                                                                                mainAxisSize: MainAxisSize.max,
+                                                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                                                children: [
+                                                                                  FlutterFlowIconButton(
+                                                                                    borderRadius: 8.0,
+                                                                                    buttonSize: 40.0,
+                                                                                    fillColor: const Color(0x0028A365),
+                                                                                    icon: FaIcon(
+                                                                                      FontAwesomeIcons.trashAlt,
+                                                                                      color: FlutterFlowTheme.of(context).error,
+                                                                                      size: 20.0,
+                                                                                    ),
+                                                                                    onPressed: () async {
+                                                                                      var confirmDialogResponse = await showDialog<bool>(
+                                                                                            context: context,
+                                                                                            builder: (alertDialogContext) {
+                                                                                              return AlertDialog(
+                                                                                                title: const Text('Deletar pesagem'),
+                                                                                                content: const Text('Deseja realmente deletar esta pesagem ?'),
+                                                                                                actions: [
+                                                                                                  TextButton(
+                                                                                                    onPressed: () => Navigator.pop(alertDialogContext, false),
+                                                                                                    child: const Text('Não'),
+                                                                                                  ),
+                                                                                                  TextButton(
+                                                                                                    onPressed: () => Navigator.pop(alertDialogContext, true),
+                                                                                                    child: const Text('Sim'),
+                                                                                                  ),
+                                                                                                ],
+                                                                                              );
+                                                                                            },
+                                                                                          ) ??
+                                                                                          false;
+                                                                                      if (confirmDialogResponse) {
+                                                                                        await _marcarPesagemComoDeletada(
+                                                                                          pesagensItem,
+                                                                                          pgRebanhoViewRebanhoRow?.idRebanho,
+                                                                                        );
+                                                                                        await _syncPesoAtualAposPesagem(
+                                                                                          rebanhoId: pgRebanhoViewRebanhoRow?.id,
+                                                                                          idRebanho: pgRebanhoViewRebanhoRow?.idRebanho,
+                                                                                        );
+                                                                                        await _recarregarPesagens();
+                                                                                      }
+                                                                                    },
+                                                                                  ),
+                                                                                ].divide(const SizedBox(width: 8.0)),
+                                                                              ),
+                                                                            ].map((c) => DataCell(c)).toList(),
+                                                                          ),
+                                                                          emptyBuilder: () =>
+                                                                              const Center(
+                                                                            child:
+                                                                                EmptyWidget(),
+                                                                          ),
+                                                                          paginated:
+                                                                              true,
+                                                                          selectable:
+                                                                              false,
+                                                                          hidePaginator:
+                                                                              false,
+                                                                          showFirstLastButtons:
+                                                                              true,
+                                                                          headingRowHeight:
+                                                                              56.0,
+                                                                          dataRowHeight:
+                                                                              48.0,
+                                                                          columnSpacing:
+                                                                              20.0,
+                                                                          headingRowColor:
+                                                                              FlutterFlowTheme.of(context).customColor11,
+                                                                          sortIconColor:
+                                                                              FlutterFlowTheme.of(context).primaryText,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(8.0),
+                                                                          addHorizontalDivider:
+                                                                              true,
+                                                                          addTopAndBottomDivider:
+                                                                              false,
+                                                                          hideDefaultHorizontalDivider:
+                                                                              true,
+                                                                          horizontalDividerColor:
+                                                                              FlutterFlowTheme.of(context).secondaryBackground,
+                                                                          horizontalDividerThickness:
+                                                                              1.0,
+                                                                          addVerticalDivider:
+                                                                              false,
                                                                         ),
-                                                                      ]
-                                                                          .map((c) =>
-                                                                              DataCell(c))
-                                                                          .toList(),
-                                                                    ),
-                                                                    emptyBuilder:
-                                                                        () =>
-                                                                            const Center(
-                                                                      child:
-                                                                          EmptyWidget(),
-                                                                    ),
-                                                                    paginated:
-                                                                        true,
-                                                                    selectable:
-                                                                        false,
-                                                                    hidePaginator:
-                                                                        false,
-                                                                    showFirstLastButtons:
-                                                                        true,
-                                                                    headingRowHeight:
-                                                                        56.0,
-                                                                    dataRowHeight:
-                                                                        48.0,
-                                                                    columnSpacing:
-                                                                        20.0,
-                                                                    headingRowColor:
-                                                                        FlutterFlowTheme.of(context)
-                                                                            .customColor11,
-                                                                    sortIconColor:
-                                                                        FlutterFlowTheme.of(context)
-                                                                            .primaryText,
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            8.0),
-                                                                    addHorizontalDivider:
-                                                                        true,
-                                                                    addTopAndBottomDivider:
-                                                                        false,
-                                                                    hideDefaultHorizontalDivider:
-                                                                        true,
-                                                                    horizontalDividerColor:
-                                                                        FlutterFlowTheme.of(context)
-                                                                            .secondaryBackground,
-                                                                    horizontalDividerThickness:
-                                                                        1.0,
-                                                                    addVerticalDivider:
-                                                                        false,
+                                                                      ),
+                                                                      const SizedBox(
+                                                                          height:
+                                                                              16.0),
+                                                                      _buildGmdCard(
+                                                                          pesagens),
+                                                                    ],
                                                                   );
                                                                 },
                                                               ),
                                                             );
                                                           },
                                                         ),
-                                                      ),
-                                                    ]
-                                                        .divide(const SizedBox(
-                                                            height: 24.0))
-                                                        .addToStart(
-                                                            const SizedBox(
-                                                                height: 24.0)),
+                                                      ]
+                                                          .divide(
+                                                              const SizedBox(
+                                                                  height: 24.0))
+                                                          .addToStart(
+                                                              const SizedBox(
+                                                                  height:
+                                                                      24.0)),
+                                                    ),
                                                   ),
                                                   Stack(
                                                     children: [
@@ -7019,8 +7820,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                         ),
                                                                                       ),
                                                                                     ),
-                                                                                    if (ReproducaoDTStruct.ressincIndicaMarcacao(
-                                                                                        reproducaoItem.ressinc))
+                                                                                    if (ReproducaoDTStruct.ressincIndicaMarcacao(reproducaoItem.ressinc))
                                                                                       Container(
                                                                                         width: 20.0,
                                                                                         height: 20.0,
@@ -7389,15 +8189,12 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                             ),
                                                                             onSortChanged:
                                                                                 (columnIndex, ascending) {
-                                                                              final sorted =
-                                                                                  _sortReproducoesFichaAnimal(
+                                                                              final sorted = _sortReproducoesFichaAnimal(
                                                                                 reproducao,
                                                                                 columnIndex,
                                                                                 ascending,
                                                                               );
-                                                                              _model
-                                                                                  .paginatedDataTableController3
-                                                                                  .updateData(
+                                                                              _model.paginatedDataTableController3.updateData(
                                                                                 data: sorted,
                                                                                 notify: true,
                                                                               );
@@ -7706,8 +8503,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                         ),
                                                                                       ),
                                                                                     ),
-                                                                                    if (ReproducaoDTStruct.ressincIndicaMarcacao(
-                                                                                        reproducaoItem.ressinc))
+                                                                                    if (ReproducaoDTStruct.ressincIndicaMarcacao(reproducaoItem.ressinc))
                                                                                       Container(
                                                                                         width: 20.0,
                                                                                         height: 20.0,
@@ -8076,15 +8872,12 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                             ),
                                                                             onSortChanged:
                                                                                 (columnIndex, ascending) {
-                                                                              final sorted =
-                                                                                  _sortReproducoesFichaAnimal(
+                                                                              final sorted = _sortReproducoesFichaAnimal(
                                                                                 reproducao,
                                                                                 columnIndex,
                                                                                 ascending,
                                                                               );
-                                                                              _model
-                                                                                  .paginatedDataTableController4
-                                                                                  .updateData(
+                                                                              _model.paginatedDataTableController4.updateData(
                                                                                 data: sorted,
                                                                                 notify: true,
                                                                               );
@@ -8147,9 +8940,11 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                   0.0,
                                                                   0.0),
                                                           child: FutureBuilder<
-                                                              List<SanidadeRow>>(
-                                                            future: SanidadeTable()
-                                                                .queryRows(
+                                                              List<
+                                                                  SanidadeRow>>(
+                                                            future:
+                                                                SanidadeTable()
+                                                                    .queryRows(
                                                               queryFn: (q) => q
                                                                   .eqOrNull(
                                                                     'id_rebanho',
@@ -8175,14 +8970,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                 return Center(
                                                                   child:
                                                                       SizedBox(
-                                                                    width:
-                                                                        50.0,
+                                                                    width: 50.0,
                                                                     height:
                                                                         50.0,
                                                                     child:
                                                                         CircularProgressIndicator(
                                                                       valueColor:
-                                                                          AlwaysStoppedAnimation<Color>(
+                                                                          AlwaysStoppedAnimation<
+                                                                              Color>(
                                                                         FlutterFlowTheme.of(context)
                                                                             .primary,
                                                                       ),
@@ -8223,25 +9018,20 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                             context)
                                                                         .bodyMedium
                                                                         .override(
-                                                                          font: GoogleFonts
-                                                                              .poppins(
+                                                                          font:
+                                                                              GoogleFonts.poppins(
                                                                             fontWeight:
-                                                                                FontWeight
-                                                                                    .w500,
+                                                                                FontWeight.w500,
                                                                             fontStyle:
-                                                                                FlutterFlowTheme.of(context)
-                                                                                    .bodyMedium
-                                                                                    .fontStyle,
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
                                                                           letterSpacing:
                                                                               0.0,
                                                                           fontWeight:
-                                                                              FontWeight
-                                                                                  .w500,
-                                                                          fontStyle:
-                                                                              FlutterFlowTheme.of(context)
-                                                                                  .bodyMedium
-                                                                                  .fontStyle,
+                                                                              FontWeight.w500,
+                                                                          fontStyle: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .fontStyle,
                                                                         ),
                                                                   );
                                                                 }
@@ -8263,14 +9053,15 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                       return Container(
                                                                         decoration:
                                                                             BoxDecoration(
-                                                                          color: FlutterFlowTheme.of(context)
-                                                                              .accent2,
+                                                                          color:
+                                                                              FlutterFlowTheme.of(context).accent2,
                                                                           borderRadius:
                                                                               BorderRadius.circular(4.0),
                                                                         ),
                                                                         child:
                                                                             Padding(
-                                                                          padding: const EdgeInsetsDirectional.fromSTEB(
+                                                                          padding: const EdgeInsetsDirectional
+                                                                              .fromSTEB(
                                                                               8.0,
                                                                               4.0,
                                                                               8.0,
@@ -8278,9 +9069,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                           child:
                                                                               Text(
                                                                             item,
-                                                                            style: FlutterFlowTheme.of(context)
-                                                                                .bodyMedium
-                                                                                .override(
+                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                   font: GoogleFonts.poppins(
                                                                                     fontWeight: FontWeight.w600,
                                                                                     fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
@@ -8294,10 +9083,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                           ),
                                                                         ),
                                                                       );
-                                                                    }).divide(
-                                                                        const SizedBox(
-                                                                            width:
-                                                                                4.0)),
+                                                                    }).divide(const SizedBox(
+                                                                        width:
+                                                                            4.0)),
                                                                   ),
                                                                 );
                                                               }
@@ -8335,8 +9123,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         .trim();
                                                                 if (obsTrim
                                                                         .isNotEmpty &&
-                                                                    obsTrim
-                                                                            .toLowerCase() !=
+                                                                    obsTrim.toLowerCase() !=
                                                                         'null') {
                                                                   values.add(
                                                                       'Obs.: $obsTrim');
@@ -8346,10 +9133,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
 
                                                               List<String>
                                                                   mergeTextOnly(
-                                                                String?
-                                                                    value,
-                                                                String?
-                                                                    outros,
+                                                                String? value,
+                                                                String? outros,
                                                               ) {
                                                                 final values =
                                                                     <String>[];
@@ -8385,16 +9170,20 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                 return values;
                                                               }
 
-                                                              String safeStringField(
+                                                              String
+                                                                  safeStringField(
                                                                 SanidadeRow row,
-                                                                String fieldName,
+                                                                String
+                                                                    fieldName,
                                                               ) {
                                                                 try {
-                                                                  final value = row
-                                                                      .getField<String>(
+                                                                  final value =
+                                                                      row.getField<
+                                                                              String>(
                                                                           fieldName);
                                                                   final trimmed =
-                                                                      (value ?? '')
+                                                                      (value ??
+                                                                              '')
                                                                           .trim();
                                                                   if (trimmed
                                                                       .isEmpty) {
@@ -8420,9 +9209,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     (onSortChanged) =>
                                                                         [
                                                                   DataColumn2(
-                                                                    label:
-                                                                        DefaultTextStyle
-                                                                            .merge(
+                                                                    label: DefaultTextStyle
+                                                                        .merge(
                                                                       softWrap:
                                                                           true,
                                                                       child:
@@ -8448,9 +9236,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         onSortChanged,
                                                                   ),
                                                                   DataColumn2(
-                                                                    label:
-                                                                        DefaultTextStyle
-                                                                            .merge(
+                                                                    label: DefaultTextStyle
+                                                                        .merge(
                                                                       softWrap:
                                                                           true,
                                                                       child:
@@ -8472,9 +9259,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     ),
                                                                   ),
                                                                   DataColumn2(
-                                                                    label:
-                                                                        DefaultTextStyle
-                                                                            .merge(
+                                                                    label: DefaultTextStyle
+                                                                        .merge(
                                                                       softWrap:
                                                                           true,
                                                                       child:
@@ -8496,9 +9282,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     ),
                                                                   ),
                                                                   DataColumn2(
-                                                                    label:
-                                                                        DefaultTextStyle
-                                                                            .merge(
+                                                                    label: DefaultTextStyle
+                                                                        .merge(
                                                                       softWrap:
                                                                           true,
                                                                       child:
@@ -8520,9 +9305,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     ),
                                                                   ),
                                                                   DataColumn2(
-                                                                    label:
-                                                                        DefaultTextStyle
-                                                                            .merge(
+                                                                    label: DefaultTextStyle
+                                                                        .merge(
                                                                       softWrap:
                                                                           true,
                                                                       child:
@@ -8544,9 +9328,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     ),
                                                                   ),
                                                                   DataColumn2(
-                                                                    label:
-                                                                        DefaultTextStyle
-                                                                            .merge(
+                                                                    label: DefaultTextStyle
+                                                                        .merge(
                                                                       softWrap:
                                                                           true,
                                                                       child:
@@ -8570,9 +9353,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         120.0,
                                                                   ),
                                                                   DataColumn2(
-                                                                    label:
-                                                                        DefaultTextStyle
-                                                                            .merge(
+                                                                    label: DefaultTextStyle
+                                                                        .merge(
                                                                       softWrap:
                                                                           true,
                                                                       child:
@@ -8596,9 +9378,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         120.0,
                                                                   ),
                                                                   DataColumn2(
-                                                                    label:
-                                                                        DefaultTextStyle
-                                                                            .merge(
+                                                                    label: DefaultTextStyle
+                                                                        .merge(
                                                                       softWrap:
                                                                           true,
                                                                       child:
@@ -8622,12 +9403,11 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         120.0,
                                                                   ),
                                                                 ],
-                                                                dataRowBuilder:
-                                                                    (sanidadeItem,
-                                                                            sanidadeIndex,
-                                                                            selected,
-                                                                            onSelectChanged) =>
-                                                                        DataRow(
+                                                                dataRowBuilder: (sanidadeItem,
+                                                                        sanidadeIndex,
+                                                                        selected,
+                                                                        onSelectChanged) =>
+                                                                    DataRow(
                                                                   color:
                                                                       WidgetStateProperty
                                                                           .all(
@@ -8645,19 +9425,24 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         'd/M/y',
                                                                         sanidadeItem.dataSanidade ??
                                                                             sanidadeItem.createdAt,
-                                                                        locale: FFLocalizations.of(context)
-                                                                            .languageCode,
+                                                                        locale:
+                                                                            FFLocalizations.of(context).languageCode,
                                                                       ),
-                                                                      style: FlutterFlowTheme.of(context)
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
                                                                           .bodyMedium
                                                                           .override(
-                                                                            font: GoogleFonts.poppins(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
                                                                               fontWeight: FontWeight.w500,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
-                                                                            letterSpacing: 0.0,
-                                                                            fontWeight: FontWeight.w500,
-                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                            fontWeight:
+                                                                                FontWeight.w500,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
                                                                     ),
                                                                     buildChips(
@@ -8703,16 +9488,21 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         sanidadeItem,
                                                                         'protocolo_d0',
                                                                       ),
-                                                                      style: FlutterFlowTheme.of(context)
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
                                                                           .bodyMedium
                                                                           .override(
-                                                                            font: GoogleFonts.poppins(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
                                                                               fontWeight: FontWeight.w500,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
-                                                                            letterSpacing: 0.0,
-                                                                            fontWeight: FontWeight.w500,
-                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                            fontWeight:
+                                                                                FontWeight.w500,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
                                                                     ),
                                                                     Text(
@@ -8720,16 +9510,21 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         sanidadeItem,
                                                                         'protocolo_retirada',
                                                                       ),
-                                                                      style: FlutterFlowTheme.of(context)
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
                                                                           .bodyMedium
                                                                           .override(
-                                                                            font: GoogleFonts.poppins(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
                                                                               fontWeight: FontWeight.w500,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
-                                                                            letterSpacing: 0.0,
-                                                                            fontWeight: FontWeight.w500,
-                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                            fontWeight:
+                                                                                FontWeight.w500,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
                                                                     ),
                                                                     Text(
@@ -8737,26 +9532,31 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                         sanidadeItem,
                                                                         'protocolo_iatf',
                                                                       ),
-                                                                      style: FlutterFlowTheme.of(context)
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
                                                                           .bodyMedium
                                                                           .override(
-                                                                            font: GoogleFonts.poppins(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
                                                                               fontWeight: FontWeight.w500,
                                                                               fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                             ),
-                                                                            letterSpacing: 0.0,
-                                                                            fontWeight: FontWeight.w500,
-                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                            fontWeight:
+                                                                                FontWeight.w500,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
                                                                     ),
                                                                   ]
                                                                       .map((c) =>
-                                                                          DataCell(c))
+                                                                          DataCell(
+                                                                              c))
                                                                       .toList(),
                                                                 ),
-                                                                emptyBuilder:
-                                                                    () =>
-                                                                        const Center(
+                                                                emptyBuilder: () =>
+                                                                    const Center(
                                                                   child:
                                                                       EmptyWidget(),
                                                                 ),
@@ -8823,200 +9623,21 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                               text: 'Voltar',
                                               options: FFButtonOptions(
                                                 width: double.infinity,
-                                              height: 56.0,
-                                              padding:
-                                                  const EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                      16.0, 0.0, 16.0, 0.0),
-                                              iconPadding:
-                                                  const EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                      0.0, 0.0, 0.0, 0.0),
-                                              color: Colors.white,
-                                              textStyle: FlutterFlowTheme.of(
-                                                      context)
-                                                  .titleSmall
-                                                  .override(
-                                                    font: GoogleFonts.poppins(
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontStyle,
-                                                    ),
-                                                    color:
-                                                        const Color(0xFF28A365),
-                                                    letterSpacing: 0.0,
-                                                    fontWeight:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .titleSmall
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .titleSmall
-                                                            .fontStyle,
-                                                  ),
-                                              elevation: 0.0,
-                                              borderSide: BorderSide(
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primary,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                            ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: FFButtonWidget(
-                                            onPressed: () async {
-                                              _model.matriz =
-                                                  await RebanhoTable()
-                                                      .queryRows(
-                                                queryFn: (q) => q
-                                                    .eqOrNull(
-                                                      'numeroAnimal',
-                                                      pgRebanhoViewRebanhoRow
-                                                          ?.numeroMatriz,
-                                                    )
-                                                    .eqOrNull(
-                                                      'dataNascimento',
-                                                      supaSerialize<DateTime>(
-                                                          pgRebanhoViewRebanhoRow
-                                                              ?.dataNascMatriz),
-                                                    )
-                                                    .eqOrNull(
-                                                      'raca',
-                                                      pgRebanhoViewRebanhoRow
-                                                          ?.racaMatriz,
-                                                    ),
-                                              );
-                                              FFAppState().matrizSelecionada =
-                                                  AnimalSelecionadoStruct(
-                                                numAnimal: _model.matriz
-                                                    ?.firstOrNull?.numeroAnimal,
-                                                nomeAnimal: _model
-                                                    .matriz?.firstOrNull?.nome,
-                                                dataNascAnimal: _model
-                                                    .matriz
-                                                    ?.firstOrNull
-                                                    ?.dataNascimento
-                                                    ?.toString(),
-                                                racaAnimal: _model
-                                                    .matriz?.firstOrNull?.raca,
-                                              );
-                                              safeSetState(() {});
-                                              _model.reprodutor2 =
-                                                  await RebanhoTable()
-                                                      .queryRows(
-                                                queryFn: (q) => q.eqOrNull(
-                                                  'numeroAnimal',
-                                                  pgRebanhoViewRebanhoRow
-                                                      ?.numeroReprodutor,
-                                                ),
-                                              );
-                                              FFAppState()
-                                                      .reprodutorSelecionado =
-                                                  AnimalSelecionadoStruct(
-                                                numAnimal: _model.reprodutor2
-                                                    ?.firstOrNull?.numeroAnimal,
-                                                nomeAnimal: _model.reprodutor2
-                                                    ?.firstOrNull?.nome,
-                                                dataNascAnimal: _model
-                                                    .reprodutor2
-                                                    ?.firstOrNull
-                                                    ?.dataNascimento
-                                                    ?.toString(),
-                                                racaAnimal: _model.reprodutor2
-                                                    ?.firstOrNull?.raca,
-                                              );
-                                              safeSetState(() {});
-                                              unawaited(
-                                                () async {
-                                                  await RebanhoTable().update(
-                                                    data: {
-                                                      'rebanhoIdMatriz': _model
-                                                          .matriz
-                                                          ?.firstOrNull
-                                                          ?.idRebanho,
-                                                    },
-                                                    matchingRows: (rows) =>
-                                                        rows.eqOrNull(
-                                                      'idRebanho',
-                                                      pgRebanhoViewRebanhoRow
-                                                          ?.idRebanho,
-                                                    ),
-                                                  );
-                                                }(),
-                                              );
-
-                                              context.pushNamed(
-                                                PgRebanhoEditWidget.routeName,
-                                                queryParameters: {
-                                                  'rebanhoId': serializeParam(
-                                                    pgRebanhoViewRebanhoRow?.id,
-                                                    ParamType.int,
-                                                  ),
-                                                }.withoutNulls,
-                                                extra: <String, dynamic>{
-                                                  kTransitionInfoKey:
-                                                      const TransitionInfo(
-                                                    hasTransition: true,
-                                                    transitionType:
-                                                        PageTransitionType.fade,
-                                                    duration: Duration(
-                                                        milliseconds: 0),
-                                                  ),
-                                                },
-                                              );
-
-                                              safeSetState(() {});
-                                            },
-                                            text: 'Editar',
-                                            icon: const Icon(
-                                              Icons.mode_edit_outlined,
-                                              size: 24.0,
-                                            ),
-                                            options: FFButtonOptions(
-                                              width: double.infinity,
-                                              height: 56.0,
-                                              padding:
-                                                  const EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                      16.0, 0.0, 16.0, 0.0),
-                                              iconPadding:
-                                                  const EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                      0.0, 0.0, 0.0, 0.0),
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primary,
-                                              textStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .titleSmall
-                                                      .override(
-                                                        font:
-                                                            GoogleFonts.poppins(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .titleSmall
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .titleSmall
-                                                                  .fontStyle,
-                                                        ),
-                                                        color: Colors.white,
-                                                        letterSpacing: 0.0,
+                                                height: 56.0,
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
+                                                        16.0, 0.0, 16.0, 0.0),
+                                                iconPadding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
+                                                        0.0, 0.0, 0.0, 0.0),
+                                                color: Colors.white,
+                                                textStyle: FlutterFlowTheme.of(
+                                                        context)
+                                                    .titleSmall
+                                                    .override(
+                                                      font: GoogleFonts.poppins(
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
                                                                     context)
@@ -9028,11 +9649,196 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                 .titleSmall
                                                                 .fontStyle,
                                                       ),
-                                              elevation: 0.0,
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
+                                                      color: const Color(
+                                                          0xFF28A365),
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .titleSmall
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .titleSmall
+                                                              .fontStyle,
+                                                    ),
+                                                elevation: 0.0,
+                                                borderSide: BorderSide(
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .primary,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                              ),
                                             ),
                                           ),
+                                          Expanded(
+                                            child: FFButtonWidget(
+                                              onPressed: () async {
+                                                _model.matriz =
+                                                    await RebanhoTable()
+                                                        .queryRows(
+                                                  queryFn: (q) => q
+                                                      .eqOrNull(
+                                                        'numeroAnimal',
+                                                        pgRebanhoViewRebanhoRow
+                                                            ?.numeroMatriz,
+                                                      )
+                                                      .eqOrNull(
+                                                        'dataNascimento',
+                                                        supaSerialize<DateTime>(
+                                                            pgRebanhoViewRebanhoRow
+                                                                ?.dataNascMatriz),
+                                                      )
+                                                      .eqOrNull(
+                                                        'raca',
+                                                        pgRebanhoViewRebanhoRow
+                                                            ?.racaMatriz,
+                                                      ),
+                                                );
+                                                FFAppState().matrizSelecionada =
+                                                    AnimalSelecionadoStruct(
+                                                  numAnimal: _model
+                                                      .matriz
+                                                      ?.firstOrNull
+                                                      ?.numeroAnimal,
+                                                  nomeAnimal: _model.matriz
+                                                      ?.firstOrNull?.nome,
+                                                  dataNascAnimal: _model
+                                                      .matriz
+                                                      ?.firstOrNull
+                                                      ?.dataNascimento
+                                                      ?.toString(),
+                                                  racaAnimal: _model.matriz
+                                                      ?.firstOrNull?.raca,
+                                                );
+                                                safeSetState(() {});
+                                                _model.reprodutor2 =
+                                                    await RebanhoTable()
+                                                        .queryRows(
+                                                  queryFn: (q) => q.eqOrNull(
+                                                    'numeroAnimal',
+                                                    pgRebanhoViewRebanhoRow
+                                                        ?.numeroReprodutor,
+                                                  ),
+                                                );
+                                                FFAppState()
+                                                        .reprodutorSelecionado =
+                                                    AnimalSelecionadoStruct(
+                                                  numAnimal: _model
+                                                      .reprodutor2
+                                                      ?.firstOrNull
+                                                      ?.numeroAnimal,
+                                                  nomeAnimal: _model.reprodutor2
+                                                      ?.firstOrNull?.nome,
+                                                  dataNascAnimal: _model
+                                                      .reprodutor2
+                                                      ?.firstOrNull
+                                                      ?.dataNascimento
+                                                      ?.toString(),
+                                                  racaAnimal: _model.reprodutor2
+                                                      ?.firstOrNull?.raca,
+                                                );
+                                                safeSetState(() {});
+                                                unawaited(
+                                                  () async {
+                                                    await RebanhoTable().update(
+                                                      data: {
+                                                        'rebanhoIdMatriz':
+                                                            _model
+                                                                .matriz
+                                                                ?.firstOrNull
+                                                                ?.idRebanho,
+                                                      },
+                                                      matchingRows: (rows) =>
+                                                          rows.eqOrNull(
+                                                        'idRebanho',
+                                                        pgRebanhoViewRebanhoRow
+                                                            ?.idRebanho,
+                                                      ),
+                                                    );
+                                                  }(),
+                                                );
+
+                                                context.pushNamed(
+                                                  PgRebanhoEditWidget.routeName,
+                                                  queryParameters: {
+                                                    'rebanhoId': serializeParam(
+                                                      pgRebanhoViewRebanhoRow
+                                                          ?.id,
+                                                      ParamType.int,
+                                                    ),
+                                                  }.withoutNulls,
+                                                  extra: <String, dynamic>{
+                                                    kTransitionInfoKey:
+                                                        const TransitionInfo(
+                                                      hasTransition: true,
+                                                      transitionType:
+                                                          PageTransitionType
+                                                              .fade,
+                                                      duration: Duration(
+                                                          milliseconds: 0),
+                                                    ),
+                                                  },
+                                                );
+
+                                                safeSetState(() {});
+                                              },
+                                              text: 'Editar',
+                                              icon: const Icon(
+                                                Icons.mode_edit_outlined,
+                                                size: 24.0,
+                                              ),
+                                              options: FFButtonOptions(
+                                                width: double.infinity,
+                                                height: 56.0,
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
+                                                        16.0, 0.0, 16.0, 0.0),
+                                                iconPadding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
+                                                        0.0, 0.0, 0.0, 0.0),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .primary,
+                                                textStyle: FlutterFlowTheme.of(
+                                                        context)
+                                                    .titleSmall
+                                                    .override(
+                                                      font: GoogleFonts.poppins(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .titleSmall
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .titleSmall
+                                                                .fontStyle,
+                                                      ),
+                                                      color: Colors.white,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .titleSmall
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .titleSmall
+                                                              .fontStyle,
+                                                    ),
+                                                elevation: 0.0,
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                              ),
+                                            ),
                                           ),
                                         ].divide(const SizedBox(width: 24.0)),
                                       ),
@@ -9061,4 +9867,3 @@ String fichaOrigemLabel(String? origem) {
   final raw = valueOrDefault<String>(origem, 'N/A');
   return raw == 'null' ? 'N/A' : raw;
 }
-
