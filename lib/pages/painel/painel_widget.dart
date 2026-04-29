@@ -1286,19 +1286,27 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                   mainAxisSize: MainAxisSize.max,
                                                                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                                   children: [
-                                                                                                    LinearPercentIndicator(
-                                                                                                      percent: listaItem.porcentagem / 100,
-                                                                                                      width: MediaQuery.sizeOf(context).width * 0.17,
-                                                                                                      lineHeight: 12.0,
-                                                                                                      animation: true,
-                                                                                                      animateFromLastPercent: true,
-                                                                                                      progressColor: FlutterFlowTheme.of(context).primary,
-                                                                                                      backgroundColor: FlutterFlowTheme.of(context).customColor5,
-                                                                                                      barRadius: const Radius.circular(8.0),
-                                                                                                      padding: EdgeInsets.zero,
+                                                                                                    Expanded(
+                                                                                                      child: LayoutBuilder(
+                                                                                                        builder: (context, constraints) {
+                                                                                                          return LinearPercentIndicator(
+                                                                                                            percent: listaItem.porcentagem / 100,
+                                                                                                            width: constraints.maxWidth,
+                                                                                                            lineHeight: 12.0,
+                                                                                                            animation: true,
+                                                                                                            animateFromLastPercent: true,
+                                                                                                            progressColor: FlutterFlowTheme.of(context).primary,
+                                                                                                            backgroundColor: FlutterFlowTheme.of(context).customColor5,
+                                                                                                            barRadius: const Radius.circular(8.0),
+                                                                                                            padding: EdgeInsets.zero,
+                                                                                                          );
+                                                                                                        },
+                                                                                                      ),
                                                                                                     ),
                                                                                                     Text(
                                                                                                       '${listaItem.porcentagem.toString()}% (${listaItem.quantidade.toString()})',
+                                                                                                      maxLines: 1,
+                                                                                                      softWrap: false,
                                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                                             font: GoogleFonts.poppins(
                                                                                                               fontWeight: FontWeight.bold,

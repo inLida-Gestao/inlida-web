@@ -7,42 +7,22 @@ import '/flutter_flow/flutter_flow_util.dart';
 
 import 'dart:convert';
 import 'package:csv/csv.dart';
+import 'package:excel/excel.dart' as xl;
 
 Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
-  if (csvFile == null || csvFile.bytes == null) return [];
+  if (csvFile == null || csvFile.bytes == null || csvFile.bytes!.isEmpty) {
+    return [];
+  }
 
   try {
-    List<int> bytes = csvFile.bytes!;
+    final List<int> bytes = csvFile.bytes!;
+    final fileName = (csvFile.originalFilename.isNotEmpty
+            ? csvFile.originalFilename
+            : (csvFile.name ?? ''))
+        .toLowerCase();
 
-    // 1. Detectar e remover BOM (Byte Order Mark)
-    if (bytes.length >= 3 &&
-        bytes[0] == 0xEF &&
-        bytes[1] == 0xBB &&
-        bytes[2] == 0xBF) {
-      bytes = bytes.sublist(3);
-      print('BOM UTF-8 removido');
-    }
-
-    // 2. Melhor detecção de encoding
-    String csvString = _decodeWithBestEncoding(bytes);
-
-    // 3. Normalizar quebras de linha
-    csvString = csvString.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
-
-    // 4. Detectar delimitador (usa a primeira linha como base)
-    String firstLine = csvString.split('\n').first;
-    String delimiter = _detectDelimiter(firstLine);
-    print('Delimitador detectado: "$delimiter"');
-
-    // 5. Ler CSV respeitando o delimitador detectado
-    final converter = CsvToListConverter(
-      fieldDelimiter: delimiter,
-      eol: '\n',
-      shouldParseNumbers: false,
-      allowInvalid: true,
-    );
-
-    final List<List<dynamic>> rows = converter.convert(csvString);
+    final List<List<dynamic>> rows =
+        _isXlsxFile(bytes, fileName) ? _parseXlsx(bytes) : _parseCsv(bytes);
 
     if (rows.isEmpty) return [];
 
@@ -271,6 +251,85 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
   }
 }
 
+bool _isXlsxFile(List<int> bytes, String fileName) {
+  if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) return true;
+  // XLSX é um ZIP; a assinatura evita decodificar bytes binários como CSV.
+  return bytes.length >= 4 &&
+      bytes[0] == 0x50 &&
+      bytes[1] == 0x4B &&
+      bytes[2] == 0x03 &&
+      bytes[3] == 0x04;
+}
+
+List<List<dynamic>> _parseXlsx(List<int> bytes) {
+  final excel = xl.Excel.decodeBytes(bytes);
+  if (excel.tables.isEmpty) return [];
+
+  final sheetName = excel.tables.keys.first;
+  final sheet = excel.tables[sheetName];
+  if (sheet == null || sheet.rows.isEmpty) return [];
+
+  final rows = <List<dynamic>>[];
+  for (final row in sheet.rows) {
+    final cells = <dynamic>[];
+    for (final cell in row) {
+      final value = cell?.value;
+      if (value == null) {
+        cells.add('');
+      } else if (value is xl.DateCellValue) {
+        final dt = value.asDateTimeLocal();
+        cells.add(
+          '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}',
+        );
+      } else if (value is xl.DoubleCellValue) {
+        cells.add(value.value.toString());
+      } else if (value is xl.IntCellValue) {
+        cells.add(value.value.toString());
+      } else if (value is xl.TextCellValue) {
+        cells.add(value.value.text ?? '');
+      } else {
+        cells.add(value.toString());
+      }
+    }
+    rows.add(cells);
+  }
+  return rows;
+}
+
+List<List<dynamic>> _parseCsv(List<int> bytes) {
+  List<int> cleanBytes = bytes;
+
+  // 1. Detectar e remover BOM (Byte Order Mark)
+  if (cleanBytes.length >= 3 &&
+      cleanBytes[0] == 0xEF &&
+      cleanBytes[1] == 0xBB &&
+      cleanBytes[2] == 0xBF) {
+    cleanBytes = cleanBytes.sublist(3);
+    print('BOM UTF-8 removido');
+  }
+
+  // 2. Melhor detecção de encoding
+  String csvString = _decodeWithBestEncoding(cleanBytes);
+
+  // 3. Normalizar quebras de linha
+  csvString = csvString.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+
+  // 4. Detectar delimitador (usa a primeira linha como base)
+  String firstLine = csvString.split('\n').first;
+  String delimiter = _detectDelimiter(firstLine);
+  print('Delimitador detectado: "$delimiter"');
+
+  // 5. Ler CSV respeitando o delimitador detectado
+  final converter = CsvToListConverter(
+    fieldDelimiter: delimiter,
+    eol: '\n',
+    shouldParseNumbers: false,
+    allowInvalid: true,
+  );
+
+  return converter.convert(csvString);
+}
+
 bool _isCsvRowEmpty(List<dynamic> row) {
   if (row.isEmpty) return true;
   for (final cell in row) {
@@ -287,7 +346,9 @@ bool _isAllValuesMissing(Iterable<dynamic> values) {
   for (final v in values) {
     if (v == null) continue;
     final s = v.toString().trim();
-    if (s.isNotEmpty && s.toLowerCase() != 'null' && s.toLowerCase() != 'undefined') {
+    if (s.isNotEmpty &&
+        s.toLowerCase() != 'null' &&
+        s.toLowerCase() != 'undefined') {
       return false;
     }
   }
@@ -392,8 +453,8 @@ String _cleanText(String text) {
   return text
       .trim()
       .replaceAll(RegExp(r'\s+'), ' ') // Múltiplos espaços viram um só
-    .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFFFD]'),
-      ''); // Remove caracteres de controle e substituições inválidas
+      .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFFFD]'),
+          ''); // Remove caracteres de controle e substituições inválidas
 }
 
 String? _cleanCellToNull(
