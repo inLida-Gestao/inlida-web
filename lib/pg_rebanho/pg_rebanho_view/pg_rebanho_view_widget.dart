@@ -230,6 +230,38 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     return '$prefix${value.toStringAsFixed(3).replaceAll('.', ',')} kg/d';
   }
 
+  String _formatAxisKg(double value) {
+    return value.toStringAsFixed(0).replaceAll('.', ',');
+  }
+
+  double _normalizeToChartScale({
+    required double value,
+    required double sourceMin,
+    required double sourceMax,
+    required double chartMin,
+    required double chartMax,
+  }) {
+    if (sourceMax == sourceMin) {
+      return (chartMin + chartMax) / 2;
+    }
+    return chartMin +
+        ((value - sourceMin) / (sourceMax - sourceMin)) * (chartMax - chartMin);
+  }
+
+  double _denormalizeFromChartScale({
+    required double value,
+    required double sourceMin,
+    required double sourceMax,
+    required double chartMin,
+    required double chartMax,
+  }) {
+    if (chartMax == chartMin) {
+      return sourceMin;
+    }
+    return sourceMin +
+        ((value - chartMin) / (chartMax - chartMin)) * (sourceMax - sourceMin);
+  }
+
   String _formatGmdDate(DateTime? value) {
     if (value == null) return 'Selecionar';
     return dateTimeFormat(
@@ -522,15 +554,24 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
   }
 
   Widget _buildGmdLineChart(List<_GmdEvolutionPoint> pontos) {
-    final valores = pontos.map((ponto) => ponto.gmd!).toList();
-    final minValue = valores.reduce((a, b) => a < b ? a : b);
-    final maxValue = valores.reduce((a, b) => a > b ? a : b);
+    final valoresGmd = pontos.map((ponto) => ponto.gmd!).toList();
+    final valoresPeso = pontos.map((ponto) => ponto.current.peso!).toList();
+    final minValue = valoresGmd.reduce((a, b) => a < b ? a : b);
+    final maxValue = valoresGmd.reduce((a, b) => a > b ? a : b);
+    final minPesoValue = valoresPeso.reduce((a, b) => a < b ? a : b);
+    final maxPesoValue = valoresPeso.reduce((a, b) => a > b ? a : b);
     var minY = minValue < 0 ? minValue * 1.2 : 0.0;
     var maxY = maxValue > 0 ? maxValue * 1.2 : 0.0;
     if (minY == maxY) {
       minY = minY < 0 ? minY : 0.0;
       maxY = maxY > 0 ? maxY : 1.0;
     }
+    final pesoPadding = minPesoValue == maxPesoValue
+        ? 1.0
+        : (maxPesoValue - minPesoValue) * 0.12;
+    final minPeso =
+        (minPesoValue - pesoPadding) < 0.0 ? 0.0 : minPesoValue - pesoPadding;
+    final maxPeso = maxPesoValue + pesoPadding;
 
     final labelStyle = FlutterFlowTheme.of(context).labelSmall.override(
           font: GoogleFonts.poppins(
@@ -554,6 +595,19 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
             .entries
             .map((entry) => FlSpot(entry.key.toDouble(), entry.value.gmd!))
             .toList();
+        final weightColor = FlutterFlowTheme.of(context).secondary;
+        final weightSpots = pontos.asMap().entries.map((entry) {
+          return FlSpot(
+            entry.key.toDouble(),
+            _normalizeToChartScale(
+              value: entry.value.current.peso!,
+              sourceMin: minPeso,
+              sourceMax: maxPeso,
+              chartMin: minY,
+              chartMax: maxY,
+            ),
+          );
+        }).toList();
 
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -574,7 +628,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                       final value = spotIndex >= 0 && spotIndex < pontos.length
                           ? pontos[spotIndex].gmd
                           : null;
-                      final color = _gmdColor(value);
+                      final isWeightLine = barData.color == weightColor;
+                      final color =
+                          isWeightLine ? weightColor : _gmdColor(value);
                       return TouchedSpotIndicatorData(
                         FlLine(
                           color: color,
@@ -610,12 +666,25 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                         final index = spot.x.toInt();
                         if (index < 0 || index >= pontos.length) return null;
                         final ponto = pontos[index];
+                        final isWeightLine = spot.barIndex == 1;
+                        final data = dateTimeFormat(
+                          'd/M/y',
+                          ponto.current.dataPesagem,
+                          locale: FFLocalizations.of(context).languageCode,
+                        );
+                        if (isWeightLine) {
+                          return LineTooltipItem(
+                            '$data\nPeso: ${_formatKg(ponto.current.peso)}',
+                            GoogleFonts.poppins(
+                              color: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                              fontSize: 12.0,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          );
+                        }
                         return LineTooltipItem(
-                          '${dateTimeFormat(
-                            'd/M/y',
-                            ponto.current.dataPesagem,
-                            locale: FFLocalizations.of(context).languageCode,
-                          )}\n${_formatSignedKgDia(ponto.gmd)}',
+                          '$data\nGMD: ${_formatSignedKgDia(ponto.gmd)}\nPeso: ${_formatKg(ponto.current.peso)}\n${ponto.diasAvaliados} dias',
                           GoogleFonts.poppins(
                             color: FlutterFlowTheme.of(context)
                                 .secondaryBackground,
@@ -646,6 +715,28 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                         return FlDotCirclePainter(
                           radius: 5.0,
                           color: _gmdColor(value),
+                          strokeWidth: 2.0,
+                          strokeColor:
+                              FlutterFlowTheme.of(context).secondaryBackground,
+                        );
+                      },
+                    ),
+                  ),
+                  LineChartBarData(
+                    spots: weightSpots,
+                    isCurved: true,
+                    curveSmoothness: 0.22,
+                    color: weightColor,
+                    barWidth: 2.5,
+                    isStrokeCapRound: true,
+                    preventCurveOverShooting: true,
+                    belowBarData: BarAreaData(show: false),
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: 4.5,
+                          color: weightColor,
                           strokeWidth: 2.0,
                           strokeColor:
                               FlutterFlowTheme.of(context).secondaryBackground,
@@ -689,8 +780,24 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                   topTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 54.0,
+                      getTitlesWidget: (value, meta) {
+                        final peso = _denormalizeFromChartScale(
+                          value: value,
+                          sourceMin: minPeso,
+                          sourceMax: maxPeso,
+                          chartMin: minY,
+                          chartMax: maxY,
+                        );
+                        return Text(
+                          _formatAxisKg(peso),
+                          style: labelStyle.copyWith(color: weightColor),
+                        );
+                      },
+                    ),
                   ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
@@ -705,7 +812,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 48.0,
+                      reservedSize: 58.0,
                       getTitlesWidget: (value, meta) {
                         final index = value.round();
                         if ((value - index).abs() > 0.01) {
@@ -720,7 +827,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                             angle: -0.55,
                             child: Text(
                               dateTimeFormat(
-                                'd/M',
+                                'd/M/y',
                                 pontos[index].current.dataPesagem,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
@@ -772,7 +879,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Evolução do GMD',
+            'Evolução de peso e GMD',
             style: FlutterFlowTheme.of(context).bodyMedium.override(
                   font: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
@@ -787,7 +894,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
           ),
           const SizedBox(height: 4.0),
           Text(
-            'Ganho médio diário entre pesagens consecutivas.',
+            'Peso atual por pesagem e ganho médio diário entre pesagens consecutivas.',
             style: FlutterFlowTheme.of(context).labelMedium,
           ),
           const SizedBox(height: 16.0),
@@ -813,12 +920,12 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
             runSpacing: 8.0,
             children: [
               _buildGmdLegendItem(
-                color: FlutterFlowTheme.of(context).success,
-                label: 'Ganho de peso',
+                color: FlutterFlowTheme.of(context).primary,
+                label: 'GMD (kg/d) - eixo esquerdo',
               ),
               _buildGmdLegendItem(
-                color: FlutterFlowTheme.of(context).error,
-                label: 'Perda de peso',
+                color: FlutterFlowTheme.of(context).secondary,
+                label: 'Peso (kg) - eixo direito',
               ),
             ],
           ),
