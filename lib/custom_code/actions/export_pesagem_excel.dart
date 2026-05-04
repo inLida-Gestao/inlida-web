@@ -1,6 +1,5 @@
 // Automatic FlutterFlow imports
 import '/backend/supabase/supabase.dart';
-import '/flutter_flow/flutter_flow_util.dart';
 // Imports other custom actions
 // Imports custom functions
 // Begin custom action code
@@ -329,14 +328,12 @@ Future<bool> exportPesagemExcel(String nameExcel, String idPropriedade) async {
             if (value == null) {
               cell.value = TextCellValue('');
             } else {
-              String dateStr;
               try {
-                DateTime date = _parseDateForPesagemExport(value)!;
-                dateStr = DateFormat('dd/MM/yyyy').format(date);
+                final date = _dateOnly(_parseDateForPesagemExport(value)!);
+                cell.value = DateCellValue.fromDateTime(date);
               } catch (_) {
-                dateStr = value.toString();
+                cell.value = TextCellValue(value.toString());
               }
-              cell.value = TextCellValue(dateStr);
             }
           } else {
             cell.value = TextCellValue(value?.toString() ?? '');
