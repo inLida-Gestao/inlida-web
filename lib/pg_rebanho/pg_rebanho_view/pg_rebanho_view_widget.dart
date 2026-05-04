@@ -12,6 +12,7 @@ import '/pg_rebanho/modal_more/modal_more_widget.dart';
 import '/pg_rebanho/pp_add_pessagem/pp_add_pessagem_widget.dart';
 import '/reproducao/modal_more_reproducao/modal_more_reproducao_widget.dart';
 import 'dart:async';
+import 'dart:ui' as ui;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'package:aligned_dialog/aligned_dialog.dart';
@@ -132,6 +133,74 @@ class _GmdEvolutionPoint {
   bool get calculavel => gmd != null;
 }
 
+/// Custom dot painter for GMD line: draws a colored circle with the GMD value
+/// label rendered in white text centered inside.
+class _GmdLabelDotPainter extends FlDotPainter {
+  const _GmdLabelDotPainter({
+    required this.value,
+    required this.color,
+    this.radius = 13.0,
+  });
+
+  final double value;
+  final Color color;
+  final double radius;
+
+  @override
+  void draw(Canvas canvas, FlSpot spot, Offset offsetInCanvas) {
+    canvas.drawCircle(
+      offsetInCanvas,
+      radius,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawCircle(
+      offsetInCanvas,
+      radius,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+    final text = value.toStringAsFixed(2).replaceAll('.', ',');
+    final tp = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 8.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: ui.TextDirection.ltr,
+    )..layout();
+    tp.paint(
+      canvas,
+      offsetInCanvas - Offset(tp.width / 2, tp.height / 2),
+    );
+  }
+
+  @override
+  Size getSize(FlSpot spot) => Size(radius * 2, radius * 2);
+
+  @override
+  FlDotPainter lerp(FlDotPainter a, FlDotPainter b, double t) {
+    if (a is! _GmdLabelDotPainter || b is! _GmdLabelDotPainter) return b;
+    return _GmdLabelDotPainter(
+      value: ui.lerpDouble(a.value, b.value, t)!,
+      color: Color.lerp(a.color, b.color, t)!,
+      radius: ui.lerpDouble(a.radius, b.radius, t)!,
+    );
+  }
+
+  @override
+  Color get mainColor => color;
+
+  @override
+  List<Object?> get props => [value, color, radius];
+}
+
 class PgRebanhoViewWidget extends StatefulWidget {
   const PgRebanhoViewWidget({
     super.key,
@@ -228,38 +297,6 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     if (value == null) return '-';
     final prefix = value > 0 ? '+' : '';
     return '$prefix${value.toStringAsFixed(3).replaceAll('.', ',')} kg/d';
-  }
-
-  String _formatAxisKg(double value) {
-    return value.toStringAsFixed(0).replaceAll('.', ',');
-  }
-
-  double _normalizeToChartScale({
-    required double value,
-    required double sourceMin,
-    required double sourceMax,
-    required double chartMin,
-    required double chartMax,
-  }) {
-    if (sourceMax == sourceMin) {
-      return (chartMin + chartMax) / 2;
-    }
-    return chartMin +
-        ((value - sourceMin) / (sourceMax - sourceMin)) * (chartMax - chartMin);
-  }
-
-  double _denormalizeFromChartScale({
-    required double value,
-    required double sourceMin,
-    required double sourceMax,
-    required double chartMin,
-    required double chartMax,
-  }) {
-    if (chartMax == chartMin) {
-      return sourceMin;
-    }
-    return sourceMin +
-        ((value - chartMin) / (chartMax - chartMin)) * (sourceMax - sourceMin);
   }
 
   String _formatGmdDate(DateTime? value) {
@@ -533,18 +570,35 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
   Widget _buildGmdLegendItem({
     required Color color,
     required String label,
+    bool isLine = false,
   }) {
+    Widget indicator;
+    if (isLine) {
+      indicator = SizedBox(
+        width: 28.0,
+        height: 14.0,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(height: 2.0, color: color),
+            CircleAvatar(radius: 5.0, backgroundColor: color),
+          ],
+        ),
+      );
+    } else {
+      indicator = Container(
+        width: 12.0,
+        height: 12.0,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(3.0),
+        ),
+      );
+    }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 12.0,
-          height: 12.0,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3.0),
-          ),
-        ),
+        indicator,
         Text(
           label,
           style: FlutterFlowTheme.of(context).labelMedium,
@@ -553,25 +607,39 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     );
   }
 
-  Widget _buildGmdLineChart(List<_GmdEvolutionPoint> pontos) {
-    final valoresGmd = pontos.map((ponto) => ponto.gmd!).toList();
-    final valoresPeso = pontos.map((ponto) => ponto.current.peso!).toList();
-    final minValue = valoresGmd.reduce((a, b) => a < b ? a : b);
-    final maxValue = valoresGmd.reduce((a, b) => a > b ? a : b);
-    final minPesoValue = valoresPeso.reduce((a, b) => a < b ? a : b);
-    final maxPesoValue = valoresPeso.reduce((a, b) => a > b ? a : b);
-    var minY = minValue < 0 ? minValue * 1.2 : 0.0;
-    var maxY = maxValue > 0 ? maxValue * 1.2 : 0.0;
-    if (minY == maxY) {
-      minY = minY < 0 ? minY : 0.0;
-      maxY = maxY > 0 ? maxY : 1.0;
+  // ── Combo chart: bars (peso) + line (GMD) ─────────────────────────────────
+  // Both charts share the same SizedBox with identical axis reserved sizes so
+  // their chart areas are perfectly aligned. BarChart handles the right axis
+  // (peso in kg) and bottom axis (dates). LineChart handles the left axis (GMD)
+  // and is rendered transparent on top.
+  Widget _buildGmdComboChart(List<_GmdEvolutionPoint> pontos) {
+    // All pesagens: first "previous" + each "current"
+    final allPesagens = <HistoricoPesagensRow>[
+      pontos.first.previous,
+      ...pontos.map((p) => p.current),
+    ];
+    final n = allPesagens.length;
+
+    // Peso scale (bar chart, right axis)
+    final maxPesoRaw =
+        allPesagens.map((p) => p.peso!).reduce((a, b) => a > b ? a : b);
+    final maxPesoBar = maxPesoRaw * 1.3; // extra room for "XXX kg" labels
+
+    // GMD scale (line chart, left axis)
+    final gmdValues = pontos.map((p) => p.gmd!).toList();
+    final minGmd = gmdValues.reduce((a, b) => a < b ? a : b);
+    final maxGmd = gmdValues.reduce((a, b) => a > b ? a : b);
+    var minY = minGmd < 0 ? minGmd * 1.5 : -0.15;
+    var maxY = maxGmd > 0 ? maxGmd * 1.4 : 0.5;
+    if (minY >= maxY) {
+      minY = -0.5;
+      maxY = 1.0;
     }
-    final pesoPadding = minPesoValue == maxPesoValue
-        ? 1.0
-        : (maxPesoValue - minPesoValue) * 0.12;
-    final minPeso =
-        (minPesoValue - pesoPadding) < 0.0 ? 0.0 : minPesoValue - pesoPadding;
-    final maxPeso = maxPesoValue + pesoPadding;
+
+    // These MUST be identical in both charts so their chart areas align.
+    const leftReserved = 52.0;
+    const rightReserved = 54.0;
+    const bottomReserved = 62.0;
 
     final labelStyle = FlutterFlowTheme.of(context).labelSmall.override(
           font: GoogleFonts.poppins(
@@ -583,268 +651,427 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
           fontWeight: FlutterFlowTheme.of(context).labelSmall.fontWeight,
           fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
         );
+    final primaryColor = FlutterFlowTheme.of(context).primary;
+    final barColor = primaryColor.withValues(alpha: 0.8);
+    final locale = FFLocalizations.of(context).languageCode;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final minChartWidth = pontos.length * 96.0 + 96.0;
+        final barWidth =
+            ((constraints.maxWidth - leftReserved - rightReserved) / n * 0.5)
+                .clamp(14.0, 48.0);
+        final minChartWidth = n * 90.0 + leftReserved + rightReserved;
         final chartWidth = minChartWidth > constraints.maxWidth
             ? minChartWidth
             : constraints.maxWidth;
-        final lineSpots = pontos
-            .asMap()
-            .entries
-            .map((entry) => FlSpot(entry.key.toDouble(), entry.value.gmd!))
-            .toList();
-        final weightColor = FlutterFlowTheme.of(context).secondary;
-        final weightSpots = pontos.asMap().entries.map((entry) {
-          return FlSpot(
-            entry.key.toDouble(),
-            _normalizeToChartScale(
-              value: entry.value.current.peso!,
-              sourceMin: minPeso,
-              sourceMax: maxPeso,
-              chartMin: minY,
-              chartMax: maxY,
-            ),
+
+        // Bar groups — showingTooltipIndicators: [0] makes the "XXX kg" label
+        // always visible above each bar (rendered with transparent background).
+        final barGroups = allPesagens.asMap().entries.map((entry) {
+          return BarChartGroupData(
+            x: entry.key,
+            barRods: [
+              BarChartRodData(
+                toY: entry.value.peso!.toDouble(),
+                color: barColor,
+                width: barWidth,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(4.0)),
+              ),
+            ],
+            showingTooltipIndicators: [0],
           );
         }).toList();
+
+        // GMD spots start at x=1 so they align with allPesagens[1..n-1]
+        // (allPesagens[0] is the first "previous" which has no GMD value).
+        final gmdSpots = pontos
+            .asMap()
+            .entries
+            .map((e) => FlSpot((e.key + 1).toDouble(), e.value.gmd!))
+            .toList();
 
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(
             width: chartWidth,
-            height: 300.0,
-            child: LineChart(
-              LineChartData(
-                minX: -0.45,
-                maxX: pontos.length > 1 ? pontos.length - 0.55 : 1.0,
-                minY: minY,
-                maxY: maxY,
-                lineTouchData: LineTouchData(
-                  enabled: true,
-                  handleBuiltInTouches: true,
-                  getTouchedSpotIndicator: (barData, spotIndexes) {
-                    return spotIndexes.map((spotIndex) {
-                      final value = spotIndex >= 0 && spotIndex < pontos.length
-                          ? pontos[spotIndex].gmd
-                          : null;
-                      final isWeightLine = barData.color == weightColor;
-                      final color =
-                          isWeightLine ? weightColor : _gmdColor(value);
-                      return TouchedSpotIndicatorData(
-                        FlLine(
-                          color: color,
-                          strokeWidth: 2.5,
-                        ),
-                        FlDotData(
-                          show: true,
-                          getDotPainter: (spot, percent, barData, index) =>
-                              FlDotCirclePainter(
-                            radius: 6.0,
-                            color: color,
-                            strokeWidth: 2.0,
-                            strokeColor: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                          ),
-                        ),
-                      );
-                    }).toList();
-                  },
-                  touchTooltipData: LineTouchTooltipData(
-                    fitInsideHorizontally: true,
-                    fitInsideVertically: true,
-                    maxContentWidth: 160.0,
-                    tooltipPadding: const EdgeInsets.symmetric(
-                      horizontal: 12.0,
-                      vertical: 8.0,
-                    ),
-                    getTooltipColor: (_) => FlutterFlowTheme.of(context)
-                        .primaryText
-                        .withValues(alpha: 0.92),
-                    getTooltipItems: (touchedSpots) {
-                      return touchedSpots.map((spot) {
-                        final index = spot.x.toInt();
-                        if (index < 0 || index >= pontos.length) return null;
-                        final ponto = pontos[index];
-                        final isWeightLine = spot.barIndex == 1;
-                        final data = dateTimeFormat(
-                          'd/M/y',
-                          ponto.current.dataPesagem,
-                          locale: FFLocalizations.of(context).languageCode,
-                        );
-                        if (isWeightLine) {
-                          return LineTooltipItem(
-                            '$data\nPeso: ${_formatKg(ponto.current.peso)}',
+            height: 340.0,
+            child: Stack(
+              children: [
+                // ── Bar chart (peso, right axis) ──────────────────────────
+                BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    minY: 0,
+                    maxY: maxPesoBar,
+                    barGroups: barGroups,
+                    barTouchData: BarTouchData(
+                      enabled: false,
+                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipColor: (_) => Colors.transparent,
+                        tooltipPadding: EdgeInsets.zero,
+                        tooltipMargin: 6.0,
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          return BarTooltipItem(
+                            '${rod.toY.toInt()} kg',
                             GoogleFonts.poppins(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              fontSize: 12.0,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 10.0,
+                              fontWeight: FontWeight.w700,
+                              color: primaryColor,
                             ),
                           );
-                        }
-                        return LineTooltipItem(
-                          '$data\nGMD: ${_formatSignedKgDia(ponto.gmd)}\nPeso: ${_formatKg(ponto.current.peso)}\n${ponto.diasAvaliados} dias',
-                          GoogleFonts.poppins(
-                            color: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        );
-                      }).toList();
-                    },
-                  ),
-                ),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: lineSpots,
-                    isCurved: true,
-                    curveSmoothness: 0.22,
-                    color: FlutterFlowTheme.of(context).primary,
-                    barWidth: 3.0,
-                    isStrokeCapRound: true,
-                    preventCurveOverShooting: true,
-                    belowBarData: BarAreaData(show: false),
-                    dotData: FlDotData(
+                        },
+                      ),
+                    ),
+                    titlesData: FlTitlesData(
+                      leftTitles: const AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: false,
+                          reservedSize: leftReserved,
+                        ),
+                      ),
+                      rightTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: rightReserved,
+                          getTitlesWidget: (value, meta) {
+                            if (value == meta.max || value == meta.min) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 6.0),
+                              child: Text(
+                                '${value.toInt()}',
+                                style: labelStyle.copyWith(color: primaryColor),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: bottomReserved,
+                          getTitlesWidget: (value, meta) {
+                            final idx = value.round();
+                            if (idx < 0 || idx >= n) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Transform.rotate(
+                                angle: -0.55,
+                                child: Text(
+                                  dateTimeFormat(
+                                    'd/M/y',
+                                    allPesagens[idx].dataPesagem,
+                                    locale: locale,
+                                  ),
+                                  style: labelStyle,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    gridData: FlGridData(
                       show: true,
-                      getDotPainter: (spot, percent, barData, index) {
-                        final value = index >= 0 && index < pontos.length
-                            ? pontos[index].gmd
-                            : null;
-                        return FlDotCirclePainter(
-                          radius: 5.0,
-                          color: _gmdColor(value),
-                          strokeWidth: 2.0,
-                          strokeColor:
-                              FlutterFlowTheme.of(context).secondaryBackground,
-                        );
-                      },
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (_) => FlLine(
+                        color: FlutterFlowTheme.of(context).customColor5,
+                        strokeWidth: 1.0,
+                      ),
                     ),
-                  ),
-                  LineChartBarData(
-                    spots: weightSpots,
-                    isCurved: true,
-                    curveSmoothness: 0.22,
-                    color: weightColor,
-                    barWidth: 2.5,
-                    isStrokeCapRound: true,
-                    preventCurveOverShooting: true,
-                    belowBarData: BarAreaData(show: false),
-                    dotData: FlDotData(
+                    borderData: FlBorderData(
                       show: true,
-                      getDotPainter: (spot, percent, barData, index) {
-                        return FlDotCirclePainter(
-                          radius: 4.5,
-                          color: weightColor,
-                          strokeWidth: 2.0,
-                          strokeColor:
-                              FlutterFlowTheme.of(context).secondaryBackground,
-                        );
-                      },
-                    ),
-                  ),
-                ],
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (_) => FlLine(
-                    color: FlutterFlowTheme.of(context).customColor5,
-                    strokeWidth: 1.0,
-                  ),
-                ),
-                extraLinesData: ExtraLinesData(
-                  horizontalLines: [
-                    HorizontalLine(
-                      y: 0.0,
-                      color: FlutterFlowTheme.of(context)
-                          .secondaryText
-                          .withValues(alpha: 0.45),
-                      strokeWidth: 1.2,
-                      dashArray: [6, 4],
-                    ),
-                  ],
-                ),
-                borderData: FlBorderData(
-                  show: true,
-                  border: Border(
-                    left: BorderSide(
-                      color: FlutterFlowTheme.of(context).customColor5,
-                    ),
-                    bottom: BorderSide(
-                      color: FlutterFlowTheme.of(context).customColor5,
-                    ),
-                  ),
-                ),
-                titlesData: FlTitlesData(
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 54.0,
-                      getTitlesWidget: (value, meta) {
-                        final peso = _denormalizeFromChartScale(
-                          value: value,
-                          sourceMin: minPeso,
-                          sourceMax: maxPeso,
-                          chartMin: minY,
-                          chartMax: maxY,
-                        );
-                        return Text(
-                          _formatAxisKg(peso),
-                          style: labelStyle.copyWith(color: weightColor),
-                        );
-                      },
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 54.0,
-                      getTitlesWidget: (value, meta) => Text(
-                        value.toStringAsFixed(2).replaceAll('.', ','),
-                        style: labelStyle,
+                      border: Border(
+                        left: BorderSide(
+                          color: FlutterFlowTheme.of(context).customColor5,
+                        ),
+                        bottom: BorderSide(
+                          color: FlutterFlowTheme.of(context).customColor5,
+                        ),
+                        right: BorderSide(
+                          color: FlutterFlowTheme.of(context).customColor5,
+                        ),
                       ),
                     ),
                   ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 58.0,
-                      getTitlesWidget: (value, meta) {
-                        final index = value.round();
-                        if ((value - index).abs() > 0.01) {
-                          return const SizedBox.shrink();
-                        }
-                        if (index < 0 || index >= pontos.length) {
-                          return const SizedBox.shrink();
-                        }
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Transform.rotate(
-                            angle: -0.55,
-                            child: Text(
-                              dateTimeFormat(
-                                'd/M/y',
-                                pontos[index].current.dataPesagem,
-                                locale:
-                                    FFLocalizations.of(context).languageCode,
+                ),
+
+                // ── Line chart (GMD, left axis) ────────────────────────────
+                // Transparent background + no border so only the line/axis show.
+                // minX/maxX match BarChartAlignment.spaceAround positioning:
+                //   bar i center = (2i+1)/(2n) * width  ↔  LineChart x=i
+                //   with minX=-0.5, maxX=n-0.5.
+                LineChart(
+                  LineChartData(
+                    minX: -0.5,
+                    maxX: n - 0.5,
+                    minY: minY,
+                    maxY: maxY,
+                    backgroundColor: Colors.transparent,
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: gmdSpots,
+                        isCurved: true,
+                        curveSmoothness: 0.2,
+                        color: FlutterFlowTheme.of(context).success,
+                        barWidth: 2.5,
+                        isStrokeCapRound: true,
+                        preventCurveOverShooting: true,
+                        belowBarData: BarAreaData(show: false),
+                        dotData: FlDotData(
+                          show: true,
+                          getDotPainter: (spot, percent, barData, index) {
+                            final gmd = gmdSpots[index].y;
+                            return _GmdLabelDotPainter(
+                              value: gmd,
+                              color: _gmdColor(gmd),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                    lineTouchData: LineTouchData(
+                      enabled: true,
+                      handleBuiltInTouches: true,
+                      touchTooltipData: LineTouchTooltipData(
+                        fitInsideHorizontally: true,
+                        fitInsideVertically: true,
+                        maxContentWidth: 160.0,
+                        tooltipPadding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 8.0,
+                        ),
+                        getTooltipColor: (_) => FlutterFlowTheme.of(context)
+                            .primaryText
+                            .withValues(alpha: 0.92),
+                        getTooltipItems: (touchedSpots) {
+                          return touchedSpots.map((spot) {
+                            // gmdSpots[i] is at x = i + 1 → ponto index = x - 1
+                            final index = spot.x.toInt() - 1;
+                            if (index < 0 || index >= pontos.length) {
+                              return null;
+                            }
+                            final ponto = pontos[index];
+                            final data = dateTimeFormat(
+                              'd/M/y',
+                              ponto.current.dataPesagem,
+                              locale: locale,
+                            );
+                            return LineTooltipItem(
+                              '$data\nGMD: ${_formatSignedKgDia(ponto.gmd)}\nPeso: ${_formatKg(ponto.current.peso)}\n${ponto.diasAvaliados} dias',
+                              GoogleFonts.poppins(
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
+                                fontSize: 12.0,
+                                fontWeight: FontWeight.w600,
                               ),
-                              style: labelStyle,
-                            ),
-                          ),
-                        );
-                      },
+                            );
+                          }).toList();
+                        },
+                      ),
                     ),
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: leftReserved,
+                          getTitlesWidget: (value, meta) {
+                            if (value == meta.max || value == meta.min) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 6.0),
+                              child: Text(
+                                value.toStringAsFixed(2).replaceAll('.', ','),
+                                style: labelStyle,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: false,
+                          reservedSize: rightReserved,
+                        ),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      bottomTitles: const AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: false,
+                          reservedSize: bottomReserved,
+                        ),
+                      ),
+                    ),
+                    gridData: const FlGridData(show: false),
+                    extraLinesData: ExtraLinesData(
+                      horizontalLines: [
+                        HorizontalLine(
+                          y: 0.0,
+                          color: FlutterFlowTheme.of(context)
+                              .secondaryText
+                              .withValues(alpha: 0.5),
+                          strokeWidth: 1.5,
+                          dashArray: [6, 4],
+                        ),
+                      ],
+                    ),
+                    borderData: FlBorderData(show: false),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildGmdStatCard({
+    required Widget icon,
+    required String label,
+    required String value,
+    required Color valueColor,
+    String? subValue,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).customColor2,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(
+          color: FlutterFlowTheme.of(context).customColor5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          icon,
+          const SizedBox(width: 10.0),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: FlutterFlowTheme.of(context).labelSmall,
+              ),
+              Text(
+                value,
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      font: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w700,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                      ),
+                      color: valueColor,
+                      fontSize: 15.0,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              if (subValue != null)
+                Text(subValue,
+                    style: FlutterFlowTheme.of(context).labelSmall),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGmdSummary(List<_GmdEvolutionPoint> pontos) {
+    final gmdVals =
+        pontos.where((p) => p.gmd != null).map((p) => p.gmd!).toList();
+    final gmdMedio = gmdVals.isEmpty
+        ? null
+        : gmdVals.reduce((a, b) => a + b) / gmdVals.length;
+
+    final firstPesagem = pontos.first.previous;
+    final lastPesagem = pontos.last.current;
+    final pesoInicial = firstPesagem.peso;
+    final pesoAtual = lastPesagem.peso;
+    final variacaoPeso = (pesoAtual != null && pesoInicial != null)
+        ? pesoAtual - pesoInicial
+        : null;
+
+    final locale = FFLocalizations.of(context).languageCode;
+    String fmtDate(DateTime? d) =>
+        d == null ? '-' : dateTimeFormat('d/M/y', d, locale: locale);
+    String fmtPeso(double? v) =>
+        v == null ? '-' : '${v.toStringAsFixed(0)} kg';
+    String fmtGmd(double? v) {
+      if (v == null) return '-';
+      final prefix = v > 0 ? '+' : '';
+      return '$prefix${v.toStringAsFixed(2).replaceAll('.', ',')} kg/d';
+    }
+
+    final primaryColor = FlutterFlowTheme.of(context).primary;
+    final successColor = FlutterFlowTheme.of(context).success;
+    final errorColor = FlutterFlowTheme.of(context).error;
+    final secondaryText = FlutterFlowTheme.of(context).secondaryText;
+
+    Color colorFor(double? v) {
+      if (v == null) return secondaryText;
+      if (v > 0) return successColor;
+      if (v < 0) return errorColor;
+      return secondaryText;
+    }
+
+    final gmdColor = colorFor(gmdMedio);
+    final varColor = colorFor(variacaoPeso);
+
+    return Wrap(
+      spacing: 12.0,
+      runSpacing: 12.0,
+      children: [
+        _buildGmdStatCard(
+          icon: Icon(Icons.show_chart, color: gmdColor, size: 26.0),
+          label: 'GMD médio geral',
+          value: fmtGmd(gmdMedio),
+          valueColor: gmdColor,
+        ),
+        _buildGmdStatCard(
+          icon: Icon(Icons.monitor_weight_outlined,
+              color: primaryColor, size: 26.0),
+          label: 'Peso inicial',
+          value: fmtPeso(pesoInicial),
+          valueColor: primaryColor,
+          subValue: fmtDate(firstPesagem.dataPesagem),
+        ),
+        _buildGmdStatCard(
+          icon: Icon(Icons.monitor_weight, color: primaryColor, size: 26.0),
+          label: 'Peso atual',
+          value: fmtPeso(pesoAtual),
+          valueColor: primaryColor,
+          subValue: fmtDate(lastPesagem.dataPesagem),
+        ),
+        _buildGmdStatCard(
+          icon: Icon(
+            variacaoPeso != null && variacaoPeso < 0
+                ? Icons.trending_down
+                : Icons.trending_up,
+            color: varColor,
+            size: 26.0,
+          ),
+          label: 'Variação de peso',
+          value: variacaoPeso != null
+              ? '${variacaoPeso > 0 ? '+' : ''}${variacaoPeso.toStringAsFixed(0)} kg'
+              : '-',
+          valueColor: varColor,
+          subValue:
+              '(${fmtDate(firstPesagem.dataPesagem)} a ${fmtDate(lastPesagem.dataPesagem)})',
+        ),
+      ],
     );
   }
 
@@ -879,7 +1106,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Evolução de peso e GMD',
+            'Evolução do GMD e do peso',
             style: FlutterFlowTheme.of(context).bodyMedium.override(
                   font: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
@@ -894,7 +1121,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
           ),
           const SizedBox(height: 4.0),
           Text(
-            'Peso atual por pesagem e ganho médio diário entre pesagens consecutivas.',
+            'Acompanhe o ganho médio diário (GMD) e a evolução do peso nas pesagens realizadas.',
             style: FlutterFlowTheme.of(context).labelMedium,
           ),
           const SizedBox(height: 16.0),
@@ -920,12 +1147,13 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
             runSpacing: 8.0,
             children: [
               _buildGmdLegendItem(
-                color: FlutterFlowTheme.of(context).primary,
-                label: 'GMD (kg/d) - eixo esquerdo',
+                color: FlutterFlowTheme.of(context).success,
+                label: 'GMD (kg/d)',
+                isLine: true,
               ),
               _buildGmdLegendItem(
-                color: FlutterFlowTheme.of(context).secondary,
-                label: 'Peso (kg) - eixo direito',
+                color: FlutterFlowTheme.of(context).primary,
+                label: 'Peso (kg)',
               ),
             ],
           ),
@@ -942,8 +1170,11 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
             _buildGmdInfoMessage(
               'Não há pontos de GMD calculáveis no período selecionado.',
             )
-          else
-            _buildGmdLineChart(pontosFiltrados),
+          else ...[
+            _buildGmdComboChart(pontosFiltrados),
+            const SizedBox(height: 16.0),
+            _buildGmdSummary(pontosFiltrados),
+          ],
         ],
       ),
     );
