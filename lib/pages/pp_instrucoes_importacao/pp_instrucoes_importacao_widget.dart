@@ -2,122 +2,10 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:convert';
-import 'package:download/download.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'pp_instrucoes_importacao_model.dart';
 export 'pp_instrucoes_importacao_model.dart';
-
-/// Cabeçalhos alinhados a [parse_csv_to_json_lotes.dart] (`columns`).
-const _kModeloHeadersLotes = [
-  'id',
-  'created_at',
-  'id_propriedade',
-  'id_animais',
-  'nome',
-  'anotacoes',
-  'ativo',
-  'data_entrada_piquete',
-  'data_saida_piquete',
-  'motivo',
-  'data_motivo',
-  'id_lote',
-  'deletado',
-  'updated_at',
-  'valorVenda',
-];
-
-/// Cabeçalhos alinhados a [parse_csv_to_json_reproducao.dart] (`dbColumnsInOrder`).
-const _kModeloHeadersReproducao = [
-  'id',
-  'created_at',
-  'id_propriedade',
-  'tipo_reproducao',
-  'id_rebanho_matriz',
-  'score_corporal',
-  'id_rebanho_reprodutor',
-  'data_inseminacao',
-  'data_partida_semen',
-  'partida_semen',
-  'previsao_parto',
-  'id_lote',
-  'data_inicial',
-  'data_final',
-  'status_reproducao',
-  'inseminador',
-  'anotacoes',
-  'id_reproducao',
-  'deletado',
-  'updated_at',
-  'categoria',
-  'numMatriz',
-  'nomeMatriz',
-  'nascimentoMatriz',
-  'numReprodutor',
-  'nomeReprodutor',
-  'nascimentoReprodutor',
-  'loteNome',
-  'data_status',
-  'racaMatriz',
-  'racaReprodutor',
-  'chipReprodutor',
-  'chipMatriz',
-  'ressinc',
-  'parida',
-  'data_parto',
-  'gnrh',
-  'cio',
-];
-
-/// Cabeçalhos alinhados a [parse_csv_to_json_pesagem.dart] (`dbColumnsInOrder`).
-const _kModeloHeadersPesagem = [
-  'numeroAnimal',
-  'chip',
-  'nome',
-  'sexo',
-  'dataNascimento',
-  'raca',
-  'dataPesagem',
-  'peso',
-  'tipo',
-];
-
-Widget _modeloDownloadRow(
-  BuildContext context, {
-  required String label,
-  required Future<void> Function() onPressed,
-}) {
-  return Row(
-    mainAxisSize: MainAxisSize.max,
-    children: [
-      Text(
-        label,
-        style: FlutterFlowTheme.of(context).bodyMedium.override(
-              font: GoogleFonts.poppins(
-                fontWeight: FontWeight.w500,
-                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-              ),
-              fontSize: 16.0,
-              letterSpacing: 0.0,
-              fontWeight: FontWeight.w500,
-              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-            ),
-      ),
-      FlutterFlowIconButton(
-        borderRadius: 8.0,
-        buttonSize: 40.0,
-        fillColor: FlutterFlowTheme.of(context).customColor2,
-        icon: Icon(
-          Icons.file_download_outlined,
-          color: FlutterFlowTheme.of(context).secondary,
-          size: 24.0,
-        ),
-        onPressed: onPressed,
-      ),
-    ].divide(const SizedBox(width: 16.0)),
-  );
-}
 
 class PpInstrucoesImportacaoWidget extends StatefulWidget {
   const PpInstrucoesImportacaoWidget({super.key});
@@ -130,21 +18,6 @@ class PpInstrucoesImportacaoWidget extends StatefulWidget {
 class _PpInstrucoesImportacaoWidgetState
     extends State<PpInstrucoesImportacaoWidget> {
   late PpInstrucoesImportacaoModel _model;
-
-  String _csvEscapeCell(String value) {
-    final needsQuotes =
-        value.contains(';') || value.contains('"') || value.contains('\n');
-    final escaped = value.replaceAll('"', '""');
-    return needsQuotes ? '"$escaped"' : escaped;
-  }
-
-  Future<void> _downloadCsvModelo(List<String> headers, String fileName) async {
-    final line = headers.map(_csvEscapeCell).join(';');
-    final csvContent = '\uFEFF$line\n';
-    final bytes = utf8.encode(csvContent);
-    final name = fileName.endsWith('.csv') ? fileName : '$fileName.csv';
-    await download(Stream.fromIterable(bytes), name);
-  }
 
   @override
   void setState(VoidCallback callback) {
@@ -266,7 +139,7 @@ class _PpInstrucoesImportacaoWidgetState
                       ),
                 ),
                 Text(
-                  'Rebanho: planilha .xlsx. Lotes, Reprodução e Pesagem: modelo .csv com cabeçalho (separe campos com ; ou , ao editar).',
+                  'Acesse a pasta com todas as planilhas modelo (Rebanho, Lotes, Reprodução e Pesagem) clicando no botão abaixo.',
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         font: GoogleFonts.poppins(
                           fontWeight: FontWeight.w500,
@@ -281,104 +154,40 @@ class _PpInstrucoesImportacaoWidgetState
                             FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                       ),
                 ),
-                Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _modeloDownloadRow(
-                      context,
-                      label: 'Rebanho: ',
-                      onPressed: () async {
-                        await downloadFile(
-                          filename: 'modelo_importacao_rebanho.xlsx',
-                          url:
-                              'https://eqrtgsqnxxnfjjzlxpuj.supabase.co/storage/v1/object/public/storage/planilhas/modelo_importacao_rebanho.xlsx',
-                        );
-                      },
-                    ),
-                    Text(
-                      'Obs Rebanho: mantenha as acentuações (Ex: Fêmea)',
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            font: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w500,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontStyle,
+                FFButtonWidget(
+                  onPressed: () async {
+                    await launchURL(
+                        'https://drive.google.com/drive/folders/10UeY18Uhj6x2sGjL1ULfyn1z19eV9htW?usp=sharing');
+                  },
+                  text: 'Acessar planilhas modelo',
+                  icon: const Icon(
+                    Icons.folder_open_outlined,
+                    size: 20.0,
+                  ),
+                  options: FFButtonOptions(
+                    width: double.infinity,
+                    height: 52.0,
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                        16.0, 0.0, 16.0, 0.0),
+                    iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                        0.0, 0.0, 8.0, 0.0),
+                    color: FlutterFlowTheme.of(context).customColor2,
+                    textStyle:
+                        FlutterFlowTheme.of(context).titleSmall.override(
+                              font: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .titleSmall
+                                    .fontStyle,
+                              ),
+                              color: FlutterFlowTheme.of(context).secondary,
+                              fontSize: 16.0,
+                              letterSpacing: 0.0,
+                              fontWeight: FontWeight.w600,
                             ),
-                            color: FlutterFlowTheme.of(context).accent3,
-                            letterSpacing: 0.0,
-                            fontWeight: FontWeight.w500,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
-                          ),
-                    ),
-                  ].divide(const SizedBox(height: 8.0)),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _modeloDownloadRow(
-                      context,
-                      label: 'Lotes: ',
-                      onPressed: () async {
-                        await _downloadCsvModelo(
-                          _kModeloHeadersLotes,
-                          'modelo_importacao_lotes',
-                        );
-                      },
-                    ),
-                  ].divide(const SizedBox(height: 8.0)),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _modeloDownloadRow(
-                      context,
-                      label: 'Reprodução: ',
-                      onPressed: () async {
-                        await _downloadCsvModelo(
-                          _kModeloHeadersReproducao,
-                          'modelo_importacao_reproducao',
-                        );
-                      },
-                    ),
-                  ].divide(const SizedBox(height: 8.0)),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _modeloDownloadRow(
-                      context,
-                      label: 'Pesagem: ',
-                      onPressed: () async {
-                        await _downloadCsvModelo(
-                          _kModeloHeadersPesagem,
-                          'modelo_importacao_pesagem',
-                        );
-                      },
-                    ),
-                    Text(
-                      'Pesagem: também aceita .xlsx com as mesmas colunas.',
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            font: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w500,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontStyle,
-                            ),
-                            color: FlutterFlowTheme.of(context).accent3,
-                            letterSpacing: 0.0,
-                            fontWeight: FontWeight.w500,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
-                          ),
-                    ),
-                  ].divide(const SizedBox(height: 8.0)),
+                    elevation: 0.0,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
                 ),
                 Row(
                   mainAxisSize: MainAxisSize.max,
