@@ -42,8 +42,40 @@ class PgLotesModel extends FlutterFlowModel<PgLotesWidget> {
       _ => 'id',
     };
     sortAscending = ascending;
-    pageNum = 1;
-    apiRequestCompleter = null;
+  }
+
+  int _statusSortValue(LotesStruct lote) {
+    final statusRaw = lote.ativo.trim().toLowerCase();
+    final hasExitInfo = lote.dataSaidaPiquete.trim().isNotEmpty ||
+        lote.dataMotivo.trim().isNotEmpty ||
+        lote.motivo.trim().isNotEmpty;
+    return statusRaw == 'ativo' && !hasExitInfo ? 0 : 1;
+  }
+
+  List<LotesStruct> sortedLotes(List<LotesStruct> lotes) {
+    if (sortColumn == 'id') {
+      return lotes;
+    }
+
+    final sorted = lotes.toList();
+    sorted.sort((a, b) {
+      final comparison = switch (sortColumn) {
+        'nome' => a.nome.trim().toLowerCase().compareTo(
+              b.nome.trim().toLowerCase(),
+            ),
+        'qtd_rebanhos_no_lote' =>
+          a.qtdRebanhosNoLote.compareTo(b.qtdRebanhosNoLote),
+        'status' => _statusSortValue(a).compareTo(_statusSortValue(b)),
+        _ => 0,
+      };
+      final stableComparison = comparison != 0
+          ? comparison
+          : a.nome.trim().toLowerCase().compareTo(
+                b.nome.trim().toLowerCase(),
+              );
+      return sortAscending ? stableComparison : -stableComparison;
+    });
+    return sorted;
   }
 
   ///  State fields for stateful widgets in this page.

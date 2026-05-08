@@ -91,8 +91,6 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
               pStatus: FFAppState().filtroStatusLote,
               pDataCriacaoDe: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataCriacaoLoteDe),
               pDataCriacaoAte: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataCriacaoLoteAte),
-              pOrderBy: _model.sortColumn,
-              pOrderAscending: _model.sortAscending,
             )))
           .future,
       builder: (context, snapshot) {
@@ -1027,7 +1025,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                             Builder(
                                           builder: (context) {
                                             final selectedProperty = FFAppState().propriedadeSelecionada.idPropriedade;
-                                            final lote =
+                                            final lote = _model.sortedLotes(
                                                 (pgLotesBuscarLotesFiltrosResponse
                                                                 .jsonBody
                                                                 .toList()
@@ -1043,7 +1041,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                     e.hasIdPropriedade() &&
                                                     e.idPropriedade.isNotEmpty &&
                                                     e.idPropriedade == selectedProperty)
-                                                  .toList();
+                                                  .toList());
                                             if (lote.isEmpty) {
                                               return Center(
                                                 child: EmptyRebanhoWidget(

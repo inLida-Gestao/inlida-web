@@ -502,8 +502,6 @@ class BuscarLotesFiltrosCall {
     String? pDataCriacaoAte = '',
     int? pLimite = 20,
     int? pOffset = 0,
-    String? pOrderBy = 'id',
-    bool? pOrderAscending = false,
   }) async {
     final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
 
@@ -515,9 +513,7 @@ class BuscarLotesFiltrosCall {
   "p_data_criacao_de": "${escapeStringForJson(pDataCriacaoDe)}",
   "p_data_criacao_ate": "${escapeStringForJson(pDataCriacaoAte)}",
   "p_limite": $pLimite,
-  "p_offset": $pOffset,
-  "p_order_by": "${escapeStringForJson(pOrderBy)}",
-  "p_order_ascending": $pOrderAscending
+  "p_offset": $pOffset
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Buscar Lotes Filtros',
