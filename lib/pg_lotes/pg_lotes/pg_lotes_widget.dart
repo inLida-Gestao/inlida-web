@@ -91,6 +91,8 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
               pStatus: FFAppState().filtroStatusLote,
               pDataCriacaoDe: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataCriacaoLoteDe),
               pDataCriacaoAte: dateTimeFormat("yyyy-MM-dd", FFAppState().filtroDataCriacaoLoteAte),
+              pOrderBy: _model.sortColumn,
+              pOrderAscending: _model.sortAscending,
             )))
           .future,
       builder: (context, snapshot) {
@@ -1452,6 +1454,15 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                     .map((c) => DataCell(c))
                                                     .toList(),
                                               );
+                                              },
+                                              onSortChanged:
+                                                  (sortColumnIndex,
+                                                      sortAscending) {
+                                                _model.updateLotesSort(
+                                                  sortColumnIndex,
+                                                  sortAscending,
+                                                );
+                                                safeSetState(() {});
                                               },
                                               emptyBuilder: () => Center(
                                                 child: EmptyRebanhoWidget(

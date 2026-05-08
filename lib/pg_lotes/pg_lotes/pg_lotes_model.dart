@@ -30,6 +30,22 @@ class PgLotesModel extends FlutterFlowModel<PgLotesWidget> {
 
   int pageNum = 1;
 
+  String sortColumn = 'id';
+
+  bool sortAscending = false;
+
+  void updateLotesSort(int columnIndex, bool ascending) {
+    sortColumn = switch (columnIndex) {
+      0 => 'nome',
+      1 => 'qtd_rebanhos_no_lote',
+      2 => 'status',
+      _ => 'id',
+    };
+    sortAscending = ascending;
+    pageNum = 1;
+    apiRequestCompleter = null;
+  }
+
   ///  State fields for stateful widgets in this page.
 
   VoidCallback? disposeRefreshListener;
