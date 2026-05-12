@@ -379,7 +379,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                                 Marker(
                                   point: _centerOfLatLngs(area.points),
                                   width: 150,
-                                  height: 58,
+                                  height: 76,
                                   child: _MapLabel(
                                     title: area.name,
                                     subtitle:
@@ -1268,7 +1268,7 @@ class _MapLabel extends StatelessWidget {
                 ),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 3),
         Text(
           title.toUpperCase(),
           textAlign: TextAlign.center,
@@ -1277,6 +1277,7 @@ class _MapLabel extends StatelessWidget {
           style: const TextStyle(
             color: Colors.white,
             fontSize: 11,
+            height: 1,
             fontWeight: FontWeight.w900,
             shadows: [
               Shadow(blurRadius: 3, color: Colors.black, offset: Offset(0, 1)),
@@ -1291,6 +1292,7 @@ class _MapLabel extends StatelessWidget {
           style: const TextStyle(
             color: Colors.white,
             fontSize: 10,
+            height: 1,
             fontWeight: FontWeight.w700,
             shadows: [
               Shadow(blurRadius: 3, color: Colors.black, offset: Offset(0, 1)),
