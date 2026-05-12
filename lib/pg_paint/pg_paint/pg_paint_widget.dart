@@ -64,6 +64,9 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
   String get _idPropriedade =>
       FFAppState().propriedadeSelecionada.idPropriedade;
 
+  bool _aindaMesmaPropriedade(String propId) =>
+      mounted && propId == FFAppState().propriedadeSelecionada.idPropriedade;
+
   Future<void> _carregarConfig() async {
     if (_idPropriedade.isEmpty) {
       safeSetState(() {
@@ -79,6 +82,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       });
       return;
     }
+    final propId = _idPropriedade;
     safeSetState(() => _model.carregandoConfig = true);
     try {
       // Sempre limpar antes de preencher — senão os controllers mantêm a
@@ -91,8 +95,9 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       final rows = await SupaFlow.client
           .from('paint_fazenda_config')
           .select()
-          .eq('id_propriedade', _idPropriedade)
+          .eq('id_propriedade', propId)
           .limit(1);
+      if (!_aindaMesmaPropriedade(propId)) return;
       if (rows.isNotEmpty) {
         final r = rows.first;
         _model.configId = r['id']?.toString();
@@ -102,11 +107,13 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       } else {
         _model.codFazendaController?.text = '0001';
       }
+      if (!_aindaMesmaPropriedade(propId)) return;
       safeSetState(() {
         _model.carregandoConfig = false;
         _model.mensagemConfig = null;
       });
     } catch (e) {
+      if (!_aindaMesmaPropriedade(propId)) return;
       safeSetState(() {
         _model.carregandoConfig = false;
         _model.mensagemConfig = 'Erro ao carregar configuração: $e';
@@ -116,6 +123,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
 
   Future<void> _salvarConfig() async {
     if (_idPropriedade.isEmpty) return;
+    final propId = _idPropriedade;
     final codTx = _model.codTransmissaoController?.text.trim() ?? '';
     final serie = _model.serieFazendaController?.text.trim() ?? '';
     final codFz = _model.codFazendaController?.text.trim() ?? '';
@@ -142,7 +150,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     });
     try {
       final payload = {
-        'id_propriedade': _idPropriedade,
+        'id_propriedade': propId,
         'codigo_transmissao': codTx,
         'serie_fazenda': serie,
         'codigo_fazenda': codFz,
@@ -151,6 +159,10 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       await SupaFlow.client
           .from('paint_fazenda_config')
           .upsert(payload, onConflict: 'id_propriedade');
+      if (!_aindaMesmaPropriedade(propId)) {
+        safeSetState(() => _model.salvandoConfig = false);
+        return;
+      }
       safeSetState(() {
         _model.salvandoConfig = false;
         _model.mensagemConfig =
@@ -158,6 +170,10 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       });
       await _carregarStatus();
     } catch (e) {
+      if (!_aindaMesmaPropriedade(propId)) {
+        safeSetState(() => _model.salvandoConfig = false);
+        return;
+      }
       safeSetState(() {
         _model.salvandoConfig = false;
         _model.mensagemConfig = 'Erro ao salvar: $e';
@@ -167,6 +183,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
 
   Future<void> _gerarExport() async {
     if (_idPropriedade.isEmpty) return;
+    final propId = _idPropriedade;
     safeSetState(() {
       _model.exportando = true;
       _model.mensagemExport = null;
@@ -175,8 +192,12 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     try {
       final response = await SupaFlow.client.functions.invoke(
         'paint-export',
-        body: {'idPropriedade': _idPropriedade},
+        body: {'idPropriedade': propId},
       );
+      if (!_aindaMesmaPropriedade(propId)) {
+        safeSetState(() => _model.exportando = false);
+        return;
+      }
       final data = response.data;
       if (data is Map && data['ok'] == true) {
         final signedUrl = data['signedUrl']?.toString() ?? '';
@@ -190,6 +211,10 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
               throw Exception('HTTP ${zipResp.statusCode}');
             }
           } catch (e) {
+            if (!_aindaMesmaPropriedade(propId)) {
+              safeSetState(() => _model.exportando = false);
+              return;
+            }
             safeSetState(() {
               _model.exportando = false;
               _model.linkUltimoZip = signedUrl;
@@ -199,12 +224,20 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
             return;
           }
         }
+        if (!_aindaMesmaPropriedade(propId)) {
+          safeSetState(() => _model.exportando = false);
+          return;
+        }
         safeSetState(() {
           _model.exportando = false;
           _model.linkUltimoZip = null;
           _model.mensagemExport = 'Exportação concluída: $nomeZip';
         });
       } else {
+        if (!_aindaMesmaPropriedade(propId)) {
+          safeSetState(() => _model.exportando = false);
+          return;
+        }
         final err = (data is Map ? data['error'] : null) ?? 'Resposta inválida';
         safeSetState(() {
           _model.exportando = false;
@@ -212,6 +245,10 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         });
       }
     } catch (e) {
+      if (!_aindaMesmaPropriedade(propId)) {
+        safeSetState(() => _model.exportando = false);
+        return;
+      }
       safeSetState(() {
         _model.exportando = false;
         _model.mensagemExport = 'Erro ao gerar exportação: $e';
@@ -248,22 +285,27 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       });
       return;
     }
+    final propId = _idPropriedade;
     safeSetState(() => _model.carregandoStatus = true);
     try {
+      // Usar propId capturado: se o usuário trocar de fazenda durante os awaits,
+      // o getter _idPropriedade mudaria e misturaria contagens entre propriedades.
       final futures = _tabelasStatus.map((t) async {
         var q = SupaFlow.client.from(t).select('*');
         if (!_tabelasGlobais.contains(t)) {
-          q = q.eq('id_propriedade', _idPropriedade);
+          q = q.eq('id_propriedade', propId);
         }
         final resp = await q.count(CountOption.exact);
         return MapEntry(t, resp.count);
       });
       final entries = await Future.wait(futures);
+      if (!_aindaMesmaPropriedade(propId)) return;
       safeSetState(() {
         _model.counts = Map.fromEntries(entries);
         _model.carregandoStatus = false;
       });
     } catch (e) {
+      if (!_aindaMesmaPropriedade(propId)) return;
       safeSetState(() {
         _model.carregandoStatus = false;
       });
@@ -272,12 +314,17 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
 
   Future<void> _importarAuto() async {
     if (_idPropriedade.isEmpty) return;
+    final propId = _idPropriedade;
     safeSetState(() {
       _model.importandoAuto = true;
       _model.mensagemAuto = null;
     });
     try {
-      final r = await paint_actions.autoPreencherPaint(_idPropriedade);
+      final r = await paint_actions.autoPreencherPaint(propId);
+      if (!_aindaMesmaPropriedade(propId)) {
+        safeSetState(() => _model.importandoAuto = false);
+        return;
+      }
       final erro = (r['erro'] ?? 0) as int;
       if (erro == 1) {
         safeSetState(() {
@@ -309,12 +356,20 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       final msg = falhas.isEmpty
           ? msgBase
           : '$msgBase\n⚠ ${falhas.length} etapa(s) falharam:\n• ${falhas.join('\n• ')}';
+      if (!_aindaMesmaPropriedade(propId)) {
+        safeSetState(() => _model.importandoAuto = false);
+        return;
+      }
       safeSetState(() {
         _model.importandoAuto = false;
         _model.mensagemAuto = msg;
       });
       await _carregarStatus();
     } catch (e) {
+      if (!_aindaMesmaPropriedade(propId)) {
+        safeSetState(() => _model.importandoAuto = false);
+        return;
+      }
       safeSetState(() {
         _model.importandoAuto = false;
         _model.mensagemAuto = '⚠ Erro: $e';
