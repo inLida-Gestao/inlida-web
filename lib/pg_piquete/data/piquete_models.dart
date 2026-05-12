@@ -107,6 +107,38 @@ class LotePiqueteOption {
   }
 }
 
+class PiqueteHistoricoEvent {
+  const PiqueteHistoricoEvent({
+    required this.id,
+    required this.tipo,
+    required this.entidadeTipo,
+    required this.entidadeId,
+    required this.descricao,
+    required this.metadata,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String tipo;
+  final String entidadeTipo;
+  final String entidadeId;
+  final String descricao;
+  final Map<String, dynamic> metadata;
+  final DateTime createdAt;
+
+  factory PiqueteHistoricoEvent.fromJson(Map<String, dynamic> json) {
+    return PiqueteHistoricoEvent(
+      id: _stringValue(json['id']),
+      tipo: _stringValue(json['tipo']),
+      entidadeTipo: _stringValue(json['entidade_tipo']),
+      entidadeId: _stringValue(json['entidade_id']),
+      descricao: _stringValue(json['descricao']),
+      metadata: _mapValue(json['metadata']),
+      createdAt: _dateTimeValue(json['created_at']),
+    );
+  }
+}
+
 String _stringValue(dynamic value, {String fallback = ''}) {
   if (value == null) return fallback;
   return value.toString();
@@ -133,6 +165,18 @@ List<String> _stringList(dynamic value) {
         .toList();
   }
   return const [];
+}
+
+Map<String, dynamic> _mapValue(dynamic value) {
+  if (value is Map) return value.cast<String, dynamic>();
+  return const {};
+}
+
+DateTime _dateTimeValue(dynamic value) {
+  if (value is DateTime) return value.toLocal();
+  final raw = _stringValue(value);
+  return DateTime.tryParse(raw)?.toLocal() ??
+      DateTime.fromMillisecondsSinceEpoch(0);
 }
 
 String _formatDate(dynamic value) {

@@ -3,6 +3,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import '../data/piquete_backend_store.dart';
+import '../data/piquete_models.dart';
 import '../prototype/mapa_demarcacao_real_widget.dart';
 import '../prototype/piquete_prototype_store.dart';
 import '../prototype/piquete_prototype_widgets.dart';
@@ -76,6 +77,9 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
     final lotes = piquete == null
         ? <LotePrototype>[]
         : _store.lotesByIds(piquete.lotesIds);
+    final historico = piquete == null
+        ? <PiqueteHistoricoEvent>[]
+        : _store.historicoDoPiquete(piquete.id);
 
     return PiquetePrototypeScaffold(
       scaffoldKey: scaffoldKey,
@@ -225,7 +229,7 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
               const SizedBox(height: 24),
               _ContentSections(animais: animais, lotes: lotes),
               const SizedBox(height: 24),
-              const _HistoryCard(),
+              _HistoryCard(events: historico, loading: _store.loading),
             ],
           ],
         ),
@@ -517,23 +521,24 @@ class _SimpleRow extends StatelessWidget {
 }
 
 class _HistoryCard extends StatelessWidget {
-  const _HistoryCard();
+  const _HistoryCard({
+    required this.events,
+    required this.loading,
+  });
+
+  final List<PiqueteHistoricoEvent> events;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    const events = [
-      ('Hoje', 'Área conferida no mapa do protótipo.'),
-      ('Última semana', 'Entrada de animais/lotes simulada para validação.'),
-      ('Mês atual', 'Piquete associado ao retiro selecionado.'),
-    ];
 
     return PrototypeCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Histórico mockado',
+            'Histórico do piquete',
             style: GoogleFonts.poppins(
               color: theme.primaryText,
               fontSize: 20,
@@ -541,36 +546,164 @@ class _HistoryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          ...events.map(
-            (event) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: theme.primary,
-                      shape: BoxShape.circle,
-                    ),
+          if (loading && events.isEmpty)
+            Row(
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: theme.primary,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      '${event.$1}: ${event.$2}',
-                      style: GoogleFonts.poppins(
-                        color: theme.secondaryText,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Carregando histórico...',
+                  style: GoogleFonts.poppins(
+                    color: theme.secondaryText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
-                ],
+                ),
+              ],
+            )
+          else if (events.isEmpty)
+            const PrototypeEmptyState(
+              title: 'Sem histórico registrado',
+              message:
+                  'As próximas alterações, vínculos de animais e vínculos de lotes aparecerão aqui com data e hora.',
+              icon: Icons.history_rounded,
+            )
+          else
+            ...events.map(
+              (event) => Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _HistoryEventRow(event: event),
               ),
             ),
-          ),
         ],
       ),
     );
+  }
+}
+
+class _HistoryEventRow extends StatelessWidget {
+  const _HistoryEventRow({required this.event});
+
+  final PiqueteHistoricoEvent event;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final color = _eventColor(theme, event.tipo);
+    final date = dateTimeFormat(
+      'd/M/y HH:mm',
+      event.createdAt,
+      locale: FFLocalizations.of(context).languageCode,
+    );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(_eventIcon(event.tipo), color: color, size: 18),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _eventTitle(event),
+                style: GoogleFonts.poppins(
+                  color: theme.primaryText,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                event.descricao.isEmpty
+                    ? 'Evento registrado no piquete.'
+                    : event.descricao,
+                style: GoogleFonts.poppins(
+                  color: theme.secondaryText,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                date,
+                style: GoogleFonts.poppins(
+                  color: theme.secondaryText,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _eventTitle(PiqueteHistoricoEvent event) {
+    switch (event.tipo) {
+      case 'criou_piquete':
+        return 'Piquete criado';
+      case 'atualizou_piquete':
+        return 'Piquete atualizado';
+      case 'alterou_nome':
+        return 'Nome alterado';
+      case 'alterou_area':
+        return 'Área alterada';
+      case 'alterou_forrageiras':
+        return 'Forrageiras alteradas';
+      case 'alterou_anotacoes':
+        return 'Anotações alteradas';
+      case 'alterou_demarcacao':
+        return 'Demarcação alterada';
+      case 'vinculou_animal':
+        return 'Animal vinculado';
+      case 'removeu_animal':
+        return 'Animal removido';
+      case 'vinculou_lote':
+        return 'Lote vinculado';
+      case 'removeu_lote':
+        return 'Lote removido';
+      case 'removeu_piquete':
+        return 'Piquete excluído';
+      default:
+        return event.tipo.replaceAll('_', ' ');
+    }
+  }
+
+  IconData _eventIcon(String tipo) {
+    if (tipo.contains('animal')) return Icons.pets_rounded;
+    if (tipo.contains('lote')) return Icons.bubble_chart_outlined;
+    if (tipo.contains('demarcacao')) return Icons.polyline_rounded;
+    if (tipo.contains('removeu')) return Icons.remove_circle_outline_rounded;
+    if (tipo.contains('criou') || tipo.contains('vinculou')) {
+      return Icons.add_circle_outline_rounded;
+    }
+    return Icons.edit_note_rounded;
+  }
+
+  Color _eventColor(FlutterFlowTheme theme, String tipo) {
+    if (tipo.contains('removeu')) return theme.error;
+    if (tipo.contains('criou') || tipo.contains('vinculou')) {
+      return theme.success;
+    }
+    if (tipo.contains('demarcacao')) return theme.warning;
+    return theme.primary;
   }
 }

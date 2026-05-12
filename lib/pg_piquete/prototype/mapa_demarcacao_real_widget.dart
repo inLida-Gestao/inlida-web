@@ -62,6 +62,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
       String.fromEnvironment('MAPBOX_ACCESS_TOKEN');
   static const _defaultCenter = ll.LatLng(-15.7869, -47.8930);
   static const _pointMarkerHitSize = 72.0;
+  static const _retiroColor = Color(0xFFFFB020);
+  static const _piqueteColor = Color(0xFF18A058);
 
   final _mapController = MapController();
   final _mapViewportKey = GlobalKey();
@@ -82,6 +84,13 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
   List<ll.LatLng> get _latLngPoints => _points.map(_toLatLng).toList();
   List<ll.LatLng> get _retiroLatLngPoints =>
       widget.retiroPoints.map(_toLatLng).toList();
+  List<ll.LatLng> get _focusLatLngPoints =>
+      _latLngPoints.isNotEmpty ? _latLngPoints : _retiroLatLngPoints;
+
+  CameraFit? get _initialCameraFit {
+    if (_focusLatLngPoints.length < 2) return null;
+    return _cameraFitForFocus();
+  }
 
   ll.LatLng get _initialCenter {
     if (_latLngPoints.isEmpty &&
@@ -136,9 +145,13 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
       }
     }
 
+    if (widget.editable && _points.isEmpty && _retiroLatLngPoints.isNotEmpty) {
+      return 'O contorno amarelo é o retiro. Desenhe o piquete em verde dentro dessa área.';
+    }
+
     return widget.editable
         ? 'Clique no mapa para adicionar pontos e arraste os marcadores para ajustar.'
-        : 'Prévia da demarcação sobre mapa real.';
+        : 'Retiro em amarelo e piquete em verde.';
   }
 
   @override
@@ -147,6 +160,23 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
     if (widget.preferUserLocation) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _focusUserLocation(auto: true);
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant MapaDemarcacaoRealWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final pointsWereCleared =
+        oldWidget.points.isNotEmpty && widget.points.isEmpty;
+    final retiroChangedWhileEditingEmptyPiquete = widget.points.isEmpty &&
+        _pointsSignature(oldWidget.retiroPoints) !=
+            _pointsSignature(widget.retiroPoints);
+
+    if (pointsWereCleared || retiroChangedWhileEditingEmptyPiquete) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _fitToVisibleArea();
       });
     }
   }
@@ -235,6 +265,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                       mapController: _mapController,
                       options: MapOptions(
                         initialCenter: _initialCenter,
+                        initialCameraFit: _initialCameraFit,
                         initialZoom: 14.5,
                         maxZoom: 19,
                         minZoom: 4,
@@ -244,7 +275,12 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                               CursorKeyboardRotationOptions.disabled(),
                         ),
                         onMapReady: () {
-                          if (mounted) safeSetState(() => _mapReady = true);
+                          if (mounted) {
+                            safeSetState(() => _mapReady = true);
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) _fitToVisibleArea();
+                            });
+                          }
                         },
                         onPositionChanged: (camera, hasGesture) {
                           if (mounted && _mapReady) safeSetState(() {});
@@ -263,10 +299,9 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                             polygons: [
                               Polygon(
                                 points: _retiroLatLngPoints,
-                                color: theme.secondary.withValues(alpha: 0.12),
-                                borderColor:
-                                    theme.secondary.withValues(alpha: 0.75),
-                                borderStrokeWidth: 2,
+                                color: _retiroColor.withValues(alpha: 0.18),
+                                borderColor: _retiroColor,
+                                borderStrokeWidth: 4,
                               ),
                             ],
                           ),
@@ -275,8 +310,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                             polylines: [
                               Polyline(
                                 points: _latLngPoints,
-                                color: theme.primary,
-                                strokeWidth: 3,
+                                color: _piqueteColor,
+                                strokeWidth: 4,
                               ),
                             ],
                           ),
@@ -285,9 +320,9 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                             polygons: [
                               Polygon(
                                 points: _latLngPoints,
-                                color: theme.primary.withValues(alpha: 0.22),
-                                borderColor: theme.primary,
-                                borderStrokeWidth: 3,
+                                color: _piqueteColor.withValues(alpha: 0.28),
+                                borderColor: _piqueteColor,
+                                borderStrokeWidth: 4,
                               ),
                             ],
                           ),
@@ -303,7 +338,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                                   subtitle: _showLotes
                                       ? '${_points.length} pontos demarcados'
                                       : 'Área selecionada',
-                                  color: theme.primary,
+                                  color: _piqueteColor,
                                 ),
                               ),
                             ],
@@ -335,7 +370,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                       ],
                     ),
                     if (_mapReady && _latLngPoints.isNotEmpty)
-                      _buildPointMarkersOverlay(theme.primary),
+                      _buildPointMarkersOverlay(_piqueteColor),
                     Positioned(
                       left: 12,
                       top: 12,
@@ -343,6 +378,15 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                         onZoomIn: () => _moveZoom(1),
                         onZoomOut: () => _moveZoom(-1),
                         onCenter: _handleCenterTap,
+                      ),
+                    ),
+                    Positioned(
+                      left: 12,
+                      top: 128,
+                      child: _MapLegend(
+                        retiroColor: _retiroColor,
+                        piqueteColor: _piqueteColor,
+                        hasPiquete: _latLngPoints.isNotEmpty,
                       ),
                     ),
                     Positioned(
@@ -409,13 +453,12 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                 runSpacing: 12,
                 children: [
                   _MapActionButton(
-                    label: 'Usar área exemplo',
+                    label: widget.retiroPoints.isEmpty
+                        ? 'Usar área exemplo'
+                        : 'Sugerir área',
                     icon: Icons.auto_fix_high_rounded,
                     onPressed: () => widget.onChanged?.call(
-                      widget.retiroPoints.isEmpty
-                          ? PiquetePrototypeStore.instance.exampleRetiroPoints()
-                          : PiquetePrototypeStore.instance
-                              .examplePiquetePoints(),
+                      _suggestedAreaPoints(),
                     ),
                   ),
                   _MapActionButton(
@@ -573,8 +616,60 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
       _focusUserLocation();
       return;
     }
-    _mapController.move(_center, 14.5);
+    _fitToVisibleArea();
   }
+
+  void _fitToVisibleArea() {
+    if (!_mapReady) return;
+
+    final points = _focusLatLngPoints;
+    if (points.isEmpty) return;
+
+    if (points.length == 1) {
+      _mapController.move(points.first, 16);
+      return;
+    }
+
+    _mapController.fitCamera(_cameraFitForFocus());
+  }
+
+  CameraFit _cameraFitForFocus() {
+    final focusingRetiro =
+        _latLngPoints.isEmpty && _retiroLatLngPoints.isNotEmpty;
+    return CameraFit.coordinates(
+      coordinates: _focusLatLngPoints,
+      padding: EdgeInsets.all(focusingRetiro ? 18 : 34),
+      maxZoom: focusingRetiro ? 18 : 17,
+      minZoom: 4,
+    );
+  }
+
+  List<MapPoint> _suggestedAreaPoints() {
+    if (widget.retiroPoints.isEmpty) {
+      return PiquetePrototypeStore.instance.exampleRetiroPoints();
+    }
+
+    final centerLat = widget.retiroPoints
+            .fold<double>(0, (sum, point) => sum + point.latitude) /
+        widget.retiroPoints.length;
+    final centerLng = widget.retiroPoints
+            .fold<double>(0, (sum, point) => sum + point.longitude) /
+        widget.retiroPoints.length;
+
+    return widget.retiroPoints
+        .map(
+          (point) => MapPoint.fromLatLng(
+            centerLat + ((point.latitude - centerLat) * 0.45),
+            centerLng + ((point.longitude - centerLng) * 0.45),
+          ),
+        )
+        .toList();
+  }
+
+  String _pointsSignature(List<MapPoint> points) => points
+      .map((point) => '${point.latitude.toStringAsFixed(7)},'
+          '${point.longitude.toStringAsFixed(7)}')
+      .join(';');
 
   Future<void> _focusUserLocation({bool auto = false}) async {
     if (_locatingUser) return;
@@ -764,6 +859,95 @@ class _UserLocationMarker extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MapLegend extends StatelessWidget {
+  const _MapLegend({
+    required this.retiroColor,
+    required this.piqueteColor,
+    required this.hasPiquete,
+  });
+
+  final Color retiroColor;
+  final Color piqueteColor;
+  final bool hasPiquete;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(
+            blurRadius: 14,
+            color: Color(0x33000000),
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _LegendItem(
+            color: retiroColor,
+            label: 'Retiro',
+            textColor: theme.primaryText,
+          ),
+          if (hasPiquete) ...[
+            const SizedBox(height: 8),
+            _LegendItem(
+              color: piqueteColor,
+              label: 'Piquete',
+              textColor: theme.primaryText,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _LegendItem extends StatelessWidget {
+  const _LegendItem({
+    required this.color,
+    required this.label,
+    required this.textColor,
+  });
+
+  final Color color;
+  final String label;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 18,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.26),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: color, width: 2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            color: textColor,
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
     );
   }
 }

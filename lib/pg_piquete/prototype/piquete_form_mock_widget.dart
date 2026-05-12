@@ -59,6 +59,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   late List<MapPoint> _pontos;
   late List<String> _animaisIds;
   late List<String> _lotesIds;
+  late bool _areaEditadaManualmente;
 
   static const _forrageiraOptions = [
     'Brachiaria ruziensis',
@@ -76,11 +77,12 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     _forrageirasSelecionadas =
         initial?.forrageiras.toList() ?? [_forrageiraOptions.first];
     _mode = (initial?.lotesIds.isNotEmpty ?? false) ? 'lote' : 'animal';
-    _pontos = initial?.pontos.toList() ?? _store.examplePiquetePoints();
+    _pontos = initial?.pontos.toList() ?? [];
     _animaisIds = initial?.animaisIds.toList() ?? [];
     _lotesIds = initial?.lotesIds.toList() ?? [];
+    _areaEditadaManualmente = initial != null;
     _nomeController.text = initial?.nome ?? '';
-    _areaController.text = initial?.areaHa.toStringAsFixed(0) ?? '12';
+    _areaController.text = initial?.areaHa.toStringAsFixed(0) ?? '0';
     _anotacoesController.text = initial?.anotacoes ?? '';
   }
 
@@ -119,8 +121,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
                                 child: Text(r.nome),
                               ))
                           .toList(),
-                      onChanged: (value) =>
-                          safeSetState(() => _retiroId = value ?? _retiroId),
+                      onChanged: _selectRetiro,
                     ),
                   ),
                   SizedBox(
@@ -138,6 +139,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
                       hint: '23',
                       controller: _areaController,
                       keyboardType: TextInputType.number,
+                      onChanged: (_) => _areaEditadaManualmente = true,
                     ),
                   ),
                   SizedBox(
@@ -171,7 +173,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
           points: _pontos,
           retiroPoints: retiro?.pontos ?? const [],
           editable: true,
-          onChanged: (value) => safeSetState(() => _pontos = value),
+          onChanged: _handleMapChanged,
         ),
         const SizedBox(height: 22),
         PrototypeCard(
@@ -263,6 +265,32 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
           safeSetState(() => _animaisIds.removeWhere((id) => id == animal.id)),
       onSearchChanged: () => safeSetState(() {}),
     );
+  }
+
+  void _selectRetiro(String? value) {
+    if (value == null || value == _retiroId) {
+      return;
+    }
+
+    safeSetState(() {
+      _retiroId = value;
+      if (widget.initial == null) {
+        _pontos = [];
+        if (!_areaEditadaManualmente) {
+          _areaController.text = '0';
+        }
+      }
+    });
+  }
+
+  void _handleMapChanged(List<MapPoint> value) {
+    safeSetState(() {
+      _pontos = value;
+      if (!_areaEditadaManualmente) {
+        final area = estimateMapAreaHa(value);
+        _areaController.text = area > 0 ? area.toStringAsFixed(2) : '0';
+      }
+    });
   }
 
   Widget _buildLoteSelector() {
@@ -638,6 +666,7 @@ class _TextField extends StatelessWidget {
     required this.controller,
     this.maxLines = 1,
     this.keyboardType,
+    this.onChanged,
   });
 
   final String label;
@@ -645,6 +674,7 @@ class _TextField extends StatelessWidget {
   final TextEditingController controller;
   final int maxLines;
   final TextInputType? keyboardType;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -664,6 +694,7 @@ class _TextField extends StatelessWidget {
           controller: controller,
           maxLines: maxLines,
           keyboardType: keyboardType,
+          onChanged: onChanged,
           decoration: InputDecoration(
             hintText: hint,
             filled: true,

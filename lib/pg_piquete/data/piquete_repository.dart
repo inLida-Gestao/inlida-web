@@ -59,6 +59,26 @@ class PiqueteRepository {
     return PiqueteBackendDetail.fromJson(_asMap(response));
   }
 
+  Future<List<PiqueteHistoricoEvent>> buscarPiqueteHistorico(
+    String piqueteId,
+  ) async {
+    try {
+      final response = await SupaFlow.client
+          .from('piquete_movimentacoes')
+          .select()
+          .eq('id_propriedade', idPropriedade)
+          .eq('piquete_id', piqueteId)
+          .order('created_at', ascending: false)
+          .limit(100);
+
+      return _asList(response)
+          .map((item) => PiqueteHistoricoEvent.fromJson(item))
+          .toList();
+    } catch (error) {
+      throw PiqueteRepositoryException(_friendlyError(error));
+    }
+  }
+
   Future<List<AnimalPiqueteOption>> buscarAnimaisDisponiveis({
     String piqueteId = '',
   }) async {

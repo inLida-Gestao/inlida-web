@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'piquete_models.dart';
 import 'piquete_repository.dart';
 import '../prototype/piquete_prototype_store.dart';
 
@@ -14,6 +15,7 @@ class PiqueteBackendStore extends ChangeNotifier {
   final List<PiquetePrototype> _piquetes = [];
   final List<AnimalPrototype> _animais = [];
   final List<LotePrototype> _lotes = [];
+  final Map<String, List<PiqueteHistoricoEvent>> _historicoPorPiquete = {};
 
   bool loading = false;
   String? errorMessage;
@@ -26,6 +28,10 @@ class PiqueteBackendStore extends ChangeNotifier {
   List<PiquetePrototype> get piquetes => List.unmodifiable(_piquetes);
   List<AnimalPrototype> get animais => List.unmodifiable(_animais);
   List<LotePrototype> get lotes => List.unmodifiable(_lotes);
+  List<PiqueteHistoricoEvent> historicoDoPiquete(String? piqueteId) {
+    if (piqueteId == null) return const [];
+    return List.unmodifiable(_historicoPorPiquete[piqueteId] ?? const []);
+  }
 
   RetiroPrototype? get selectedRetiro =>
       retiroById(selectedRetiroId) ?? _retiros.firstOrNull;
@@ -90,8 +96,12 @@ class PiqueteBackendStore extends ChangeNotifier {
     PiquetePrototype? loaded;
     await _run(() async {
       final detail = await _repository.buscarPiqueteDetalhe(piqueteId);
+      final historico = await _repository.buscarPiqueteHistorico(
+        detail.piquete.id,
+      );
       loaded = detail.piquete;
       _upsertPiquete(detail.piquete);
+      _historicoPorPiquete[detail.piquete.id] = historico;
       selectedRetiroId = detail.piquete.retiroId;
       await loadOptions(piqueteId: detail.piquete.id);
     });
