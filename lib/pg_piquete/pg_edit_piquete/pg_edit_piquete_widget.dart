@@ -4,6 +4,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import '../data/piquete_backend_store.dart';
 import '../prototype/piquete_form_mock_widget.dart';
+import '../prototype/piquete_prototype_store.dart';
 import '../prototype/piquete_prototype_widgets.dart';
 import 'package:flutter/material.dart';
 import 'pg_edit_piquete_model.dart';
@@ -31,6 +32,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final _store = PiqueteBackendStore.instance;
   bool _loadingFormData = true;
+  PiquetePrototype? _loadedPiquete;
 
   @override
   void initState() {
@@ -59,7 +61,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
       }
       final id = widget.idPiquete ?? '';
       if (id.isNotEmpty) {
-        await _store.loadPiqueteDetail(id);
+        _loadedPiquete = await _store.loadPiqueteDetail(id);
       }
     } catch (_) {
       // A mensagem amigável fica no store e é exibida na tela.
@@ -70,7 +72,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final piquete = _store.piqueteById(widget.idPiquete ?? '');
+    final piquete =
+        _loadedPiquete ?? _store.piqueteById(widget.idPiquete ?? '');
 
     return PiquetePrototypeScaffold(
       scaffoldKey: scaffoldKey,
@@ -135,16 +138,26 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                   try {
                     final updated = await _store.updatePiquete(
                       piquete.copyWith(
-                        retiroId: result.retiroId,
-                        nome: result.nome,
-                        areaHa: result.areaHa,
-                        forrageiras: result.forrageiras,
+                        retiroId: result.retiroId.isNotEmpty
+                            ? result.retiroId
+                            : piquete.retiroId,
+                        nome: result.nome.trim().isNotEmpty
+                            ? result.nome
+                            : piquete.nome,
+                        areaHa:
+                            result.areaHa > 0 ? result.areaHa : piquete.areaHa,
+                        forrageiras: result.forrageiras.isNotEmpty
+                            ? result.forrageiras
+                            : piquete.forrageiras,
                         anotacoes: result.anotacoes,
-                        pontos: result.pontos,
+                        pontos: result.pontos.length >= 3
+                            ? result.pontos
+                            : piquete.pontos,
                         animaisIds: result.animaisIds,
                         lotesIds: result.lotesIds,
                       ),
                     );
+                    _loadedPiquete = updated;
                     if (!context.mounted) return;
                     context.pushNamed(
                       PgViewPiqueteWidget.routeName,

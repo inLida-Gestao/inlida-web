@@ -78,8 +78,8 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   @override
   void didUpdateWidget(covariant PiqueteFormMockWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_initialSignature(widget.initial) !=
-        _initialSignature(oldWidget.initial)) {
+    if (_initialIdentity(widget.initial) !=
+        _initialIdentity(oldWidget.initial)) {
       _applyInitial(widget.initial);
     }
   }
@@ -328,19 +328,22 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
 
   void _submit() {
     final initial = widget.initial;
-    final nome = _nomeController.text.trim().isEmpty && initial != null
-        ? initial.nome
-        : _nomeController.text.trim();
-    final area = double.tryParse(_areaController.text.replaceAll(',', '.')) ??
-        initial?.areaHa ??
-        0;
+    final typedNome = _nomeController.text.trim();
+    final parsedArea =
+        double.tryParse(_areaController.text.replaceAll(',', '.'));
+    final nome = typedNome.isNotEmpty ? typedNome : (initial?.nome ?? '');
+    final area = (parsedArea != null && parsedArea > 0)
+        ? parsedArea
+        : (initial?.areaHa ?? 0);
     final retiroId =
-        _retiroId.isEmpty && initial != null ? initial.retiroId : _retiroId;
-    final forrageiras = _forrageirasSelecionadas.isEmpty && initial != null
-        ? initial.forrageiras
-        : _forrageirasSelecionadas;
-    final pontos =
-        _pontos.length < 3 && initial != null ? initial.pontos : _pontos;
+        _retiroId.isNotEmpty ? _retiroId : (initial?.retiroId ?? '');
+    final fallbackForrageiras = initial?.forrageiras.isNotEmpty == true
+        ? initial!.forrageiras
+        : [_forrageiraOptions.first];
+    final forrageiras = _forrageirasSelecionadas.isNotEmpty
+        ? _forrageirasSelecionadas
+        : fallbackForrageiras;
+    final pontos = _pontos.length >= 3 ? _pontos : (initial?.pontos ?? []);
 
     if (retiroId.isEmpty ||
         nome.isEmpty ||
@@ -374,34 +377,31 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
 
   void _applyInitial(PiquetePrototype? initial) {
     _retiroId = initial?.retiroId ?? _store.selectedRetiro?.id ?? '';
-    _forrageirasSelecionadas =
-        initial?.forrageiras.toList() ?? [_forrageiraOptions.first];
+    final initialForrageiras = initial?.forrageiras
+            .where((forrageira) => forrageira.trim().isNotEmpty)
+            .toList() ??
+        const <String>[];
+    _forrageirasSelecionadas = initialForrageiras.isNotEmpty
+        ? initialForrageiras
+        : [_forrageiraOptions.first];
     _mode = (initial?.lotesIds.isNotEmpty ?? false) ? 'lote' : 'animal';
     _pontos = initial?.pontos.toList() ?? [];
     _animaisIds = initial?.animaisIds.toList() ?? [];
     _lotesIds = initial?.lotesIds.toList() ?? [];
     _areaEditadaManualmente = initial != null;
     _nomeController.text = initial?.nome ?? '';
-    _areaController.text = initial?.areaHa.toStringAsFixed(0) ?? '0';
+    _areaController.text = _formatAreaForInput(initial?.areaHa ?? 0);
     _anotacoesController.text = initial?.anotacoes ?? '';
   }
 
-  String _initialSignature(PiquetePrototype? piquete) {
-    if (piquete == null) return 'novo';
-    return [
-      piquete.id,
-      piquete.retiroId,
-      piquete.nome,
-      piquete.areaHa.toStringAsFixed(4),
-      piquete.forrageiras.join('|'),
-      piquete.pontos
-          .map((point) => '${point.latitude.toStringAsFixed(7)},'
-              '${point.longitude.toStringAsFixed(7)}')
-          .join('|'),
-      piquete.animaisIds.join('|'),
-      piquete.lotesIds.join('|'),
-    ].join(';');
+  String _formatAreaForInput(double area) {
+    if (area <= 0) return '0';
+    if (area < 1) return area.toStringAsFixed(2);
+    if (area % 1 == 0) return area.toStringAsFixed(0);
+    return area.toStringAsFixed(2);
   }
+
+  String _initialIdentity(PiquetePrototype? piquete) => piquete?.id ?? 'novo';
 }
 
 class _DualPanel<T> extends StatelessWidget {

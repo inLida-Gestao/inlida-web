@@ -76,20 +76,7 @@ class PiqueteBackendStore extends ChangeNotifier {
   }
 
   Future<void> loadOptions({String piqueteId = ''}) async {
-    await _run(() async {
-      final animaisFuture =
-          _repository.buscarAnimaisDisponiveis(piqueteId: piqueteId);
-      final lotesFuture =
-          _repository.buscarLotesDisponiveis(piqueteId: piqueteId);
-      final animais = await animaisFuture;
-      final lotes = await lotesFuture;
-      _animais
-        ..clear()
-        ..addAll(animais.map((option) => option.animal));
-      _lotes
-        ..clear()
-        ..addAll(lotes.map((option) => option.lote));
-    });
+    await _run(() => _loadOptionsRaw(piqueteId: piqueteId));
   }
 
   Future<PiquetePrototype?> loadPiqueteDetail(String piqueteId) async {
@@ -103,9 +90,24 @@ class PiqueteBackendStore extends ChangeNotifier {
       _upsertPiquete(detail.piquete);
       _historicoPorPiquete[detail.piquete.id] = historico;
       selectedRetiroId = detail.piquete.retiroId;
-      await loadOptions(piqueteId: detail.piquete.id);
+      await _loadOptionsRaw(piqueteId: detail.piquete.id);
     });
     return loaded;
+  }
+
+  Future<void> _loadOptionsRaw({String piqueteId = ''}) async {
+    final animaisFuture =
+        _repository.buscarAnimaisDisponiveis(piqueteId: piqueteId);
+    final lotesFuture =
+        _repository.buscarLotesDisponiveis(piqueteId: piqueteId);
+    final animais = await animaisFuture;
+    final lotes = await lotesFuture;
+    _animais
+      ..clear()
+      ..addAll(animais.map((option) => option.animal));
+    _lotes
+      ..clear()
+      ..addAll(lotes.map((option) => option.lote));
   }
 
   List<PiquetePrototype> piquetesDoRetiro(String? retiroId) {
