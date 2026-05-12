@@ -55,3 +55,32 @@ export '/pg_piquete/pg_view_piquete/pg_view_piquete_widget.dart'
     show PgViewPiqueteWidget;
 export '/pg_piquete/pg_edit_piquete/pg_edit_piquete_widget.dart'
     show PgEditPiqueteWidget;
+export '/pg_paint/pg_paint/pg_paint_widget.dart' show PgPaintWidget;
+export '/pg_paint/cadastros/avaliador/paint_avaliador_widget.dart'
+    show PaintAvaliadorWidget;
+export '/pg_paint/cadastros/grupo_manejo/paint_grupo_manejo_widget.dart'
+    show PaintGrupoManejoWidget;
+export '/pg_paint/cadastros/localidade/paint_localidade_widget.dart'
+    show PaintLocalidadeWidget;
+export '/pg_paint/cadastros/inseminador/paint_inseminador_widget.dart'
+    show PaintInseminadorWidget;
+export '/pg_paint/cadastros/regime_alimentar/paint_regime_alimentar_widget.dart'
+    show PaintRegimeAlimentarWidget;
+export '/pg_paint/cadastros/safra/paint_safra_widget.dart'
+    show PaintSafraWidget;
+export '/pg_paint/cadastros/safra_x_animal/paint_safra_x_animal_widget.dart'
+    show PaintSafraXAnimalWidget;
+export '/pg_paint/cadastros/touro_multiplo/paint_touro_multiplo_widget.dart'
+    show PaintTouroMultiploWidget;
+export '/pg_paint/cadastros/composicao_racial/paint_composicao_racial_widget.dart'
+    show PaintComposicaoRacialWidget;
+export '/pg_paint/avaliacoes/desmama/paint_avaliacao_desmama_widget.dart'
+    show PaintAvaliacaoDesmamaWidget;
+export '/pg_paint/avaliacoes/sobreano/paint_avaliacao_sobreano_widget.dart'
+    show PaintAvaliacaoSobreanoWidget;
+export '/pg_paint/avaliacoes/rah/paint_avaliacao_rah_widget.dart'
+    show PaintAvaliacaoRahWidget;
+export '/pg_paint/avaliacoes/diagnostico/paint_diagnostico_widget.dart'
+    show PaintDiagnosticoWidget;
+export '/pg_paint/admin/paint_biblioteca_touros_widget.dart'
+    show PaintBibliotecaTourosWidget;

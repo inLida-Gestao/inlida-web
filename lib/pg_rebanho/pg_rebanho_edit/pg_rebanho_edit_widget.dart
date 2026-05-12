@@ -12,6 +12,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
+import '/custom_code/actions/index.dart' as paint_actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/pg_rebanho/peso_decimal_formatter.dart';
 import '/index.dart';
@@ -7555,6 +7556,64 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                     widget.rebanhoId,
                                                   ),
                                                 );
+                                                // PAINT — registra baixa em paint_baixa quando status muda
+                                                // para Vendido/Morto. Sem efeito se a propriedade não tem
+                                                // paint_fazenda_config (módulo PAINT desativado para a fazenda).
+                                                {
+                                                  final statusValue =
+                                                      _model.dropDownStatusValue;
+                                                  String? motivoBaixa;
+                                                  DateTime? dataMorteBaixa;
+                                                  double? precoBaixa;
+                                                  if (statusValue == 'Vendido') {
+                                                    motivoBaixa = 'VENDA';
+                                                    dataMorteBaixa = _model
+                                                            .datePicked9 ??
+                                                        pgRebanhoEditRebanhoRow
+                                                            ?.dataVenda;
+                                                    precoBaixa = FFAppState()
+                                                        .valueDouble2;
+                                                  } else if (statusValue ==
+                                                      'Morto') {
+                                                    motivoBaixa = 'MORTE';
+                                                    dataMorteBaixa = _model
+                                                            .datePicked7 ??
+                                                        pgRebanhoEditRebanhoRow
+                                                            ?.dataMorte;
+                                                  }
+                                                  if (motivoBaixa != null) {
+                                                    final dtNasc = effectiveDataNascimentoForSave ??
+                                                        pgRebanhoEditRebanhoRow
+                                                            ?.dataNascimento;
+                                                    final numeroAnimal = _model
+                                                            .numAnimalTextController
+                                                            .text
+                                                            .trim()
+                                                            .isNotEmpty
+                                                        ? _model
+                                                            .numAnimalTextController
+                                                            .text
+                                                        : pgRebanhoEditRebanhoRow
+                                                            ?.numeroAnimal;
+                                                    unawaited(
+                                                      paint_actions
+                                                          .registrarPaintBaixa(
+                                                        FFAppState()
+                                                            .propriedadeSelecionada
+                                                            .idPropriedade,
+                                                        widget.rebanhoId,
+                                                        numeroAnimal,
+                                                        dtNasc,
+                                                        motivoBaixa,
+                                                        dataMorte:
+                                                            dataMorteBaixa,
+                                                        preco: precoBaixa,
+                                                        obs: _model
+                                                            .dropDownMotivoMorteValue,
+                                                      ),
+                                                    );
+                                                  }
+                                                }
                                                 // Sincroniza pesoNascimento e pesoDesmama com a tabela
                                                 // historico_pesagens:
                                                 // - Se existe registro do tipo (Nascimento/Desmama) e nao

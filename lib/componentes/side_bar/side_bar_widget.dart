@@ -637,6 +637,91 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                     ),
                   ),
                 ),
+                InkWell(
+                  splashColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  onTap: () async {
+                    FFAppState().navegacao = 'paint';
+                    safeSetState(() {});
+
+                    context.pushNamed(
+                      PgPaintWidget.routeName,
+                      extra: <String, dynamic>{
+                        kTransitionInfoKey: const TransitionInfo(
+                          hasTransition: true,
+                          transitionType: PageTransitionType.fade,
+                          duration: Duration(milliseconds: 0),
+                        ),
+                      },
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    height: 56.0,
+                    decoration: BoxDecoration(
+                      color: FlutterFlowTheme.of(context).customColor2,
+                      boxShadow: [
+                        BoxShadow(
+                          blurRadius: 0.0,
+                          color: FFAppState().navegacao == 'paint'
+                              ? FlutterFlowTheme.of(context).customColor10
+                              : Colors.transparent,
+                          offset: const Offset(
+                            -4.0,
+                            0.0,
+                          ),
+                          spreadRadius: 0.0,
+                        )
+                      ],
+                      borderRadius: BorderRadius.circular(6.0),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Icon(
+                            Icons.science_outlined,
+                            color: FFAppState().navegacao == 'paint'
+                                ? FlutterFlowTheme.of(context).customColor10
+                                : FlutterFlowTheme.of(context).primaryText,
+                            size: 24.0,
+                          ),
+                          Text(
+                            'PAINT',
+                            style: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .override(
+                                  font: GoogleFonts.poppins(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                                  color: FFAppState().navegacao == 'paint'
+                                      ? FlutterFlowTheme.of(context)
+                                          .customColor10
+                                      : FlutterFlowTheme.of(context)
+                                          .primaryText,
+                                  fontSize: 16.0,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
+                          ),
+                        ].divide(const SizedBox(width: 8.0)),
+                      ),
+                    ),
+                  ),
+                ),
                 // TODO: Piquete menu item hidden temporarily
                 // InkWell(
                 //   ...PgPiqueteWidget...
