@@ -455,15 +455,25 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                             if (idAtual.isEmpty) ...[
                               _painelSelecionePropriedade(context),
                             ] else ...[
-                              _cardStatus(context),
-                              const SizedBox(height: 16),
+                              // 1º: configuração — só faz sentido ver status/import/cadastros
+                              // depois dos 3 códigos PAINT válidos nesta fazenda.
                               _cardConfig(context),
-                              const SizedBox(height: 16),
-                              _cardCadastrosAuto(context),
-                              const SizedBox(height: 16),
-                              _cardCadastrosManuais(context),
-                              const SizedBox(height: 16),
-                              _cardAvaliacoes(context),
+                              if (!_model.carregandoConfig &&
+                                  !_configCompleta) ...[
+                                const SizedBox(height: 12),
+                                _dicaAguardandoConfig(context),
+                              ],
+                              if (!_model.carregandoConfig &&
+                                  _configCompleta) ...[
+                                const SizedBox(height: 16),
+                                _cardStatus(context),
+                                const SizedBox(height: 16),
+                                _cardCadastrosAuto(context),
+                                const SizedBox(height: 16),
+                                _cardCadastrosManuais(context),
+                                const SizedBox(height: 16),
+                                _cardAvaliacoes(context),
+                              ],
                             ],
                           ],
                         ),
@@ -496,6 +506,18 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
           style: FlutterFlowTheme.of(context).bodySmall,
         ),
       ],
+    );
+  }
+
+  Widget _dicaAguardandoConfig(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    return Text(
+      'Quando os três códigos estiverem válidos (6 + série + 4 dígitos), '
+      'aparecem aqui o status, a importação, os cadastros e as avaliações desta fazenda.',
+      style: theme.bodySmall.override(
+        color: theme.secondaryText,
+        fontStyle: FontStyle.italic,
+      ),
     );
   }
 
@@ -714,6 +736,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
+        onChanged: (_) => safeSetState(() {}),
       ),
     );
   }
