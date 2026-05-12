@@ -38,6 +38,8 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
     required this.title,
     required this.points,
     this.retiroPoints = const [],
+    this.piqueteAreas = const [],
+    this.retiroAsPrimary = false,
     this.editable = false,
     this.height = 448,
     this.preferUserLocation = false,
@@ -47,6 +49,8 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
   final String title;
   final List<MapPoint> points;
   final List<MapPoint> retiroPoints;
+  final List<PiqueteMapArea> piqueteAreas;
+  final bool retiroAsPrimary;
   final bool editable;
   final double height;
   final bool preferUserLocation;
@@ -55,6 +59,16 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
   @override
   State<MapaDemarcacaoRealWidget> createState() =>
       _MapaDemarcacaoRealWidgetState();
+}
+
+class PiqueteMapArea {
+  const PiqueteMapArea({
+    required this.name,
+    required this.points,
+  });
+
+  final String name;
+  final List<MapPoint> points;
 }
 
 class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
@@ -84,8 +98,21 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
   List<ll.LatLng> get _latLngPoints => _points.map(_toLatLng).toList();
   List<ll.LatLng> get _retiroLatLngPoints =>
       widget.retiroPoints.map(_toLatLng).toList();
+  List<_PiqueteAreaLatLng> get _piqueteAreaLatLngs => widget.piqueteAreas
+      .map(
+        (area) => _PiqueteAreaLatLng(
+          name: area.name,
+          points: area.points.map(_toLatLng).toList(),
+        ),
+      )
+      .where((area) => area.points.length > 1)
+      .toList();
   List<ll.LatLng> get _focusLatLngPoints =>
       _latLngPoints.isNotEmpty ? _latLngPoints : _retiroLatLngPoints;
+  List<MapPoint> get _summaryPoints => _points.isNotEmpty
+      ? _points
+      : (widget.retiroAsPrimary ? widget.retiroPoints : const <MapPoint>[]);
+  Color get _summaryColor => _points.isNotEmpty ? _piqueteColor : _retiroColor;
 
   CameraFit? get _initialCameraFit {
     if (_focusLatLngPoints.length < 2) return null;
@@ -133,7 +160,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
     return _satellite ? 'Tiles © Esri' : '© OpenStreetMap';
   }
 
-  double get _areaEstimadaHa => estimateMapAreaHa(_points);
+  double get _areaEstimadaHa => estimateMapAreaHa(_summaryPoints);
 
   String get _helperText {
     if (widget.preferUserLocation && _points.isEmpty) {
@@ -235,14 +262,16 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE7F6ED),
+                    color: _summaryColor.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    '${_points.length} pontos • ${_areaEstimadaHa.toStringAsFixed(1)} ha',
+                    '${_summaryPoints.length} pontos • ${_areaEstimadaHa.toStringAsFixed(1)} ha',
                     style: theme.bodySmall.override(
                       fontFamily: theme.bodySmallFamily,
-                      color: theme.secondary,
+                      color: _points.isNotEmpty
+                          ? theme.secondary
+                          : const Color(0xFF8A5A00),
                       fontWeight: FontWeight.w700,
                       useGoogleFonts: !theme.bodySmallIsCustom,
                     ),
@@ -252,7 +281,12 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsetsDirectional.fromSTEB(
+              20,
+              0,
+              20,
+              widget.editable ? 0 : 20,
+            ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: SizedBox(
@@ -305,6 +339,18 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                               ),
                             ],
                           ),
+                        if (_showLotes && _piqueteAreaLatLngs.isNotEmpty)
+                          PolygonLayer(
+                            polygons: [
+                              for (final area in _piqueteAreaLatLngs)
+                                Polygon(
+                                  points: area.points,
+                                  color: _piqueteColor.withValues(alpha: 0.30),
+                                  borderColor: _piqueteColor,
+                                  borderStrokeWidth: 3.2,
+                                ),
+                            ],
+                          ),
                         if (_latLngPoints.length > 1)
                           PolylineLayer(
                             polylines: [
@@ -326,6 +372,23 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                               ),
                             ],
                           ),
+                        if (_showLotes && _piqueteAreaLatLngs.isNotEmpty)
+                          MarkerLayer(
+                            markers: [
+                              for (final area in _piqueteAreaLatLngs)
+                                Marker(
+                                  point: _centerOfLatLngs(area.points),
+                                  width: 150,
+                                  height: 58,
+                                  child: _MapLabel(
+                                    title: area.name,
+                                    subtitle:
+                                        '${area.points.length} pontos demarcados',
+                                    color: _piqueteColor,
+                                  ),
+                                ),
+                            ],
+                          ),
                         if (_latLngPoints.isNotEmpty && !widget.editable)
                           MarkerLayer(
                             markers: [
@@ -339,6 +402,25 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                                       ? '${_points.length} pontos demarcados'
                                       : 'Área selecionada',
                                   color: _piqueteColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (_latLngPoints.isEmpty &&
+                            widget.retiroAsPrimary &&
+                            _retiroLatLngPoints.isNotEmpty &&
+                            !widget.editable)
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: _centerOfLatLngs(_retiroLatLngPoints),
+                                width: 170,
+                                height: 72,
+                                child: _MapLabel(
+                                  title: widget.title,
+                                  subtitle:
+                                      '${widget.retiroPoints.length} pontos demarcados',
+                                  color: _retiroColor,
                                 ),
                               ),
                             ],
@@ -386,7 +468,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                       child: _MapLegend(
                         retiroColor: _retiroColor,
                         piqueteColor: _piqueteColor,
-                        hasPiquete: _latLngPoints.isNotEmpty,
+                        hasPiquete: _latLngPoints.isNotEmpty ||
+                            _piqueteAreaLatLngs.isNotEmpty,
                       ),
                     ),
                     Positioned(
@@ -749,6 +832,24 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
 
   ll.LatLng _toLatLng(MapPoint point) =>
       ll.LatLng(point.latitude, point.longitude);
+
+  ll.LatLng _centerOfLatLngs(List<ll.LatLng> points) {
+    final lat = points.fold<double>(0, (sum, point) => sum + point.latitude) /
+        points.length;
+    final lng = points.fold<double>(0, (sum, point) => sum + point.longitude) /
+        points.length;
+    return ll.LatLng(lat, lng);
+  }
+}
+
+class _PiqueteAreaLatLng {
+  const _PiqueteAreaLatLng({
+    required this.name,
+    required this.points,
+  });
+
+  final String name;
+  final List<ll.LatLng> points;
 }
 
 class _DraggablePointMarker extends StatelessWidget {

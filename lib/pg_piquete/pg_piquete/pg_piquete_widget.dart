@@ -301,8 +301,19 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
       children: [
         MapaDemarcacaoRealWidget(
           title: retiro.nome,
-          points: retiro.pontos,
-          height: 420,
+          points: const [],
+          retiroPoints: retiro.pontos,
+          piqueteAreas: piquetesDoRetiro
+              .where((piquete) => piquete.pontos.length > 1)
+              .map(
+                (piquete) => PiqueteMapArea(
+                  name: piquete.nome,
+                  points: piquete.pontos,
+                ),
+              )
+              .toList(),
+          retiroAsPrimary: true,
+          height: 460,
         ),
         const SizedBox(height: 22),
         _buildRetiroSummary(context, retiro, piquetesDoRetiro),

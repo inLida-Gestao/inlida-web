@@ -239,6 +239,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     final available = _store
         .animaisDisponiveis(exceptPiqueteId: widget.initial?.id)
         .where((a) => !selectedSet.contains(a.id))
+        .where((a) => a.status.trim().toLowerCase() == 'na propriedade')
         .where((a) =>
             availableQuery.isEmpty ||
             a.nome.toLowerCase().contains(availableQuery) ||
@@ -300,6 +301,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     final available = _store
         .lotesDisponiveis(exceptPiqueteId: widget.initial?.id)
         .where((l) => !selectedSet.contains(l.id))
+        .where((l) => l.status.trim().toLowerCase() == 'ativo')
         .where((l) =>
             availableQuery.isEmpty ||
             l.nome.toLowerCase().contains(availableQuery))

@@ -137,6 +137,7 @@ class AnimalPrototype {
     required this.raca,
     required this.dataNascimento,
     required this.loteNome,
+    this.status = 'Na propriedade',
   });
 
   final String id;
@@ -147,6 +148,7 @@ class AnimalPrototype {
   final String raca;
   final String dataNascimento;
   final String loteNome;
+  final String status;
 }
 
 class LotePrototype {

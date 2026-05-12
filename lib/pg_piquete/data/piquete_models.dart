@@ -83,6 +83,7 @@ class AnimalPiqueteOption {
         raca: _stringValue(json['raca']),
         dataNascimento: _formatDate(json['data_nascimento']),
         loteNome: _stringValue(json['lote_nome']),
+        status: _stringValue(json['status'], fallback: 'Na propriedade'),
       ),
     );
   }
