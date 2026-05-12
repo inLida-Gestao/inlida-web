@@ -72,18 +72,16 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   @override
   void initState() {
     super.initState();
-    final initial = widget.initial;
-    _retiroId = initial?.retiroId ?? _store.selectedRetiro?.id ?? '';
-    _forrageirasSelecionadas =
-        initial?.forrageiras.toList() ?? [_forrageiraOptions.first];
-    _mode = (initial?.lotesIds.isNotEmpty ?? false) ? 'lote' : 'animal';
-    _pontos = initial?.pontos.toList() ?? [];
-    _animaisIds = initial?.animaisIds.toList() ?? [];
-    _lotesIds = initial?.lotesIds.toList() ?? [];
-    _areaEditadaManualmente = initial != null;
-    _nomeController.text = initial?.nome ?? '';
-    _areaController.text = initial?.areaHa.toStringAsFixed(0) ?? '0';
-    _anotacoesController.text = initial?.anotacoes ?? '';
+    _applyInitial(widget.initial);
+  }
+
+  @override
+  void didUpdateWidget(covariant PiqueteFormMockWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_initialSignature(widget.initial) !=
+        _initialSignature(oldWidget.initial)) {
+      _applyInitial(widget.initial);
+    }
   }
 
   @override
@@ -329,15 +327,26 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   }
 
   void _submit() {
-    final nome = _nomeController.text.trim();
-    final area =
-        double.tryParse(_areaController.text.replaceAll(',', '.')) ?? 0;
+    final initial = widget.initial;
+    final nome = _nomeController.text.trim().isEmpty && initial != null
+        ? initial.nome
+        : _nomeController.text.trim();
+    final area = double.tryParse(_areaController.text.replaceAll(',', '.')) ??
+        initial?.areaHa ??
+        0;
+    final retiroId =
+        _retiroId.isEmpty && initial != null ? initial.retiroId : _retiroId;
+    final forrageiras = _forrageirasSelecionadas.isEmpty && initial != null
+        ? initial.forrageiras
+        : _forrageirasSelecionadas;
+    final pontos =
+        _pontos.length < 3 && initial != null ? initial.pontos : _pontos;
 
-    if (_retiroId.isEmpty ||
+    if (retiroId.isEmpty ||
         nome.isEmpty ||
         area <= 0 ||
-        _forrageirasSelecionadas.isEmpty ||
-        _pontos.length < 3) {
+        forrageiras.isEmpty ||
+        pontos.length < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
@@ -351,16 +360,47 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
 
     widget.onSave(
       PiqueteFormResult(
-        retiroId: _retiroId,
+        retiroId: retiroId,
         nome: nome,
         areaHa: area,
-        forrageiras: _forrageirasSelecionadas,
+        forrageiras: forrageiras,
         anotacoes: _anotacoesController.text.trim(),
-        pontos: _pontos,
+        pontos: pontos,
         animaisIds: _animaisIds,
         lotesIds: _lotesIds,
       ),
     );
+  }
+
+  void _applyInitial(PiquetePrototype? initial) {
+    _retiroId = initial?.retiroId ?? _store.selectedRetiro?.id ?? '';
+    _forrageirasSelecionadas =
+        initial?.forrageiras.toList() ?? [_forrageiraOptions.first];
+    _mode = (initial?.lotesIds.isNotEmpty ?? false) ? 'lote' : 'animal';
+    _pontos = initial?.pontos.toList() ?? [];
+    _animaisIds = initial?.animaisIds.toList() ?? [];
+    _lotesIds = initial?.lotesIds.toList() ?? [];
+    _areaEditadaManualmente = initial != null;
+    _nomeController.text = initial?.nome ?? '';
+    _areaController.text = initial?.areaHa.toStringAsFixed(0) ?? '0';
+    _anotacoesController.text = initial?.anotacoes ?? '';
+  }
+
+  String _initialSignature(PiquetePrototype? piquete) {
+    if (piquete == null) return 'novo';
+    return [
+      piquete.id,
+      piquete.retiroId,
+      piquete.nome,
+      piquete.areaHa.toStringAsFixed(4),
+      piquete.forrageiras.join('|'),
+      piquete.pontos
+          .map((point) => '${point.latitude.toStringAsFixed(7)},'
+              '${point.longitude.toStringAsFixed(7)}')
+          .join('|'),
+      piquete.animaisIds.join('|'),
+      piquete.lotesIds.join('|'),
+    ].join(';');
   }
 }
 

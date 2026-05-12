@@ -30,6 +30,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
   late PgEditPiqueteModel _model;
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final _store = PiqueteBackendStore.instance;
+  bool _loadingFormData = true;
 
   @override
   void initState() {
@@ -51,6 +52,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
   void _onStoreChanged() => safeSetState(() {});
 
   Future<void> _loadFormData() async {
+    safeSetState(() => _loadingFormData = true);
     try {
       if (_store.retiros.isEmpty) {
         await _store.load();
@@ -61,6 +63,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
       }
     } catch (_) {
       // A mensagem amigável fica no store e é exibida na tela.
+    } finally {
+      if (mounted) safeSetState(() => _loadingFormData = false);
     }
   }
 
@@ -93,7 +97,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
               ),
             ),
             const SizedBox(height: 26),
-            if (_store.loading && piquete == null)
+            if (_loadingFormData || (_store.loading && piquete == null))
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(48),
