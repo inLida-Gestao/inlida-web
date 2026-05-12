@@ -86,10 +86,11 @@ class PiqueteBackendStore extends ChangeNotifier {
       final historico = await _repository.buscarPiqueteHistorico(
         detail.piquete.id,
       );
+      selectedRetiroId = detail.piquete.retiroId;
+      await _loadPiquetesDoRetiro(detail.piquete.retiroId);
       loaded = detail.piquete;
       _upsertPiquete(detail.piquete);
       _historicoPorPiquete[detail.piquete.id] = historico;
-      selectedRetiroId = detail.piquete.retiroId;
       await _loadOptionsRaw(piqueteId: detail.piquete.id);
     });
     return loaded;

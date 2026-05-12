@@ -1,5 +1,6 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import 'dart:async';
 import '../data/piquete_backend_store.dart';
 import 'mapa_demarcacao_real_widget.dart';
 import 'piquete_prototype_store.dart';
@@ -97,6 +98,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   @override
   Widget build(BuildContext context) {
     final retiro = _store.retiroById(_retiroId);
+    final piqueteAreas = _existingPiqueteAreas();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -170,6 +172,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
               : 'Demarcação dentro de ${retiro.nome}',
           points: _pontos,
           retiroPoints: retiro?.pontos ?? const [],
+          piqueteAreas: piqueteAreas,
           editable: true,
           onChanged: _handleMapChanged,
         ),
@@ -280,6 +283,24 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         }
       }
     });
+    unawaited(_loadPiquetesDoRetiro(value));
+  }
+
+  Future<void> _loadPiquetesDoRetiro(String retiroId) async {
+    try {
+      await _store.selectRetiro(retiroId);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível carregar os piquetes deste retiro.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
   }
 
   void _handleMapChanged(List<MapPoint> value) {
@@ -399,6 +420,21 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     if (area < 1) return area.toStringAsFixed(2);
     if (area % 1 == 0) return area.toStringAsFixed(0);
     return area.toStringAsFixed(2);
+  }
+
+  List<PiqueteMapArea> _existingPiqueteAreas() {
+    final currentPiqueteId = widget.initial?.id;
+    return _store
+        .piquetesDoRetiro(_retiroId)
+        .where((piquete) => piquete.id != currentPiqueteId)
+        .where((piquete) => piquete.pontos.length >= 3)
+        .map(
+          (piquete) => PiqueteMapArea(
+            name: piquete.nome,
+            points: piquete.pontos,
+          ),
+        )
+        .toList();
   }
 
   String _initialIdentity(PiquetePrototype? piquete) => piquete?.id ?? 'novo';
