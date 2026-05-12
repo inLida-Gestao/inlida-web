@@ -42,6 +42,9 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     _model.codFazendaFocus = FocusNode();
     _model.codFazendaController = TextEditingController();
 
+    // Alinha com o primeiro build para não disparar reload duplicado.
+    _ultimaPropriedadeId = FFAppState().propriedadeSelecionada.idPropriedade;
+
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       if (FFAppState().navegacao != 'paint') {
         FFAppState().navegacao = 'paint';
@@ -65,12 +68,26 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     if (_idPropriedade.isEmpty) {
       safeSetState(() {
         _model.carregandoConfig = false;
-        _model.mensagemConfig = 'Selecione uma propriedade.';
+        _model.mensagemConfig = null;
+        _model.configId = null;
+        _model.codTransmissaoController?.clear();
+        _model.serieFazendaController?.clear();
+        _model.codFazendaController?.clear();
+        _model.mensagemAuto = null;
+        _model.mensagemExport = null;
+        _model.linkUltimoZip = null;
       });
       return;
     }
     safeSetState(() => _model.carregandoConfig = true);
     try {
+      // Sempre limpar antes de preencher — senão os controllers mantêm a
+      // propriedade anterior e status/botões ficam inconsistentes.
+      _model.configId = null;
+      _model.codTransmissaoController?.clear();
+      _model.serieFazendaController?.clear();
+      _model.codFazendaController?.clear();
+
       final rows = await SupaFlow.client
           .from('paint_fazenda_config')
           .select()
@@ -335,9 +352,9 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-    // Reage à troca de propriedade no header — recarrega dados.
-    final idAtual = _idPropriedade;
+    // Depende só do id — assim qualquer troca no header reconstrói e dispara reload.
+    final idAtual =
+        context.select<FFAppState, String>((s) => s.propriedadeSelecionada.idPropriedade);
     if (idAtual != _ultimaPropriedadeId) {
       _ultimaPropriedadeId = idAtual;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -380,15 +397,19 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                           children: [
                             _tituloModulo(context),
                             const SizedBox(height: 16),
-                            _cardStatus(context),
-                            const SizedBox(height: 16),
-                            _cardConfig(context),
-                            const SizedBox(height: 16),
-                            _cardCadastrosAuto(context),
-                            const SizedBox(height: 16),
-                            _cardCadastrosManuais(context),
-                            const SizedBox(height: 16),
-                            _cardAvaliacoes(context),
+                            if (idAtual.isEmpty) ...[
+                              _painelSelecionePropriedade(context),
+                            ] else ...[
+                              _cardStatus(context),
+                              const SizedBox(height: 16),
+                              _cardConfig(context),
+                              const SizedBox(height: 16),
+                              _cardCadastrosAuto(context),
+                              const SizedBox(height: 16),
+                              _cardCadastrosManuais(context),
+                              const SizedBox(height: 16),
+                              _cardAvaliacoes(context),
+                            ],
                           ],
                         ),
                       ),
@@ -420,6 +441,46 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
           style: FlutterFlowTheme.of(context).bodySmall,
         ),
       ],
+    );
+  }
+
+  Widget _painelSelecionePropriedade(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.secondaryBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.alternate),
+        boxShadow: const [
+          BoxShadow(blurRadius: 8, color: Color(0x14000000), offset: Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.home_work_outlined, color: theme.primary, size: 28),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Selecione uma propriedade',
+                  style: theme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Use o menu "Propriedade" no topo da página. '
+                  'As informações de exportação PAINT, configuração e cadastros '
+                  'são sempre por fazenda — elas aparecem aqui depois da seleção.',
+                  style: theme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
