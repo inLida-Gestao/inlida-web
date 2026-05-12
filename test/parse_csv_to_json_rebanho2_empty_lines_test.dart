@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:excel/excel.dart' as xl;
@@ -76,7 +77,7 @@ void main() {
         .value = xl.DateCellValue.fromDateTime(DateTime(2024, 1, 15));
     sheet
         .cell(xl.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 1))
-        .value = xl.DoubleCellValue(180.5);
+        .value = const xl.DoubleCellValue(180.5);
 
     final bytes = excel.encode();
     expect(bytes, isNotNull);
@@ -94,5 +95,70 @@ void main() {
     expect(row['numeroAnimal'], '123');
     expect(row['dataDesmama'], '15/01/2024');
     expect(row['pesoDesmama'], 180.5);
+  });
+
+  test('parseCsvToJsonRebanho2 rejeita arquivo binário renomeado como CSV',
+      () async {
+    final bytes = <int>[
+      0xD0,
+      0xCF,
+      0x11,
+      0xE0,
+      0xA1,
+      0xB1,
+      0x1A,
+      0xE1,
+      ...List<int>.filled(64, 0),
+    ];
+
+    final file = FFUploadedFile(
+      name: 'rebanho.csv',
+      originalFilename: 'rebanho.csv',
+      bytes: Uint8List.fromList(bytes),
+    );
+
+    final out = await parseCsvToJsonRebanho2(file);
+    expect(out, isEmpty);
+  });
+
+  test('parseCsvToJsonRebanho2 ignora linha com identificador corrompido',
+      () async {
+    final csv = [
+      'Numero;Nome\n',
+      'Ñ9½?Ñbqûæåe;\n',
+      '123;Vaca Boa\n',
+    ].join();
+
+    final file = FFUploadedFile(
+      name: 'rebanho.csv',
+      bytes: Uint8List.fromList(latin1.encode(csv)),
+    );
+
+    final out = await parseCsvToJsonRebanho2(file);
+    expect(out, hasLength(1));
+
+    final row = out.first as Map;
+    expect(row['numeroAnimal'], '123');
+    expect(row['nome'], 'Vaca Boa');
+  });
+
+  test('parseCsvToJsonRebanho2 preserva acentos em CSV Latin-1', () async {
+    final csv = [
+      'Numero;Sexo;Raca\n',
+      '123;Fêmea;Mestiço\n',
+    ].join();
+
+    final file = FFUploadedFile(
+      name: 'rebanho.csv',
+      bytes: Uint8List.fromList(latin1.encode(csv)),
+    );
+
+    final out = await parseCsvToJsonRebanho2(file);
+    expect(out, hasLength(1));
+
+    final row = out.first as Map;
+    expect(row['numeroAnimal'], '123');
+    expect(row['sexo'], 'Fêmea');
+    expect(row['raca'], 'Mestiço');
   });
 }

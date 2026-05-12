@@ -1,9 +1,7 @@
-import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:async';
-import '/actions/actions.dart' as action_blocks;
+import '../data/piquete_backend_store.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -25,8 +23,7 @@ class ModalExcluirPiqueteWidget extends StatefulWidget {
       _ModalExcluirPiqueteWidgetState();
 }
 
-class _ModalExcluirPiqueteWidgetState
-    extends State<ModalExcluirPiqueteWidget> {
+class _ModalExcluirPiqueteWidgetState extends State<ModalExcluirPiqueteWidget> {
   late ModalExcluirPiqueteModel _model;
 
   @override
@@ -89,7 +86,7 @@ class _ModalExcluirPiqueteWidgetState
                 mainAxisSize: MainAxisSize.max,
                 children: [
                   const FaIcon(
-                    FontAwesomeIcons.exclamationTriangle,
+                    FontAwesomeIcons.triangleExclamation,
                     color: Color(0xFFCC3729),
                     size: 48.0,
                   ),
@@ -157,32 +154,37 @@ class _ModalExcluirPiqueteWidgetState
                   ),
                   FFButtonWidget(
                     onPressed: () async {
-                      await PiqueteTable().delete(
-                        matchingRows: (rows) =>
-                            rows.eqOrNull('id_piquete', widget.idPiquete),
-                      );
-                      FFAppState().refreshPiquete = true;
-                      safeSetState(() {});
-                      unawaited(
-                        () async {
-                          await action_blocks.countPiquetes(context);
-                        }(),
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Piquete excluído',
-                            style: TextStyle(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              fontWeight: FontWeight.w500,
+                      try {
+                        await PiqueteBackendStore.instance
+                            .deletePiquete(widget.idPiquete);
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Piquete excluído',
+                              style: TextStyle(
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
+                            duration: const Duration(milliseconds: 4000),
+                            backgroundColor: FlutterFlowTheme.of(context).error,
                           ),
-                          duration: const Duration(milliseconds: 4000),
-                          backgroundColor: FlutterFlowTheme.of(context).error,
-                        ),
-                      );
-                      Navigator.pop(context);
+                        );
+                        Navigator.pop(context);
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              PiqueteBackendStore.instance.errorMessage ??
+                                  'Não foi possível excluir o piquete.',
+                            ),
+                            backgroundColor: FlutterFlowTheme.of(context).error,
+                          ),
+                        );
+                      }
                     },
                     text: 'Excluir',
                     options: FFButtonOptions(

@@ -5,11 +5,11 @@ import 'package:provider/provider.dart';
 
 import '/backend/schema/structs/index.dart';
 
-
 import '/auth/base_auth_user_provider.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/pg_piquete/data/piquete_permissions.dart';
 
 import '/index.dart';
 
@@ -19,6 +19,14 @@ export 'serialization_util.dart';
 const kTransitionInfoKey = '__transition_info__';
 
 GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
+
+Future<String?> _redirectPiquetesSemAcesso(
+  BuildContext context,
+  GoRouterState state,
+) async {
+  final canAccessPiquetes = await currentUserCanAccessPiquetes();
+  return canAccessPiquetes ? null : PainelWidget.routePath;
+}
 
 class AppStateNotifier extends ChangeNotifier {
   AppStateNotifier._();
@@ -78,14 +86,16 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
       debugLogDiagnostics: true,
       refreshListenable: appStateNotifier,
       navigatorKey: appNavigatorKey,
-      errorBuilder: (context, state) =>
-          appStateNotifier.loggedIn ? const PainelWidget() : const LoginWidget(),
+      errorBuilder: (context, state) => appStateNotifier.loggedIn
+          ? const PainelWidget()
+          : const LoginWidget(),
       routes: [
         FFRoute(
           name: '_initialize',
           path: '/',
-          builder: (context, _) =>
-              appStateNotifier.loggedIn ? const PainelWidget() : const LoginWidget(),
+          builder: (context, _) => appStateNotifier.loggedIn
+              ? const PainelWidget()
+              : const LoginWidget(),
         ),
         FFRoute(
           name: PainelWidget.routeName,
@@ -116,7 +126,8 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: PoliticaPrivacidadeTermosdeusoWidget.routeName,
           path: PoliticaPrivacidadeTermosdeusoWidget.routePath,
-          builder: (context, params) => const PoliticaPrivacidadeTermosdeusoWidget(),
+          builder: (context, params) =>
+              const PoliticaPrivacidadeTermosdeusoWidget(),
         ),
         FFRoute(
           name: PropriedadesWidget.routeName,
@@ -284,18 +295,21 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: PgPiqueteWidget.routeName,
           path: PgPiqueteWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPiquetesSemAcesso,
           builder: (context, params) => const PgPiqueteWidget(),
         ),
         FFRoute(
           name: PgAddPiqueteWidget.routeName,
           path: PgAddPiqueteWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPiquetesSemAcesso,
           builder: (context, params) => const PgAddPiqueteWidget(),
         ),
         FFRoute(
           name: PgViewPiqueteWidget.routeName,
           path: PgViewPiqueteWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPiquetesSemAcesso,
           builder: (context, params) => PgViewPiqueteWidget(
             idPiquete: params.getParam(
               'idPiquete',
@@ -311,6 +325,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: PgEditPiqueteWidget.routeName,
           path: PgEditPiqueteWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPiquetesSemAcesso,
           builder: (context, params) => PgEditPiqueteWidget(
             idPiquete: params.getParam(
               'idPiquete',
@@ -492,6 +507,7 @@ class FFRoute {
     required this.path,
     required this.builder,
     this.requireAuth = false,
+    this.redirect,
     this.asyncParams = const {},
     this.routes = const [],
   });
@@ -499,6 +515,7 @@ class FFRoute {
   final String name;
   final String path;
   final bool requireAuth;
+  final GoRouterRedirect? redirect;
   final Map<String, Future<dynamic> Function(String)> asyncParams;
   final Widget Function(BuildContext, FFParameters) builder;
   final List<GoRoute> routes;
@@ -506,7 +523,7 @@ class FFRoute {
   GoRoute toRoute(AppStateNotifier appStateNotifier) => GoRoute(
         name: name,
         path: path,
-        redirect: (context, state) {
+        redirect: (context, state) async {
           if (appStateNotifier.shouldRedirect) {
             final redirectLocation = appStateNotifier.getRedirectLocation();
             appStateNotifier.clearRedirectLocation();
@@ -516,6 +533,10 @@ class FFRoute {
           if (requireAuth && !appStateNotifier.loggedIn) {
             appStateNotifier.setRedirectLocationIfUnset(state.uri.toString());
             return '/login';
+          }
+          final routeRedirect = await redirect?.call(context, state);
+          if (routeRedirect != null) {
+            return routeRedirect;
           }
           return null;
         },
@@ -578,7 +599,8 @@ class TransitionInfo {
   final Duration duration;
   final Alignment? alignment;
 
-  static TransitionInfo appDefault() => const TransitionInfo(hasTransition: false);
+  static TransitionInfo appDefault() =>
+      const TransitionInfo(hasTransition: false);
 }
 
 class RootPageContext {

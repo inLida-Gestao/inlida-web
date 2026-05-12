@@ -187,7 +187,7 @@ Future<_RebanhoParentLookup> _fetchLookupFromDb(String idPropriedade) async {
   while (true) {
     final res = await Supabase.instance.client
         .from('rebanho')
-      .select('idRebanho,numeroAnimal,nome,dataNascimento,sexo,raca,deletado')
+        .select('idRebanho,numeroAnimal,nome,dataNascimento,sexo,raca,deletado')
         .eq('idPropriedade', idPropriedade)
         .range(from, from + pageSize - 1);
 
@@ -623,6 +623,13 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
             }
           }
 
+          final validationError = _validateCleanRebanhoRecord(cleanData);
+          if (validationError != null) {
+            throw FormatException(
+              'Dados de importação inválidos: $validationError',
+            );
+          }
+
           if (matchedExisting) {
             chunkUpdated += 1;
             chunkUpdatedRows.add({
@@ -726,7 +733,7 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
             // Reaproveitar idRebanho existente quando a identidade do animal já
             // existir no banco ou em outro registro do mesmo CSV.
             final matchedExisting =
-              _resolveExistingAnimalId(data, parentLookup);
+                _resolveExistingAnimalId(data, parentLookup);
 
             // Capturar valores de peso
             final pesoAtual = data['pesoAtual'];
@@ -759,6 +766,13 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
                 cleanData[dateField] =
                     _convertDateFormat(cleanData[dateField].toString());
               }
+            }
+
+            final validationError = _validateCleanRebanhoRecord(cleanData);
+            if (validationError != null) {
+              throw FormatException(
+                'Dados de importação inválidos: $validationError',
+              );
             }
 
             if (matchedExisting) {
@@ -917,6 +931,11 @@ String _buildFriendlyImportError(Object error) {
     return 'Referência inválida (ex.: lote, matriz ou reprodutor inexistente).';
   }
 
+  if (lower.contains('dados de importação inválidos') ||
+      lower.contains('dados de importacao invalidos')) {
+    return raw.replaceFirst('FormatException: ', '');
+  }
+
   return raw;
 }
 
@@ -967,6 +986,97 @@ String _labelRebanhoColumn(String column) {
     default:
       return column;
   }
+}
+
+String? _validateCleanRebanhoRecord(Map<String, dynamic> data) {
+  const strictIdentifierColumns = [
+    'numeroAnimal',
+    'chip',
+    'codRegistro',
+    'numeroMatriz',
+    'numeroReprodutor',
+  ];
+
+  for (final column in strictIdentifierColumns) {
+    final value = _cleanStringOrNull(data[column]);
+    if (value == null) continue;
+    if (!_isPlausibleImportIdentifier(value)) {
+      return 'campo ${_labelRebanhoColumn(column.toLowerCase())} contém caracteres incompatíveis com identificador de animal.';
+    }
+  }
+
+  for (final entry in data.entries) {
+    final value = entry.value;
+    if (value is String && _looksLikeCorruptedImportText(value)) {
+      return 'campo ${_labelRebanhoColumn(entry.key.toLowerCase())} parece estar com bytes de arquivo ou encoding corrompidos.';
+    }
+  }
+
+  const identityColumns = ['numeroAnimal', 'chip', 'codRegistro', 'nome'];
+  final hasIdentity = identityColumns.any((column) {
+    final value = _cleanStringOrNull(data[column]);
+    return value != null && !_looksLikeCorruptedImportText(value);
+  });
+
+  if (!hasIdentity) {
+    return 'registro sem identificação válida do animal.';
+  }
+
+  return null;
+}
+
+String? _cleanStringOrNull(dynamic value) {
+  if (value == null) return null;
+  final cleaned = _fixEncoding(value.toString()).trim();
+  if (cleaned.isEmpty ||
+      cleaned.toLowerCase() == 'null' ||
+      cleaned.toLowerCase() == 'undefined') {
+    return null;
+  }
+  return cleaned;
+}
+
+bool _isPlausibleImportIdentifier(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty || trimmed.length > 80) return false;
+  if (!RegExp(r'[A-Za-z0-9]').hasMatch(trimmed)) return false;
+  return RegExp(r'^[A-Za-z0-9][A-Za-z0-9 _./#:-]*$').hasMatch(trimmed);
+}
+
+bool _looksLikeCorruptedImportText(String value) {
+  final text = value.trim();
+  if (text.isEmpty) return false;
+  if (text.contains('\uFFFD')) return true;
+
+  final artifactMatches = RegExp(
+    r'[¢£¤¥¦¨©ª«¬®¯±²³µ¶·¸¹»¼½¾¿ÆÐ×ØÞßæ÷øþ]',
+  ).allMatches(text).length;
+  if (artifactMatches >= 2) return true;
+
+  var nonSpace = 0;
+  var unusualSymbols = 0;
+  for (final rune in text.runes) {
+    if (_isWhitespaceRune(rune)) continue;
+    nonSpace++;
+    if (_isAllowedImportTextRune(rune)) continue;
+    unusualSymbols++;
+  }
+
+  return nonSpace > 0 &&
+      unusualSymbols >= 3 &&
+      unusualSymbols / nonSpace > 0.25;
+}
+
+bool _isWhitespaceRune(int rune) =>
+    rune == 0x20 || rune == 0x09 || rune == 0x0A || rune == 0x0D;
+
+bool _isAllowedImportTextRune(int rune) {
+  final isAsciiLetter =
+      (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
+  final isDigit = rune >= 0x30 && rune <= 0x39;
+  final isLatinLetter = rune >= 0x00C0 && rune <= 0x017F;
+  final isCommonPunctuation = '.,;:/_-#()+\'"'.runes.contains(rune);
+  return isAsciiLetter || isDigit || isLatinLetter || isCommonPunctuation;
 }
 
 // Função auxiliar para preparar registros de pesagem
@@ -1137,9 +1247,8 @@ bool _isValidPeso(dynamic peso) {
 
 bool _isValidDate(String? dateValue) {
   if (dateValue == null) return false;
-  final trimmed = dateValue.trim()
-      .replaceAll('null', '')
-      .replaceAll('undefined', '');
+  final trimmed =
+      dateValue.trim().replaceAll('null', '').replaceAll('undefined', '');
   if (trimmed.isEmpty) return false;
   return DateTime.tryParse(trimmed) != null;
 }

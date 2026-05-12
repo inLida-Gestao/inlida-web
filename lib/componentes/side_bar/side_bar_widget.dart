@@ -2,6 +2,7 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
+import '/pg_piquete/data/piquete_permissions.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -19,6 +20,7 @@ class SideBarWidget extends StatefulWidget {
 
 class _SideBarWidgetState extends State<SideBarWidget> {
   late SideBarModel _model;
+  bool _canSeePiquetes = false;
 
   @override
   void setState(VoidCallback callback) {
@@ -31,7 +33,19 @@ class _SideBarWidgetState extends State<SideBarWidget> {
     super.initState();
     _model = createModel(context, () => SideBarModel());
 
+    _loadPiquetesPermission();
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+  }
+
+  Future<void> _loadPiquetesPermission() async {
+    final canSeePiquetes = await currentUserCanAccessPiquetes();
+    if (!mounted) {
+      return;
+    }
+
+    safeSetState(() {
+      _canSeePiquetes = canSeePiquetes;
+    });
   }
 
   @override
@@ -637,10 +651,92 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                     ),
                   ),
                 ),
-                // TODO: Piquete menu item hidden temporarily
-                // InkWell(
-                //   ...PgPiqueteWidget...
-                // ),
+                if (_canSeePiquetes)
+                  InkWell(
+                    splashColor: Colors.transparent,
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    onTap: () async {
+                      FFAppState().navegacao = 'piquetes';
+                      safeSetState(() {});
+
+                      context.pushNamed(
+                        PgPiqueteWidget.routeName,
+                        extra: <String, dynamic>{
+                          kTransitionInfoKey: const TransitionInfo(
+                            hasTransition: true,
+                            transitionType: PageTransitionType.fade,
+                            duration: Duration(milliseconds: 0),
+                          ),
+                        },
+                      );
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 56.0,
+                      decoration: BoxDecoration(
+                        color: FlutterFlowTheme.of(context).customColor2,
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 0.0,
+                            color: FFAppState().navegacao == 'piquetes'
+                                ? FlutterFlowTheme.of(context).customColor10
+                                : Colors.transparent,
+                            offset: const Offset(
+                              -4.0,
+                              0.0,
+                            ),
+                            spreadRadius: 0.0,
+                          )
+                        ],
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Icon(
+                              Icons.fence_rounded,
+                              color: FFAppState().navegacao == 'piquetes'
+                                  ? FlutterFlowTheme.of(context).customColor10
+                                  : FlutterFlowTheme.of(context).primaryText,
+                              size: 24.0,
+                            ),
+                            Text(
+                              'Piquetes',
+                              style: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    color: FFAppState().navegacao == 'piquetes'
+                                        ? FlutterFlowTheme.of(context)
+                                            .customColor10
+                                        : FlutterFlowTheme.of(context)
+                                            .primaryText,
+                                    fontSize: 16.0,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                            ),
+                          ].divide(const SizedBox(width: 8.0)),
+                        ),
+                      ),
+                    ),
+                  ),
               ].divide(const SizedBox(height: 16.0)),
             ),
             if (responsiveVisibility(

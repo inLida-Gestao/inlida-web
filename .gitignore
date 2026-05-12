@@ -1,6 +1,11 @@
 # Supabase CLI – estado local (não versionar)
 supabase/.temp/
 
+# Variáveis locais e tokens
+.env
+.env.local
+.env.*.local
+
 # Miscellaneous
 *.class
 *.log

@@ -294,6 +294,26 @@ class _SubMenuPainelImportarWidgetState
                       );
                       _model.listaJson = _model.json!.toList().cast<dynamic>();
                       safeSetState(() {});
+                      if (_model.listaJson.isEmpty) {
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Nenhum registro válido encontrado. Verifique se o arquivo é CSV ou XLSX válido e tente novamente.',
+                              style: TextStyle(
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16.0,
+                              ),
+                            ),
+                            duration: const Duration(milliseconds: 5000),
+                            backgroundColor: FlutterFlowTheme.of(context).error,
+                          ),
+                        );
+                        return;
+                      }
                       final importResult =
                           await actions.batchInsertSupabaseRebanho(
                         _model.listaJson.toList(),
