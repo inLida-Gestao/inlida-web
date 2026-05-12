@@ -7,7 +7,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'piquete_prototype_store.dart';
-import 'piquete_prototype_widgets.dart';
 
 double estimateMapAreaHa(List<MapPoint> points) {
   if (points.length < 3) return 0;
@@ -82,8 +81,6 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
   final _mapController = MapController();
   final _mapViewportKey = GlobalKey();
   bool _satellite = true;
-  bool _showLotes = true;
-  bool _showGado = false;
   bool _locatingUser = false;
   bool _mapReady = false;
   int? _draggingPointIndex;
@@ -339,7 +336,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                               ),
                             ],
                           ),
-                        if (_showLotes && _piqueteAreaLatLngs.isNotEmpty)
+                        if (_piqueteAreaLatLngs.isNotEmpty)
                           PolygonLayer(
                             polygons: [
                               for (final area in _piqueteAreaLatLngs)
@@ -372,7 +369,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                               ),
                             ],
                           ),
-                        if (_showLotes && _piqueteAreaLatLngs.isNotEmpty)
+                        if (_piqueteAreaLatLngs.isNotEmpty)
                           MarkerLayer(
                             markers: [
                               for (final area in _piqueteAreaLatLngs)
@@ -398,9 +395,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                                 height: 72,
                                 child: _MapLabel(
                                   title: widget.title,
-                                  subtitle: _showLotes
-                                      ? '${_points.length} pontos demarcados'
-                                      : 'Área selecionada',
+                                  subtitle:
+                                      '${_points.length} pontos demarcados',
                                   color: _piqueteColor,
                                 ),
                               ),
@@ -438,17 +434,6 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                               ),
                             ],
                           ),
-                        if (_showGado && _latLngPoints.isNotEmpty)
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: _latLngPoints.first,
-                                width: 44,
-                                height: 44,
-                                child: _AnimalMarker(color: theme.secondary),
-                              ),
-                            ],
-                          ),
                       ],
                     ),
                     if (_mapReady && _latLngPoints.isNotEmpty)
@@ -477,14 +462,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                       bottom: 14,
                       child: _LayerControls(
                         satellite: _satellite,
-                        showLotes: _showLotes,
-                        showGado: _showGado,
                         onSatelliteChanged: (value) =>
                             safeSetState(() => _satellite = value),
-                        onLotesChanged: (value) =>
-                            safeSetState(() => _showLotes = value),
-                        onGadoChanged: (value) =>
-                            safeSetState(() => _showGado = value),
                       ),
                     ),
                     Positioned(
@@ -1056,19 +1035,11 @@ class _LegendItem extends StatelessWidget {
 class _LayerControls extends StatelessWidget {
   const _LayerControls({
     required this.satellite,
-    required this.showLotes,
-    required this.showGado,
     required this.onSatelliteChanged,
-    required this.onLotesChanged,
-    required this.onGadoChanged,
   });
 
   final bool satellite;
-  final bool showLotes;
-  final bool showGado;
   final ValueChanged<bool> onSatelliteChanged;
-  final ValueChanged<bool> onLotesChanged;
-  final ValueChanged<bool> onGadoChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -1094,20 +1065,6 @@ class _LayerControls extends StatelessWidget {
             label: 'Satélite',
             value: satellite,
             onChanged: onSatelliteChanged,
-            activeColor: theme.primary,
-          ),
-          _LayerSwitchRow(
-            icon: Icons.view_week_outlined,
-            label: 'Ver lotes',
-            value: showLotes,
-            onChanged: onLotesChanged,
-            activeColor: theme.primary,
-          ),
-          _LayerSwitchRow(
-            icon: Icons.location_on_outlined,
-            label: 'Ver gado',
-            value: showGado,
-            onChanged: onGadoChanged,
             activeColor: theme.primary,
           ),
         ].divide(const SizedBox(height: 8)),
@@ -1300,42 +1257,6 @@ class _MapLabel extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _AnimalMarker extends StatelessWidget {
-  const _AnimalMarker({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 3),
-        boxShadow: const [
-          BoxShadow(
-            blurRadius: 8,
-            color: Color(0x66000000),
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Center(
-          child: Image.asset(
-            kPiqueteCowIconAsset,
-            width: piqueteAssetIconSize(kPiqueteCowIconAsset, 28),
-            height: piqueteAssetIconSize(kPiqueteCowIconAsset, 28),
-            fit: BoxFit.contain,
-          ),
-        ),
-      ),
     );
   }
 }
