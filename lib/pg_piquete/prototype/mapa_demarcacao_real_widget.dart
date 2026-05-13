@@ -1,11 +1,14 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart' as ll;
+import 'kml_area_parser.dart';
 import 'piquete_prototype_store.dart';
 
 double estimateMapAreaHa(List<MapPoint> points) {
@@ -43,6 +46,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
     this.height = 448,
     this.preferUserLocation = false,
     this.onChanged,
+    this.onImported,
   });
 
   final String title;
@@ -54,6 +58,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
   final double height;
   final bool preferUserLocation;
   final ValueChanged<List<MapPoint>>? onChanged;
+  final ValueChanged<List<MapPoint>>? onImported;
 
   @override
   State<MapaDemarcacaoRealWidget> createState() =>
@@ -82,7 +87,9 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
   final _mapViewportKey = GlobalKey();
   bool _satellite = true;
   bool _locatingUser = false;
+  bool _importingKml = false;
   bool _mapReady = false;
+  bool _focusImportedArea = false;
   int? _draggingPointIndex;
   Offset? _dragPointOffset;
   ll.LatLng? _userLocation;
@@ -194,11 +201,16 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
 
     final pointsWereCleared =
         oldWidget.points.isNotEmpty && widget.points.isEmpty;
+    final pointsChanged =
+        _pointsSignature(oldWidget.points) != _pointsSignature(widget.points);
     final retiroChangedWhileEditingEmptyPiquete = widget.points.isEmpty &&
         _pointsSignature(oldWidget.retiroPoints) !=
             _pointsSignature(widget.retiroPoints);
 
-    if (pointsWereCleared || retiroChangedWhileEditingEmptyPiquete) {
+    if ((_focusImportedArea && pointsChanged && widget.points.isNotEmpty) ||
+        pointsWereCleared ||
+        retiroChangedWhileEditingEmptyPiquete) {
+      _focusImportedArea = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _fitToVisibleArea();
       });
@@ -524,6 +536,11 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                     ),
                   ),
                   _MapActionButton(
+                    label: _importingKml ? 'Importando...' : 'Importar KML',
+                    icon: Icons.upload_file_rounded,
+                    onPressed: _importingKml ? null : _handleImportKml,
+                  ),
+                  _MapActionButton(
                     label: 'Desfazer ponto',
                     icon: Icons.undo_rounded,
                     onPressed: _points.isEmpty
@@ -558,6 +575,72 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
       ..._points,
       MapPoint.fromLatLng(latLng.latitude, latLng.longitude),
     ]);
+  }
+
+  Future<void> _handleImportKml() async {
+    if (_importingKml) return;
+
+    safeSetState(() {
+      _importingKml = true;
+    });
+
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['kml'],
+        allowMultiple: false,
+        withData: true,
+      );
+      if (!mounted || result == null || result.files.isEmpty) return;
+
+      final file = result.files.single;
+      final bytes = file.bytes;
+      if (bytes == null || bytes.isEmpty) {
+        _showKmlImportMessage(
+          'Não foi possível ler o arquivo KML selecionado.',
+          isError: true,
+        );
+        return;
+      }
+
+      final content = utf8.decode(bytes, allowMalformed: true);
+      final imported = parseKmlArea(content);
+      _focusImportedArea = true;
+      (widget.onImported ?? widget.onChanged)?.call(imported.points);
+
+      final extra = imported.polygonsFound > 1
+          ? ' Usei o maior polígono encontrado no arquivo.'
+          : '';
+      _showKmlImportMessage(
+        'KML importado com ${imported.points.length} pontos.$extra',
+      );
+    } on KmlAreaParseException catch (error) {
+      _showKmlImportMessage(error.message, isError: true);
+    } catch (_) {
+      _showKmlImportMessage(
+        'Não foi possível importar o KML. Verifique se o arquivo contém um polígono válido.',
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        safeSetState(() {
+          _importingKml = false;
+        });
+      }
+    }
+  }
+
+  void _showKmlImportMessage(String message, {bool isError = false}) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError
+            ? FlutterFlowTheme.of(context).error
+            : FlutterFlowTheme.of(context).primary,
+      ),
+    );
   }
 
   int get _interactionFlags {

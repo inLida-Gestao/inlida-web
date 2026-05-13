@@ -713,6 +713,16 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                   updatingAreaFromMap = false;
                                 }
                               }),
+                              onImported: (value) => setDialogState(() {
+                                pontos = value;
+                                areaEditedManually = false;
+                                updatingAreaFromMap = true;
+                                _updateAreaControllerFromMap(
+                                  areaController,
+                                  pontos,
+                                );
+                                updatingAreaFromMap = false;
+                              }),
                             );
 
                             if (narrow) {

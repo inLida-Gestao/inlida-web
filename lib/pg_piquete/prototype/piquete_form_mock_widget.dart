@@ -175,6 +175,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
           piqueteAreas: piqueteAreas,
           editable: true,
           onChanged: _handleMapChanged,
+          onImported: _handleKmlImported,
         ),
         const SizedBox(height: 22),
         PrototypeCard(
@@ -310,6 +311,15 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         final area = estimateMapAreaHa(value);
         _areaController.text = area > 0 ? area.toStringAsFixed(2) : '0';
       }
+    });
+  }
+
+  void _handleKmlImported(List<MapPoint> value) {
+    safeSetState(() {
+      _pontos = value;
+      _areaEditadaManualmente = false;
+      final area = estimateMapAreaHa(value);
+      _areaController.text = area > 0 ? area.toStringAsFixed(2) : '0';
     });
   }
 
