@@ -97,7 +97,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final retiro = _store.retiroById(_retiroId);
+    final retiro = _retiroId.isEmpty ? null : _store.retiroById(_retiroId);
     final piqueteAreas = _existingPiqueteAreas();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,12 +115,18 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
                     child: _DropdownField(
                       label: 'Retiro',
                       value: _retiroId,
-                      items: _store.retiros
-                          .map((r) => DropdownMenuItem(
-                                value: r.id,
-                                child: Text(r.nome),
-                              ))
-                          .toList(),
+                      items: [
+                        const DropdownMenuItem(
+                          value: PiqueteBackendStore.semRetiroId,
+                          child: Text('Sem retiro'),
+                        ),
+                        ..._store.retiros.map(
+                          (r) => DropdownMenuItem(
+                            value: r.id,
+                            child: Text(r.nome),
+                          ),
+                        ),
+                      ],
                       onChanged: _selectRetiro,
                     ),
                   ),
@@ -168,7 +174,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         const SizedBox(height: 22),
         MapaDemarcacaoRealWidget(
           title: retiro == null
-              ? 'Demarcação do piquete'
+              ? 'Demarcação do piquete sem retiro'
               : 'Demarcação dentro de ${retiro.nome}',
           points: _pontos,
           retiroPoints: retiro?.pontos ?? const [],
@@ -271,12 +277,13 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   }
 
   void _selectRetiro(String? value) {
-    if (value == null || value == _retiroId) {
+    final nextValue = value ?? PiqueteBackendStore.semRetiroId;
+    if (nextValue == _retiroId) {
       return;
     }
 
     safeSetState(() {
-      _retiroId = value;
+      _retiroId = nextValue;
       if (widget.initial == null) {
         _pontos = [];
         if (!_areaEditadaManualmente) {
@@ -284,7 +291,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         }
       }
     });
-    unawaited(_loadPiquetesDoRetiro(value));
+    unawaited(_loadPiquetesDoRetiro(nextValue));
   }
 
   Future<void> _loadPiquetesDoRetiro(String retiroId) async {
@@ -366,8 +373,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     final area = (parsedArea != null && parsedArea > 0)
         ? parsedArea
         : (initial?.areaHa ?? 0);
-    final retiroId =
-        _retiroId.isNotEmpty ? _retiroId : (initial?.retiroId ?? '');
+    final retiroId = _retiroId;
     final fallbackForrageiras = initial?.forrageiras.isNotEmpty == true
         ? initial!.forrageiras
         : [_forrageiraOptions.first];
@@ -376,15 +382,11 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         : fallbackForrageiras;
     final pontos = _pontos.length >= 3 ? _pontos : (initial?.pontos ?? []);
 
-    if (retiroId.isEmpty ||
-        nome.isEmpty ||
-        area <= 0 ||
-        forrageiras.isEmpty ||
-        pontos.length < 3) {
+    if (nome.isEmpty || area <= 0 || forrageiras.isEmpty || pontos.length < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
-            'Informe retiro, nome, área, ao menos uma forrageira e 3 pontos no mapa.',
+            'Informe nome, área, ao menos uma forrageira e 3 pontos no mapa.',
           ),
           backgroundColor: FlutterFlowTheme.of(context).error,
         ),
@@ -407,7 +409,9 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   }
 
   void _applyInitial(PiquetePrototype? initial) {
-    _retiroId = initial?.retiroId ?? _store.selectedRetiro?.id ?? '';
+    _retiroId = initial?.retiroId ??
+        _store.selectedRetiro?.id ??
+        PiqueteBackendStore.semRetiroId;
     final initialForrageiras = initial?.forrageiras
             .where((forrageira) => forrageira.trim().isNotEmpty)
             .toList() ??
@@ -826,7 +830,7 @@ class _DropdownField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          initialValue: value.isEmpty ? null : value,
+          initialValue: value,
           items: items,
           onChanged: onChanged,
           decoration: InputDecoration(

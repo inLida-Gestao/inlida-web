@@ -93,7 +93,7 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
             PrototypePageHeader(
               title: piquete?.nome ?? widget.piqueteNome ?? 'Piquete',
               subtitle: retiro == null
-                  ? 'Retiro > Piquete'
+                  ? 'Sem retiro > Piquete'
                   : '${retiro.nome} > Piquete',
               leading: FlutterFlowIconButton(
                 borderRadius: 8,

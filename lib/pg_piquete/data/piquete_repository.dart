@@ -48,6 +48,32 @@ class PiqueteRepository {
         .toList();
   }
 
+  Future<List<PiqueteBackendDetail>> listarPiquetesSemRetiro({
+    String pesquisa = '',
+  }) async {
+    dynamic response;
+    try {
+      response = await _rpc(
+        'listar_piquetes_sem_retiro',
+        {
+          'p_id_propriedade': idPropriedade,
+          'p_pesquisa': pesquisa,
+          'p_forrageiras': <String>[],
+          'p_limite': 100,
+          'p_offset': 0,
+        },
+      );
+    } on PiqueteRepositoryException catch (error) {
+      if (!_isMissingRpcError(error.message, 'listar_piquetes_sem_retiro')) {
+        rethrow;
+      }
+      return const [];
+    }
+    return _asList(response)
+        .map((item) => PiqueteBackendDetail.fromJson(item))
+        .toList();
+  }
+
   Future<PiqueteBackendDetail> buscarPiqueteDetalhe(String piqueteId) async {
     final response = await _rpc(
       'buscar_piquete_detalhe',
@@ -132,7 +158,7 @@ class PiqueteRepository {
 
   Future<PiqueteBackendDetail> salvarPiquete({
     String piqueteId = '',
-    required String retiroId,
+    String retiroId = '',
     required String nome,
     required double areaHa,
     required List<String> forrageiras,
@@ -210,6 +236,14 @@ class PiqueteRepository {
     final match = RegExp(r'message: ([^,}]+)').firstMatch(message);
     if (match != null) return match.group(1)?.trim() ?? message;
     return message.replaceFirst('Exception: ', '');
+  }
+
+  bool _isMissingRpcError(String message, String functionName) {
+    final normalized = message.toLowerCase();
+    return normalized.contains(functionName.toLowerCase()) &&
+        (normalized.contains('could not find') ||
+            normalized.contains('not found') ||
+            normalized.contains('pgrst202'));
   }
 }
 

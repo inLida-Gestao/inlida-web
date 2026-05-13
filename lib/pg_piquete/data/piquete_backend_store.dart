@@ -17,6 +17,8 @@ class PiqueteBackendStore extends ChangeNotifier {
   final List<LotePrototype> _lotes = [];
   final Map<String, List<PiqueteHistoricoEvent>> _historicoPorPiquete = {};
 
+  static const semRetiroId = '';
+
   bool loading = false;
   String? errorMessage;
   String? selectedRetiroId;
@@ -33,46 +35,81 @@ class PiqueteBackendStore extends ChangeNotifier {
     return List.unmodifiable(_historicoPorPiquete[piqueteId] ?? const []);
   }
 
-  RetiroPrototype? get selectedRetiro =>
-      retiroById(selectedRetiroId) ?? _retiros.firstOrNull;
+  RetiroPrototype? get selectedRetiro {
+    final id = selectedRetiroId;
+    if (id == null || id.isEmpty) return null;
+    return retiroById(id);
+  }
+
+  bool get mostrandoPiquetesSemRetiro =>
+      selectedRetiroId == semRetiroId || _retiros.isEmpty;
+
+  List<PiquetePrototype> get piquetesSemRetiro =>
+      _piquetes.where((p) => p.retiroId.isEmpty).toList();
 
   Future<void> load() async {
     await _run(() async {
-      final summaries = await _repository.listarRetirosComResumo();
+      final summariesFuture = _repository.listarRetirosComResumo();
+      final piquetesSemRetiroFuture = _repository.listarPiquetesSemRetiro();
+      final summaries = await summariesFuture;
+      final piquetesSemRetiro = await piquetesSemRetiroFuture;
       _retiros
         ..clear()
         ..addAll(summaries.map((summary) => summary.retiro));
+      _piquetes
+        ..clear()
+        ..addAll(piquetesSemRetiro.map((detail) => detail.piquete));
 
       totalPiquetes = summaries.fold<int>(
-        0,
+        piquetesSemRetiro.length,
         (total, summary) => total + summary.piquetesCount,
       );
       totalAnimais = summaries.fold<int>(
-        0,
+        _totalAnimaisDosPiquetes(
+          piquetesSemRetiro.map((detail) => detail.piquete),
+        ),
         (total, summary) => total + summary.animaisCount,
       );
       totalLotes = summaries.fold<int>(
-        0,
+        piquetesSemRetiro.fold<int>(
+          0,
+          (total, detail) => total + detail.piquete.totalLotes,
+        ),
         (total, summary) => total + summary.lotesCount,
       );
 
       if (_retiros.isEmpty) {
-        selectedRetiroId = null;
-        _piquetes.clear();
+        selectedRetiroId = semRetiroId;
         return;
       }
 
-      if (selectedRetiroId == null || retiroById(selectedRetiroId) == null) {
+      selectedRetiroId ??= _retiros.first.id;
+
+      if (selectedRetiroId!.isNotEmpty &&
+          retiroById(selectedRetiroId) == null) {
         selectedRetiroId = _retiros.first.id;
       }
 
-      await _loadPiquetesDoRetiro(selectedRetiroId!);
+      if (selectedRetiroId!.isEmpty) {
+        await _loadPiquetesSemRetiro();
+      } else {
+        await _loadPiquetesDoRetiro(selectedRetiroId!);
+      }
     });
   }
 
   Future<void> selectRetiro(String retiroId) async {
     selectedRetiroId = retiroId;
+    if (retiroId.isEmpty) {
+      await _run(_loadPiquetesSemRetiro);
+      return;
+    }
     await _run(() => _loadPiquetesDoRetiro(retiroId));
+  }
+
+  Future<void> selectPiquetesSemRetiro() async {
+    selectedRetiroId = semRetiroId;
+    await _run(_loadPiquetesSemRetiro);
   }
 
   Future<void> loadOptions({String piqueteId = ''}) async {
@@ -87,7 +124,11 @@ class PiqueteBackendStore extends ChangeNotifier {
         detail.piquete.id,
       );
       selectedRetiroId = detail.piquete.retiroId;
-      await _loadPiquetesDoRetiro(detail.piquete.retiroId);
+      if (detail.piquete.retiroId.isEmpty) {
+        await _loadPiquetesSemRetiro();
+      } else {
+        await _loadPiquetesDoRetiro(detail.piquete.retiroId);
+      }
       loaded = detail.piquete;
       _upsertPiquete(detail.piquete);
       _historicoPorPiquete[detail.piquete.id] = historico;
@@ -112,8 +153,9 @@ class PiqueteBackendStore extends ChangeNotifier {
   }
 
   List<PiquetePrototype> piquetesDoRetiro(String? retiroId) {
-    final id = retiroId ?? selectedRetiro?.id;
+    final id = retiroId ?? selectedRetiroId;
     if (id == null) return [];
+    if (id.isEmpty) return piquetesSemRetiro;
     return _piquetes.where((p) => p.retiroId == id).toList();
   }
 
@@ -171,7 +213,7 @@ class PiqueteBackendStore extends ChangeNotifier {
   }
 
   Future<PiquetePrototype> addPiquete({
-    required String retiroId,
+    String retiroId = '',
     required String nome,
     required double areaHa,
     required List<String> forrageiras,
@@ -194,7 +236,7 @@ class PiqueteBackendStore extends ChangeNotifier {
       );
       piquete = detail.piquete;
       _upsertPiquete(piquete);
-      selectedRetiroId = retiroId;
+      selectedRetiroId = piquete.retiroId;
       await load();
     });
     return piquete;
@@ -249,11 +291,29 @@ class PiqueteBackendStore extends ChangeNotifier {
   }
 
   Future<void> _loadPiquetesDoRetiro(String retiroId) async {
+    if (retiroId.isEmpty) {
+      await _loadPiquetesSemRetiro();
+      return;
+    }
     final detalhes = await _repository.listarPiquetesPorRetiro(
       retiroId: retiroId,
     );
     _piquetes.removeWhere((piquete) => piquete.retiroId == retiroId);
     _piquetes.addAll(detalhes.map((detail) => detail.piquete));
+  }
+
+  Future<void> _loadPiquetesSemRetiro() async {
+    final detalhes = await _repository.listarPiquetesSemRetiro();
+    _piquetes.removeWhere((piquete) => piquete.retiroId.isEmpty);
+    _piquetes.addAll(detalhes.map((detail) => detail.piquete));
+  }
+
+  int _totalAnimaisDosPiquetes(Iterable<PiquetePrototype> piquetes) {
+    return piquetes.fold<int>(
+      0,
+      (total, piquete) =>
+          total + piquete.totalAnimaisIndividuais + piquete.animaisLotesCount,
+    );
   }
 
   Future<void> _run(Future<void> Function() action) async {

@@ -111,8 +111,14 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
       )
       .where((area) => area.points.length > 1)
       .toList();
-  List<ll.LatLng> get _focusLatLngPoints =>
-      _latLngPoints.isNotEmpty ? _latLngPoints : _retiroLatLngPoints;
+  List<ll.LatLng> get _piqueteOverlayLatLngPoints =>
+      _piqueteAreaLatLngs.expand((area) => area.points).toList();
+  List<ll.LatLng> get _focusLatLngPoints {
+    if (_latLngPoints.isNotEmpty) return _latLngPoints;
+    if (_retiroLatLngPoints.isNotEmpty) return _retiroLatLngPoints;
+    return _piqueteOverlayLatLngPoints;
+  }
+
   List<MapPoint> get _summaryPoints => _points.isNotEmpty
       ? _points
       : (widget.retiroAsPrimary ? widget.retiroPoints : const <MapPoint>[]);
@@ -136,6 +142,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
     final source = [
       ..._latLngPoints,
       if (_latLngPoints.isEmpty) ..._retiroLatLngPoints,
+      if (_latLngPoints.isEmpty && _retiroLatLngPoints.isEmpty)
+        ..._piqueteOverlayLatLngPoints,
     ];
     if (source.isEmpty) return _defaultCenter;
 
@@ -180,9 +188,17 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
       return 'O contorno amarelo é o retiro. Desenhe o piquete em verde dentro dessa área.';
     }
 
-    return widget.editable
-        ? 'Clique no mapa para adicionar pontos e arraste os marcadores para ajustar.'
-        : 'Retiro em amarelo e piquete em verde.';
+    if (widget.editable) {
+      return 'Clique no mapa para adicionar pontos e arraste os marcadores para ajustar.';
+    }
+
+    if (_retiroLatLngPoints.isEmpty) {
+      return _piqueteAreaLatLngs.isEmpty
+          ? 'Nenhuma área demarcada para exibir.'
+          : 'Piquetes em verde.';
+    }
+
+    return 'Retiro em amarelo e piquete em verde.';
   }
 
   @override

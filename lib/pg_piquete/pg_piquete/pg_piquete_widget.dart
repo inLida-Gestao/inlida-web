@@ -58,9 +58,13 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
 
   List<PiquetePrototype> get _piquetesFiltrados {
     final retiro = _store.selectedRetiro;
-    if (retiro == null) return [];
     final query = (_model.textController?.text ?? '').trim().toLowerCase();
-    return _store.piquetesDoRetiro(retiro.id).where((piquete) {
+    final source = _store.mostrandoPiquetesSemRetiro
+        ? _store.piquetesSemRetiro
+        : (retiro == null
+            ? const <PiquetePrototype>[]
+            : _store.piquetesDoRetiro(retiro.id));
+    return source.where((piquete) {
       if (query.isEmpty) return true;
       return piquete.nome.toLowerCase().contains(query) ||
           piquete.forrageira.toLowerCase().contains(query);
@@ -92,9 +96,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                 PrototypePrimaryButton(
                   label: 'Adicionar piquete',
                   icon: Icons.add_rounded,
-                  onPressed: retiro == null
-                      ? null
-                      : () => context.pushNamed(PgAddPiqueteWidget.routeName),
+                  onPressed: () =>
+                      context.pushNamed(PgAddPiqueteWidget.routeName),
                 ),
               ],
             ),
@@ -138,14 +141,18 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
               ],
             ),
             const SizedBox(height: 28),
-            if (_store.loading && _store.retiros.isEmpty)
+            if (_store.loading &&
+                _store.retiros.isEmpty &&
+                _store.piquetesSemRetiro.isEmpty)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(48),
                   child: CircularProgressIndicator(),
                 ),
               )
-            else if (_store.errorMessage != null && _store.retiros.isEmpty)
+            else if (_store.errorMessage != null &&
+                _store.retiros.isEmpty &&
+                _store.piquetesSemRetiro.isEmpty)
               Center(
                 child: SizedBox(
                   width: 640,
@@ -161,29 +168,46 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                   ),
                 ),
               )
-            else if (_store.retiros.isEmpty)
+            else if (_store.retiros.isEmpty && _store.piquetesSemRetiro.isEmpty)
               Center(
                 child: SizedBox(
                   width: 640,
                   child: PrototypeEmptyState(
-                    title: 'Nenhum retiro cadastrado',
+                    title: 'Nenhum piquete cadastrado',
                     message:
-                        'Crie um retiro para demarcar a área da fazenda e começar a adicionar piquetes.',
-                    icon: Icons.map_outlined,
-                    action: PrototypePrimaryButton(
-                      label: 'Criar retiro',
-                      icon: Icons.add_location_alt_outlined,
-                      onPressed: _showRetiroDialog,
+                        'Você pode cadastrar piquetes diretamente ou criar um retiro para agrupar áreas maiores da fazenda.',
+                    icon: Icons.crop_square_rounded,
+                    action: Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        PrototypePrimaryButton(
+                          label: 'Adicionar piquete',
+                          icon: Icons.add_rounded,
+                          onPressed: () =>
+                              context.pushNamed(PgAddPiqueteWidget.routeName),
+                        ),
+                        PrototypeSecondaryButton(
+                          label: 'Criar retiro',
+                          icon: Icons.add_location_alt_outlined,
+                          onPressed: _showRetiroDialog,
+                        ),
+                      ],
                     ),
                   ),
                 ),
               )
+            else if (_store.retiros.isEmpty)
+              _buildPiquetesSemRetiroDetail(context)
             else
               LayoutBuilder(
                 builder: (context, constraints) {
                   final narrow = constraints.maxWidth < 1050;
                   final retiros = _buildRetirosPanel(context);
-                  final detail = _buildRetiroDetail(context, retiro!);
+                  final detail = retiro == null
+                      ? _buildPiquetesSemRetiroDetail(context)
+                      : _buildRetiroDetail(context, retiro);
                   if (narrow) {
                     return Column(
                       children: [
@@ -225,7 +249,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Selecione um retiro para ver seus piquetes.',
+            'Selecione um retiro ou veja os piquetes sem retiro.',
             style: GoogleFonts.poppins(
               color: theme.secondaryText,
               fontSize: 13,
@@ -233,6 +257,60 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
             ),
           ),
           const SizedBox(height: 18),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: _store.selectPiquetesSemRetiro,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _store.mostrandoPiquetesSemRetiro
+                      ? theme.primary.withValues(alpha: 0.10)
+                      : theme.customColor2,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _store.mostrandoPiquetesSemRetiro
+                        ? theme.primary
+                        : Colors.transparent,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Sem retiro',
+                            style: GoogleFonts.poppins(
+                              color: _store.mostrandoPiquetesSemRetiro
+                                  ? theme.secondary
+                                  : theme.primaryText,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        PrototypeBadge(
+                          label: '${_store.piquetesSemRetiro.length} piquetes',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Piquetes avulsos da propriedade',
+                      style: GoogleFonts.poppins(
+                        color: theme.secondaryText,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
           ..._store.retiros.map((retiro) {
             final selected = _store.selectedRetiro?.id == retiro.id;
             final count = retiro.piquetesCount;
@@ -374,6 +452,173 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPiquetesSemRetiroDetail(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final piquetesSemRetiro = _store.piquetesSemRetiro;
+    final piquetes = _piquetesFiltrados;
+
+    return Column(
+      children: [
+        MapaDemarcacaoRealWidget(
+          title: 'Piquetes sem retiro',
+          points: const [],
+          piqueteAreas: piquetesSemRetiro
+              .where((piquete) => piquete.pontos.length > 1)
+              .map(
+                (piquete) => PiqueteMapArea(
+                  name: piquete.nome,
+                  points: piquete.pontos,
+                ),
+              )
+              .toList(),
+          height: 460,
+        ),
+        const SizedBox(height: 22),
+        _buildPiquetesSemRetiroSummary(context, piquetesSemRetiro),
+        const SizedBox(height: 22),
+        PrototypeCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Piquetes sem retiro',
+                          style: GoogleFonts.poppins(
+                            color: theme.primaryText,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${piquetes.length} piquetes encontrados sem vínculo com Retiro',
+                          style: GoogleFonts.poppins(
+                            color: theme.secondaryText,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PrototypeSearchField(
+                    controller: _model.textController!,
+                    hint: 'Pesquisar piquete',
+                    onChanged: (_) => safeSetState(() {}),
+                  ),
+                ].divide(const SizedBox(width: 16)),
+              ),
+              const SizedBox(height: 20),
+              if (piquetes.isEmpty)
+                PrototypeEmptyState(
+                  title: 'Nenhum piquete sem retiro',
+                  message:
+                      'Adicione um piquete avulso para propriedades que não utilizam divisão por retiro.',
+                  icon: Icons.crop_square_rounded,
+                  action: PrototypePrimaryButton(
+                    label: 'Adicionar piquete',
+                    onPressed: () =>
+                        context.pushNamed(PgAddPiqueteWidget.routeName),
+                  ),
+                )
+              else
+                _buildPiqueteTable(context, piquetes),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPiquetesSemRetiroSummary(
+    BuildContext context,
+    List<PiquetePrototype> piquetes,
+  ) {
+    final theme = FlutterFlowTheme.of(context);
+    final areaTotal =
+        piquetes.fold<double>(0, (total, piquete) => total + piquete.areaHa);
+    final animaisIndividuais =
+        piquetes.fold<int>(0, (total, p) => total + p.totalAnimaisIndividuais);
+    final animaisEmLotes =
+        piquetes.fold<int>(0, (total, p) => total + p.animaisLotesCount);
+    final forrageiras = piquetes
+        .expand((piquete) => piquete.forrageiras)
+        .map((forrageira) => forrageira.trim())
+        .where((forrageira) => forrageira.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    return PrototypeCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Resumo dos piquetes sem retiro',
+            style: GoogleFonts.poppins(
+              color: theme.primaryText,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 18),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final narrow = constraints.maxWidth < 760;
+              final tiles = [
+                _RetiroSummaryTile(
+                  icon: Icons.crop_square_rounded,
+                  label: 'Área total',
+                  value: '${areaTotal.toStringAsFixed(0)} ha',
+                  helper: '${piquetes.length} piquetes avulsos',
+                ),
+                _RetiroSummaryTile(
+                  iconAsset: kPiqueteCowIconAsset,
+                  label: 'Animais',
+                  value: (animaisIndividuais + animaisEmLotes).toString(),
+                  helper:
+                      '$animaisIndividuais individuais + $animaisEmLotes via lotes',
+                ),
+                _RetiroSummaryTile(
+                  icon: Icons.grass_outlined,
+                  label: 'Forrageiras',
+                  value:
+                      forrageiras.isEmpty ? '0' : forrageiras.length.toString(),
+                  helper: forrageiras.isEmpty
+                      ? 'Nenhuma forrageira cadastrada'
+                      : forrageiras.join(', '),
+                ),
+              ];
+
+              if (narrow) {
+                return Column(
+                  children: tiles
+                      .map((tile) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: tile,
+                          ))
+                      .toList(),
+                );
+              }
+
+              return Row(
+                children: tiles
+                    .map((tile) => Expanded(child: tile))
+                    .toList()
+                    .divide(const SizedBox(width: 14)),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 

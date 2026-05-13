@@ -87,7 +87,9 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
             PrototypePageHeader(
               title:
                   piquete == null ? 'Piquete não encontrado' : 'Editar piquete',
-              subtitle: 'Retiro > ${piquete?.nome ?? widget.piqueteNome ?? ''}',
+              subtitle: piquete?.retiroId.isEmpty == true
+                  ? 'Sem retiro > ${piquete?.nome ?? widget.piqueteNome ?? ''}'
+                  : 'Retiro > ${piquete?.nome ?? widget.piqueteNome ?? ''}',
               leading: FlutterFlowIconButton(
                 borderRadius: 8,
                 buttonSize: 44,
@@ -138,9 +140,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                   try {
                     final updated = await _store.updatePiquete(
                       piquete.copyWith(
-                        retiroId: result.retiroId.isNotEmpty
-                            ? result.retiroId
-                            : piquete.retiroId,
+                        retiroId: result.retiroId,
                         nome: result.nome.trim().isNotEmpty
                             ? result.nome
                             : piquete.nome,

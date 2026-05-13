@@ -67,7 +67,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
           children: [
             PrototypePageHeader(
               title: 'Adicionar piquete',
-              subtitle: 'Retiro > Novo piquete',
+              subtitle: 'Novo piquete',
               leading: FlutterFlowIconButton(
                 borderRadius: 8,
                 buttonSize: 44,
@@ -96,17 +96,6 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                   label: 'Tentar novamente',
                   icon: Icons.refresh_rounded,
                   onPressed: _loadFormData,
-                ),
-              )
-            else if (_store.retiros.isEmpty)
-              PrototypeEmptyState(
-                title: 'Crie um retiro antes do piquete',
-                message:
-                    'O piquete precisa ficar dentro de um retiro demarcado. Volte para a listagem e cadastre o primeiro retiro.',
-                action: PrototypePrimaryButton(
-                  label: 'Voltar para piquetes',
-                  icon: Icons.arrow_back_rounded,
-                  onPressed: () => context.safePop(),
                 ),
               )
             else
