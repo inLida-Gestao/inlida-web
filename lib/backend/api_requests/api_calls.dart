@@ -387,6 +387,7 @@ class BuscarReproducaoFiltrosCall {
     int? pOffset = 0,
     String? pPesquisa = '',
     String? pReprodutor = '',
+    String? pStatusReproducao = '',
     String? pTipoReproducao = '',
     String? pSortColumn = 'data',
     String? pSortDirection = 'desc',
@@ -408,6 +409,7 @@ class BuscarReproducaoFiltrosCall {
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
   "p_matriz": "${escapeStringForJson(pMatriz)}",
   "p_reprodutor": "${escapeStringForJson(pReprodutor)}",
+  "p_status_reproducao": "${escapeStringForJson(pStatusReproducao)}",
   "p_limite": $pLimite,
   "p_offset": $pOffset,
   "p_sort_column": "${escapeStringForJson(pSortColumn)}",
@@ -450,6 +452,7 @@ class CountReproducaoFiltrosCall {
     String? pMatriz = '',
     String? pPesquisa = '',
     String? pReprodutor = '',
+    String? pStatusReproducao = '',
     String? pTipoReproducao = '',
   }) async {
     final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
@@ -468,7 +471,8 @@ class CountReproducaoFiltrosCall {
   "p_inseminador": "${escapeStringForJson(pInseminador)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
   "p_matriz": "${escapeStringForJson(pMatriz)}",
-  "p_reprodutor": "${escapeStringForJson(pReprodutor)}"
+  "p_reprodutor": "${escapeStringForJson(pReprodutor)}",
+  "p_status_reproducao": "${escapeStringForJson(pStatusReproducao)}"
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Count Reproducao Filtros ',
@@ -1818,7 +1822,8 @@ class TaxaConcepcaoGetCall {
     if (pInseminador != null && pInseminador.trim().isNotEmpty) {
       params['p_inseminador'] = pInseminador.trim();
     }
-    if (pIdRebanhoReprodutor != null && pIdRebanhoReprodutor.trim().isNotEmpty) {
+    if (pIdRebanhoReprodutor != null &&
+        pIdRebanhoReprodutor.trim().isNotEmpty) {
       params['p_id_rebanho_reprodutor'] = pIdRebanhoReprodutor.trim();
     }
 
@@ -1881,7 +1886,8 @@ class TaxaPrenhez2GetCall {
     if (pInseminador != null && pInseminador.trim().isNotEmpty) {
       params['p_inseminador'] = pInseminador.trim();
     }
-    if (pIdRebanhoReprodutor != null && pIdRebanhoReprodutor.trim().isNotEmpty) {
+    if (pIdRebanhoReprodutor != null &&
+        pIdRebanhoReprodutor.trim().isNotEmpty) {
       params['p_id_rebanho_reprodutor'] = pIdRebanhoReprodutor.trim();
     }
 
@@ -1942,7 +1948,8 @@ class TaxaNatalidadeGetCall {
     if (pInseminador != null && pInseminador.trim().isNotEmpty) {
       params['p_inseminador'] = pInseminador.trim();
     }
-    if (pIdRebanhoReprodutor != null && pIdRebanhoReprodutor.trim().isNotEmpty) {
+    if (pIdRebanhoReprodutor != null &&
+        pIdRebanhoReprodutor.trim().isNotEmpty) {
       params['p_id_rebanho_reprodutor'] = pIdRebanhoReprodutor.trim();
     }
 
@@ -2601,7 +2608,8 @@ class ReproducaoDiagnosticosCategoriaCall {
         'idPropriedade': idPropriedade,
         'inicio': dataInicial,
         'fim': dataFinal,
-        if (categoria != null && categoria != '' && categoria != 'Todos') 'categoria': categoria,
+        if (categoria != null && categoria != '' && categoria != 'Todos')
+          'categoria': categoria,
       },
       returnBody: true,
       encodeBodyUtf8: false,

@@ -76,6 +76,7 @@ class FFAppState extends ChangeNotifier {
     'Marchigiana',
     'Mestiço',
     'Nelore',
+    'Nelore Mocho',
     'Nelore PO',
     'Pardo Suíço (CORTE)',
     'Pardo Suíço (Leite)',
@@ -259,6 +260,7 @@ class FFAppState extends ChangeNotifier {
     _filtroDataPartoAte = null;
     _filtroDataDiagnosticoDe = null;
     _filtroDataDiagnosticoAte = null;
+    _filtroStatusReproducao = [];
     _filtroPiqueteForrageira = '';
     _filtroAreaMin = 0;
     _filtroAreaMax = 9999;
@@ -833,6 +835,35 @@ class FFAppState extends ChangeNotifier {
     _filtroDataDiagnostico = value;
   }
 
+  List<String> _filtroStatusReproducao = [];
+  List<String> get filtroStatusReproducao => _filtroStatusReproducao;
+  set filtroStatusReproducao(List<String> value) {
+    _filtroStatusReproducao = value;
+  }
+
+  void addToFiltroStatusReproducao(String value) {
+    filtroStatusReproducao.add(value);
+  }
+
+  void removeFromFiltroStatusReproducao(String value) {
+    filtroStatusReproducao.remove(value);
+  }
+
+  void removeAtIndexFromFiltroStatusReproducao(int index) {
+    filtroStatusReproducao.removeAt(index);
+  }
+
+  void updateFiltroStatusReproducaoAtIndex(
+    int index,
+    String Function(String) updateFn,
+  ) {
+    filtroStatusReproducao[index] = updateFn(_filtroStatusReproducao[index]);
+  }
+
+  void insertAtIndexInFiltroStatusReproducao(int index, String value) {
+    filtroStatusReproducao.insert(index, value);
+  }
+
   String _filtroCategoriaRepro = '';
   String get filtroCategoriaRepro => _filtroCategoriaRepro;
   set filtroCategoriaRepro(String value) {
@@ -1303,7 +1334,6 @@ class FFAppState extends ChangeNotifier {
   set qtdVacinacao(int value) {
     _qtdVacinacao = value;
   }
-
 
   List<RebanhoExportStruct> _rebanhoExport = [];
   List<RebanhoExportStruct> get rebanhoExport => _rebanhoExport;

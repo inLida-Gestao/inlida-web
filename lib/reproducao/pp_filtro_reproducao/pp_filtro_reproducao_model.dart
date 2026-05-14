@@ -23,14 +23,12 @@ class PpFiltroReproducaoModel
   // State field(s) for dataPartoDe widget.
   FocusNode? dataPartoDeFocusNode;
   TextEditingController? dataPartoDeTextController;
-  String? Function(BuildContext, String?)?
-      dataPartoDeTextControllerValidator;
+  String? Function(BuildContext, String?)? dataPartoDeTextControllerValidator;
   DateTime? datePickedPartoDe;
   // State field(s) for dataPartoAte widget.
   FocusNode? dataPartoAteFocusNode;
   TextEditingController? dataPartoAteTextController;
-  String? Function(BuildContext, String?)?
-      dataPartoAteTextControllerValidator;
+  String? Function(BuildContext, String?)? dataPartoAteTextControllerValidator;
   DateTime? datePickedPartoAte;
   // State field(s) for dataDiagnosticoDe widget.
   FocusNode? dataDiagnosticoDeFocusNode;
@@ -47,6 +45,9 @@ class PpFiltroReproducaoModel
   // State field(s) for DDCatRebanho widget.
   String? dDCatRebanhoValue;
   FormFieldController<String>? dDCatRebanhoValueController;
+  // State field(s) for DDDiagnostico widget.
+  List<String>? dDDiagnosticoValue;
+  FormFieldController<List<String>>? dDDiagnosticoValueController;
 
   String? dDTipoReproducaoValue;
   FormFieldController<String>? dDTipoReproducaoValueController;

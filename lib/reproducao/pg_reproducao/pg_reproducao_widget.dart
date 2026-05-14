@@ -48,7 +48,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
     // primeiro postFrameCallback, o listener ainda não existia e apiRequestCompleter2
     // não era limpo — a lista ficava com a resposta antiga (ex.: p_id vazio) enquanto
     // os cards já usavam o novo id (countReproducoes no header).
-    _model.disposeRefreshListener = FFAppState().onRefresh('refreshReproducao', () {
+    _model.disposeRefreshListener =
+        FFAppState().onRefresh('refreshReproducao', () {
       FFAppState().refreshReproducao = false;
       safeSetState(() {
         _model.apiRequestCompleter2 = null;
@@ -87,6 +88,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
         s.filtroDataPartoAte != null ||
         s.filtroDataDiagnosticoDe != null ||
         s.filtroDataDiagnosticoAte != null ||
+        s.filtroStatusReproducao.isNotEmpty ||
         s.filtroCategoriaRepro.isNotEmpty ||
         s.filtroTipoReproducao.isNotEmpty ||
         s.filtroLoteNome.isNotEmpty ||
@@ -142,6 +144,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
               pMatriz: FFAppState().filtroIDMatriz,
               pPesquisa: _model.textController.text,
               pReprodutor: FFAppState().filtroIDReprodutor,
+              pStatusReproducao: FFAppState().filtroStatusReproducao.join(','),
               pTipoReproducao: FFAppState().filtroTipoReproducao,
               pSortColumn: _model.sortColumn,
               pSortDirection: _model.sortDirection,
@@ -189,7 +192,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                   ),
                   const SizedBox(height: 16.0),
                   ElevatedButton.icon(
-                    onPressed: () => safeSetState(() => _model.apiRequestCompleter2 = null),
+                    onPressed: () =>
+                        safeSetState(() => _model.apiRequestCompleter2 = null),
                     icon: const Icon(Icons.refresh_rounded, size: 18.0),
                     label: const Text('Tentar novamente'),
                   ),
@@ -328,13 +332,14 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                 ),
                                                 options: FFButtonOptions(
                                                   height: 56.0,
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           24.0, 0.0, 24.0, 0.0),
                                                   iconPadding:
                                                       const EdgeInsetsDirectional
-                                                          .fromSTEB(0.0, 0.0,
-                                                              0.0, 0.0),
+                                                          .fromSTEB(
+                                                          0.0, 0.0, 0.0, 0.0),
                                                   color: FlutterFlowTheme.of(
                                                           context)
                                                       .primary,
@@ -390,8 +395,9 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                     BorderRadius.circular(6.0),
                                               ),
                                               child: Align(
-                                                alignment: const AlignmentDirectional(
-                                                    0.0, 0.0),
+                                                alignment:
+                                                    const AlignmentDirectional(
+                                                        0.0, 0.0),
                                                 child: SizedBox(
                                                   width: 327.0,
                                                   child: TextFormField(
@@ -409,7 +415,9 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                             null;
                                                         _model.apiRequestCompleter1 =
                                                             null;
-                                                        FFAppState().refreshReproducao = true;
+                                                        FFAppState()
+                                                                .refreshReproducao =
+                                                            true;
                                                         safeSetState(() {});
                                                       },
                                                     ),
@@ -478,7 +486,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -489,7 +498,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -550,7 +560,9 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                     null;
                                                                 _model.apiRequestCompleter1 =
                                                                     null;
-                                                                FFAppState().refreshReproducao = true;
+                                                                FFAppState()
+                                                                        .refreshReproducao =
+                                                                    true;
                                                                 safeSetState(
                                                                     () {});
                                                               },
@@ -639,13 +651,14 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                 ),
                                                 options: FFButtonOptions(
                                                   height: 56.0,
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           16.0, 0.0, 16.0, 0.0),
                                                   iconPadding:
                                                       const EdgeInsetsDirectional
-                                                          .fromSTEB(0.0, 0.0,
-                                                              0.0, 0.0),
+                                                          .fromSTEB(
+                                                          0.0, 0.0, 0.0, 0.0),
                                                   color: FlutterFlowTheme.of(
                                                           context)
                                                       .secondaryBackground,
@@ -701,25 +714,36 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                     ),
                                     if (_hasReproducaoFilters())
                                       Padding(
-                                        padding: const EdgeInsets.only(top: 8.0),
+                                        padding:
+                                            const EdgeInsets.only(top: 8.0),
                                         child: Row(
                                           children: [
                                             Icon(
                                               Icons.filter_list,
                                               size: 16.0,
-                                              color: FlutterFlowTheme.of(context).secondary,
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .secondary,
                                             ),
                                             const SizedBox(width: 6.0),
                                             Text(
                                               'Filtros ativos',
-                                              style: FlutterFlowTheme.of(context)
+                                              style: FlutterFlowTheme.of(
+                                                      context)
                                                   .bodySmall
                                                   .override(
                                                     font: GoogleFonts.poppins(
-                                                      fontWeight: FontWeight.w600,
-                                                      fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodySmall
+                                                              .fontStyle,
                                                     ),
-                                                    color: FlutterFlowTheme.of(context).secondary,
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .secondary,
                                                     fontSize: 13.0,
                                                     letterSpacing: 0.0,
                                                   ),
@@ -729,35 +753,51 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                               onTap: () {
                                                 final s = FFAppState();
                                                 s.filtroDataReproducaoDe = null;
-                                                s.filtroDataReproducaoAte = null;
+                                                s.filtroDataReproducaoAte =
+                                                    null;
                                                 s.filtroDataPartoDe = null;
                                                 s.filtroDataPartoAte = null;
-                                                s.filtroDataDiagnosticoDe = null;
-                                                s.filtroDataDiagnosticoAte = null;
+                                                s.filtroDataDiagnosticoDe =
+                                                    null;
+                                                s.filtroDataDiagnosticoAte =
+                                                    null;
+                                                s.filtroStatusReproducao = [];
                                                 s.filtroCategoriaRepro = '';
                                                 s.filtroTipoReproducao = '';
                                                 s.filtroInseminador = '';
                                                 s.filtroIDMatriz = '';
                                                 s.filtroIDReprodutor = '';
                                                 s.filtroLoteNome = '';
-                                                s.matrizSelecionada = AnimalSelecionadoStruct();
-                                                s.reprodutorSelecionado = AnimalSelecionadoStruct();
+                                                s.matrizSelecionada =
+                                                    AnimalSelecionadoStruct();
+                                                s.reprodutorSelecionado =
+                                                    AnimalSelecionadoStruct();
                                                 s.refreshReproducao = true;
                                                 safeSetState(() {});
                                               },
                                               child: Text(
                                                 'Limpar',
-                                                style: FlutterFlowTheme.of(context)
+                                                style: FlutterFlowTheme.of(
+                                                        context)
                                                     .bodySmall
                                                     .override(
                                                       font: GoogleFonts.poppins(
-                                                        fontWeight: FontWeight.w500,
-                                                        fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodySmall
+                                                                .fontStyle,
                                                       ),
-                                                      color: FlutterFlowTheme.of(context).error,
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .error,
                                                       fontSize: 13.0,
                                                       letterSpacing: 0.0,
-                                                      decoration: TextDecoration.underline,
+                                                      decoration: TextDecoration
+                                                          .underline,
                                                     ),
                                               ),
                                             ),
@@ -790,7 +830,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                               ),
                                             ),
                                             child: Padding(
-                                              padding: const EdgeInsets.all(24.0),
+                                              padding:
+                                                  const EdgeInsets.all(24.0),
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:
@@ -895,11 +936,11 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                       .fontStyle,
                                                             ),
                                                       ),
-                                                    ].divide(
-                                                        const SizedBox(width: 12.0)),
+                                                    ].divide(const SizedBox(
+                                                        width: 12.0)),
                                                   ),
-                                                ].divide(
-                                                    const SizedBox(height: 16.0)),
+                                                ].divide(const SizedBox(
+                                                    height: 16.0)),
                                               ),
                                             ),
                                           ),
@@ -937,17 +978,26 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                               if (snapshot.hasError) {
                                                 return Center(
                                                   child: Column(
-                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: [
                                                       Icon(
-                                                        Icons.error_outline_rounded,
-                                                        color: FlutterFlowTheme.of(context).error,
+                                                        Icons
+                                                            .error_outline_rounded,
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .error,
                                                         size: 36.0,
                                                       ),
-                                                      const SizedBox(height: 8.0),
+                                                      const SizedBox(
+                                                          height: 8.0),
                                                       Text(
                                                         'Erro ao carregar',
-                                                        style: FlutterFlowTheme.of(context).bodySmall,
+                                                        style:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodySmall,
                                                       ),
                                                     ],
                                                   ),
@@ -975,11 +1025,13 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                       BorderRadius.circular(
                                                           8.0),
                                                   border: Border.all(
-                                                    color: const Color(0xFFEDEDED),
+                                                    color:
+                                                        const Color(0xFFEDEDED),
                                                   ),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(24.0),
+                                                  padding: const EdgeInsets.all(
+                                                      24.0),
                                                   child: Column(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
@@ -1071,8 +1123,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                         ].divide(const SizedBox(
                                                             width: 12.0)),
                                                       ),
-                                                    ].divide(
-                                                        const SizedBox(height: 16.0)),
+                                                    ].divide(const SizedBox(
+                                                        height: 16.0)),
                                                   ),
                                                 ),
                                               );
@@ -1112,17 +1164,26 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                               if (snapshot.hasError) {
                                                 return Center(
                                                   child: Column(
-                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: [
                                                       Icon(
-                                                        Icons.error_outline_rounded,
-                                                        color: FlutterFlowTheme.of(context).error,
+                                                        Icons
+                                                            .error_outline_rounded,
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .error,
                                                         size: 36.0,
                                                       ),
-                                                      const SizedBox(height: 8.0),
+                                                      const SizedBox(
+                                                          height: 8.0),
                                                       Text(
                                                         'Erro ao carregar',
-                                                        style: FlutterFlowTheme.of(context).bodySmall,
+                                                        style:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodySmall,
                                                       ),
                                                     ],
                                                   ),
@@ -1150,11 +1211,13 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                       BorderRadius.circular(
                                                           8.0),
                                                   border: Border.all(
-                                                    color: const Color(0xFFEDEDED),
+                                                    color:
+                                                        const Color(0xFFEDEDED),
                                                   ),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(24.0),
+                                                  padding: const EdgeInsets.all(
+                                                      24.0),
                                                   child: Column(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
@@ -1246,8 +1309,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                         ].divide(const SizedBox(
                                                             width: 12.0)),
                                                       ),
-                                                    ].divide(
-                                                        const SizedBox(height: 16.0)),
+                                                    ].divide(const SizedBox(
+                                                        height: 16.0)),
                                                   ),
                                                 ),
                                               );
@@ -1271,21 +1334,23 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                               .trim();
                                           // reproducao_filtros já filtra por propriedade; não repetir
                                           // id no cliente (evita divergência por espaços / estado obsoleto).
-                                          final reproducao = ((pgReproducaoBuscarReproducaoFiltrosResponse
-                                                      .jsonBody
-                                                      .toList()
-                                                      .map<ReproducaoDTStruct?>(
-                                                          ReproducaoDTStruct
-                                                              .maybeFromMap)
-                                                      .toList()
-                                                  as Iterable<
-                                                      ReproducaoDTStruct?>)
-                                              .withoutNulls
-                                              .toList());
+                                          final reproducao =
+                                              ((pgReproducaoBuscarReproducaoFiltrosResponse
+                                                          .jsonBody
+                                                          .toList()
+                                                          .map<ReproducaoDTStruct?>(
+                                                              ReproducaoDTStruct
+                                                                  .maybeFromMap)
+                                                          .toList()
+                                                      as Iterable<
+                                                          ReproducaoDTStruct?>)
+                                                  .withoutNulls
+                                                  .toList());
                                           if (reproducao.isEmpty) {
                                             return Center(
                                               child: EmptyRebanhoWidget(
-                                                message: selectedProperty.isEmpty
+                                                message: selectedProperty
+                                                        .isEmpty
                                                     ? 'Nenhuma propriedade selecionada'
                                                     : 'Nenhuma reprodução encontrada para esta propriedade.',
                                               ),
@@ -1297,19 +1362,26 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                             controller: _model
                                                 .paginatedDataTableController,
                                             data: reproducao,
-                                            onSortChanged: (columnIndex, ascending) {
+                                            onSortChanged:
+                                                (columnIndex, ascending) {
                                               const columnMap = {
                                                 0: 'tipo_reproducao',
                                                 1: 'data',
                                                 2: 'status',
                                                 4: 'matriz',
                                               };
-                                              final col = columnMap[columnIndex] ?? 'data';
-                                              final dir = ascending ? 'asc' : 'desc';
-                                              if (_model.sortColumn != col || _model.sortDirection != dir) {
+                                              final col =
+                                                  columnMap[columnIndex] ??
+                                                      'data';
+                                              final dir =
+                                                  ascending ? 'asc' : 'desc';
+                                              if (_model.sortColumn != col ||
+                                                  _model.sortDirection != dir) {
                                                 _model.sortColumn = col;
                                                 _model.sortDirection = dir;
-                                                safeSetState(() => _model.apiRequestCompleter2 = null);
+                                                safeSetState(() => _model
+                                                        .apiRequestCompleter2 =
+                                                    null);
                                               }
                                             },
                                             columnsBuilder: (onSortChanged) => [
@@ -1707,11 +1779,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                       child: Padding(
                                                         padding:
                                                             const EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    8.0,
-                                                                    0.0,
-                                                                    8.0,
-                                                                    0.0),
+                                                                .fromSTEB(8.0,
+                                                                0.0, 8.0, 0.0),
                                                         child: Text(
                                                           reproducaoItem
                                                               .tipoReproducao,
@@ -1798,8 +1867,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                           ),
                                                         ),
                                                       ),
-                                                  ].divide(
-                                                      const SizedBox(width: 8.0)),
+                                                  ].divide(const SizedBox(
+                                                      width: 8.0)),
                                                 ),
                                                 Text(
                                                   valueOrDefault<String>(
@@ -1909,7 +1978,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                       0xFFF5D7D4);
                                                                 }
                                                               }(),
-                                                              const Color(0xFFF5D7D4),
+                                                              const Color(
+                                                                  0xFFF5D7D4),
                                                             ),
                                                             borderRadius:
                                                                 BorderRadius
@@ -1920,10 +1990,10 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                             padding:
                                                                 const EdgeInsetsDirectional
                                                                     .fromSTEB(
-                                                                        8.0,
-                                                                        2.0,
-                                                                        8.0,
-                                                                        2.0),
+                                                                    8.0,
+                                                                    2.0,
+                                                                    8.0,
+                                                                    2.0),
                                                             child: Row(
                                                               mainAxisSize:
                                                                   MainAxisSize
@@ -2018,13 +2088,15 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                               .fontStyle,
                                                                         ),
                                                                   ),
-                                                              ].divide(const SizedBox(
-                                                                  width: 4.0)),
+                                                              ].divide(
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          4.0)),
                                                             ),
                                                           ),
                                                         ),
-                                                      ].divide(
-                                                          const SizedBox(width: 8.0)),
+                                                      ].divide(const SizedBox(
+                                                          width: 8.0)),
                                                     ),
                                                     if (reproducaoItem.parida ==
                                                         'SIM')
@@ -2043,10 +2115,10 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      8.0,
-                                                                      2.0,
-                                                                      8.0,
-                                                                      2.0),
+                                                                  8.0,
+                                                                  2.0,
+                                                                  8.0,
+                                                                  2.0),
                                                           child: Row(
                                                             mainAxisSize:
                                                                 MainAxisSize
@@ -2094,13 +2166,15 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                       ),
                                                                 ),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                width: 4.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        4.0)),
                                                           ),
                                                         ),
                                                       ),
-                                                  ].divide(
-                                                      const SizedBox(height: 4.0)),
+                                                  ].divide(const SizedBox(
+                                                      height: 4.0)),
                                                 ),
                                                 Column(
                                                   mainAxisSize:
@@ -2380,8 +2454,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                 ),
                                                 Visibility(
                                                   visible: reproducaoItem
-                                                              .previsaoParto !=
-                                                          '',
+                                                          .previsaoParto !=
+                                                      '',
                                                   child: Text(
                                                     valueOrDefault<String>(
                                                       dateTimeFormat(
@@ -2463,8 +2537,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                           FlutterFlowIconButton(
                                                         borderRadius: 8.0,
                                                         buttonSize: 40.0,
-                                                        fillColor:
-                                                            const Color(0x0028A365),
+                                                        fillColor: const Color(
+                                                            0x0028A365),
                                                         icon: Icon(
                                                           Icons
                                                               .keyboard_control,
@@ -2513,8 +2587,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                   child:
                                                                       ModalMoreReproducaoWidget(
                                                                     reproducaoDbId:
-                                                                      reproducaoItem
-                                                                        .id,
+                                                                        reproducaoItem
+                                                                            .id,
                                                                     reproducaoID:
                                                                         reproducaoItem
                                                                             .idReproducao,
@@ -2653,8 +2727,13 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                             .text,
                                                         pReprodutor: FFAppState()
                                                             .filtroIDReprodutor,
-                                                        pTipoReproducao: FFAppState()
-                                                            .filtroTipoReproducao,
+                                                        pStatusReproducao:
+                                                            FFAppState()
+                                                                .filtroStatusReproducao
+                                                                .join(','),
+                                                        pTipoReproducao:
+                                                            FFAppState()
+                                                                .filtroTipoReproducao,
                                                       )))
                                                 .future,
                                             builder: (context, snapshot) {
@@ -2680,17 +2759,26 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                               if (snapshot.hasError) {
                                                 return Center(
                                                   child: Column(
-                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: [
                                                       Icon(
-                                                        Icons.error_outline_rounded,
-                                                        color: FlutterFlowTheme.of(context).error,
+                                                        Icons
+                                                            .error_outline_rounded,
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .error,
                                                         size: 36.0,
                                                       ),
-                                                      const SizedBox(height: 8.0),
+                                                      const SizedBox(
+                                                          height: 8.0),
                                                       Text(
                                                         'Erro ao carregar',
-                                                        style: FlutterFlowTheme.of(context).bodySmall,
+                                                        style:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodySmall,
                                                       ),
                                                     ],
                                                   ),
@@ -2739,7 +2827,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                   .of(context)
                                                               .secondaryBackground,
                                                           borderRadius:
-                                                              const BorderRadius.only(
+                                                              const BorderRadius
+                                                                  .only(
                                                             bottomLeft:
                                                                 Radius.circular(
                                                                     6.0),
@@ -2763,10 +2852,10 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      24.0,
-                                                                      12.0,
-                                                                      24.0,
-                                                                      12.0),
+                                                                  24.0,
+                                                                  12.0,
+                                                                  24.0,
+                                                                  12.0),
                                                           child: Icon(
                                                             Icons
                                                                 .keyboard_double_arrow_left,
@@ -2827,10 +2916,10 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      24.0,
-                                                                      12.0,
-                                                                      24.0,
-                                                                      12.0),
+                                                                  24.0,
+                                                                  12.0,
+                                                                  24.0,
+                                                                  12.0),
                                                           child: Icon(
                                                             Icons
                                                                 .keyboard_arrow_left_sharp,
@@ -2856,11 +2945,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                     Padding(
                                                       padding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  24.0,
-                                                                  0.0,
-                                                                  24.0,
-                                                                  0.0),
+                                                              .fromSTEB(24.0,
+                                                              0.0, 24.0, 0.0),
                                                       child: RichText(
                                                         textScaler:
                                                             MediaQuery.of(
@@ -3024,10 +3110,10 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      24.0,
-                                                                      12.0,
-                                                                      24.0,
-                                                                      12.0),
+                                                                  24.0,
+                                                                  12.0,
+                                                                  24.0,
+                                                                  12.0),
                                                           child: Icon(
                                                             Icons
                                                                 .keyboard_arrow_right_sharp,
@@ -3089,7 +3175,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                   .of(context)
                                                               .secondaryBackground,
                                                           borderRadius:
-                                                              const BorderRadius.only(
+                                                              const BorderRadius
+                                                                  .only(
                                                             bottomLeft:
                                                                 Radius.circular(
                                                                     0.0),
@@ -3113,10 +3200,10 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      24.0,
-                                                                      12.0,
-                                                                      24.0,
-                                                                      12.0),
+                                                                  24.0,
+                                                                  12.0,
+                                                                  24.0,
+                                                                  12.0),
                                                           child: Icon(
                                                             Icons
                                                                 .keyboard_double_arrow_right_outlined,
