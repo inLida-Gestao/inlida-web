@@ -9955,8 +9955,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                           Expanded(
                                             child: FFButtonWidget(
                                               onPressed: () async {
-                                                context.pushNamed(
-                                                    PgRebanhoWidget.routeName);
+                                                context.safePop();
                                               },
                                               text: 'Voltar',
                                               options: FFButtonOptions(

@@ -7256,8 +7256,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                           children: [
                                             FFButtonWidget(
                                               onPressed: () async {
-                                                context.pushNamed(
-                                                    PgRebanhoWidget.routeName);
+                                                context.safePop();
                                               },
                                               text: 'Cancelar',
                                               options: FFButtonOptions(
