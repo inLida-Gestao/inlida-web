@@ -161,7 +161,9 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
           List<LotesRow> containerLotesRowList = snapshot.data!;
 
           return Container(
-            width: 709.0,
+            width: MediaQuery.sizeOf(context).width >= 920.0
+                ? 880.0
+                : MediaQuery.sizeOf(context).width * 0.92,
             decoration: BoxDecoration(
               color: FlutterFlowTheme.of(context).secondaryBackground,
               borderRadius: BorderRadius.circular(8.0),
@@ -1432,18 +1434,21 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                     FutureBuilder<List<ReproducaoRow>>(
                                       future: _model.reproducaoFuture,
                                       builder: (context, reproSnapshot) {
-                                        final diagnosticoOptions = reproSnapshot
-                                                .hasData
-                                            ? reproSnapshot.data!
+                                        final diagnosticoOptions = <String>[
+                                          'Não diagnosticado',
+                                          'Aborto',
+                                          'Prenhez',
+                                          if (reproSnapshot.hasData)
+                                            ...reproSnapshot.data!
                                                 .map((e) =>
                                                     e.statusReproducao?.trim())
-                                                .withoutNulls
-                                                .where((e) =>
-                                                    e.isNotEmpty &&
-                                                    e.toLowerCase() != 'null')
-                                                .toList()
-                                                .unique((e) => e)
-                                            : <String>[];
+                                                .withoutNulls,
+                                        ]
+                                            .where((e) =>
+                                                e.isNotEmpty &&
+                                                e.toLowerCase() != 'null')
+                                            .toList()
+                                            .unique((e) => e);
                                         final savedDiagnosticos = FFAppState()
                                             .filtroStatusReproducao
                                             .where((diagnostico) =>

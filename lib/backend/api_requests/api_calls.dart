@@ -403,13 +403,13 @@ class BuscarReproducaoFiltrosCall {
   "p_data_previsao_parto_ate": "${escapeStringForJson(pDataPrevisaoPartoAte)}",
   "p_data_diagnostico_de": "${escapeStringForJson(pDataDiagnosticoDe)}",
   "p_data_diagnostico_ate": "${escapeStringForJson(pDataDiagnosticoAte)}",
+${pStatusReproducao?.trim().isNotEmpty == true ? '  "p_status_reproducao": "${escapeStringForJson(pStatusReproducao)}",\n' : ''}
   "p_tipo_reproducao": "${escapeStringForJson(pTipoReproducao)}",
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
   "p_inseminador": "${escapeStringForJson(pInseminador)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
   "p_matriz": "${escapeStringForJson(pMatriz)}",
   "p_reprodutor": "${escapeStringForJson(pReprodutor)}",
-  "p_status_reproducao": "${escapeStringForJson(pStatusReproducao)}",
   "p_limite": $pLimite,
   "p_offset": $pOffset,
   "p_sort_column": "${escapeStringForJson(pSortColumn)}",
@@ -466,13 +466,13 @@ class CountReproducaoFiltrosCall {
   "p_data_previsao_parto_ate": "${escapeStringForJson(pDataPrevisaoPartoAte)}",
   "p_data_diagnostico_de": "${escapeStringForJson(pDataDiagnosticoDe)}",
   "p_data_diagnostico_ate": "${escapeStringForJson(pDataDiagnosticoAte)}",
+${pStatusReproducao?.trim().isNotEmpty == true ? '  "p_status_reproducao": "${escapeStringForJson(pStatusReproducao)}",\n' : ''}
   "p_tipo_reproducao": "${escapeStringForJson(pTipoReproducao)}",
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
   "p_inseminador": "${escapeStringForJson(pInseminador)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
   "p_matriz": "${escapeStringForJson(pMatriz)}",
-  "p_reprodutor": "${escapeStringForJson(pReprodutor)}",
-  "p_status_reproducao": "${escapeStringForJson(pStatusReproducao)}"
+  "p_reprodutor": "${escapeStringForJson(pReprodutor)}"
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Count Reproducao Filtros ',
