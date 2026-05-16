@@ -135,6 +135,81 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
     super.dispose();
   }
 
+  Widget _buildDiagnosticoFilter() {
+    const diagnosticoOptions = [
+      'Não diagnosticado',
+      'Absorção',
+      'Aborto',
+      'Natimorto',
+      'Prenhez',
+      'Vazio',
+    ];
+    final savedDiagnosticos = FFAppState()
+        .filtroStatusReproducao
+        .where((diagnostico) => diagnosticoOptions.contains(diagnostico))
+        .toList();
+
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Diagnóstico',
+          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                font: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                ),
+                fontSize: 16.0,
+                letterSpacing: 0.0,
+                fontWeight: FontWeight.w600,
+                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+              ),
+        ),
+        FlutterFlowDropDown<String>(
+          multiSelectController: _model.dDDiagnosticoValueController ??=
+              FormListFieldController<String>(
+            _model.dDDiagnosticoValue ??= savedDiagnosticos,
+          ),
+          options: diagnosticoOptions,
+          onMultiSelectChanged: (val) async {
+            safeSetState(() => _model.dDDiagnosticoValue = val ?? []);
+            FFAppState().filtroStatusReproducao =
+                List<String>.from(_model.dDDiagnosticoValue ?? []);
+            safeSetState(() {});
+          },
+          height: 56.0,
+          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                font: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                ),
+                fontSize: 16.0,
+                letterSpacing: 0.0,
+                fontWeight: FontWeight.w600,
+                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+              ),
+          hintText: 'Selecionar',
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: FlutterFlowTheme.of(context).secondaryText,
+            size: 24.0,
+          ),
+          fillColor: const Color(0xFFF1F1F1),
+          elevation: 2.0,
+          borderColor: Colors.transparent,
+          borderWidth: 0.0,
+          borderRadius: 8.0,
+          margin: const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+          hidesUnderline: true,
+          isOverButton: false,
+          isSearchable: false,
+          isMultiSelect: true,
+        ),
+      ].divide(const SizedBox(height: 8.0)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -1405,123 +1480,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                   ].divide(const SizedBox(height: 8.0)),
                                 ),
                               ),
-                              Expanded(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Diagnóstico',
-                                      style: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            font: GoogleFonts.poppins(
-                                              fontWeight: FontWeight.w600,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontStyle,
-                                            ),
-                                            fontSize: 16.0,
-                                            letterSpacing: 0.0,
-                                            fontWeight: FontWeight.w600,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                    ),
-                                    FutureBuilder<List<ReproducaoRow>>(
-                                      future: _model.reproducaoFuture,
-                                      builder: (context, reproSnapshot) {
-                                        final diagnosticoOptions = <String>[
-                                          'Não diagnosticado',
-                                          'Aborto',
-                                          'Prenhez',
-                                          if (reproSnapshot.hasData)
-                                            ...reproSnapshot.data!
-                                                .map((e) =>
-                                                    e.statusReproducao?.trim())
-                                                .withoutNulls,
-                                        ]
-                                            .where((e) =>
-                                                e.isNotEmpty &&
-                                                e.toLowerCase() != 'null')
-                                            .toList()
-                                            .unique((e) => e);
-                                        final savedDiagnosticos = FFAppState()
-                                            .filtroStatusReproducao
-                                            .where((diagnostico) =>
-                                                diagnosticoOptions
-                                                    .contains(diagnostico))
-                                            .toList();
-                                        return FlutterFlowDropDown<String>(
-                                          multiSelectController: _model
-                                                  .dDDiagnosticoValueController ??=
-                                              FormListFieldController<String>(
-                                            _model.dDDiagnosticoValue ??=
-                                                savedDiagnosticos,
-                                          ),
-                                          options: diagnosticoOptions,
-                                          onMultiSelectChanged: (val) async {
-                                            safeSetState(() =>
-                                                _model.dDDiagnosticoValue =
-                                                    val ?? []);
-                                            FFAppState()
-                                                    .filtroStatusReproducao =
-                                                List<String>.from(
-                                                    _model.dDDiagnosticoValue ??
-                                                        []);
-                                            safeSetState(() {});
-                                          },
-                                          height: 56.0,
-                                          textStyle: FlutterFlowTheme.of(
-                                                  context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.poppins(
-                                                  fontWeight: FontWeight.w600,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                fontSize: 16.0,
-                                                letterSpacing: 0.0,
-                                                fontWeight: FontWeight.w600,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
-                                              ),
-                                          hintText: diagnosticoOptions.isEmpty
-                                              ? 'Sem diagnósticos'
-                                              : 'Selecionar',
-                                          icon: Icon(
-                                            Icons.keyboard_arrow_down_rounded,
-                                            color: FlutterFlowTheme.of(context)
-                                                .secondaryText,
-                                            size: 24.0,
-                                          ),
-                                          fillColor: const Color(0xFFF1F1F1),
-                                          elevation: 2.0,
-                                          borderColor: Colors.transparent,
-                                          borderWidth: 0.0,
-                                          borderRadius: 8.0,
-                                          margin: const EdgeInsetsDirectional
-                                              .fromSTEB(12.0, 0.0, 12.0, 0.0),
-                                          hidesUnderline: true,
-                                          disabled: diagnosticoOptions.isEmpty,
-                                          isOverButton: false,
-                                          isSearchable: false,
-                                          isMultiSelect: true,
-                                        );
-                                      },
-                                    ),
-                                  ].divide(const SizedBox(height: 8.0)),
-                                ),
-                              ),
                             ].divide(const SizedBox(width: 24.0)),
                           ),
                           Row(
@@ -2121,7 +2079,9 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                   ].divide(const SizedBox(height: 8.0)),
                                 ),
                               ),
-                              const Expanded(child: SizedBox()),
+                              Expanded(
+                                child: _buildDiagnosticoFilter(),
+                              ),
                             ].divide(const SizedBox(width: 24.0)),
                           ),
                           Row(
