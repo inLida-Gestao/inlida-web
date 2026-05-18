@@ -28,6 +28,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final _store = PiqueteBackendStore.instance;
   late final VoidCallback _disposePiqueteRefresh;
+  String? _selectedPiqueteId;
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
 
   void _handlePiqueteRefresh() {
     _model.textController?.clear();
+    _selectedPiqueteId = null;
     _loadPiquetes();
   }
 
@@ -80,6 +82,34 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
       return piquete.nome.toLowerCase().contains(query) ||
           piquete.forrageira.toLowerCase().contains(query);
     }).toList();
+  }
+
+  PiquetePrototype? get _selectedPiquete {
+    final piquetes = _piquetesFiltrados;
+    if (piquetes.isEmpty) return null;
+
+    final selectedId = _selectedPiqueteId;
+    if (selectedId != null && selectedId.isNotEmpty) {
+      for (final piquete in piquetes) {
+        if (piquete.id == selectedId) return piquete;
+      }
+    }
+
+    return piquetes.first;
+  }
+
+  void _selectPiquete(PiquetePrototype piquete) {
+    safeSetState(() => _selectedPiqueteId = piquete.id);
+  }
+
+  void _selectPiquetesSemLimites() {
+    safeSetState(() => _selectedPiqueteId = null);
+    _store.selectPiquetesSemRetiro();
+  }
+
+  void _selectLimites(String id) {
+    safeSetState(() => _selectedPiqueteId = null);
+    _store.selectRetiro(id);
   }
 
   @override
@@ -210,21 +240,21 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                 ),
               )
             else if (_store.retiros.isEmpty)
-              _buildPiquetesSemRetiroDetail(context)
+              _buildPiqueteWorkspace(context)
             else
               LayoutBuilder(
                 builder: (context, constraints) {
-                  final narrow = constraints.maxWidth < 1050;
+                  final narrow = constraints.maxWidth < 1180;
                   final retiros = _buildRetirosPanel(context);
-                  final detail = retiro == null
-                      ? _buildPiquetesSemRetiroDetail(context)
-                      : _buildRetiroDetail(context, retiro);
+                  final workspace = retiro == null
+                      ? _buildPiqueteWorkspace(context)
+                      : _buildPiqueteWorkspace(context, retiro: retiro);
                   if (narrow) {
                     return Column(
                       children: [
                         retiros,
                         const SizedBox(height: 20),
-                        detail,
+                        workspace,
                       ],
                     );
                   }
@@ -233,7 +263,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                     children: [
                       SizedBox(width: 330, child: retiros),
                       const SizedBox(width: 24),
-                      Expanded(child: detail),
+                      Expanded(child: workspace),
                     ],
                   );
                 },
@@ -272,7 +302,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
             padding: const EdgeInsets.only(bottom: 12),
             child: InkWell(
               borderRadius: BorderRadius.circular(10),
-              onTap: _store.selectPiquetesSemRetiro,
+              onTap: _selectPiquetesSemLimites,
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -329,7 +359,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
               padding: const EdgeInsets.only(bottom: 12),
               child: InkWell(
                 borderRadius: BorderRadius.circular(10),
-                onTap: () => _store.selectRetiro(retiro.id),
+                onTap: () => _selectLimites(retiro.id),
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -381,330 +411,312 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     );
   }
 
-  Widget _buildRetiroDetail(BuildContext context, RetiroPrototype retiro) {
-    final theme = FlutterFlowTheme.of(context);
-    final piquetesDoRetiro = _store.piquetesDoRetiro(retiro.id);
-    final piquetes = _piquetesFiltrados;
+  Widget _buildPiqueteWorkspace(
+    BuildContext context, {
+    RetiroPrototype? retiro,
+  }) {
+    final piquetesDoContexto = retiro == null
+        ? _store.piquetesSemRetiro
+        : _store.piquetesDoRetiro(retiro.id);
+    final piquetesFiltrados = _piquetesFiltrados;
+    final selected = _selectedPiquete;
 
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 920;
+        final list = _buildPiqueteCompactList(
+          context,
+          piquetes: piquetesFiltrados,
+          selected: selected,
+          retiro: retiro,
+        );
+        final main = Column(
           children: [
-            PrototypePrimaryButton(
-              label: 'Editar limites',
-              icon: Icons.edit_location_alt_outlined,
-              onPressed: () => _showRetiroDialog(initial: retiro),
+            _buildPiqueteMap(
+              context,
+              piquetes: piquetesDoContexto,
+              selected: selected,
+              retiro: retiro,
+            ),
+            const SizedBox(height: 18),
+            _buildPiqueteInlineDetails(
+              context,
+              selected,
+              retiro: retiro,
+              piquetesDoContexto: piquetesDoContexto,
             ),
           ],
-        ),
-        const SizedBox(height: 14),
-        MapaDemarcacaoRealWidget(
-          title: retiro.nome,
-          points: const [],
-          retiroPoints: retiro.pontos,
-          piqueteAreas: piquetesDoRetiro
-              .where((piquete) => piquete.pontos.length > 1)
-              .map(
-                (piquete) => PiqueteMapArea(
-                  name: piquete.nome,
-                  points: piquete.pontos,
-                ),
-              )
-              .toList(),
-          retiroAsPrimary: true,
-          height: 560,
-        ),
-        const SizedBox(height: 22),
-        _buildRetiroSummary(context, retiro, piquetesDoRetiro),
-        const SizedBox(height: 22),
-        PrototypeCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        );
+
+        if (narrow) {
+          return Column(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Piquetes nestes limites',
-                          style: GoogleFonts.poppins(
-                            color: theme.primaryText,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${piquetes.length} piquetes encontrados em ${retiro.nome}',
-                          style: GoogleFonts.poppins(
-                            color: theme.secondaryText,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  PrototypeSearchField(
-                    controller: _model.textController!,
-                    hint: 'Pesquisar piquete',
-                    onChanged: (_) => safeSetState(() {}),
-                  ),
-                ].divide(const SizedBox(width: 16)),
-              ),
-              const SizedBox(height: 20),
-              if (piquetes.isEmpty)
-                PrototypeEmptyState(
-                  title: 'Nenhum piquete nestes limites',
-                  message:
-                      'Adicione um piquete dentro dos limites selecionados para validar a ocupação por animais ou lotes.',
-                  icon: Icons.crop_square_rounded,
-                  action: PrototypePrimaryButton(
-                    label: 'Adicionar piquete',
-                    onPressed: () =>
-                        context.pushNamed(PgAddPiqueteWidget.routeName),
-                  ),
-                )
-              else
-                _buildPiqueteTable(context, piquetes),
+              list,
+              const SizedBox(height: 18),
+              main,
             ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(width: 310, child: list),
+            const SizedBox(width: 18),
+            Expanded(child: main),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPiqueteMap(
+    BuildContext context, {
+    required List<PiquetePrototype> piquetes,
+    required PiquetePrototype? selected,
+    RetiroPrototype? retiro,
+  }) {
+    final theme = FlutterFlowTheme.of(context);
+    final selectedId = selected?.id;
+    final areas = piquetes
+        .where((piquete) => piquete.pontos.length > 1)
+        .map(
+          (piquete) => PiqueteMapArea(
+            name: selectedId == piquete.id
+                ? '${piquete.nome} selecionado'
+                : piquete.nome,
+            points: piquete.pontos,
           ),
-        ),
+        )
+        .toList();
+
+    return MapaDemarcacaoRealWidget(
+      title: retiro?.nome ?? 'Piquetes sem limites',
+      points: const [],
+      retiroPoints: retiro?.pontos ?? const [],
+      piqueteAreas: areas,
+      retiroAsPrimary: retiro != null,
+      height: 560,
+      actions: [
+        if (retiro != null)
+          OutlinedButton.icon(
+            onPressed: () => _showRetiroDialog(initial: retiro),
+            icon: const Icon(Icons.edit_location_alt_outlined, size: 18),
+            label: const Text('Editar limites'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.secondary,
+              side: BorderSide(color: theme.secondary),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _buildPiquetesSemRetiroDetail(BuildContext context) {
+  Widget _buildPiqueteCompactList(
+    BuildContext context, {
+    required List<PiquetePrototype> piquetes,
+    required PiquetePrototype? selected,
+    RetiroPrototype? retiro,
+  }) {
     final theme = FlutterFlowTheme.of(context);
-    final piquetesSemRetiro = _store.piquetesSemRetiro;
-    final piquetes = _piquetesFiltrados;
-
-    return Column(
-      children: [
-        MapaDemarcacaoRealWidget(
-          title: 'Piquetes sem limites',
-          points: const [],
-          piqueteAreas: piquetesSemRetiro
-              .where((piquete) => piquete.pontos.length > 1)
-              .map(
-                (piquete) => PiqueteMapArea(
-                  name: piquete.nome,
-                  points: piquete.pontos,
-                ),
-              )
-              .toList(),
-          height: 560,
-        ),
-        const SizedBox(height: 22),
-        _buildPiquetesSemRetiroSummary(context, piquetesSemRetiro),
-        const SizedBox(height: 22),
-        PrototypeCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Piquetes sem limites',
-                          style: GoogleFonts.poppins(
-                            color: theme.primaryText,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${piquetes.length} piquetes encontrados sem vínculo com limites',
-                          style: GoogleFonts.poppins(
-                            color: theme.secondaryText,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  PrototypeSearchField(
-                    controller: _model.textController!,
-                    hint: 'Pesquisar piquete',
-                    onChanged: (_) => safeSetState(() {}),
-                  ),
-                ].divide(const SizedBox(width: 16)),
-              ),
-              const SizedBox(height: 20),
-              if (piquetes.isEmpty)
-                PrototypeEmptyState(
-                  title: 'Nenhum piquete sem limites',
-                  message:
-                      'Adicione um piquete avulso para propriedades que não utilizam limites agrupadores.',
-                  icon: Icons.crop_square_rounded,
-                  action: PrototypePrimaryButton(
-                    label: 'Adicionar piquete',
-                    onPressed: () =>
-                        context.pushNamed(PgAddPiqueteWidget.routeName),
-                  ),
-                )
-              else
-                _buildPiqueteTable(context, piquetes),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPiquetesSemRetiroSummary(
-    BuildContext context,
-    List<PiquetePrototype> piquetes,
-  ) {
-    final theme = FlutterFlowTheme.of(context);
-    final areaTotal =
-        piquetes.fold<double>(0, (total, piquete) => total + piquete.areaHa);
-    final animaisIndividuais =
-        piquetes.fold<int>(0, (total, p) => total + p.totalAnimaisIndividuais);
-    final animaisEmLotes =
-        piquetes.fold<int>(0, (total, p) => total + p.animaisLotesCount);
-    final forrageiras = piquetes
-        .expand((piquete) => piquete.forrageiras)
-        .map((forrageira) => forrageira.trim())
-        .where((forrageira) => forrageira.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+    final title = retiro == null ? 'Piquetes sem limites' : 'Piquetes';
+    final subtitle = retiro == null
+        ? '${piquetes.length} piquetes sem vínculo'
+        : '${piquetes.length} piquetes em ${retiro.nome}';
 
     return PrototypeCard(
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Resumo dos piquetes sem limites',
+            title,
             style: GoogleFonts.poppins(
               color: theme.primaryText,
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 18),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final narrow = constraints.maxWidth < 760;
-              final tiles = [
-                _RetiroSummaryTile(
-                  icon: Icons.crop_square_rounded,
-                  label: 'Área total',
-                  value: '${areaTotal.toStringAsFixed(0)} ha',
-                  helper: '${piquetes.length} piquetes avulsos',
-                ),
-                _RetiroSummaryTile(
-                  iconAsset: kPiqueteCowIconAsset,
-                  label: 'Animais',
-                  value: (animaisIndividuais + animaisEmLotes).toString(),
-                  helper:
-                      '$animaisIndividuais individuais + $animaisEmLotes via lotes',
-                ),
-                _RetiroSummaryTile(
-                  icon: Icons.grass_outlined,
-                  label: 'Forrageiras',
-                  value:
-                      forrageiras.isEmpty ? '0' : forrageiras.length.toString(),
-                  helper: forrageiras.isEmpty
-                      ? 'Nenhuma forrageira cadastrada'
-                      : forrageiras.join(', '),
-                ),
-              ];
-
-              if (narrow) {
-                return Column(
-                  children: tiles
-                      .map((tile) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: tile,
-                          ))
-                      .toList(),
-                );
-              }
-
-              return Row(
-                children: tiles
-                    .map((tile) => Expanded(child: tile))
-                    .toList()
-                    .divide(const SizedBox(width: 14)),
-              );
-            },
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: GoogleFonts.poppins(
+              color: theme.secondaryText,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
+          const SizedBox(height: 14),
+          PrototypeSearchField(
+            controller: _model.textController!,
+            hint: 'Pesquisar piquete',
+            onChanged: (_) => safeSetState(() {}),
+          ),
+          const SizedBox(height: 14),
+          if (piquetes.isEmpty)
+            PrototypeEmptyState(
+              title: retiro == null
+                  ? 'Nenhum piquete sem limites'
+                  : 'Nenhum piquete nestes limites',
+              message: retiro == null
+                  ? 'Adicione um piquete avulso para propriedades que não utilizam limites agrupadores.'
+                  : 'Adicione um piquete dentro dos limites selecionados.',
+              icon: Icons.crop_square_rounded,
+              action: PrototypePrimaryButton(
+                label: 'Adicionar piquete',
+                onPressed: () =>
+                    context.pushNamed(PgAddPiqueteWidget.routeName),
+              ),
+            )
+          else
+            Column(
+              children: piquetes
+                  .map(
+                    (piquete) => _PiqueteCompactTile(
+                      piquete: piquete,
+                      selected: selected?.id == piquete.id,
+                      onTap: () => _selectPiquete(piquete),
+                    ),
+                  )
+                  .toList()
+                  .divide(const SizedBox(height: 10)),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildRetiroSummary(
+  Widget _buildPiqueteInlineDetails(
     BuildContext context,
-    RetiroPrototype retiro,
-    List<PiquetePrototype> piquetes,
-  ) {
+    PiquetePrototype? piquete, {
+    RetiroPrototype? retiro,
+    required List<PiquetePrototype> piquetesDoContexto,
+  }) {
+    if (piquete == null) {
+      return PrototypeCard(
+        child: PrototypeEmptyState(
+          title: 'Selecione um piquete',
+          message:
+              'Clique em um item da lista lateral para ver dados, ocupação e ações rápidas.',
+          icon: Icons.touch_app_outlined,
+          action: PrototypePrimaryButton(
+            label: 'Adicionar piquete',
+            onPressed: () => context.pushNamed(PgAddPiqueteWidget.routeName),
+          ),
+        ),
+      );
+    }
+
     final theme = FlutterFlowTheme.of(context);
-    final animaisIndividuais =
-        piquetes.fold<int>(0, (total, p) => total + p.totalAnimaisIndividuais);
-    final animaisEmLotes =
-        piquetes.fold<int>(0, (total, p) => total + p.animaisLotesCount);
-    final totalAnimais = piquetes.isEmpty
-        ? retiro.animaisCount
-        : animaisIndividuais + animaisEmLotes;
-    final forrageirasFonte = piquetes.isEmpty
-        ? retiro.forrageiras
-        : piquetes.expand((piquete) => piquete.forrageiras);
-    final forrageiras = forrageirasFonte
+    final totalAnimais =
+        piquete.totalAnimaisIndividuais + piquete.animaisLotesCount;
+    final ocupado = totalAnimais > 0 || piquete.totalLotes > 0;
+    final forrageiras = piquete.forrageiras
         .map((forrageira) => forrageira.trim())
         .where((forrageira) => forrageira.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+        .toList();
 
     return PrototypeCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Resumo dos limites da propriedade',
-            style: GoogleFonts.poppins(
-              color: theme.primaryText,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      piquete.nome,
+                      style: GoogleFonts.poppins(
+                        color: theme.primaryText,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      retiro == null
+                          ? 'Piquete sem limites vinculados'
+                          : 'Dentro de ${retiro.nome}',
+                      style: GoogleFonts.poppins(
+                        color: theme.secondaryText,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.end,
+                children: [
+                  FlutterFlowIconButton(
+                    borderRadius: 8,
+                    buttonSize: 42,
+                    icon: Icon(
+                      Icons.remove_red_eye_outlined,
+                      color: theme.primaryText,
+                      size: 22,
+                    ),
+                    onPressed: () => _openPiqueteView(piquete),
+                  ),
+                  FlutterFlowIconButton(
+                    borderRadius: 8,
+                    buttonSize: 42,
+                    icon: Icon(
+                      Icons.edit_outlined,
+                      color: theme.secondary,
+                      size: 22,
+                    ),
+                    onPressed: () => _openPiqueteEdit(piquete),
+                  ),
+                  FlutterFlowIconButton(
+                    borderRadius: 8,
+                    buttonSize: 42,
+                    icon: Icon(
+                      Icons.delete_outline_rounded,
+                      color: theme.error,
+                      size: 22,
+                    ),
+                    onPressed: () => _showDeleteDialog(piquete),
+                  ),
+                ],
+              ),
+            ].divide(const SizedBox(width: 14)),
           ),
           const SizedBox(height: 18),
           LayoutBuilder(
             builder: (context, constraints) {
-              final narrow = constraints.maxWidth < 760;
+              final narrow = constraints.maxWidth < 680;
               final tiles = [
                 _RetiroSummaryTile(
-                  icon: Icons.map_outlined,
-                  label: 'Área total',
-                  value: '${retiro.areaHa.toStringAsFixed(0)} ha',
-                  helper: '${piquetes.length} piquetes nestes limites',
+                  icon: Icons.crop_square_rounded,
+                  label: 'Área',
+                  value: '${piquete.areaHa.toStringAsFixed(0)} ha',
+                  helper: '${piquete.pontos.length} pontos demarcados',
                 ),
                 _RetiroSummaryTile(
                   iconAsset: kPiqueteCowIconAsset,
                   label: 'Animais',
                   value: totalAnimais.toString(),
                   helper:
-                      '$animaisIndividuais individuais + $animaisEmLotes via lotes',
+                      '${piquete.totalAnimaisIndividuais} individuais + ${piquete.animaisLotesCount} via lotes',
                 ),
                 _RetiroSummaryTile(
-                  icon: Icons.grass_outlined,
-                  label: 'Forrageiras',
-                  value:
-                      forrageiras.isEmpty ? '0' : forrageiras.length.toString(),
-                  helper: forrageiras.isEmpty
-                      ? 'Nenhuma forrageira cadastrada'
-                      : forrageiras.join(', '),
+                  icon: Icons.bubble_chart_outlined,
+                  label: 'Lotes',
+                  value: piquete.totalLotes.toString(),
+                  helper: piquete.totalLotes == 1
+                      ? '1 lote vinculado'
+                      : '${piquete.totalLotes} lotes vinculados',
                 ),
               ];
 
@@ -727,20 +739,49 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
               );
             },
           ),
-          if (forrageiras.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: forrageiras
-                  .map(
-                    (forrageira) => PrototypeBadge(
-                      label: forrageira,
-                      icon: Icons.grass_outlined,
-                      color: theme.secondary,
-                    ),
-                  )
-                  .toList(),
+          const SizedBox(height: 18),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              PrototypeBadge(
+                label: ocupado ? 'Ocupado' : 'Livre',
+                icon: ocupado
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                color: ocupado ? theme.secondary : theme.secondaryText,
+              ),
+              PrototypeBadge(
+                label: '${piquetesDoContexto.length} piquetes no contexto',
+                icon: Icons.view_sidebar_outlined,
+              ),
+              ...forrageiras.map(
+                (forrageira) => PrototypeBadge(
+                  label: forrageira,
+                  icon: Icons.grass_outlined,
+                  color: theme.secondary,
+                ),
+              ),
+            ],
+          ),
+          if (piquete.anotacoes.trim().isNotEmpty) ...[
+            const SizedBox(height: 18),
+            Text(
+              'Anotações',
+              style: GoogleFonts.poppins(
+                color: theme.primaryText,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              piquete.anotacoes.trim(),
+              style: GoogleFonts.poppins(
+                color: theme.secondaryText,
+                fontSize: 14,
+                height: 1.45,
+              ),
             ),
           ],
         ],
@@ -748,137 +789,35 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     );
   }
 
-  Widget _buildPiqueteTable(
-    BuildContext context,
-    List<PiquetePrototype> piquetes,
-  ) {
-    final theme = FlutterFlowTheme.of(context);
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          color: theme.customColor11,
-          child: const Row(
-            children: [
-              Expanded(flex: 3, child: _HeaderCell('Nome')),
-              Expanded(child: _HeaderCell('Área')),
-              Expanded(flex: 2, child: _HeaderCell('Forrageira')),
-              Expanded(flex: 2, child: _HeaderCell('Conteúdo')),
-              SizedBox(width: 158),
-            ],
-          ),
+  void _openPiqueteView(PiquetePrototype piquete) {
+    context.pushNamed(
+      PgViewPiqueteWidget.routeName,
+      queryParameters: {
+        'idPiquete': serializeParam(
+          piquete.id,
+          ParamType.String,
         ),
-        ...piquetes.map((piquete) {
-          final animais = piquete.totalAnimaisIndividuais;
-          final lotes = piquete.totalLotes;
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: theme.customColor5),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    piquete.nome,
-                    style: GoogleFonts.poppins(
-                      color: theme.primaryText,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Expanded(
-                    child: Text('${piquete.areaHa.toStringAsFixed(0)} ha')),
-                Expanded(flex: 2, child: Text(piquete.forrageira)),
-                Expanded(
-                  flex: 2,
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      if (animais > 0)
-                        PrototypeBadge(
-                          label: '$animais animais',
-                          iconAsset: kPiqueteCowIconAsset,
-                        ),
-                      if (lotes > 0)
-                        PrototypeBadge(
-                          label: '$lotes lotes',
-                          icon: Icons.bubble_chart_outlined,
-                        ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  width: 158,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      FlutterFlowIconButton(
-                        borderRadius: 8,
-                        buttonSize: 40,
-                        icon: Icon(
-                          Icons.remove_red_eye_outlined,
-                          color: theme.primaryText,
-                          size: 22,
-                        ),
-                        onPressed: () => context.pushNamed(
-                          PgViewPiqueteWidget.routeName,
-                          queryParameters: {
-                            'idPiquete': serializeParam(
-                              piquete.id,
-                              ParamType.String,
-                            ),
-                            'piqueteNome': serializeParam(
-                              piquete.nome,
-                              ParamType.String,
-                            ),
-                          }.withoutNulls,
-                        ),
-                      ),
-                      FlutterFlowIconButton(
-                        borderRadius: 8,
-                        buttonSize: 40,
-                        icon: Icon(
-                          Icons.edit_outlined,
-                          color: theme.secondary,
-                          size: 22,
-                        ),
-                        onPressed: () => context.pushNamed(
-                          PgEditPiqueteWidget.routeName,
-                          queryParameters: {
-                            'idPiquete': serializeParam(
-                              piquete.id,
-                              ParamType.String,
-                            ),
-                            'piqueteNome': serializeParam(
-                              piquete.nome,
-                              ParamType.String,
-                            ),
-                          }.withoutNulls,
-                        ),
-                      ),
-                      FlutterFlowIconButton(
-                        borderRadius: 8,
-                        buttonSize: 40,
-                        icon: Icon(
-                          Icons.delete_outline_rounded,
-                          color: theme.error,
-                          size: 22,
-                        ),
-                        onPressed: () => _showDeleteDialog(piquete),
-                      ),
-                    ],
-                  ),
-                ),
-              ].divide(const SizedBox(width: 12)),
-            ),
-          );
-        }),
-      ],
+        'piqueteNome': serializeParam(
+          piquete.nome,
+          ParamType.String,
+        ),
+      }.withoutNulls,
+    );
+  }
+
+  void _openPiqueteEdit(PiquetePrototype piquete) {
+    context.pushNamed(
+      PgEditPiqueteWidget.routeName,
+      queryParameters: {
+        'idPiquete': serializeParam(
+          piquete.id,
+          ParamType.String,
+        ),
+        'piqueteNome': serializeParam(
+          piquete.nome,
+          ParamType.String,
+        ),
+      }.withoutNulls,
     );
   }
 
@@ -1146,19 +1085,87 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
   }
 }
 
-class _HeaderCell extends StatelessWidget {
-  const _HeaderCell(this.label);
+class _PiqueteCompactTile extends StatelessWidget {
+  const _PiqueteCompactTile({
+    required this.piquete,
+    required this.selected,
+    required this.onTap,
+  });
 
-  final String label;
+  final PiquetePrototype piquete;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: GoogleFonts.poppins(
-        color: FlutterFlowTheme.of(context).secondaryText,
-        fontWeight: FontWeight.w700,
-        fontSize: 13,
+    final theme = FlutterFlowTheme.of(context);
+    final totalAnimais =
+        piquete.totalAnimaisIndividuais + piquete.animaisLotesCount;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: selected
+              ? theme.secondary.withValues(alpha: 0.12)
+              : theme.customColor2,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? theme.secondary : theme.customColor5,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    piquete.nome,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      color: selected ? theme.secondary : theme.primaryText,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: selected ? theme.secondary : theme.secondaryText,
+                  size: 20,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                PrototypeBadge(
+                  label: '${piquete.areaHa.toStringAsFixed(0)} ha',
+                  icon: Icons.crop_square_rounded,
+                  color: selected ? theme.secondary : null,
+                ),
+                PrototypeBadge(
+                  label: '$totalAnimais animais',
+                  iconAsset: kPiqueteCowIconAsset,
+                  color: selected ? theme.secondary : null,
+                ),
+                if (piquete.totalLotes > 0)
+                  PrototypeBadge(
+                    label: '${piquete.totalLotes} lotes',
+                    icon: Icons.bubble_chart_outlined,
+                    color: selected ? theme.secondary : null,
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

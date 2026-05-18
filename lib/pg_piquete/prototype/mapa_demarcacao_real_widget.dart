@@ -46,6 +46,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
     this.height = 448,
     this.preferUserLocation = false,
     this.allowExpand = true,
+    this.actions = const [],
     this.onChanged,
     this.onImported,
   });
@@ -59,6 +60,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
   final double height;
   final bool preferUserLocation;
   final bool allowExpand;
+  final List<Widget> actions;
   final ValueChanged<List<MapPoint>>? onChanged;
   final ValueChanged<List<MapPoint>>? onImported;
 
@@ -299,24 +301,35 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                     ],
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _summaryColor.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    '${_summaryPoints.length} pontos • ${_areaEstimadaHa.toStringAsFixed(1)} ha',
-                    style: theme.bodySmall.override(
-                      fontFamily: theme.bodySmallFamily,
-                      color: _points.isNotEmpty
-                          ? theme.secondary
-                          : const Color(0xFF8A5A00),
-                      fontWeight: FontWeight.w700,
-                      useGoogleFonts: !theme.bodySmallIsCustom,
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.end,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    ...widget.actions,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _summaryColor.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        '${_summaryPoints.length} pontos • ${_areaEstimadaHa.toStringAsFixed(1)} ha',
+                        style: theme.bodySmall.override(
+                          fontFamily: theme.bodySmallFamily,
+                          color: _points.isNotEmpty
+                              ? theme.secondary
+                              : const Color(0xFF8A5A00),
+                          fontWeight: FontWeight.w700,
+                          useGoogleFonts: !theme.bodySmallIsCustom,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ].divide(const SizedBox(width: 16)),
             ),

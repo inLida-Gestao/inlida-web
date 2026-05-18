@@ -1040,7 +1040,7 @@ bool _isPlausibleImportIdentifier(String value) {
   final trimmed = value.trim();
   if (trimmed.isEmpty || trimmed.length > 80) return false;
   if (!RegExp(r'[A-Za-z0-9]').hasMatch(trimmed)) return false;
-  return RegExp(r'^[A-Za-z0-9][A-Za-z0-9 _./#:-]*$').hasMatch(trimmed);
+  return RegExp(r'^[A-Za-z0-9 _./#:\-()]+$').hasMatch(trimmed);
 }
 
 bool _looksLikeCorruptedImportText(String value) {
