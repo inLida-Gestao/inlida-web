@@ -99,7 +99,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
               )
             else if (_store.errorMessage != null && _store.retiros.isEmpty)
               PrototypeEmptyState(
-                title: 'Não foi possível carregar os limites da propriedade',
+                title: 'Não foi possível carregar os retiros',
                 message: _store.errorMessage!,
                 icon: Icons.warning_amber_rounded,
                 action: PrototypePrimaryButton(

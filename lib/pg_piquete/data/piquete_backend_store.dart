@@ -16,6 +16,7 @@ class PiqueteBackendStore extends ChangeNotifier {
   final List<AnimalPrototype> _animais = [];
   final List<LotePrototype> _lotes = [];
   final Map<String, List<PiqueteHistoricoEvent>> _historicoPorPiquete = {};
+  LimitePropriedadePrototype? _limitePropriedade;
 
   static const semRetiroId = '';
 
@@ -31,6 +32,11 @@ class PiqueteBackendStore extends ChangeNotifier {
   List<PiquetePrototype> get piquetes => List.unmodifiable(_piquetes);
   List<AnimalPrototype> get animais => List.unmodifiable(_animais);
   List<LotePrototype> get lotes => List.unmodifiable(_lotes);
+  LimitePropriedadePrototype? get limitePropriedade => _limitePropriedade;
+  bool get temLimitePropriedade => _limitePropriedade != null;
+  double get areaUsadaNoLimiteHa => _limitePropriedade?.areaUsadaHa ?? 0;
+  double get areaDisponivelNoLimiteHa =>
+      _limitePropriedade?.areaDisponivelHa ?? 0;
   List<PiqueteHistoricoEvent> historicoDoPiquete(String? piqueteId) {
     if (piqueteId == null) return const [];
     return List.unmodifiable(_historicoPorPiquete[piqueteId] ?? const []);
@@ -51,10 +57,13 @@ class PiqueteBackendStore extends ChangeNotifier {
   Future<void> load() async {
     await _run(() async {
       _syncPropertyContext();
+      final limiteFuture = _repository.buscarLimitePropriedade();
       final summariesFuture = _repository.listarRetirosComResumo();
       final piquetesSemRetiroFuture = _repository.listarPiquetesSemRetiro();
+      final limite = await limiteFuture;
       final summaries = await summariesFuture;
       final piquetesSemRetiro = await piquetesSemRetiroFuture;
+      _limitePropriedade = limite?.limite;
       _retiros
         ..clear()
         ..addAll(summaries.map((summary) => summary.retiro));
@@ -229,6 +238,30 @@ class PiqueteBackendStore extends ChangeNotifier {
     return retiro;
   }
 
+  Future<LimitePropriedadePrototype> saveLimitePropriedade({
+    LimitePropriedadePrototype? limite,
+    required String nome,
+    required double areaHa,
+    required String anotacoes,
+    required List<MapPoint> pontos,
+  }) async {
+    late LimitePropriedadePrototype saved;
+    await _run(() async {
+      _syncPropertyContext();
+      final summary = await _repository.salvarLimitePropriedade(
+        limiteId: limite?.id ?? '',
+        nome: nome,
+        areaHa: areaHa,
+        anotacoes: anotacoes,
+        pontos: pontos,
+      );
+      saved = summary.limite;
+      _limitePropriedade = saved;
+      await load();
+    });
+    return saved;
+  }
+
   Future<RetiroPrototype> updateRetiro({
     required RetiroPrototype retiro,
     required String nome,
@@ -359,6 +392,7 @@ class PiqueteBackendStore extends ChangeNotifier {
     if (_loadedPropertyId == currentPropertyId) return;
 
     _loadedPropertyId = currentPropertyId;
+    _limitePropriedade = null;
     _retiros.clear();
     _piquetes.clear();
     _animais.clear();

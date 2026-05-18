@@ -29,6 +29,24 @@ class PiqueteRepository {
         .toList();
   }
 
+  Future<LimitePropriedadeBackendSummary?> buscarLimitePropriedade() async {
+    dynamic response;
+    try {
+      response = await _rpc(
+        'buscar_limite_propriedade',
+        {'p_id_propriedade': idPropriedade},
+      );
+    } on PiqueteRepositoryException catch (error) {
+      if (!_isMissingRpcError(error.message, 'buscar_limite_propriedade')) {
+        rethrow;
+      }
+      return null;
+    }
+    final map = _asMap(response);
+    if (map.isEmpty) return null;
+    return LimitePropriedadeBackendSummary.fromJson(map);
+  }
+
   Future<List<PiqueteBackendDetail>> listarPiquetesPorRetiro({
     required String retiroId,
     String pesquisa = '',
@@ -154,6 +172,27 @@ class PiqueteRepository {
       },
     );
     return RetiroBackendSummary.fromJson(_asMap(response));
+  }
+
+  Future<LimitePropriedadeBackendSummary> salvarLimitePropriedade({
+    String limiteId = '',
+    required String nome,
+    required double areaHa,
+    required String anotacoes,
+    required List<MapPoint> pontos,
+  }) async {
+    final response = await _rpc(
+      'salvar_limite_propriedade',
+      {
+        'p_limite_id': limiteId,
+        'p_id_propriedade': idPropriedade,
+        'p_nome': nome,
+        'p_area_informada_ha': areaHa,
+        'p_anotacoes': anotacoes,
+        'p_geojson': PiqueteGeoJsonMapper.polygonFromPoints(pontos),
+      },
+    );
+    return LimitePropriedadeBackendSummary.fromJson(_asMap(response));
   }
 
   Future<PiqueteBackendDetail> salvarPiquete({

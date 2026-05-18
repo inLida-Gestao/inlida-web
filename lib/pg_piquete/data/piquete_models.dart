@@ -38,6 +38,32 @@ class RetiroBackendSummary {
   }
 }
 
+class LimitePropriedadeBackendSummary {
+  const LimitePropriedadeBackendSummary({
+    required this.limite,
+  });
+
+  final LimitePropriedadePrototype limite;
+
+  factory LimitePropriedadeBackendSummary.fromJson(Map<String, dynamic> json) {
+    return LimitePropriedadeBackendSummary(
+      limite: LimitePropriedadePrototype(
+        id: _stringValue(json['id']),
+        nome: _stringValue(
+          json['nome'],
+          fallback: 'Limite da propriedade',
+        ),
+        areaHa: _doubleValue(json['area_ha']),
+        areaCalculadaHa: _doubleValue(json['area_calculada_ha']),
+        areaUsadaHa: _doubleValue(json['area_usada_ha']),
+        areaDisponivelHa: _doubleValue(json['area_disponivel_ha']),
+        anotacoes: _stringValue(json['anotacoes']),
+        pontos: PiqueteGeoJsonMapper.pointsFromGeoJson(json['geojson']),
+      ),
+    );
+  }
+}
+
 class PiqueteBackendDetail {
   const PiqueteBackendDetail({
     required this.piquete,

@@ -112,6 +112,33 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     _store.selectRetiro(id);
   }
 
+  void _openAddPiquete() {
+    if (!_store.temLimitePropriedade) {
+      _showLimiteRequiredSnack();
+      return;
+    }
+    context.pushNamed(PgAddPiqueteWidget.routeName);
+  }
+
+  void _openRetiroDialog({RetiroPrototype? initial}) {
+    if (!_store.temLimitePropriedade) {
+      _showLimiteRequiredSnack();
+      return;
+    }
+    _showRetiroDialog(initial: initial);
+  }
+
+  void _showLimiteRequiredSnack() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Cadastre o limite da propriedade antes de criar retiros ou piquetes.',
+        ),
+        backgroundColor: FlutterFlowTheme.of(context).error,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final retiro = _store.selectedRetiro;
@@ -127,18 +154,26 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           children: [
             PrototypePageHeader(
               title: 'Piquetes',
-              subtitle: 'Limites da propriedade e áreas de pastejo',
+              subtitle: 'Limite da propriedade, retiros e áreas de pastejo',
               actions: [
                 PrototypeSecondaryButton(
-                  label: 'Adicionar limites',
+                  label: _store.temLimitePropriedade
+                      ? 'Editar limite'
+                      : 'Criar limite',
                   icon: Icons.map_outlined,
-                  onPressed: _showRetiroDialog,
+                  onPressed: () => _showLimiteDialog(
+                    initial: _store.limitePropriedade,
+                  ),
+                ),
+                PrototypeSecondaryButton(
+                  label: 'Adicionar retiro',
+                  icon: Icons.add_location_alt_outlined,
+                  onPressed: _openRetiroDialog,
                 ),
                 PrototypePrimaryButton(
                   label: 'Adicionar piquete',
                   icon: Icons.add_rounded,
-                  onPressed: () =>
-                      context.pushNamed(PgAddPiqueteWidget.routeName),
+                  onPressed: _openAddPiquete,
                 ),
               ],
             ),
@@ -149,10 +184,14 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
               children: [
                 SizedBox(
                   width: 280,
+                  child: _buildLimiteMetricCard(context),
+                ),
+                SizedBox(
+                  width: 280,
                   child: PrototypeMetricCard(
-                    title: 'Limites cadastrados',
+                    title: 'Retiros cadastrados',
                     value: _store.retiros.length.toString(),
-                    icon: Icons.map_rounded,
+                    icon: Icons.account_tree_outlined,
                   ),
                 ),
                 SizedBox(
@@ -216,7 +255,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                   child: PrototypeEmptyState(
                     title: 'Nenhum piquete cadastrado',
                     message:
-                        'Você pode cadastrar piquetes diretamente ou criar limites da propriedade para agrupar áreas maiores da fazenda.',
+                        'Cadastre o limite da propriedade e depois organize áreas em retiros e piquetes.',
                     icon: Icons.crop_square_rounded,
                     action: Wrap(
                       alignment: WrapAlignment.center,
@@ -226,13 +265,16 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                         PrototypePrimaryButton(
                           label: 'Adicionar piquete',
                           icon: Icons.add_rounded,
-                          onPressed: () =>
-                              context.pushNamed(PgAddPiqueteWidget.routeName),
+                          onPressed: _openAddPiquete,
                         ),
                         PrototypeSecondaryButton(
-                          label: 'Criar limites',
+                          label: _store.temLimitePropriedade
+                              ? 'Criar retiro'
+                              : 'Criar limite',
                           icon: Icons.add_location_alt_outlined,
-                          onPressed: _showRetiroDialog,
+                          onPressed: _store.temLimitePropriedade
+                              ? _openRetiroDialog
+                              : () => _showLimiteDialog(),
                         ),
                       ],
                     ),
@@ -274,6 +316,92 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     );
   }
 
+  Widget _buildLimiteMetricCard(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final limite = _store.limitePropriedade;
+    return SizedBox(
+      height: 116,
+      child: PrototypeCard(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () => _showLimiteDialog(initial: limite),
+          child: Row(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: theme.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  limite == null ? Icons.add_location_alt_outlined : Icons.map,
+                  color: theme.primary,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Limite cadastrado',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        color: theme.secondaryText,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      limite == null
+                          ? 'Criar limite'
+                          : '${limite.areaHa.toStringAsFixed(0)} ha',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        color: theme.primaryText,
+                        fontSize: limite == null ? 18 : 24,
+                        fontWeight: FontWeight.w700,
+                        height: 1.1,
+                      ),
+                    ),
+                    if (limite != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '${limite.areaDisponivelHa.toStringAsFixed(1)} ha disponíveis',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          color: theme.secondaryText,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(
+                limite == null
+                    ? Icons.add_rounded
+                    : Icons.edit_location_alt_outlined,
+                color: theme.secondary,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildRetirosPanel(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     return PrototypeCard(
@@ -281,7 +409,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Limites da propriedade',
+            'Retiros',
             style: GoogleFonts.poppins(
               color: theme.primaryText,
               fontSize: 20,
@@ -290,7 +418,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Selecione os limites ou veja os piquetes sem vínculo.',
+            'Selecione um retiro ou veja os piquetes sem retiro.',
             style: GoogleFonts.poppins(
               color: theme.secondaryText,
               fontSize: 13,
@@ -323,7 +451,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Sem limites',
+                            'Sem retiro',
                             style: GoogleFonts.poppins(
                               color: _store.mostrandoPiquetesSemRetiro
                                   ? theme.secondary
@@ -340,7 +468,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Piquetes sem vínculo com limites',
+                      'Piquetes sem vínculo com retiro',
                       style: GoogleFonts.poppins(
                         color: theme.secondaryText,
                         fontSize: 13,
@@ -478,31 +606,35 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
   }) {
     final theme = FlutterFlowTheme.of(context);
     final selectedId = selected?.id;
-    final areas = piquetes
-        .where((piquete) => piquete.pontos.length > 1)
-        .map(
-          (piquete) => PiqueteMapArea(
-            name: selectedId == piquete.id
-                ? '${piquete.nome} selecionado'
-                : piquete.nome,
-            points: piquete.pontos,
-          ),
-        )
-        .toList();
+    final areas = <PiqueteMapArea>[
+      if (retiro != null && retiro.pontos.length > 1)
+        PiqueteMapArea(
+          name: 'Retiro ${retiro.nome}',
+          points: retiro.pontos,
+        ),
+      ...piquetes.where((piquete) => piquete.pontos.length > 1).map(
+            (piquete) => PiqueteMapArea(
+              name: selectedId == piquete.id
+                  ? '${piquete.nome} selecionado'
+                  : piquete.nome,
+              points: piquete.pontos,
+            ),
+          )
+    ];
 
     return MapaDemarcacaoRealWidget(
-      title: retiro?.nome ?? 'Piquetes sem limites',
+      title: retiro?.nome ?? 'Piquetes sem retiro',
       points: const [],
-      retiroPoints: retiro?.pontos ?? const [],
+      retiroPoints: _store.limitePropriedade?.pontos ?? const [],
       piqueteAreas: areas,
-      retiroAsPrimary: retiro != null,
+      retiroAsPrimary: _store.limitePropriedade != null,
       height: 560,
       actions: [
         if (retiro != null)
           OutlinedButton.icon(
             onPressed: () => _showRetiroDialog(initial: retiro),
             icon: const Icon(Icons.edit_location_alt_outlined, size: 18),
-            label: const Text('Editar limites'),
+            label: const Text('Editar retiro'),
             style: OutlinedButton.styleFrom(
               foregroundColor: theme.secondary,
               side: BorderSide(color: theme.secondary),
@@ -523,9 +655,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     RetiroPrototype? retiro,
   }) {
     final theme = FlutterFlowTheme.of(context);
-    final title = retiro == null ? 'Piquetes sem limites' : 'Piquetes';
+    final title = retiro == null ? 'Piquetes sem retiro' : 'Piquetes';
     final subtitle = retiro == null
-        ? '${piquetes.length} piquetes sem vínculo'
+        ? '${piquetes.length} piquetes sem vínculo com retiro'
         : '${piquetes.length} piquetes em ${retiro.nome}';
 
     return PrototypeCard(
@@ -560,11 +692,11 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           if (piquetes.isEmpty)
             PrototypeEmptyState(
               title: retiro == null
-                  ? 'Nenhum piquete sem limites'
-                  : 'Nenhum piquete nestes limites',
+                  ? 'Nenhum piquete sem retiro'
+                  : 'Nenhum piquete neste retiro',
               message: retiro == null
-                  ? 'Adicione um piquete avulso para propriedades que não utilizam limites agrupadores.'
-                  : 'Adicione um piquete dentro dos limites selecionados.',
+                  ? 'Adicione um piquete diretamente dentro do limite da propriedade.'
+                  : 'Adicione um piquete dentro do retiro selecionado.',
               icon: Icons.crop_square_rounded,
               action: PrototypePrimaryButton(
                 label: 'Adicionar piquete',
@@ -642,7 +774,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                     const SizedBox(height: 6),
                     Text(
                       retiro == null
-                          ? 'Piquete sem limites vinculados'
+                          ? 'Piquete sem retiro vinculado'
                           : 'Dentro de ${retiro.nome}',
                       style: GoogleFonts.poppins(
                         color: theme.secondaryText,
@@ -821,9 +953,13 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     );
   }
 
-  Future<void> _showRetiroDialog({RetiroPrototype? initial}) async {
+  Future<void> _showLimiteDialog({
+    LimitePropriedadePrototype? initial,
+  }) async {
     final editing = initial != null;
-    final nomeController = TextEditingController(text: initial?.nome ?? '');
+    final nomeController = TextEditingController(
+      text: initial?.nome ?? '',
+    );
     final areaController = TextEditingController(
       text: _formatAreaInput(initial?.areaHa ?? 0),
     );
@@ -858,11 +994,10 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                       children: [
                         PrototypePageHeader(
                           title: editing
-                              ? 'Editar limites da propriedade'
-                              : 'Criar limites da propriedade',
-                          subtitle: editing
-                              ? 'Ajuste dados e demarcação dos limites'
-                              : 'Demarque a área principal da fazenda',
+                              ? 'Editar limite da propriedade'
+                              : 'Criar limite da propriedade',
+                          subtitle:
+                              'Demarque a área total onde retiros e piquetes podem existir',
                           actions: [
                             IconButton(
                               onPressed: () => Navigator.pop(dialogContext),
@@ -885,8 +1020,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                 children: [
                                   _PrototypeTextField(
                                     controller: nomeController,
-                                    label: 'Nome dos limites',
-                                    hint: 'Ex.: Limites Sede',
+                                    label: 'Nome do limite',
+                                    hint: 'Ex.: Fazenda Santa Maria',
                                   ),
                                   const SizedBox(height: 14),
                                   _PrototypeTextField(
@@ -904,14 +1039,14 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                   _PrototypeTextField(
                                     controller: anotacoesController,
                                     label: 'Observações',
-                                    hint: 'Referências, acesso, manejo...',
+                                    hint: 'Referências, matrícula, divisas...',
                                     maxLines: 3,
                                   ),
                                 ],
                               ),
                             );
                             final map = MapaDemarcacaoRealWidget(
-                              title: 'Área dos limites',
+                              title: 'Limite da propriedade',
                               points: pontos,
                               editable: true,
                               height: mapHeight,
@@ -970,7 +1105,224 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                             PrototypePrimaryButton(
                               label: editing
                                   ? 'Salvar alterações'
-                                  : 'Salvar limites',
+                                  : 'Salvar limite',
+                              icon: Icons.check_rounded,
+                              onPressed: () {
+                                final nome = nomeController.text.trim();
+                                final area = double.tryParse(
+                                      areaController.text.replaceAll(',', '.'),
+                                    ) ??
+                                    0;
+                                if (nome.isEmpty ||
+                                    area <= 0 ||
+                                    pontos.length < 3) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text(
+                                        'Informe nome, área e ao menos 3 pontos no mapa.',
+                                      ),
+                                      backgroundColor:
+                                          FlutterFlowTheme.of(context).error,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                () async {
+                                  try {
+                                    await _store.saveLimitePropriedade(
+                                      limite: initial,
+                                      nome: nome,
+                                      areaHa: area,
+                                      anotacoes:
+                                          anotacoesController.text.trim(),
+                                      pontos: pontos,
+                                    );
+                                    if (!dialogContext.mounted) return;
+                                    Navigator.pop(dialogContext);
+                                  } catch (_) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          _store.errorMessage ??
+                                              'Não foi possível salvar o limite da propriedade.',
+                                        ),
+                                        backgroundColor:
+                                            FlutterFlowTheme.of(context).error,
+                                      ),
+                                    );
+                                  }
+                                }();
+                              },
+                            ),
+                          ].divide(const SizedBox(width: 12)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    nomeController.dispose();
+    areaController.dispose();
+    anotacoesController.dispose();
+  }
+
+  Future<void> _showRetiroDialog({RetiroPrototype? initial}) async {
+    final editing = initial != null;
+    final nomeController = TextEditingController(text: initial?.nome ?? '');
+    final areaController = TextEditingController(
+      text: _formatAreaInput(initial?.areaHa ?? 0),
+    );
+    final anotacoesController =
+        TextEditingController(text: initial?.anotacoes ?? '');
+    var pontos = initial?.pontos.toList() ?? <MapPoint>[];
+    var areaEditedManually = editing;
+    var updatingAreaFromMap = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final viewport = MediaQuery.sizeOf(context);
+            final maxDialogHeight = viewport.height > 520
+                ? viewport.height - 48
+                : viewport.height - 24;
+            return Dialog(
+              insetPadding: const EdgeInsets.all(32),
+              backgroundColor: Colors.transparent,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 1380,
+                  maxHeight: maxDialogHeight,
+                ),
+                child: SingleChildScrollView(
+                  child: PrototypeCard(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        PrototypePageHeader(
+                          title: editing ? 'Editar retiro' : 'Criar retiro',
+                          subtitle: editing
+                              ? 'Ajuste dados e demarcação do retiro'
+                              : 'Demarque uma área interna do limite da propriedade',
+                          actions: [
+                            IconButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              icon: const Icon(Icons.close_rounded),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final narrow = constraints.maxWidth < 980;
+                            final mapHeight =
+                                (viewport.height - (narrow ? 300 : 250))
+                                    .clamp(narrow ? 420.0 : 500.0,
+                                        narrow ? 540.0 : 620.0)
+                                    .toDouble();
+                            final inputs = SizedBox(
+                              width: narrow ? double.infinity : 290,
+                              child: Column(
+                                children: [
+                                  _PrototypeTextField(
+                                    controller: nomeController,
+                                    label: 'Nome do retiro',
+                                    hint: 'Ex.: Retiro Sede',
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _PrototypeTextField(
+                                    controller: areaController,
+                                    label: 'Área total (ha)',
+                                    hint: 'Ex.: 120',
+                                    keyboardType: TextInputType.number,
+                                    onChanged: (_) {
+                                      if (!updatingAreaFromMap) {
+                                        areaEditedManually = true;
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _PrototypeTextField(
+                                    controller: anotacoesController,
+                                    label: 'Observações',
+                                    hint: 'Referências, acesso, manejo...',
+                                    maxLines: 3,
+                                  ),
+                                ],
+                              ),
+                            );
+                            final map = MapaDemarcacaoRealWidget(
+                              title: 'Área do retiro',
+                              points: pontos,
+                              retiroPoints:
+                                  _store.limitePropriedade?.pontos ?? const [],
+                              editable: true,
+                              height: mapHeight,
+                              preferUserLocation: !editing,
+                              onChanged: (value) => setDialogState(() {
+                                pontos = value;
+                                if (!areaEditedManually) {
+                                  updatingAreaFromMap = true;
+                                  _updateAreaControllerFromMap(
+                                    areaController,
+                                    pontos,
+                                  );
+                                  updatingAreaFromMap = false;
+                                }
+                              }),
+                              onImported: (value) => setDialogState(() {
+                                pontos = value;
+                                areaEditedManually = false;
+                                updatingAreaFromMap = true;
+                                _updateAreaControllerFromMap(
+                                  areaController,
+                                  pontos,
+                                );
+                                updatingAreaFromMap = false;
+                              }),
+                            );
+
+                            if (narrow) {
+                              return Column(
+                                children: [
+                                  inputs,
+                                  const SizedBox(height: 18),
+                                  map,
+                                ],
+                              );
+                            }
+
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                inputs,
+                                const SizedBox(width: 22),
+                                Expanded(child: map),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            PrototypeSecondaryButton(
+                              label: 'Cancelar',
+                              onPressed: () => Navigator.pop(dialogContext),
+                            ),
+                            PrototypePrimaryButton(
+                              label: editing
+                                  ? 'Salvar alterações'
+                                  : 'Salvar retiro',
                               icon: Icons.check_rounded,
                               onPressed: () {
                                 final nome = nomeController.text.trim();
@@ -1020,7 +1372,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                       SnackBar(
                                         content: Text(
                                           _store.errorMessage ??
-                                              'Não foi possível salvar os limites da propriedade.',
+                                              'Não foi possível salvar o retiro.',
                                         ),
                                         backgroundColor:
                                             FlutterFlowTheme.of(context).error,

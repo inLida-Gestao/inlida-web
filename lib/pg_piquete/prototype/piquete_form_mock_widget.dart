@@ -98,6 +98,22 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   @override
   Widget build(BuildContext context) {
     final retiro = _retiroId.isEmpty ? null : _store.retiroById(_retiroId);
+    final limite = _store.limitePropriedade;
+    if (limite == null) {
+      return PrototypeCard(
+        child: PrototypeEmptyState(
+          title: 'Cadastre o limite da propriedade',
+          message:
+              'Antes de criar ou editar piquetes, demarque o limite total da propriedade na página de piquetes.',
+          icon: Icons.map_outlined,
+          action: PrototypeSecondaryButton(
+            label: 'Voltar',
+            icon: Icons.arrow_back_rounded,
+            onPressed: widget.onCancel,
+          ),
+        ),
+      );
+    }
     final newPiqueteSemRetiro = widget.initial == null && retiro == null;
     final piqueteAreas = newPiqueteSemRetiro
         ? const <PiqueteMapArea>[]
@@ -116,12 +132,12 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
                   SizedBox(
                     width: 340,
                     child: _DropdownField(
-                      label: 'Limites da propriedade',
+                      label: 'Retiro',
                       value: _retiroId,
                       items: [
                         const DropdownMenuItem(
                           value: PiqueteBackendStore.semRetiroId,
-                          child: Text('Sem limites'),
+                          child: Text('Sem retiro'),
                         ),
                         ..._store.retiros.map(
                           (r) => DropdownMenuItem(
@@ -177,10 +193,10 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         const SizedBox(height: 22),
         MapaDemarcacaoRealWidget(
           title: retiro == null
-              ? 'Demarcação do piquete sem limites'
+              ? 'Demarcação do piquete sem retiro'
               : 'Demarcação dentro de ${retiro.nome}',
           points: _pontos,
-          retiroPoints: retiro?.pontos ?? const [],
+          retiroPoints: retiro?.pontos ?? limite.pontos,
           piqueteAreas: piqueteAreas,
           editable: true,
           height: 548,
@@ -308,7 +324,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         SnackBar(
           content: Text(
             _store.errorMessage ??
-                'Não foi possível carregar os piquetes destes limites.',
+                'Não foi possível carregar os piquetes deste retiro.',
           ),
           backgroundColor: FlutterFlowTheme.of(context).error,
         ),

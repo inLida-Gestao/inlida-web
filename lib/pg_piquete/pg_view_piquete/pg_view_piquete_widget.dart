@@ -93,7 +93,7 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
             PrototypePageHeader(
               title: piquete?.nome ?? widget.piqueteNome ?? 'Piquete',
               subtitle: retiro == null
-                  ? 'Sem limites > Piquete'
+                  ? 'Sem retiro > Piquete'
                   : '${retiro.nome} > Piquete',
               leading: FlutterFlowIconButton(
                 borderRadius: 8,
@@ -165,7 +165,7 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
                   final narrow = constraints.maxWidth < 1060;
                   final details = _DetailsCard(
                     piquete: piquete,
-                    retiroNome: retiro?.nome ?? 'Sem limites',
+                    retiroNome: retiro?.nome ?? 'Sem retiro',
                   );
                   final map = MapaDemarcacaoRealWidget(
                     title: 'Área demarcada',
@@ -263,7 +263,7 @@ class _DetailsCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          _InfoRow(label: 'Limites da propriedade', value: retiroNome),
+          _InfoRow(label: 'Retiro', value: retiroNome),
           _InfoRow(label: 'Nome', value: piquete.nome),
           _InfoRow(
               label: 'Área', value: '${piquete.areaHa.toStringAsFixed(1)} ha'),

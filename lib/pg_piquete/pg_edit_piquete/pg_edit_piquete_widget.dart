@@ -88,8 +88,8 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
               title:
                   piquete == null ? 'Piquete não encontrado' : 'Editar piquete',
               subtitle: piquete?.retiroId.isEmpty == true
-                  ? 'Sem limites > ${piquete?.nome ?? widget.piqueteNome ?? ''}'
-                  : 'Limites da propriedade > ${piquete?.nome ?? widget.piqueteNome ?? ''}',
+                  ? 'Sem retiro > ${piquete?.nome ?? widget.piqueteNome ?? ''}'
+                  : 'Retiro > ${piquete?.nome ?? widget.piqueteNome ?? ''}',
               leading: FlutterFlowIconButton(
                 borderRadius: 8,
                 buttonSize: 44,

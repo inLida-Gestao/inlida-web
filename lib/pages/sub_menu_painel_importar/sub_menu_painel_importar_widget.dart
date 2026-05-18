@@ -329,6 +329,7 @@ class _SubMenuPainelImportarWidgetState
                       final List<dynamic> failedRows =
                           (importResult['failedRows'] as List<dynamic>? ?? [])
                               .toList();
+                      FFAppState().refreshRebanho = true;
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(

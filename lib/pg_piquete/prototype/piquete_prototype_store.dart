@@ -55,6 +55,33 @@ class RetiroPrototype {
       );
 }
 
+class LimitePropriedadePrototype {
+  const LimitePropriedadePrototype({
+    required this.id,
+    required this.nome,
+    required this.areaHa,
+    required this.areaCalculadaHa,
+    required this.areaUsadaHa,
+    required this.areaDisponivelHa,
+    required this.anotacoes,
+    required this.pontos,
+  });
+
+  final String id;
+  final String nome;
+  final double areaHa;
+  final double areaCalculadaHa;
+  final double areaUsadaHa;
+  final double areaDisponivelHa;
+  final String anotacoes;
+  final List<MapPoint> pontos;
+
+  double get percentualUso {
+    if (areaHa <= 0) return 0;
+    return (areaUsadaHa / areaHa).clamp(0, 1).toDouble();
+  }
+}
+
 class PiquetePrototype {
   const PiquetePrototype({
     required this.id,
