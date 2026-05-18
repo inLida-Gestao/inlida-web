@@ -976,7 +976,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                               points: pontos,
                               editable: true,
                               height: mapHeight,
-                              preferUserLocation: true,
+                              preferUserLocation: !editing,
                               onChanged: (value) => setDialogState(() {
                                 pontos = value;
                                 if (!areaEditedManually) {

@@ -206,7 +206,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
   @override
   void initState() {
     super.initState();
-    if (widget.preferUserLocation) {
+    if (widget.preferUserLocation && _focusLatLngPoints.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _focusUserLocation(auto: true);
       });
