@@ -183,6 +183,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
           retiroPoints: retiro?.pontos ?? const [],
           piqueteAreas: piqueteAreas,
           editable: true,
+          height: 548,
           preferUserLocation: newPiqueteSemRetiro,
           onChanged: _handleMapChanged,
           onImported: _handleKmlImported,

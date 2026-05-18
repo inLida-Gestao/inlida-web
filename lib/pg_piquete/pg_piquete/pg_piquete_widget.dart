@@ -413,7 +413,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
               )
               .toList(),
           retiroAsPrimary: true,
-          height: 460,
+          height: 560,
         ),
         const SizedBox(height: 22),
         _buildRetiroSummary(context, retiro, piquetesDoRetiro),
@@ -496,7 +496,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                 ),
               )
               .toList(),
-          height: 460,
+          height: 560,
         ),
         const SizedBox(height: 22),
         _buildPiquetesSemRetiroSummary(context, piquetesSemRetiro),
