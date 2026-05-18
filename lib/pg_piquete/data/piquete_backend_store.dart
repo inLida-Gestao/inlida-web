@@ -229,6 +229,32 @@ class PiqueteBackendStore extends ChangeNotifier {
     return retiro;
   }
 
+  Future<RetiroPrototype> updateRetiro({
+    required RetiroPrototype retiro,
+    required String nome,
+    required double areaHa,
+    required String anotacoes,
+    required List<MapPoint> pontos,
+  }) async {
+    late RetiroPrototype updated;
+    await _run(() async {
+      _syncPropertyContext();
+      final summary = await _repository.salvarRetiro(
+        retiroId: retiro.id,
+        nome: nome,
+        areaHa: areaHa,
+        anotacoes: anotacoes,
+        pontos: pontos,
+      );
+      updated = summary.retiro;
+      _upsertRetiro(updated);
+      selectedRetiroId = updated.id;
+      await _loadPiquetesDoRetiro(updated.id);
+      await load();
+    });
+    return updated;
+  }
+
   Future<PiquetePrototype> addPiquete({
     String retiroId = '',
     required String nome,

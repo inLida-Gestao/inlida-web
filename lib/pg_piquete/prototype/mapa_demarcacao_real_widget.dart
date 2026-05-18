@@ -45,6 +45,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
     this.editable = false,
     this.height = 448,
     this.preferUserLocation = false,
+    this.allowExpand = true,
     this.onChanged,
     this.onImported,
   });
@@ -57,6 +58,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
   final bool editable;
   final double height;
   final bool preferUserLocation;
+  final bool allowExpand;
   final ValueChanged<List<MapPoint>>? onChanged;
   final ValueChanged<List<MapPoint>>? onImported;
 
@@ -489,6 +491,16 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                         onCenter: _handleCenterTap,
                       ),
                     ),
+                    if (widget.allowExpand)
+                      Positioned(
+                        right: 12,
+                        top: 12,
+                        child: _MapFloatingButton(
+                          icon: Icons.open_in_full_rounded,
+                          tooltip: 'Expandir mapa',
+                          onTap: _showExpandedMap,
+                        ),
+                      ),
                     Positioned(
                       left: 12,
                       top: 128,
@@ -582,6 +594,103 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
     final nextZoom =
         (_mapController.camera.zoom + delta).clamp(4.0, 19.0).toDouble();
     _mapController.move(_mapController.camera.center, nextZoom);
+  }
+
+  Future<void> _showExpandedMap() async {
+    var expandedPoints = _points.toList();
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final viewport = MediaQuery.sizeOf(context);
+            final dialogHeight =
+                (viewport.height - 72).clamp(420.0, 920.0).toDouble();
+            final mapHeight =
+                (dialogHeight - 86).clamp(340.0, 840.0).toDouble();
+
+            return Dialog(
+              insetPadding: const EdgeInsets.all(24),
+              backgroundColor: Colors.transparent,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 1500,
+                  maxHeight: dialogHeight,
+                ),
+                child: Material(
+                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                  borderRadius: BorderRadius.circular(14),
+                  clipBehavior: Clip.antiAlias,
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                widget.title,
+                                style: FlutterFlowTheme.of(context)
+                                    .titleMedium
+                                    .override(
+                                      fontFamily: FlutterFlowTheme.of(context)
+                                          .titleMediumFamily,
+                                      fontWeight: FontWeight.w700,
+                                      useGoogleFonts:
+                                          !FlutterFlowTheme.of(context)
+                                              .titleMediumIsCustom,
+                                    ),
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Fechar',
+                              onPressed: () => Navigator.pop(dialogContext),
+                              icon: const Icon(Icons.close_rounded),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Flexible(
+                          child: MapaDemarcacaoRealWidget(
+                            title: widget.title,
+                            points: expandedPoints,
+                            retiroPoints: widget.retiroPoints,
+                            piqueteAreas: widget.piqueteAreas,
+                            retiroAsPrimary: widget.retiroAsPrimary,
+                            editable: widget.editable,
+                            height: mapHeight,
+                            preferUserLocation: widget.preferUserLocation,
+                            allowExpand: false,
+                            onChanged: widget.editable
+                                ? (value) {
+                                    setDialogState(() {
+                                      expandedPoints = value;
+                                    });
+                                    widget.onChanged?.call(value);
+                                  }
+                                : null,
+                            onImported: widget.editable
+                                ? (value) {
+                                    setDialogState(() {
+                                      expandedPoints = value;
+                                    });
+                                    widget.onImported?.call(value);
+                                  }
+                                : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _addPoint(ll.LatLng latLng) {
@@ -1217,6 +1326,39 @@ class _LayerSwitchRow extends StatelessWidget {
           onChanged: onChanged,
         ),
       ],
+    );
+  }
+}
+
+class _MapFloatingButton extends StatelessWidget {
+  const _MapFloatingButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(8),
+        elevation: 4,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onTap,
+          child: SizedBox(
+            width: 38,
+            height: 38,
+            child: Icon(icon, size: 19, color: const Color(0xFF2F3438)),
+          ),
+        ),
+      ),
     );
   }
 }

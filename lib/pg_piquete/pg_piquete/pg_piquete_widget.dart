@@ -388,6 +388,17 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
 
     return Column(
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            PrototypePrimaryButton(
+              label: 'Editar retiro',
+              icon: Icons.edit_location_alt_outlined,
+              onPressed: () => _showRetiroDialog(initial: retiro),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
         MapaDemarcacaoRealWidget(
           title: retiro.nome,
           points: const [],
@@ -871,12 +882,16 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     );
   }
 
-  Future<void> _showRetiroDialog() async {
-    final nomeController = TextEditingController();
-    final areaController = TextEditingController(text: '0');
-    final anotacoesController = TextEditingController();
-    var pontos = <MapPoint>[];
-    var areaEditedManually = false;
+  Future<void> _showRetiroDialog({RetiroPrototype? initial}) async {
+    final editing = initial != null;
+    final nomeController = TextEditingController(text: initial?.nome ?? '');
+    final areaController = TextEditingController(
+      text: _formatAreaInput(initial?.areaHa ?? 0),
+    );
+    final anotacoesController =
+        TextEditingController(text: initial?.anotacoes ?? '');
+    var pontos = initial?.pontos.toList() ?? <MapPoint>[];
+    var areaEditedManually = editing;
     var updatingAreaFromMap = false;
 
     await showDialog<void>(
@@ -903,8 +918,10 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         PrototypePageHeader(
-                          title: 'Criar retiro',
-                          subtitle: 'Demarque a área principal da fazenda',
+                          title: editing ? 'Editar retiro' : 'Criar retiro',
+                          subtitle: editing
+                              ? 'Ajuste dados e demarcação do retiro'
+                              : 'Demarque a área principal da fazenda',
                           actions: [
                             IconButton(
                               onPressed: () => Navigator.pop(dialogContext),
@@ -1010,7 +1027,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                               onPressed: () => Navigator.pop(dialogContext),
                             ),
                             PrototypePrimaryButton(
-                              label: 'Salvar retiro',
+                              label: editing
+                                  ? 'Salvar alterações'
+                                  : 'Salvar retiro',
                               icon: Icons.check_rounded,
                               onPressed: () {
                                 final nome = nomeController.text.trim();
@@ -1034,13 +1053,24 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                 }
                                 () async {
                                   try {
-                                    await _store.addRetiro(
-                                      nome: nome,
-                                      areaHa: area,
-                                      anotacoes:
-                                          anotacoesController.text.trim(),
-                                      pontos: pontos,
-                                    );
+                                    if (editing) {
+                                      await _store.updateRetiro(
+                                        retiro: initial,
+                                        nome: nome,
+                                        areaHa: area,
+                                        anotacoes:
+                                            anotacoesController.text.trim(),
+                                        pontos: pontos,
+                                      );
+                                    } else {
+                                      await _store.addRetiro(
+                                        nome: nome,
+                                        areaHa: area,
+                                        anotacoes:
+                                            anotacoesController.text.trim(),
+                                        pontos: pontos,
+                                      );
+                                    }
                                     if (!dialogContext.mounted) return;
                                     Navigator.pop(dialogContext);
                                   } catch (_) {
