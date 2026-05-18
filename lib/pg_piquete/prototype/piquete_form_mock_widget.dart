@@ -98,7 +98,10 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   @override
   Widget build(BuildContext context) {
     final retiro = _retiroId.isEmpty ? null : _store.retiroById(_retiroId);
-    final piqueteAreas = _existingPiqueteAreas();
+    final newPiqueteSemRetiro = widget.initial == null && retiro == null;
+    final piqueteAreas = newPiqueteSemRetiro
+        ? const <PiqueteMapArea>[]
+        : _existingPiqueteAreas();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,6 +183,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
           retiroPoints: retiro?.pontos ?? const [],
           piqueteAreas: piqueteAreas,
           editable: true,
+          preferUserLocation: newPiqueteSemRetiro,
           onChanged: _handleMapChanged,
           onImported: _handleKmlImported,
         ),

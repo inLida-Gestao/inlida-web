@@ -222,10 +222,24 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
     final retiroChangedWhileEditingEmptyPiquete = widget.points.isEmpty &&
         _pointsSignature(oldWidget.retiroPoints) !=
             _pointsSignature(widget.retiroPoints);
+    final piqueteAreasChanged = widget.points.isEmpty &&
+        widget.retiroPoints.isEmpty &&
+        _areasSignature(oldWidget.piqueteAreas) !=
+            _areasSignature(widget.piqueteAreas);
+
+    if (widget.preferUserLocation &&
+        !oldWidget.preferUserLocation &&
+        widget.points.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusUserLocation(auto: true);
+      });
+      return;
+    }
 
     if ((_focusImportedArea && pointsChanged && widget.points.isNotEmpty) ||
         pointsWereCleared ||
-        retiroChangedWhileEditingEmptyPiquete) {
+        retiroChangedWhileEditingEmptyPiquete ||
+        piqueteAreasChanged) {
       _focusImportedArea = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _fitToVisibleArea();
@@ -815,6 +829,10 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
       .map((point) => '${point.latitude.toStringAsFixed(7)},'
           '${point.longitude.toStringAsFixed(7)}')
       .join(';');
+
+  String _areasSignature(List<PiqueteMapArea> areas) => areas
+      .map((area) => '${area.name}:${_pointsSignature(area.points)}')
+      .join('|');
 
   Future<void> _focusUserLocation({bool auto = false}) async {
     if (_locatingUser) return;

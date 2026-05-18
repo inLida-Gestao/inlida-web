@@ -19,6 +19,7 @@ class PiqueteBackendStore extends ChangeNotifier {
 
   static const semRetiroId = '';
 
+  String? _loadedPropertyId;
   bool loading = false;
   String? errorMessage;
   String? selectedRetiroId;
@@ -49,6 +50,7 @@ class PiqueteBackendStore extends ChangeNotifier {
 
   Future<void> load() async {
     await _run(() async {
+      _syncPropertyContext();
       final summariesFuture = _repository.listarRetirosComResumo();
       final piquetesSemRetiroFuture = _repository.listarPiquetesSemRetiro();
       final summaries = await summariesFuture;
@@ -99,26 +101,40 @@ class PiqueteBackendStore extends ChangeNotifier {
   }
 
   Future<void> selectRetiro(String retiroId) async {
-    selectedRetiroId = retiroId;
     if (retiroId.isEmpty) {
-      await _run(_loadPiquetesSemRetiro);
+      await _run(() async {
+        _syncPropertyContext();
+        selectedRetiroId = retiroId;
+        await _loadPiquetesSemRetiro();
+      });
       return;
     }
-    await _run(() => _loadPiquetesDoRetiro(retiroId));
+    await _run(() async {
+      _syncPropertyContext();
+      selectedRetiroId = retiroId;
+      await _loadPiquetesDoRetiro(retiroId);
+    });
   }
 
   Future<void> selectPiquetesSemRetiro() async {
-    selectedRetiroId = semRetiroId;
-    await _run(_loadPiquetesSemRetiro);
+    await _run(() async {
+      _syncPropertyContext();
+      selectedRetiroId = semRetiroId;
+      await _loadPiquetesSemRetiro();
+    });
   }
 
   Future<void> loadOptions({String piqueteId = ''}) async {
-    await _run(() => _loadOptionsRaw(piqueteId: piqueteId));
+    await _run(() async {
+      _syncPropertyContext();
+      await _loadOptionsRaw(piqueteId: piqueteId);
+    });
   }
 
   Future<PiquetePrototype?> loadPiqueteDetail(String piqueteId) async {
     PiquetePrototype? loaded;
     await _run(() async {
+      _syncPropertyContext();
       final detail = await _repository.buscarPiqueteDetalhe(piqueteId);
       final historico = await _repository.buscarPiqueteHistorico(
         detail.piquete.id,
@@ -197,6 +213,7 @@ class PiqueteBackendStore extends ChangeNotifier {
   }) async {
     late RetiroPrototype retiro;
     await _run(() async {
+      _syncPropertyContext();
       final summary = await _repository.salvarRetiro(
         nome: nome,
         areaHa: areaHa,
@@ -224,6 +241,7 @@ class PiqueteBackendStore extends ChangeNotifier {
   }) async {
     late PiquetePrototype piquete;
     await _run(() async {
+      _syncPropertyContext();
       final detail = await _repository.salvarPiquete(
         retiroId: retiroId,
         nome: nome,
@@ -245,6 +263,7 @@ class PiqueteBackendStore extends ChangeNotifier {
   Future<PiquetePrototype> updatePiquete(PiquetePrototype piquete) async {
     late PiquetePrototype updated;
     await _run(() async {
+      _syncPropertyContext();
       final detail = await _repository.salvarPiquete(
         piqueteId: piquete.id,
         retiroId: piquete.retiroId,
@@ -266,6 +285,7 @@ class PiqueteBackendStore extends ChangeNotifier {
 
   Future<void> deletePiquete(String piqueteId) async {
     await _run(() async {
+      _syncPropertyContext();
       await _repository.excluirPiquete(piqueteId);
       _piquetes.removeWhere((piquete) => piquete.id == piqueteId);
       await load();
@@ -306,6 +326,22 @@ class PiqueteBackendStore extends ChangeNotifier {
     final detalhes = await _repository.listarPiquetesSemRetiro();
     _piquetes.removeWhere((piquete) => piquete.retiroId.isEmpty);
     _piquetes.addAll(detalhes.map((detail) => detail.piquete));
+  }
+
+  void _syncPropertyContext() {
+    final currentPropertyId = _repository.idPropriedade;
+    if (_loadedPropertyId == currentPropertyId) return;
+
+    _loadedPropertyId = currentPropertyId;
+    _retiros.clear();
+    _piquetes.clear();
+    _animais.clear();
+    _lotes.clear();
+    _historicoPorPiquete.clear();
+    selectedRetiroId = null;
+    totalPiquetes = 0;
+    totalAnimais = 0;
+    totalLotes = 0;
   }
 
   int _totalAnimaisDosPiquetes(Iterable<PiquetePrototype> piquetes) {

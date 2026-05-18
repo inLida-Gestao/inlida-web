@@ -27,6 +27,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final _store = PiqueteBackendStore.instance;
+  late final VoidCallback _disposePiqueteRefresh;
 
   @override
   void initState() {
@@ -36,17 +37,27 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     _model.textController ??= TextEditingController();
     _model.textFieldFocusNode ??= FocusNode();
     _store.addListener(_onStoreChanged);
+    _disposePiqueteRefresh = FFAppState().onRefresh(
+      'refreshPiquete',
+      _handlePiqueteRefresh,
+    );
     _loadPiquetes();
   }
 
   @override
   void dispose() {
+    _disposePiqueteRefresh();
     _store.removeListener(_onStoreChanged);
     _model.dispose();
     super.dispose();
   }
 
   void _onStoreChanged() => safeSetState(() {});
+
+  void _handlePiqueteRefresh() {
+    _model.textController?.clear();
+    _loadPiquetes();
+  }
 
   Future<void> _loadPiquetes() async {
     try {

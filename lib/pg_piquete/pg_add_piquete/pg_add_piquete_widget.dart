@@ -23,6 +23,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
   late PgAddPiqueteModel _model;
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final _store = PiqueteBackendStore.instance;
+  late final VoidCallback _disposePiqueteRefresh;
+  int _formVersion = 0;
 
   @override
   void initState() {
@@ -30,12 +32,17 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
     _model = createModel(context, () => PgAddPiqueteModel());
     FFAppState().navegacao = 'piquetes';
     _store.addListener(_onStoreChanged);
+    _disposePiqueteRefresh = FFAppState().onRefresh(
+      'refreshPiquete',
+      _handlePiqueteRefresh,
+    );
     _loadFormData();
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override
   void dispose() {
+    _disposePiqueteRefresh();
     _store.removeListener(_onStoreChanged);
     _model.dispose();
     super.dispose();
@@ -43,11 +50,14 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
 
   void _onStoreChanged() => safeSetState(() {});
 
+  void _handlePiqueteRefresh() {
+    safeSetState(() => _formVersion++);
+    _loadFormData();
+  }
+
   Future<void> _loadFormData() async {
     try {
-      if (_store.retiros.isEmpty) {
-        await _store.load();
-      }
+      await _store.load();
       await _store.loadOptions();
     } catch (_) {
       // A mensagem amigável fica no store e é exibida na tela.
@@ -100,6 +110,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
               )
             else
               PiqueteFormMockWidget(
+                key: ValueKey(_formVersion),
                 onCancel: () => context.safePop(),
                 onSave: (result) async {
                   try {
