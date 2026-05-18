@@ -97,10 +97,10 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           children: [
             PrototypePageHeader(
               title: 'Piquetes',
-              subtitle: 'Retiros e áreas de pastejo',
+              subtitle: 'Limites da propriedade e áreas de pastejo',
               actions: [
                 PrototypeSecondaryButton(
-                  label: 'Adicionar retiro',
+                  label: 'Adicionar limites',
                   icon: Icons.map_outlined,
                   onPressed: _showRetiroDialog,
                 ),
@@ -120,7 +120,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                 SizedBox(
                   width: 280,
                   child: PrototypeMetricCard(
-                    title: 'Retiros cadastrados',
+                    title: 'Limites cadastrados',
                     value: _store.retiros.length.toString(),
                     icon: Icons.map_rounded,
                   ),
@@ -186,7 +186,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                   child: PrototypeEmptyState(
                     title: 'Nenhum piquete cadastrado',
                     message:
-                        'Você pode cadastrar piquetes diretamente ou criar um retiro para agrupar áreas maiores da fazenda.',
+                        'Você pode cadastrar piquetes diretamente ou criar limites da propriedade para agrupar áreas maiores da fazenda.',
                     icon: Icons.crop_square_rounded,
                     action: Wrap(
                       alignment: WrapAlignment.center,
@@ -200,7 +200,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                               context.pushNamed(PgAddPiqueteWidget.routeName),
                         ),
                         PrototypeSecondaryButton(
-                          label: 'Criar retiro',
+                          label: 'Criar limites',
                           icon: Icons.add_location_alt_outlined,
                           onPressed: _showRetiroDialog,
                         ),
@@ -251,7 +251,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Retiros',
+            'Limites da propriedade',
             style: GoogleFonts.poppins(
               color: theme.primaryText,
               fontSize: 20,
@@ -260,7 +260,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Selecione um retiro ou veja os piquetes sem retiro.',
+            'Selecione os limites ou veja os piquetes sem vínculo.',
             style: GoogleFonts.poppins(
               color: theme.secondaryText,
               fontSize: 13,
@@ -293,7 +293,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Sem retiro',
+                            'Sem limites',
                             style: GoogleFonts.poppins(
                               color: _store.mostrandoPiquetesSemRetiro
                                   ? theme.secondary
@@ -310,7 +310,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Piquetes avulsos da propriedade',
+                      'Piquetes sem vínculo com limites',
                       style: GoogleFonts.poppins(
                         color: theme.secondaryText,
                         fontSize: 13,
@@ -392,7 +392,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             PrototypePrimaryButton(
-              label: 'Editar retiro',
+              label: 'Editar limites',
               icon: Icons.edit_location_alt_outlined,
               onPressed: () => _showRetiroDialog(initial: retiro),
             ),
@@ -429,7 +429,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Piquetes neste retiro',
+                          'Piquetes nestes limites',
                           style: GoogleFonts.poppins(
                             color: theme.primaryText,
                             fontSize: 20,
@@ -458,9 +458,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
               const SizedBox(height: 20),
               if (piquetes.isEmpty)
                 PrototypeEmptyState(
-                  title: 'Nenhum piquete neste retiro',
+                  title: 'Nenhum piquete nestes limites',
                   message:
-                      'Adicione um piquete dentro do retiro selecionado para validar a ocupação por animais ou lotes.',
+                      'Adicione um piquete dentro dos limites selecionados para validar a ocupação por animais ou lotes.',
                   icon: Icons.crop_square_rounded,
                   action: PrototypePrimaryButton(
                     label: 'Adicionar piquete',
@@ -485,7 +485,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     return Column(
       children: [
         MapaDemarcacaoRealWidget(
-          title: 'Piquetes sem retiro',
+          title: 'Piquetes sem limites',
           points: const [],
           piqueteAreas: piquetesSemRetiro
               .where((piquete) => piquete.pontos.length > 1)
@@ -512,7 +512,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Piquetes sem retiro',
+                          'Piquetes sem limites',
                           style: GoogleFonts.poppins(
                             color: theme.primaryText,
                             fontSize: 20,
@@ -521,7 +521,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${piquetes.length} piquetes encontrados sem vínculo com Retiro',
+                          '${piquetes.length} piquetes encontrados sem vínculo com limites',
                           style: GoogleFonts.poppins(
                             color: theme.secondaryText,
                             fontSize: 13,
@@ -541,9 +541,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
               const SizedBox(height: 20),
               if (piquetes.isEmpty)
                 PrototypeEmptyState(
-                  title: 'Nenhum piquete sem retiro',
+                  title: 'Nenhum piquete sem limites',
                   message:
-                      'Adicione um piquete avulso para propriedades que não utilizam divisão por retiro.',
+                      'Adicione um piquete avulso para propriedades que não utilizam limites agrupadores.',
                   icon: Icons.crop_square_rounded,
                   action: PrototypePrimaryButton(
                     label: 'Adicionar piquete',
@@ -584,7 +584,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Resumo dos piquetes sem retiro',
+            'Resumo dos piquetes sem limites',
             style: GoogleFonts.poppins(
               color: theme.primaryText,
               fontSize: 20,
@@ -672,7 +672,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Resumo do retiro',
+            'Resumo dos limites da propriedade',
             style: GoogleFonts.poppins(
               color: theme.primaryText,
               fontSize: 20,
@@ -688,7 +688,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                   icon: Icons.map_outlined,
                   label: 'Área total',
                   value: '${retiro.areaHa.toStringAsFixed(0)} ha',
-                  helper: '${piquetes.length} piquetes neste retiro',
+                  helper: '${piquetes.length} piquetes nestes limites',
                 ),
                 _RetiroSummaryTile(
                   iconAsset: kPiqueteCowIconAsset,
@@ -918,9 +918,11 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         PrototypePageHeader(
-                          title: editing ? 'Editar retiro' : 'Criar retiro',
+                          title: editing
+                              ? 'Editar limites da propriedade'
+                              : 'Criar limites da propriedade',
                           subtitle: editing
-                              ? 'Ajuste dados e demarcação do retiro'
+                              ? 'Ajuste dados e demarcação dos limites'
                               : 'Demarque a área principal da fazenda',
                           actions: [
                             IconButton(
@@ -944,8 +946,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                 children: [
                                   _PrototypeTextField(
                                     controller: nomeController,
-                                    label: 'Nome do retiro',
-                                    hint: 'Ex.: Retiro Sede',
+                                    label: 'Nome dos limites',
+                                    hint: 'Ex.: Limites Sede',
                                   ),
                                   const SizedBox(height: 14),
                                   _PrototypeTextField(
@@ -970,7 +972,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                               ),
                             );
                             final map = MapaDemarcacaoRealWidget(
-                              title: 'Área do retiro',
+                              title: 'Área dos limites',
                               points: pontos,
                               editable: true,
                               height: mapHeight,
@@ -1029,7 +1031,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                             PrototypePrimaryButton(
                               label: editing
                                   ? 'Salvar alterações'
-                                  : 'Salvar retiro',
+                                  : 'Salvar limites',
                               icon: Icons.check_rounded,
                               onPressed: () {
                                 final nome = nomeController.text.trim();
@@ -1079,7 +1081,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                       SnackBar(
                                         content: Text(
                                           _store.errorMessage ??
-                                              'Não foi possível salvar o retiro.',
+                                              'Não foi possível salvar os limites da propriedade.',
                                         ),
                                         backgroundColor:
                                             FlutterFlowTheme.of(context).error,

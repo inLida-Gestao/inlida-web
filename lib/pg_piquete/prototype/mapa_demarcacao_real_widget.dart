@@ -187,7 +187,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
     }
 
     if (widget.editable && _points.isEmpty && _retiroLatLngPoints.isNotEmpty) {
-      return 'O contorno amarelo é o retiro. Desenhe o piquete em verde dentro dessa área.';
+      return 'O contorno amarelo são os limites da propriedade. Desenhe o piquete em verde dentro dessa área.';
     }
 
     if (widget.editable) {
@@ -200,7 +200,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
           : 'Piquetes em verde.';
     }
 
-    return 'Retiro em amarelo e piquete em verde.';
+    return 'Limites da propriedade em amarelo e piquete em verde.';
   }
 
   @override
@@ -1186,7 +1186,7 @@ class _MapLegend extends StatelessWidget {
         children: [
           _LegendItem(
             color: retiroColor,
-            label: 'Retiro',
+            label: 'Limites',
             textColor: theme.primaryText,
           ),
           if (hasPiquete) ...[

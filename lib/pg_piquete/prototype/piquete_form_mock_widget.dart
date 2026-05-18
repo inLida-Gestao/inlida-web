@@ -116,12 +116,12 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
                   SizedBox(
                     width: 340,
                     child: _DropdownField(
-                      label: 'Retiro',
+                      label: 'Limites da propriedade',
                       value: _retiroId,
                       items: [
                         const DropdownMenuItem(
                           value: PiqueteBackendStore.semRetiroId,
-                          child: Text('Sem retiro'),
+                          child: Text('Sem limites'),
                         ),
                         ..._store.retiros.map(
                           (r) => DropdownMenuItem(
@@ -177,7 +177,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         const SizedBox(height: 22),
         MapaDemarcacaoRealWidget(
           title: retiro == null
-              ? 'Demarcação do piquete sem retiro'
+              ? 'Demarcação do piquete sem limites'
               : 'Demarcação dentro de ${retiro.nome}',
           points: _pontos,
           retiroPoints: retiro?.pontos ?? const [],
@@ -308,7 +308,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         SnackBar(
           content: Text(
             _store.errorMessage ??
-                'Não foi possível carregar os piquetes deste retiro.',
+                'Não foi possível carregar os piquetes destes limites.',
           ),
           backgroundColor: FlutterFlowTheme.of(context).error,
         ),
