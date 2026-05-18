@@ -499,27 +499,11 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                       bottom: 10,
                       child: _AttributionLabel(label: _providerLabel),
                     ),
-                    if (!_hasMapboxToken)
-                      Positioned(
-                        left: 12,
-                        right: 12,
-                        top: 12,
-                        child: IgnorePointer(
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: _TokenNotice(
-                              text:
-                                  'Modo satélite demo. Configure MAPBOX_ACCESS_TOKEN para usar Mapbox.',
-                              color: theme.secondary,
-                            ),
-                          ),
-                        ),
-                      ),
                     if (_locationMessage != null)
                       Positioned(
                         left: 12,
                         right: 12,
-                        top: !_hasMapboxToken ? 52 : 12,
+                        top: 12,
                         child: IgnorePointer(
                           child: Align(
                             alignment: Alignment.topCenter,

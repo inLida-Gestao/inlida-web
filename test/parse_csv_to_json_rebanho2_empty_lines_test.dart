@@ -56,6 +56,30 @@ void main() {
     expect(row['pesoDesmama'], 180.5);
   });
 
+  test('parseCsvToJsonRebanho2 preserva numeroAnimal com parenteses', () async {
+    final csv = [
+      'numeroAnimal;sexo;categoria;raca\n',
+      '(R 261);Fêmea;Vaca Multipara;Nelore\n',
+      '(R 282 (BRINCO 11);Fêmea;Vaca Multipara;Nelore\n',
+    ].join();
+
+    final file = FFUploadedFile(
+      name: 'rebanho.csv',
+      bytes: Uint8List.fromList(latin1.encode(csv)),
+    );
+
+    final out = await parseCsvToJsonRebanho2(file);
+    expect(out, hasLength(2));
+
+    final row1 = out[0] as Map;
+    final row2 = out[1] as Map;
+
+    expect(row1['numeroAnimal'], '(R 261)');
+    expect(row1['sexo'], 'Fêmea');
+    expect(row2['numeroAnimal'], '(R 282 (BRINCO 11)');
+    expect(row2['sexo'], 'Fêmea');
+  });
+
   test('parseCsvToJsonRebanho2 lê Data_desmama de XLSX', () async {
     final excel = xl.Excel.createExcel();
     final sheet = excel['Sheet1'];
