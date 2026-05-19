@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+final Random _idRebanhoRandom = Random.secure();
+
 class _RebanhoParentLookup {
   final Map<String, String> byNumero;
   final Map<String, String> byNumeroData;
@@ -113,13 +115,22 @@ bool _resolveExistingAnimalId(
 }
 
 void _ensureIdRebanhoForRecords(List<dynamic> records) {
+  final usedIds = <String>{};
+  for (final record in records) {
+    if (record is! Map) continue;
+    final id = _asNonEmptyString(record['idRebanho']);
+    if (id != null) usedIds.add(id);
+  }
+
   for (var i = 0; i < records.length; i++) {
     final record = records[i];
     if (record is! Map) continue;
     final map = Map<String, dynamic>.from(record);
 
     if (_isMissingValue(map['idRebanho'])) {
-      map['idRebanho'] = _generateIdReproducao();
+      map['idRebanho'] = _generateUniqueIdReproducao(usedIds);
+    } else {
+      usedIds.add(map['idRebanho'].toString());
     }
 
     records[i] = map;
@@ -1039,8 +1050,17 @@ String? _cleanStringOrNull(dynamic value) {
 bool _isPlausibleImportIdentifier(String value) {
   final trimmed = value.trim();
   if (trimmed.isEmpty || trimmed.length > 80) return false;
-  if (!RegExp(r'[A-Za-z0-9]').hasMatch(trimmed)) return false;
-  return RegExp(r'^[A-Za-z0-9 _./#:\-()]+$').hasMatch(trimmed);
+
+  var hasLetterOrDigit = false;
+  for (final rune in trimmed.runes) {
+    if (_isWhitespaceRune(rune)) continue;
+    if (!_isAllowedImportTextRune(rune)) return false;
+    if (_isImportIdentifierLetterOrDigit(rune)) {
+      hasLetterOrDigit = true;
+    }
+  }
+
+  return hasLetterOrDigit;
 }
 
 bool _looksLikeCorruptedImportText(String value) {
@@ -1075,8 +1095,16 @@ bool _isAllowedImportTextRune(int rune) {
       (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
   final isDigit = rune >= 0x30 && rune <= 0x39;
   final isLatinLetter = rune >= 0x00C0 && rune <= 0x017F;
-  final isCommonPunctuation = '.,;:/_-#()+\'"'.runes.contains(rune);
+  final isCommonPunctuation = '.,;:/_-#()+@\'"'.runes.contains(rune);
   return isAsciiLetter || isDigit || isLatinLetter || isCommonPunctuation;
+}
+
+bool _isImportIdentifierLetterOrDigit(int rune) {
+  final isAsciiLetter =
+      (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
+  final isDigit = rune >= 0x30 && rune <= 0x39;
+  final isLatinLetter = rune >= 0x00C0 && rune <= 0x017F;
+  return isAsciiLetter || isDigit || isLatinLetter;
 }
 
 // Função auxiliar para preparar registros de pesagem
@@ -1327,10 +1355,21 @@ int _mojibakeScore(String value) {
 // Função auxiliar para gerar id_reproducao único
 String _generateIdReproducao() {
   const String chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  final Random random = Random();
 
-  return List.generate(20, (index) => chars[random.nextInt(chars.length)])
-      .join();
+  return List.generate(
+      20, (index) => chars[_idRebanhoRandom.nextInt(chars.length)]).join();
+}
+
+String _generateUniqueIdReproducao(Set<String> usedIds) {
+  for (var attempt = 0; attempt < 10; attempt++) {
+    final id = _generateIdReproducao();
+    if (usedIds.add(id)) return id;
+  }
+
+  final fallback =
+      '${DateTime.now().microsecondsSinceEpoch}${_generateIdReproducao()}';
+  usedIds.add(fallback);
+  return fallback;
 }
 
 // Função auxiliar para converter data de DD/MM/YYYY para YYYY-MM-DD

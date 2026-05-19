@@ -486,8 +486,17 @@ String? _cleanStringOrNull(dynamic value) {
 bool _isPlausibleImportIdentifier(String value) {
   final trimmed = value.trim();
   if (trimmed.isEmpty || trimmed.length > 80) return false;
-  if (!RegExp(r'[A-Za-z0-9]').hasMatch(trimmed)) return false;
-  return RegExp(r'^[A-Za-z0-9 _./#:\-()]+$').hasMatch(trimmed);
+
+  var hasLetterOrDigit = false;
+  for (final rune in trimmed.runes) {
+    if (_isWhitespaceRune(rune)) continue;
+    if (!_isAllowedImportTextRune(rune)) return false;
+    if (_isImportIdentifierLetterOrDigit(rune)) {
+      hasLetterOrDigit = true;
+    }
+  }
+
+  return hasLetterOrDigit;
 }
 
 bool _looksLikeCorruptedImportText(String value) {
@@ -522,8 +531,16 @@ bool _isAllowedImportTextRune(int rune) {
       (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
   final isDigit = rune >= 0x30 && rune <= 0x39;
   final isLatinLetter = (rune >= 0x00C0 && rune <= 0x017F);
-  final isCommonPunctuation = '.,;:/_-#()+\'"'.runes.contains(rune);
+  final isCommonPunctuation = '.,;:/_-#()+@\'"'.runes.contains(rune);
   return isAsciiLetter || isDigit || isLatinLetter || isCommonPunctuation;
+}
+
+bool _isImportIdentifierLetterOrDigit(int rune) {
+  final isAsciiLetter =
+      (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
+  final isDigit = rune >= 0x30 && rune <= 0x39;
+  final isLatinLetter = (rune >= 0x00C0 && rune <= 0x017F);
+  return isAsciiLetter || isDigit || isLatinLetter;
 }
 
 // Função auxiliar para decodificação customizada (fallback)

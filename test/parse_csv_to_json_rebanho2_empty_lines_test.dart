@@ -58,13 +58,16 @@ void main() {
 
   test('parseCsvToJsonRebanho2 preserva numeroAnimal com parenteses', () async {
     final csv = [
-      'numeroAnimal;numeroMatriz;sexo;categoria;raca\n',
-      '(R 261);R #282;Fêmea;Vaca Multipara;Nelore\n',
-      '(R 282 (BRINCO 11);T 265 - 4;Fêmea;Vaca Multipara;Nelore\n',
-      '(R #290 (BRINCO 06);T 03 - 7;Fêmea;Vaca Multipara;Nelore\n',
-      '- #282;T 276 - 8;Fêmea;Vaca Multipara;Nelore\n',
-      '#COMPRADA MOACIR;;Fêmea;Vaca Multipara;Nelore\n',
-      '- (T 254 - 10);;Fêmea;Vaca Multipara;Nelore\n',
+      'numeroAnimal;numeroMatriz;numeroReprodutor;sexo;categoria;raca\n',
+      '(R 261);R #282;;Fêmea;Vaca Multipara;Nelore\n',
+      '(R 282 (BRINCO 11);T 265 - 4;;Fêmea;Vaca Multipara;Nelore\n',
+      '(R #290 (BRINCO 06);T 03 - 7;;Fêmea;Vaca Multipara;Nelore\n',
+      '- #282;T 276 - 8;;Fêmea;Vaca Multipara;Nelore\n',
+      '#COMPRADA MOACIR;;;Fêmea;Vaca Multipara;Nelore\n',
+      '- (T 254 - 10);;;Fêmea;Vaca Multipara;Nelore\n',
+      '- #01;;;Fêmea;Novilha;Nelore\n',
+      '#01;;(GARROTE 13@);Macho;Bezerro;Nelore\n',
+      'LAMPIÃO;;;Macho;Touro;Nelore\n',
     ].join();
 
     final file = FFUploadedFile(
@@ -73,7 +76,7 @@ void main() {
     );
 
     final out = await parseCsvToJsonRebanho2(file);
-    expect(out, hasLength(6));
+    expect(out, hasLength(9));
 
     final row1 = out[0] as Map;
     final row2 = out[1] as Map;
@@ -81,6 +84,9 @@ void main() {
     final row4 = out[3] as Map;
     final row5 = out[4] as Map;
     final row6 = out[5] as Map;
+    final row7 = out[6] as Map;
+    final row8 = out[7] as Map;
+    final row9 = out[8] as Map;
 
     expect(row1['numeroAnimal'], '(R 261)');
     expect(row1['numeroMatriz'], 'R #282');
@@ -94,6 +100,12 @@ void main() {
     expect(row4['numeroMatriz'], 'T 276 - 8');
     expect(row5['numeroAnimal'], '#COMPRADA MOACIR');
     expect(row6['numeroAnimal'], '- (T 254 - 10)');
+    expect(row7['numeroAnimal'], '- #01');
+    expect(row7['sexo'], 'Fêmea');
+    expect(row8['numeroAnimal'], '#01');
+    expect(row8['numeroReprodutor'], '(GARROTE 13@)');
+    expect(row8['sexo'], 'Macho');
+    expect(row9['numeroAnimal'], 'LAMPIÃO');
   });
 
   test('parseCsvToJsonRebanho2 lê Data_desmama de XLSX', () async {
