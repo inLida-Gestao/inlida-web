@@ -24,13 +24,16 @@ class PopupRebanhosWidget extends StatefulWidget {
     bool? reproducao,
     this.tipoReproducao,
     bool? sanidade,
+    bool? mostrarTodasMatrizes,
   })  : reproducao = reproducao ?? false,
-        sanidade = sanidade ?? false;
+        sanidade = sanidade ?? false,
+        mostrarTodasMatrizes = mostrarTodasMatrizes ?? false;
 
   final String? sexo;
   final bool reproducao;
   final String? tipoReproducao;
   final bool sanidade;
+  final bool mostrarTodasMatrizes;
 
   @override
   State<PopupRebanhosWidget> createState() => _PopupRebanhosWidgetState();
@@ -709,8 +712,9 @@ class _PopupRebanhosWidgetState extends State<PopupRebanhosWidget> {
                                                 as Iterable<RebanhoDTStruct?>)
                                             .withoutNulls
                                             .where((e) =>
-                                                (e.status ==
-                                                    'Na propriedade') &&
+                                                (widget.mostrarTodasMatrizes ||
+                                                    (e.status ==
+                                                        'Na propriedade')) &&
                                                 (e.categoria != 'Bezerra') &&
                                                 (e.categoria != 'Bezerro'))
                                             .toList()

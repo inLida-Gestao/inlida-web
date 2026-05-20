@@ -13,6 +13,7 @@ import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/index.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
+import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -2687,22 +2688,24 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                             .transparent,
                                                                     onTap:
                                                                         () async {
-                                                                      await showDialog(
+                                                                      await showAlignedDialog(
                                                                         barrierColor:
                                                                             Colors.transparent,
                                                                         context:
                                                                             context,
+                                                                        isGlobal:
+                                                                            false,
+                                                                        avoidOverflow:
+                                                                            true,
+                                                                        targetAnchor:
+                                                                            const AlignmentDirectional(-1.0, 1.0).resolve(Directionality.of(context)),
+                                                                        followerAnchor:
+                                                                            const AlignmentDirectional(-1.0, -1.0).resolve(Directionality.of(context)),
                                                                         builder:
                                                                             (dialogContext) {
-                                                                          return Dialog(
-                                                                            elevation:
-                                                                                0,
-                                                                            insetPadding:
-                                                                                EdgeInsets.zero,
-                                                                            backgroundColor:
+                                                                          return Material(
+                                                                            color:
                                                                                 Colors.transparent,
-                                                                            alignment:
-                                                                                const AlignmentDirectional(0.0, -1.0).resolve(Directionality.of(context)),
                                                                             child:
                                                                                 GestureDetector(
                                                                               onTap: () {
@@ -2714,6 +2717,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                                 width: 370.0,
                                                                                 child: PopupRebanhosWidget(
                                                                                   sexo: 'Fêmea',
+                                                                                  mostrarTodasMatrizes: true,
                                                                                 ),
                                                                               ),
                                                                             ),
@@ -2892,22 +2896,24 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                             .transparent,
                                                                     onTap:
                                                                         () async {
-                                                                      await showDialog(
+                                                                      await showAlignedDialog(
                                                                         barrierColor:
                                                                             Colors.transparent,
                                                                         context:
                                                                             context,
+                                                                        isGlobal:
+                                                                            false,
+                                                                        avoidOverflow:
+                                                                            true,
+                                                                        targetAnchor:
+                                                                            const AlignmentDirectional(-1.0, 1.0).resolve(Directionality.of(context)),
+                                                                        followerAnchor:
+                                                                            const AlignmentDirectional(-1.0, -1.0).resolve(Directionality.of(context)),
                                                                         builder:
                                                                             (dialogContext) {
-                                                                          return Dialog(
-                                                                            elevation:
-                                                                                0,
-                                                                            insetPadding:
-                                                                                EdgeInsets.zero,
-                                                                            backgroundColor:
+                                                                          return Material(
+                                                                            color:
                                                                                 Colors.transparent,
-                                                                            alignment:
-                                                                                const AlignmentDirectional(0.0, -1.0).resolve(Directionality.of(context)),
                                                                             child:
                                                                                 GestureDetector(
                                                                               onTap: () {
