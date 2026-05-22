@@ -4365,7 +4365,12 @@ class _PgRebanhoAddNascimentoWidgetState
                                         ),
                                       ),
                                       FFButtonWidget(
-                                        onPressed: () async {
+                                        onPressed: _model.isSaving
+                                           ? null
+                                           : () async {
+                                          if (_model.isSaving) {
+                                            return;
+                                          }
                                           if ((_model.dropDownStatusValue ?? '')
                                               .isEmpty) {
                                             await showDialog(
@@ -4387,6 +4392,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                             );
                                             return;
                                           }
+                                          _model.isSaving = true;
+                                          safeSetState(() {});
                                           _model.idRebanho = null;
                                           safeSetState(() {});
                                           _model.idRebanho =
@@ -4528,16 +4535,21 @@ class _PgRebanhoAddNascimentoWidgetState
                                                 _model.dropDownLotesValue,
                                               ),
                                             );
-                                            _model.animaisLote = functions
-                                                .converterJSONparaLista(_model
-                                                    .loteSelecionado
-                                                    ?.firstOrNull
-                                                    ?.idAnimais)!
+                                            _model.animaisLote = (functions
+                                                        .converterJSONparaLista(
+                                                            _model
+                                                                .loteSelecionado
+                                                                ?.firstOrNull
+                                                                ?.idAnimais) ??
+                                                    <String>[])
                                                 .toList()
                                                 .cast<String>();
                                             safeSetState(() {});
-                                            _model.addToAnimaisLote(
-                                                _model.idRebanho!);
+                                            if (!_model.animaisLote
+                                                .contains(_model.idRebanho)) {
+                                              _model.addToAnimaisLote(
+                                                  _model.idRebanho!);
+                                            }
                                             safeSetState(() {});
                                             await LotesTable().update(
                                               data: {
@@ -4617,12 +4629,14 @@ class _PgRebanhoAddNascimentoWidgetState
                                           FFAppState().refreshRebanho = true;
                                           safeSetState(() {});
 
-                                          context.pushNamed(
+                                          context.goNamed(
                                               PgRebanhoWidget.routeName);
 
                                           safeSetState(() {});
                                         },
-                                        text: 'Salvar',
+                                        text: _model.isSaving
+                                            ? 'Salvando...'
+                                            : 'Salvar',
                                         options: FFButtonOptions(
                                           width: 160.0,
                                           height: 56.0,

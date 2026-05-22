@@ -4703,7 +4703,12 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                       ),
                     ),
                     FFButtonWidget(
-                      onPressed: () async {
+                      onPressed: _model.isSaving
+                          ? null
+                          : () async {
+                        if (_model.isSaving) {
+                          return;
+                        }
                         if ((_model.dropDownStatusValue == null) ||
                             (_model.dropDownStatusValue!.trim().isEmpty)) {
                           await showDialog(
@@ -4724,6 +4729,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                           );
                           return;
                         }
+                        _model.isSaving = true;
+                        safeSetState(() {});
                         _model.idRebanho = null;
                         safeSetState(() {});
                         _model.idRebanho = random_data.randomString(
@@ -4849,13 +4856,17 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                               _model.dropDownLotesValue,
                             ),
                           );
-                          _model.animaisLote = functions
-                              .converterJSONparaLista(_model
-                                  .loteSelecionado?.firstOrNull?.idAnimais)!
+                          _model.animaisLote = (functions.converterJSONparaLista(
+                                      _model.loteSelecionado?.firstOrNull
+                                          ?.idAnimais) ??
+                                  <String>[])
                               .toList()
                               .cast<String>();
                           safeSetState(() {});
-                          _model.addToAnimaisLote(_model.idRebanho!);
+                          if (!_model.animaisLote
+                              .contains(_model.idRebanho)) {
+                            _model.addToAnimaisLote(_model.idRebanho!);
+                          }
                           safeSetState(() {});
                           await LotesTable().update(
                             data: {
@@ -4943,7 +4954,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
 
                         safeSetState(() {});
                       },
-                      text: 'Salvar',
+                      text: _model.isSaving ? 'Salvando...' : 'Salvar',
                       options: FFButtonOptions(
                         width: 160.0,
                         height: 56.0,

@@ -9,6 +9,8 @@ class CcAddNascimentoModel extends FlutterFlowModel<CcAddNascimentoWidget> {
 
   String? idRebanho;
 
+  bool isSaving = false;
+
   List<String> animaisLote = [];
   void addToAnimaisLote(String item) => animaisLote.add(item);
   void removeFromAnimaisLote(String item) => animaisLote.remove(item);
