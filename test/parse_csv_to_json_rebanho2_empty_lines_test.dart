@@ -56,6 +56,26 @@ void main() {
     expect(row['pesoDesmama'], 180.5);
   });
 
+  test('parseCsvToJsonRebanho2 mapeia Data de desmama em CSV', () async {
+    final csv = [
+      'Numero;Data de desmama;Peso de desmama\n',
+      '123;15/01/2024;180,5\n',
+    ].join();
+
+    final file = FFUploadedFile(
+      name: 'rebanho.csv',
+      bytes: Uint8List.fromList(csv.codeUnits),
+    );
+
+    final out = await parseCsvToJsonRebanho2(file);
+    expect(out, hasLength(1));
+
+    final row = out.first as Map;
+    expect(row['numeroAnimal'], '123');
+    expect(row['dataDesmama'], '15/01/2024');
+    expect(row['pesoDesmama'], 180.5);
+  });
+
   test('parseCsvToJsonRebanho2 preserva numeroAnimal com parenteses', () async {
     final csv = [
       'numeroAnimal;numeroMatriz;numeroReprodutor;sexo;categoria;raca\n',

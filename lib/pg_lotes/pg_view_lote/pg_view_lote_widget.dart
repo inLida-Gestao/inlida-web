@@ -4011,6 +4011,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                                                       },
                                                                                                       child: ModalMoreWidget(
                                                                                                         rebanhoId: rebanhosItem.id,
+                                                                                                        returnToLoteId: widget.idLote,
+                                                                                                        returnToLoteNome: widget.loteNome,
                                                                                                       ),
                                                                                                     ),
                                                                                                   );

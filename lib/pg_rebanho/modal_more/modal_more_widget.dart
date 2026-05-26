@@ -18,9 +18,13 @@ class ModalMoreWidget extends StatefulWidget {
   const ModalMoreWidget({
     super.key,
     required this.rebanhoId,
+    this.returnToLoteId,
+    this.returnToLoteNome,
   });
 
   final int? rebanhoId;
+  final String? returnToLoteId;
+  final String? returnToLoteNome;
 
   @override
   State<ModalMoreWidget> createState() => _ModalMoreWidgetState();
@@ -109,10 +113,13 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                     _model.indexCrias = 0;
                     safeSetState(() {});
                     while (_model.indexCrias < _model.criasMatriz!.length) {
-                      final criasMatrizRow = _model.criasMatriz?.elementAtOrNull(_model.indexCrias);
+                      final criasMatrizRow = _model.criasMatriz
+                          ?.elementAtOrNull(_model.indexCrias);
                       if ((criasMatrizRow?.id == widget.rebanhoId) ||
-                          (criasMatrizRow?.idRebanho == _model.rebanho?.firstOrNull?.idRebanho) ||
-                          (criasMatrizRow?.numeroAnimal == _model.rebanho?.firstOrNull?.numeroAnimal)) {
+                          (criasMatrizRow?.idRebanho ==
+                              _model.rebanho?.firstOrNull?.idRebanho) ||
+                          (criasMatrizRow?.numeroAnimal ==
+                              _model.rebanho?.firstOrNull?.numeroAnimal)) {
                         _model.indexCrias = _model.indexCrias + 1;
                         safeSetState(() {});
                         continue;
@@ -185,10 +192,13 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                     _model.indexCrias = 0;
                     safeSetState(() {});
                     while (_model.indexCrias < _model.criasReprodutor!.length) {
-                      final criasReprodutorRow = _model.criasReprodutor?.elementAtOrNull(_model.indexCrias);
+                      final criasReprodutorRow = _model.criasReprodutor
+                          ?.elementAtOrNull(_model.indexCrias);
                       if ((criasReprodutorRow?.id == widget.rebanhoId) ||
-                          (criasReprodutorRow?.idRebanho == _model.rebanho?.firstOrNull?.idRebanho) ||
-                          (criasReprodutorRow?.numeroAnimal == _model.rebanho?.firstOrNull?.numeroAnimal)) {
+                          (criasReprodutorRow?.idRebanho ==
+                              _model.rebanho?.firstOrNull?.idRebanho) ||
+                          (criasReprodutorRow?.numeroAnimal ==
+                              _model.rebanho?.firstOrNull?.numeroAnimal)) {
                         _model.indexCrias = _model.indexCrias + 1;
                         safeSetState(() {});
                         continue;
@@ -463,12 +473,23 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                   }(),
                 );
 
+                if (!context.mounted) {
+                  return;
+                }
                 context.pushNamed(
                   PgRebanhoEditWidget.routeName,
                   queryParameters: {
                     'rebanhoId': serializeParam(
                       widget.rebanhoId,
                       ParamType.int,
+                    ),
+                    'returnToLoteId': serializeParam(
+                      widget.returnToLoteId,
+                      ParamType.String,
+                    ),
+                    'returnToLoteNome': serializeParam(
+                      widget.returnToLoteNome,
+                      ParamType.String,
                     ),
                   }.withoutNulls,
                   extra: <String, dynamic>{
