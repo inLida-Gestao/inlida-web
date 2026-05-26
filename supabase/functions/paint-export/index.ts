@@ -1,5 +1,4 @@
-// Edge Function `paint-export` — gera o ZIP no formato PAINT.
-// Padrão de auth/CORS espelha supabase/functions/taxa-prenhez/index.ts.
+// Edge Function `paint-export` — gera o ZIP no formato PAINT (homologação 000460).
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
@@ -7,7 +6,7 @@ import { JSZip } from "https://deno.land/x/jszip@0.11.0/mod.ts";
 
 import { GENERATORS, genUltimaTransmissao, type ExportContext, type PaintConfig }
   from "./lib/generators.ts";
-import { PAINT_FILES } from "./lib/layouts.ts";
+import { PAINT_FILES, PAINT_ZIP_FILES } from "./lib/layouts.ts";
 import { encodeWin1252, formatDate, formatTime } from "./lib/fixed-width.ts";
 
 const CORS_HEADERS = {
@@ -36,11 +35,47 @@ function buildZipName(codTransm: string, now: Date): string {
 
 function countLines(content: string): number {
   if (!content) return 0;
-  // joinLines termina com CRLF; divide por CRLF e remove vazio final.
   const parts = content.split("\r\n");
   if (parts.length > 0 && parts[parts.length - 1] === "") parts.pop();
   return parts.length;
 }
+
+const GENERATION_ORDER = [
+  "PARAMETROS",
+  "FAZENDA",
+  "RACA",
+  "REGIME_ALIMENTAR",
+  "INSEMINADOR",
+  "GRUPO_MANEJO",
+  "LOCALIDADE",
+  "AVALIADOR",
+  "SAFRA",
+  "ANIMAL",
+  "BAIXA",
+  "COMPOSICAO_RACIAL",
+  "COBERTURA",
+  "NASCIMENTO",
+  "ANO_SOBREANO",
+  "DESMAMA",
+  "DIAGNOSTICO",
+  "ESTOQUE",
+  "PESAGEM",
+  "RAH",
+  "SAFRA_X_ANIMAL",
+  "TOURO_MULTIPLO",
+  "ANIMAL_DELETE",
+  "ANO_SOBREANO_DELETE",
+  "BAIXA_DELETE",
+  "COBERTURA_DELETE",
+  "COMPOSICAO_RACIAL_DELETE",
+  "DESMAMA_DELETE",
+  "DIAGNOSTICO_DELETE",
+  "ESTOQUE_DELETE",
+  "FAZENDA_DELETE",
+  "GRUPO_MANEJO_DELETE",
+  "NASCIMENTO_DELETE",
+  "SAFRA_DELETE",
+];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -71,7 +106,6 @@ serve(async (req) => {
     },
   );
 
-  // Valida acesso à propriedade pelo RLS de paint_fazenda_config.
   const { data: configRows, error: configError } = await supa
     .from("paint_fazenda_config")
     .select("*")
@@ -94,7 +128,6 @@ serve(async (req) => {
     .eq("idPropriedade", idPropriedade)
     .limit(1);
 
-  // Cria job em status running.
   const userId = (await supa.auth.getUser()).data.user?.id ?? null;
   const { data: jobRows, error: jobErr } = await supa
     .from("paint_export_job")
@@ -124,69 +157,41 @@ serve(async (req) => {
       generationDateTime: now,
     };
 
-    // Ordem: ANIMAL primeiro para popular o cache de A12 usado pelos demais.
-    const order = [
-      "ANIMAL",
-      "BAIXA",
-      "COMPOSICAO_RACIAL",
-      "COBERTURA",
-      "NASCIMENTO",
-      "ANO_SOBREANO",
-      "AVALIADOR",
-      "DESMAMA",
-      "DIAGNOSTICO",
-      "ESTOQUE",
-      "FAZENDA",
-      "GRUPO_MANEJO",
-      "INSEMINADOR",
-      "LOCALIDADE",
-      "PESAGEM",
-      "RACA",
-      "RAH",
-      "REGIME_ALIMENTAR",
-      "SAFRA",
-      "SAFRA_X_ANIMAL",
-      "TOURO_MULTIPLO",
-    ];
-
-    // Pré-monta ZIP incrementalmente: para cada arquivo, gera string,
-    // encoda Win1252 em Uint8Array, adiciona ao zip e descarta a string.
-    // Isso evita manter 22 strings grandes em memória ao mesmo tempo.
     const zip = new JSZip();
     const counts: Record<string, number> = {};
     let lastLogTs = Date.now();
-    for (const name of order) {
+
+    for (const name of GENERATION_ORDER) {
       const gen = GENERATORS[name];
       let content = "";
       if (gen) content = await gen(ctx);
-      counts[name] = countLines(content);
+      counts[name.replace("_DELETE", "")] = counts[name.replace("_DELETE", "")] ??
+        countLines(content);
+      if (!name.endsWith("_DELETE")) {
+        counts[name] = countLines(content);
+      } else {
+        counts[name] = countLines(content);
+      }
       zip.addFile(`${name}.TXT`, encodeWin1252(content));
-      const ts = Date.now();
       console.log(
-        `[paint-export] ${name}.TXT lines=${counts[name]} bytes≈${content.length} elapsed=${ts - lastLogTs}ms`,
+        `[paint-export] ${name}.TXT lines=${countLines(content)} elapsed=${Date.now() - lastLogTs}ms`,
       );
-      lastLogTs = ts;
-      // Libera caches grandes assim que possível.
-      if (name === "NASCIMENTO") {
-        ctx.rebanhoRows = undefined;
-      }
-      if (name === "COBERTURA") {
-        ctx.reproducaoRows = undefined;
-      }
-      if (name === "PESAGEM") {
-        ctx.pesagemRows = undefined;
-      }
+      lastLogTs = Date.now();
+
+      if (name === "NASCIMENTO") ctx.rebanhoRows = undefined;
+      if (name === "COBERTURA") ctx.reproducaoRows = undefined;
+      if (name === "PESAGEM") ctx.pesagemRows = undefined;
     }
 
-    // ULTIMA_TRANSMISSAO depende dos counts dos demais — gera por último.
-    {
-      const utr = await genUltimaTransmissao(ctx, counts);
-      counts["ULTIMA_TRANSMISSAO"] = countLines(utr);
-      zip.addFile("ULTIMA_TRANSMISSAO.TXT", encodeWin1252(utr));
-    }
+    const utr = await genUltimaTransmissao(ctx, counts);
+    counts["ULTIMA_TRANSMISSAO"] = countLines(utr);
+    zip.addFile("ULTIMA_TRANSMISSAO.TXT", encodeWin1252(utr));
 
-    // Sanity check: garante que todos os 22 arquivos oficiais foram adicionados
-    // (ESTOQUE.TXT vazio inclusive, conforme manual).
+    for (const name of PAINT_ZIP_FILES) {
+      if (!zip.file(`${name}.TXT`)) {
+        zip.addFile(`${name}.TXT`, encodeWin1252(""));
+      }
+    }
     for (const name of PAINT_FILES) {
       if (!zip.file(`${name}.TXT`)) {
         zip.addFile(`${name}.TXT`, encodeWin1252(""));
@@ -218,6 +223,11 @@ serve(async (req) => {
       total_animais: counts.ANIMAL ?? 0,
       finished_at: new Date().toISOString(),
     }).eq("id", jobId);
+
+    await supa.from("paint_registro_excluido")
+      .update({ exportado_em: new Date().toISOString() })
+      .eq("id_propriedade", idPropriedade)
+      .is("exportado_em", null);
 
     return jsonResponse(200, {
       ok: true,

@@ -103,22 +103,23 @@ export const LAYOUTS: Record<string, Field[]> = {
   ],
 
   // ---------------------------------------------------------------------------
-  // BAIXA — 13 campos, fim 170
+  // BAIXA — homologado sample 000460, fim 215 (170 + reserva 45)
   // ---------------------------------------------------------------------------
   BAIXA: [
     f("bai_parceiro", "C", 6, 1, 6),
     f("bai_animal_A12", "C", 12, 7, 18),
     f("bai_fazenda", "C", 30, 19, 48),
     f("bai_animal", "C", 5, 49, 53),
-    f("bai_data_morte", "C", 10, 54, 63),
+    f("bai_data_morte", "D", 10, 54, 63),
     f("bai_motivo", "C", 15, 64, 78),
     f("bai_preco", "N", 10, 79, 88),
-    f("bai_data_inclusao", "C", 10, 89, 98),
+    f("bai_data_inclusao", "D", 10, 89, 98),
     f("bai_obs", "C", 40, 99, 138),
     f("bai_data_alteracao", "D", 10, 139, 148),
-    f("bai_hora_alteracao", "D", 8, 149, 156),
+    f("bai_hora_alteracao", "C", 8, 149, 156),
     f("bai_enviar", "C", 5, 157, 161),
     f("bai_recno", "N", 9, 162, 170),
+    f("bai_reserva", "C", 45, 171, 215),
   ],
 
   // ---------------------------------------------------------------------------
@@ -216,9 +217,31 @@ export const LAYOUTS: Record<string, Field[]> = {
   ],
 
   // ---------------------------------------------------------------------------
-  // ESTOQUE — sem campos (manual: arquivo vazio com nome ESTOQUE.txt).
+  // ESTOQUE — homologado sample 000460, fim 304
   // ---------------------------------------------------------------------------
-  ESTOQUE: [],
+  ESTOQUE: [
+    f("est_parceiro", "C", 6, 1, 6),
+    f("est_touro_a12", "C", 12, 7, 18),
+    f("est_codigo_fazenda", "C", 30, 19, 48),
+    f("est_descricao", "C", 30, 49, 78),
+    f("est_pad1", "C", 5, 79, 83),
+    f("est_data_aquisicao", "D", 10, 84, 93),
+    f("est_tipo_operacao", "C", 10, 94, 103),
+    f("est_quantidade", "N", 8, 104, 111),
+    f("est_pad2", "C", 9, 112, 120),
+    f("est_valor_unitario", "N", 8, 121, 128),
+    f("est_valor_total", "N", 9, 129, 137),
+    f("est_coeficiente", "N", 6, 138, 143),
+    f("est_data_inclusao", "D", 10, 144, 153),
+    f("est_data_alteracao", "D", 10, 154, 163),
+    f("est_hora_alteracao", "C", 8, 164, 171),
+    f("est_enviar", "C", 5, 172, 176),
+    f("est_recno", "N", 9, 177, 185),
+    f("est_codigo_partida", "C", 6, 186, 191),
+    f("est_obs", "C", 35, 192, 220),
+    f("est_status", "C", 4, 221, 224),
+    f("est_reserva", "C", 80, 225, 304),
+  ],
 
   // ---------------------------------------------------------------------------
   // FAZENDA — 19 campos, fim 426
@@ -261,7 +284,7 @@ export const LAYOUTS: Record<string, Field[]> = {
   ],
 
   // ---------------------------------------------------------------------------
-  // INSEMINADOR — 10 campos, fim 109
+  // INSEMINADOR — homologado sample 000460, fim 110
   // ---------------------------------------------------------------------------
   INSEMINADOR: [
     f("ins_parceiro", "C", 6, 1, 6),
@@ -274,6 +297,7 @@ export const LAYOUTS: Record<string, Field[]> = {
     f("ins_hora_alteracao", "C", 8, 88, 95),
     f("ins_enviar", "C", 5, 96, 100),
     f("ins_recno", "N", 9, 101, 109),
+    f("ins_tipo", "C", 1, 110, 110),
   ],
 
   // ---------------------------------------------------------------------------
@@ -357,18 +381,44 @@ export const LAYOUTS: Record<string, Field[]> = {
   ],
 
   // ---------------------------------------------------------------------------
-  // RACA — lookup do PAINT. Layout estimado (não foi explicitado no Anexo I
-  // que foi possível ler): código(2) + descrição(20) + período(N 8) + min(N 8)
-  // + max(N 8) + recno(N 9). TODO: validar com PAINT contra sample (RACA.TXT
-  // do 000460 tem linhas de ~55 chars). Por ora seguindo melhor estimativa.
+  // RACA — homologado sample 000460, fim 188
   // ---------------------------------------------------------------------------
   RACA: [
-    f("rac_codigo", "C", 2, 1, 2),
-    f("rac_descricao", "C", 20, 3, 22),
-    f("rac_gestacao_med", "N", 8, 23, 30),
-    f("rac_gestacao_min", "N", 8, 31, 38),
-    f("rac_gestacao_max", "N", 8, 39, 46),
-    f("rac_recno", "N", 9, 47, 55),
+    f("rac_parceiro", "C", 6, 1, 6),
+    f("rac_codigo", "C", 2, 7, 8),
+    f("rac_descricao", "C", 62, 9, 70),
+    f("rac_gestacao_max", "N", 8, 71, 78),
+    f("rac_gestacao_med", "N", 8, 79, 86),
+    f("rac_gestacao_min", "N", 8, 87, 94),
+    f("rac_extra1", "N", 8, 95, 102),
+    f("rac_extra2", "N", 8, 103, 110),
+    f("rac_extra3", "N", 8, 111, 118),
+    f("rac_pad", "C", 28, 119, 146),
+    f("rac_data_inclusao", "D", 10, 147, 156),
+    f("rac_data_alteracao", "D", 10, 157, 166),
+    f("rac_hora_alteracao", "C", 8, 167, 174),
+    f("rac_enviar", "C", 5, 175, 179),
+    f("rac_recno", "N", 9, 180, 188),
+  ],
+
+  // ---------------------------------------------------------------------------
+  // PARAMETROS — homologado sample 000460, fim 162
+  // ---------------------------------------------------------------------------
+  PARAMETROS: [
+    f("par_parceiro", "C", 6, 1, 6),
+    f("par_id_instalacao", "C", 20, 7, 26),
+    f("par_chave", "C", 8, 27, 34),
+    f("par_sep1", "C", 2, 35, 36),
+    f("par_ip", "C", 15, 37, 51),
+    f("par_pad1", "C", 25, 52, 76),
+    f("par_porta", "C", 2, 77, 78),
+    f("par_sep2", "C", 2, 79, 80),
+    f("par_versao", "C", 8, 81, 88),
+    f("par_pad2", "C", 9, 89, 97),
+    f("par_data_exportacao", "D", 10, 98, 107),
+    f("par_pad3", "C", 40, 108, 147),
+    f("par_data_instalacao", "D", 10, 148, 157),
+    f("par_enviar", "C", 5, 158, 162),
   ],
 
   // ---------------------------------------------------------------------------
@@ -516,6 +566,29 @@ export const PAINT_FILES = [
   "SAFRA_X_ANIMAL",
   "TOURO_MULTIPLO",
   "ULTIMA_TRANSMISSAO",
+] as const;
+
+/** Entidades com arquivo *_DELETE.TXT no sample 000460. */
+export const PAINT_DELETE_ENTITIES = [
+  "ANIMAL",
+  "ANO_SOBREANO",
+  "BAIXA",
+  "COBERTURA",
+  "COMPOSICAO_RACIAL",
+  "DESMAMA",
+  "DIAGNOSTICO",
+  "ESTOQUE",
+  "FAZENDA",
+  "GRUPO_MANEJO",
+  "NASCIMENTO",
+  "SAFRA",
+] as const;
+
+/** Arquivos no ZIP de transmissão (sample 000460 + extras do módulo). */
+export const PAINT_ZIP_FILES = [
+  ...PAINT_FILES,
+  "PARAMETROS",
+  ...PAINT_DELETE_ENTITIES.map((e) => `${e}_DELETE`),
 ] as const;
 
 export type PaintFile = typeof PAINT_FILES[number];

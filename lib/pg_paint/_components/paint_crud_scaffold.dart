@@ -1,5 +1,8 @@
 import '/backend/supabase/supabase.dart';
 import '/componentes/header/header_widget.dart';
+import '/custom_code/actions/index.dart' as paint_actions;
+import '/custom_code/actions/paint_delete_payload.dart';
+import '/custom_code/actions/paint_excel_helpers.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -188,6 +191,22 @@ class _PaintCrudScaffoldState extends State<PaintCrudScaffold> {
     );
     if (confirmado != true) return;
     try {
+      final cfg = await loadPaintConfig(_idPropriedade);
+      if (cfg != null) {
+        final del = buildPaintDeleteRecord(
+          tableName: widget.tableName,
+          registro: registro,
+          config: cfg,
+        );
+        if (del != null) {
+          await paint_actions.registrarPaintExcluido(
+            _idPropriedade,
+            del['entidade'] as String?,
+            del['chave'] as String?,
+            Map<String, dynamic>.from(del['payload'] as Map),
+          );
+        }
+      }
       await SupaFlow.client
           .from(widget.tableName)
           .delete()

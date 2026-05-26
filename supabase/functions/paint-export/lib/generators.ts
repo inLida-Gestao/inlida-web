@@ -7,6 +7,7 @@ import { LAYOUTS } from "./layouts.ts";
 import {
   buildLine,
   formatA12,
+  type EstrategiaA12,
   formatDate,
   formatTime,
   formatNumeric,
@@ -19,6 +20,9 @@ export interface PaintConfig {
   codigo_transmissao: string; // 6 chars
   serie_fazenda: string; // até 4 chars
   codigo_fazenda: string; // 4 chars
+  programa?: string | null;
+  estrategia_a12?: EstrategiaA12 | null;
+  campo_origem_animal?: string | null;
 }
 
 export interface ExportContext {
@@ -38,21 +42,51 @@ export interface ExportContext {
   generationDateTime: Date;
 }
 
-// Calcula A12 de um animal Inlida usando: programa=P (default), serie=config,
-// animal=numeroAnimal (>5 chars trunca aos primeiros 5), ano=2 dígitos do
-// ano de nascimento.
+// Calcula A12 com a mesma regra usada no Flutter: o campo de origem do animal
+// vem de paint_fazenda_config.campo_origem_animal.
+type RebanhoPaintLike = {
+  numeroAnimal?: unknown;
+  dataNascimento?: unknown;
+  nome?: unknown;
+  chip?: unknown;
+  codRegistro?: unknown;
+};
+
+function asText(value: unknown): string {
+  return value === null || value === undefined ? "" : String(value).trim();
+}
+
 export function a12FromRebanho(
   config: PaintConfig,
-  numero: string | null | undefined,
-  dataNasc: string | null | undefined,
+  animalRow: RebanhoPaintLike,
 ): string {
-  const ano = dataNasc ? new Date(dataNasc).getUTCFullYear().toString() : "00";
+  const estrategia = (config.estrategia_a12 ?? "compacto") as EstrategiaA12;
+  const campo = config.campo_origem_animal ?? "numeroAnimal";
+  let animal = asText(animalRow.numeroAnimal);
+  if (campo === "nome") animal = asText(animalRow.nome) || animal;
+  else if (campo === "chip") animal = asText(animalRow.chip) || animal;
+  else if (campo === "codRegistro") {
+    animal = asText(animalRow.codRegistro) || animal;
+  }
+
+  const dataNasc = asText(animalRow.dataNascimento);
+  if (!animal || !dataNasc) return "";
+  const nasc = new Date(dataNasc);
+  if (isNaN(nasc.getTime())) return "";
+  const ano = nasc.getUTCFullYear().toString();
+
   return formatA12({
-    programa: "P",
+    programa: config.programa ?? "P",
     serieFazenda: config.serie_fazenda,
-    animal: numero ?? "",
+    animal,
     ano,
+    estrategia,
   });
+}
+
+function fazendaField(ctx: ExportContext): string {
+  const cod = (ctx.config.codigo_fazenda ?? "").toString();
+  return cod.padStart(30, " ").slice(0, 30);
 }
 
 // =============================================================================
@@ -107,7 +141,7 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
 
   // Cache para uso em outros geradores.
   for (const r of rows) {
-    const a12 = a12FromRebanho(ctx.config, r.numeroAnimal, r.dataNascimento);
+    const a12 = a12FromRebanho(ctx.config, r);
     if (r.idRebanho) ctx.a12ByRebanhoId.set(String(r.idRebanho), a12);
     if (r.idRebanho) ctx.numeroByRebanhoId.set(String(r.idRebanho), String(r.numeroAnimal ?? ""));
   }
@@ -128,10 +162,7 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
   let recno = 0;
   for (const r of rows) {
     recno += 1;
-    const ano = r.dataNascimento
-      ? new Date(r.dataNascimento).getUTCFullYear().toString().slice(-2)
-      : "00";
-    const a12 = a12FromRebanho(ctx.config, r.numeroAnimal, r.dataNascimento);
+    const a12 = a12FromRebanho(ctx.config, r);
     const paiA12 = r.rebanhoIdReprodutor && ctx.a12ByRebanhoId.has(String(r.rebanhoIdReprodutor))
       ? ctx.a12ByRebanhoId.get(String(r.rebanhoIdReprodutor))!
       : "";
@@ -140,7 +171,7 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
       : "";
     const row: Record<string, unknown> = {
       ani_parceiro: ctx.config.codigo_transmissao,
-      ani_programa: "P",
+      ani_programa: (ctx.config.programa ?? "P").toString().slice(0, 1),
       ani_serie_fazenda: ctx.config.serie_fazenda,
       ani_animal: truncToFive(r.numeroAnimal),
       ani_data_nasc: formatDate(r.dataNascimento),
@@ -418,10 +449,81 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
 }
 
 // =============================================================================
-// ESTOQUE — arquivo vazio (manual).
+// ESTOQUE — paint_estoque (homologado 000460).
 // =============================================================================
-async function genEstoque(): Promise<string> {
-  return "";
+async function genEstoque(ctx: ExportContext): Promise<string> {
+  return paintTableGenerator(ctx, "ESTOQUE", "paint_estoque", (r, recno) => ({
+    est_parceiro: ctx.config.codigo_transmissao,
+    est_touro_a12: r.touro_a12,
+    est_codigo_fazenda: fazendaField(ctx),
+    est_descricao: (r.descricao ?? "").toString().slice(0, 30),
+    est_pad1: "",
+    est_data_aquisicao: formatDate(r.data_aquisicao),
+    est_tipo_operacao: (r.tipo_operacao ?? "COMPRA").toString().slice(0, 10),
+    est_quantidade: formatNumeric(r.quantidade_doses, 8, 2),
+    est_pad2: "",
+    est_valor_unitario: formatNumeric(r.valor_unitario, 8, 2),
+    est_valor_total: formatNumeric(r.valor_total, 9, 2),
+    est_coeficiente: formatNumeric(r.coeficiente, 6, 2),
+    est_data_inclusao: formatDate(r.created_at),
+    est_data_alteracao: formatDate(r.updated_at ?? r.created_at),
+    est_hora_alteracao: ctx.generationTime,
+    est_enviar: "True ",
+    est_recno: recno,
+    est_codigo_partida: (r.codigo_partida ?? "").toString().slice(0, 6),
+    est_obs: (r.obs ?? "").toString().slice(0, 35),
+    est_status: (r.status_semen ?? "").toString().slice(0, 4),
+    est_reserva: "",
+  }));
+}
+
+// =============================================================================
+// PARAMETROS — metadados da transmissão (sample 000460).
+// =============================================================================
+async function genParametros(ctx: ExportContext): Promise<string> {
+  const layout = LAYOUTS.PARAMETROS;
+  const row: Record<string, unknown> = {
+    par_parceiro: ctx.config.codigo_transmissao,
+    par_id_instalacao: "paintfazenda",
+    par_chave: "inlida01",
+    par_sep1: "  ",
+    par_ip: "0.0.0.0       ",
+    par_pad1: "",
+    par_porta: "21",
+    par_sep2: "  ",
+    par_versao: "1.0.0   ",
+    par_pad2: "",
+    par_data_exportacao: ctx.generationDate,
+    par_pad3: "",
+    par_data_instalacao: formatDate(ctx.faz?.["created_at"] ?? ctx.generationDateTime),
+    par_enviar: "False",
+  };
+  return joinLines([buildLine(layout, row)]);
+}
+
+// =============================================================================
+// *_DELETE — registros em paint_registro_excluido (payload pré-montado).
+// =============================================================================
+async function genDelete(
+  ctx: ExportContext,
+  entidade: string,
+): Promise<string> {
+  const layout = LAYOUTS[entidade];
+  if (!layout || layout.length === 0) return "";
+
+  const { data: rows } = await ctx.supa
+    .from("paint_registro_excluido")
+    .select("id,payload")
+    .eq("id_propriedade", ctx.config.id_propriedade)
+    .eq("entidade", entidade)
+    .is("exportado_em", null);
+
+  const lines: string[] = [];
+  for (const r of rows ?? []) {
+    const payload = (r.payload ?? {}) as Record<string, unknown>;
+    lines.push(buildLine(layout, payload));
+  }
+  return joinLines(lines);
 }
 
 // =============================================================================
@@ -467,10 +569,10 @@ async function genBaixa(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "BAIXA", "paint_baixa", (r, recno) => ({
     bai_parceiro: ctx.config.codigo_transmissao,
     bai_animal_A12: r.animal_a12,
-    bai_fazenda: ctx.config.codigo_fazenda,
-    bai_animal: r.animal_a12 ? String(r.animal_a12).slice(7, 12).trim() : "",
+    bai_fazenda: fazendaField(ctx),
+    bai_animal: r.animal_a12 ? String(r.animal_a12).trim().slice(-5) : "",
     bai_data_morte: formatDate(r.data_morte),
-    bai_motivo: r.motivo,
+    bai_motivo: (r.motivo ?? "").toString().slice(0, 15),
     bai_preco: formatNumeric(r.preco ?? 0, 10, 2),
     bai_data_inclusao: formatDate(r.created_at),
     bai_obs: (r.obs ?? "").toString().slice(0, 40),
@@ -478,6 +580,7 @@ async function genBaixa(ctx: ExportContext): Promise<string> {
     bai_hora_alteracao: ctx.generationTime,
     bai_enviar: "True ",
     bai_recno: recno,
+    bai_reserva: "",
   }));
 }
 
@@ -542,12 +645,16 @@ async function genRah(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "RAH", "paint_avaliacao_rah", (r, recno) => ({
     rah_parceiro: ctx.config.codigo_transmissao,
     rah_animal_id: r.animal_a12,
-    rah_fazenda: ctx.config.codigo_fazenda,
+    rah_fazenda: fazendaField(ctx),
     rah_data: formatDate(r.data),
     rah_peso: formatNumeric(r.peso, 8, 2),
     rah_racial: formatNumeric(r.racial, 8, 2),
     rah_aprumos: formatNumeric(r.aprumos, 8, 2),
-    rah_harmonia: formatNumeric(r.harmonia, 8, 2),
+    rah_harmonia: formatNumeric(
+      r.harmonia ?? r.frame ?? r.pigmentacao,
+      8,
+      2,
+    ),
     rah_situacao_desclassifica: r.situacao_desclass ?? "",
     rah_data_inclusao: formatDate(r.created_at),
     rah_data_alteracao: formatDate(r.updated_at ?? r.created_at),
@@ -595,13 +702,14 @@ async function genInseminador(ctx: ExportContext): Promise<string> {
     ins_parceiro: ctx.config.codigo_transmissao,
     ins_id: r.codigo,
     ins_descri: (r.nome ?? "").toString().slice(0, 20),
-    ins_fazenda: ctx.config.codigo_fazenda,
+    ins_fazenda: fazendaField(ctx),
     ins_situacao: r.situacao ?? "ATIVO",
     ins_data_inclusao: formatDate(r.created_at),
     ins_data_alteracao: formatDate(r.updated_at ?? r.created_at),
     ins_hora_alteracao: ctx.generationTime,
     ins_enviar: "True ",
     ins_recno: recno,
+    ins_tipo: "I",
   }));
 }
 
@@ -744,12 +852,22 @@ async function genRaca(ctx: ExportContext): Promise<string> {
   let recno = 0;
   for (const r of rows) {
     recno += 1;
+    const enviar = recno === 1 ? "False" : "False";
     lines.push(buildLine(layout, {
+      rac_parceiro: ctx.config.codigo_transmissao,
       rac_codigo: r.codigo,
-      rac_descricao: (r.descricao ?? "").toString().slice(0, 20),
-      rac_gestacao_med: formatNumeric(r.gestacao_med ?? 0, 8, 0),
-      rac_gestacao_min: formatNumeric(r.gestacao_min ?? 0, 8, 0),
-      rac_gestacao_max: formatNumeric(r.gestacao_max ?? 0, 8, 0),
+      rac_descricao: (r.descricao ?? "").toString().slice(0, 62),
+      rac_gestacao_max: formatNumeric(r.gestacao_max ?? 0, 8, 2),
+      rac_gestacao_med: formatNumeric(r.gestacao_med ?? 0, 8, 2),
+      rac_gestacao_min: formatNumeric(r.gestacao_min ?? 0, 8, 2),
+      rac_extra1: formatNumeric(0, 8, 2),
+      rac_extra2: formatNumeric(0, 8, 2),
+      rac_extra3: formatNumeric(300, 8, 2),
+      rac_pad: "",
+      rac_data_inclusao: formatDate(r.created_at ?? "2005-04-27"),
+      rac_data_alteracao: formatDate(r.updated_at ?? "2005-04-27"),
+      rac_hora_alteracao: "11:36:57",
+      rac_enviar: enviar,
       rac_recno: recno,
     }));
   }
@@ -821,6 +939,19 @@ export const GENERATORS: Record<string, Generator> = {
   SAFRA: genSafra,
   SAFRA_X_ANIMAL: genSafraXAnimal,
   TOURO_MULTIPLO: genTouroMultiplo,
+  PARAMETROS: genParametros,
+  ANIMAL_DELETE: (ctx) => genDelete(ctx, "ANIMAL"),
+  ANO_SOBREANO_DELETE: (ctx) => genDelete(ctx, "ANO_SOBREANO"),
+  BAIXA_DELETE: (ctx) => genDelete(ctx, "BAIXA"),
+  COBERTURA_DELETE: (ctx) => genDelete(ctx, "COBERTURA"),
+  COMPOSICAO_RACIAL_DELETE: (ctx) => genDelete(ctx, "COMPOSICAO_RACIAL"),
+  DESMAMA_DELETE: (ctx) => genDelete(ctx, "DESMAMA"),
+  DIAGNOSTICO_DELETE: (ctx) => genDelete(ctx, "DIAGNOSTICO"),
+  ESTOQUE_DELETE: (ctx) => genDelete(ctx, "ESTOQUE"),
+  FAZENDA_DELETE: (ctx) => genDelete(ctx, "FAZENDA"),
+  GRUPO_MANEJO_DELETE: (ctx) => genDelete(ctx, "GRUPO_MANEJO"),
+  NASCIMENTO_DELETE: (ctx) => genDelete(ctx, "NASCIMENTO"),
+  SAFRA_DELETE: (ctx) => genDelete(ctx, "SAFRA"),
 };
 
-export { genUltimaTransmissao };
+export { genUltimaTransmissao, genDelete };

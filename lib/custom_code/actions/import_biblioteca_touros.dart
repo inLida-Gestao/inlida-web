@@ -38,7 +38,15 @@ Future<int> importBibliotecaTouros(FFUploadedFile? arquivo) async {
   if (iA12 < 0) {
     throw Exception('Coluna "A12" não encontrada na planilha.');
   }
-  final iNome = idx('nome');
+  final iNome = [
+    idx('nome_paint'),
+    idx('nome'),
+  ].firstWhere((i) => i >= 0, orElse: () => -1);
+  final iRegistro = [
+    idx('registro_paint'),
+    idx('registro'),
+    idx('a17'),
+  ].firstWhere((i) => i >= 0, orElse: () => -1);
   final iRaca = idx('raca');
   final iTipoReg = idx('tipo_registro');
   final iPaiA12 = idx('pai_a12');
@@ -52,15 +60,16 @@ Future<int> importBibliotecaTouros(FFUploadedFile? arquivo) async {
     final a12 = _celula(row, iA12);
     if (a12 == null || a12.isEmpty) continue;
     if (a12.length != 12) continue;
+    final registro = iRegistro >= 0 ? _celula(row, iRegistro) : null;
     linhas.add({
       'a12': a12,
       'nome': _celula(row, iNome),
+      'rgd': registro ?? _celula(row, iRgd),
+      'rgn': _celula(row, iRgn),
       'raca': _validarRaca(_celula(row, iRaca)),
       'tipo_registro': _celula(row, iTipoReg),
       'pai_a12': _celula(row, iPaiA12),
       'mae_a12': _celula(row, iMaeA12),
-      'rgd': _celula(row, iRgd),
-      'rgn': _celula(row, iRgn),
       'updated_at': DateTime.now().toIso8601String(),
     });
   }

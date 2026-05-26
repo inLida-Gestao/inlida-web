@@ -1,6 +1,7 @@
 // Automatic FlutterFlow imports
 import '/backend/supabase/supabase.dart';
 // Imports other custom actions
+import 'paint_excel_helpers.dart';
 import 'paint_helpers.dart';
 // Imports custom functions
 // Begin custom action code
@@ -34,9 +35,10 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
     try {
       await fn();
     } catch (e) {
-      (result['falhas'] as List).add('$label: $e');
+      (result['falhas'] as List).add(_mensagemFalhaEtapa(label, e));
     }
   }
+
   if (idPropriedade == null || idPropriedade.trim().isEmpty) {
     result['erro'] = 1;
     result['mensagem'] = 'Selecione uma propriedade.';
@@ -48,7 +50,10 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
     // Config obrigatória para calcular A12.
     final configRows = await client
         .from('paint_fazenda_config')
-        .select('serie_fazenda')
+        .select(
+          'codigo_transmissao,serie_fazenda,codigo_fazenda,'
+          'programa,estrategia_a12,campo_origem_animal',
+        )
         .eq('id_propriedade', idPropriedade)
         .limit(1);
     if (configRows.isEmpty) {
@@ -57,23 +62,28 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
           'Configure código de transmissão e série fazenda antes.';
       return result;
     }
-    final serieFazenda =
-        (configRows.first['serie_fazenda'] ?? '').toString().trim();
+    final cfgRow = configRows.first;
+    final serieFazenda = (cfgRow['serie_fazenda'] ?? '').toString().trim();
     if (serieFazenda.isEmpty) {
       result['erro'] = 1;
       result['mensagem'] = 'Série fazenda vazia em paint_fazenda_config.';
       return result;
     }
+    final paintCfg = PaintConfigExcel(
+      codigoTransmissao: (cfgRow['codigo_transmissao'] ?? '').toString(),
+      serieFazenda: serieFazenda,
+      codigoFazenda: (cfgRow['codigo_fazenda'] ?? '0001').toString(),
+      programa: (cfgRow['programa'] ?? 'P').toString(),
+      estrategia: parseEstrategiaA12(cfgRow['estrategia_a12']?.toString()),
+      campoOrigemAnimal:
+          (cfgRow['campo_origem_animal'] ?? 'numeroAnimal').toString(),
+    );
 
     // Pré-fetch dos cadastros pequenos (lookup tables, < 1000 linhas).
     final r1 = await Future.wait<dynamic>([
       client
           .from('paint_inseminador')
           .select('codigo, nome')
-          .eq('id_propriedade', idPropriedade),
-      client
-          .from('paint_grupo_manejo')
-          .select('codigo, descricao')
           .eq('id_propriedade', idPropriedade),
       client
           .from('paint_localidade')
@@ -93,11 +103,10 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
           .eq('id_propriedade', idPropriedade),
     ]);
     final existIns = (r1[0] as List).cast<Map<String, dynamic>>();
-    final existGrupos = (r1[1] as List).cast<Map<String, dynamic>>();
-    final existLocs = (r1[2] as List).cast<Map<String, dynamic>>();
-    final existSafras = (r1[3] as List).cast<Map<String, dynamic>>();
-    final existAvs = (r1[4] as List).cast<Map<String, dynamic>>();
-    final existRegs = (r1[5] as List).cast<Map<String, dynamic>>();
+    final existLocs = (r1[1] as List).cast<Map<String, dynamic>>();
+    final existSafras = (r1[2] as List).cast<Map<String, dynamic>>();
+    final existAvs = (r1[3] as List).cast<Map<String, dynamic>>();
+    final existRegs = (r1[4] as List).cast<Map<String, dynamic>>();
 
     // Pré-fetch paginado das tabelas grandes (>1000 linhas possíveis).
     final existComp = await _selectAllPaged(
@@ -153,8 +162,8 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
     final rebanhoRows = await _selectAllPaged(
       client,
       'rebanho',
-      'idRebanho,idPropriedade,numeroAnimal,dataNascimento,raca,sexo,categoria,'
-          'dataDesmama,pesoDesmama,dataUltimaPesagem,pesoAtual',
+      'idRebanho,idPropriedade,numeroAnimal,dataNascimento,raca,sexo,'
+          'categoria,status,dataDesmama,pesoDesmama,dataUltimaPesagem,pesoAtual',
       {'idPropriedade': idPropriedade, 'deletado': 'NAO'},
     );
     final pesagemRows = await _selectAllPaged(
@@ -177,32 +186,14 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
       if (id.isNotEmpty) rebanhoById[id] = r;
     }
 
-    String a12Of(Map<String, dynamic> r) {
-      final num = (r['numeroAnimal'] ?? '').toString().trim();
-      final nasc = r['dataNascimento'];
-      DateTime? d;
-      if (nasc is String && nasc.isNotEmpty) {
-        d = DateTime.tryParse(nasc);
-      } else if (nasc is DateTime) {
-        d = nasc;
-      }
-      if (num.isEmpty || d == null) return '';
-      return formatA12(
-        programa: 'P',
-        serieFazenda: serieFazenda,
-        animal: num,
-        ano: d.year,
-      );
-    }
+    String a12Of(Map<String, dynamic> r) => a12FromRebanho(r, paintCfg);
 
     // ---------------- 1. INSEMINADORES ----------------
     await exec('inseminadores', () async {
       final insExistNomes = existIns
           .map((e) => (e['nome'] ?? '').toString().trim().toUpperCase())
           .toSet();
-      int nextInsCod = _proximoCodigo(
-        existIns.map((e) => (e['codigo'] ?? '').toString()).toSet(),
-      );
+      final insCodigosUsados = _codigosUsados(existIns.map((e) => e['codigo']));
       final insertIns = <Map<String, dynamic>>[];
       final insSet = <String>{};
       for (final r in reproRows) {
@@ -214,27 +205,37 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
         insSet.add(norm);
         insertIns.add({
           'id_propriedade': idPropriedade,
-          'codigo': nextInsCod.toString().padLeft(4, '0'),
+          'codigo': _proximoCodigoLivre(insCodigosUsados),
           'nome': nome.length > 20 ? nome.substring(0, 20) : nome,
           'situacao': 'ATIVO',
         });
-        nextInsCod++;
       }
       if (insertIns.isNotEmpty) {
-        await _upsertBatched(
-            client, 'paint_inseminador', insertIns, 'id_propriedade,codigo');
-        result['inseminadores'] = insertIns.length;
+        result['inseminadores'] = await _upsertCodedRowsSafely(
+          client,
+          'paint_inseminador',
+          insertIns,
+          'id_propriedade,codigo',
+          insCodigosUsados,
+        );
       }
     });
 
     // ---------------- 2. GRUPOS MANEJO ----------------
     await exec('grupos_manejo', () async {
-      final grpExistDesc = existGrupos
+      // Recarrega imediatamente antes de inserir para evitar conflito quando
+      // outro fluxo criou grupo desde o pré-fetch inicial.
+      final gruposAtuais = await _selectAllPaged(
+        client,
+        'paint_grupo_manejo',
+        'codigo,descricao',
+        {'id_propriedade': idPropriedade},
+      );
+      final grpExistDesc = gruposAtuais
           .map((e) => (e['descricao'] ?? '').toString().trim().toUpperCase())
           .toSet();
-      int nextGrpCod = _proximoCodigo(
-        existGrupos.map((e) => (e['codigo'] ?? '').toString()).toSet(),
-      );
+      final grpCodigosUsados =
+          _codigosUsados(gruposAtuais.map((e) => e['codigo']));
       final insertGrp = <Map<String, dynamic>>[];
       final grpSet = <String>{};
       for (final r in loteRows) {
@@ -246,15 +247,18 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
         grpSet.add(norm);
         insertGrp.add({
           'id_propriedade': idPropriedade,
-          'codigo': nextGrpCod.toString().padLeft(4, '0'),
+          'codigo': _proximoCodigoLivre(grpCodigosUsados),
           'descricao': nome.length > 20 ? nome.substring(0, 20) : nome,
         });
-        nextGrpCod++;
       }
       if (insertGrp.isNotEmpty) {
-        await _upsertBatched(
-            client, 'paint_grupo_manejo', insertGrp, 'id_propriedade,codigo');
-        result['grupos'] = insertGrp.length;
+        result['grupos'] = await _upsertCodedRowsSafely(
+          client,
+          'paint_grupo_manejo',
+          insertGrp,
+          'id_propriedade,codigo',
+          grpCodigosUsados,
+        );
       }
     });
 
@@ -269,7 +273,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
             'descricao': 'PASTO ${i.toString().padLeft(2, '0')}',
           });
         }
-        await _upsertBatched(
+        await _upsertIgnore(
             client, 'paint_localidade', insertLoc, 'id_propriedade,codigo');
         result['localidades'] = insertLoc.length;
       }
@@ -308,13 +312,14 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
       for (final r in rebanhoRows) {
         final a = a12Of(r);
         if (a.isEmpty) continue;
-        final key = '${a.trim()}|NE';
+        final racaCod = mapRacaCodigo(r['raca']);
+        final key = '${a.trim()}|$racaCod';
         if (compExist.contains(key)) continue;
         compExist.add(key);
         insertComp.add({
           'id_propriedade': idPropriedade,
           'animal_a12': a,
-          'raca_codigo': 'NE',
+          'raca_codigo': racaCod,
           'indice': 1.00,
         });
       }
@@ -331,12 +336,14 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
           existDes.map((e) => '${e['animal_a12']}|${e['data']}').toSet();
       final insertDes = <Map<String, dynamic>>[];
       for (final r in rebanhoRows) {
+        if (!filtroDesmama(r)) continue;
         final peso = r['pesoDesmama'];
         final data = r['dataDesmama'];
         if (peso == null || data == null) continue;
         final a = a12Of(r);
         if (a.isEmpty) continue;
-        final dataStr = data is String ? data : data.toString();
+        final dataStr = parseDateIso(data);
+        if (dataStr == null) continue;
         final key = '$a|$dataStr';
         if (desExist.contains(key)) continue;
         desExist.add(key);
@@ -367,6 +374,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
         final idReb = p['idRebanho']?.toString() ?? '';
         final reb = rebanhoById[idReb];
         if (reb == null) continue;
+        if (!filtroSobreano(reb)) continue;
         DateTime? dPes;
         if (dataP is String && dataP.isNotEmpty) {
           dPes = DateTime.tryParse(dataP);
@@ -402,6 +410,25 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
           'peso': pesoP,
         });
       }
+      for (final reb in rebanhoRows) {
+        if (!filtroSobreano(reb)) continue;
+        final peso = reb['pesoAtual'];
+        final data = reb['dataUltimaPesagem'];
+        if (peso == null || data == null) continue;
+        final a = a12Of(reb);
+        if (a.isEmpty) continue;
+        final dataStr = parseDateIso(data);
+        if (dataStr == null) continue;
+        final key = '$a|$dataStr';
+        if (sobExist.contains(key)) continue;
+        sobExist.add(key);
+        insertSob.add({
+          'id_propriedade': idPropriedade,
+          'animal_a12': a,
+          'data': dataStr,
+          'peso': peso,
+        });
+      }
       if (insertSob.isNotEmpty) {
         await _upsertIgnore(client, 'paint_avaliacao_sobreano', insertSob,
             'id_propriedade,animal_a12,data');
@@ -415,18 +442,14 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
           existRah.map((e) => '${e['animal_a12']}|${e['data']}').toSet();
       final insertRah = <Map<String, dynamic>>[];
       for (final r in rebanhoRows) {
-        final categoria = (r['categoria'] ?? '').toString().toLowerCase();
-        final ehMatrizOuReprodutor = categoria.contains('matriz') ||
-            categoria.contains('reprod') ||
-            categoria.contains('touro') ||
-            categoria.contains('vaca');
-        if (!ehMatrizOuReprodutor) continue;
+        if (!filtroMatrizes(r)) continue;
         final peso = r['pesoAtual'];
         final data = r['dataUltimaPesagem'];
         if (peso == null || data == null) continue;
         final a = a12Of(r);
         if (a.isEmpty) continue;
-        final dataStr = data is String ? data : data.toString();
+        final dataStr = parseDateIso(data);
+        if (dataStr == null) continue;
         final key = '$a|$dataStr';
         if (rahExist.contains(key)) continue;
         rahExist.add(key);
@@ -491,9 +514,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
       final avsExistNomes = existAvs
           .map((e) => (e['nome'] ?? '').toString().trim().toUpperCase())
           .toSet();
-      int nextAvCod = _proximoCodigo(
-        existAvs.map((e) => (e['codigo'] ?? '').toString()).toSet(),
-      );
+      final avsCodigosUsados = _codigosUsados(existAvs.map((e) => e['codigo']));
       final insertAvs = <Map<String, dynamic>>[];
       final avsSet = <String>{};
       for (final u in userPropRows) {
@@ -507,16 +528,19 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
         avsSet.add(norm);
         insertAvs.add({
           'id_propriedade': idPropriedade,
-          'codigo': nextAvCod.toString().padLeft(4, '0'),
+          'codigo': _proximoCodigoLivre(avsCodigosUsados),
           'nome': nome.length > 25 ? nome.substring(0, 25) : nome,
           'situacao': 'ATIVO',
         });
-        nextAvCod++;
       }
       if (insertAvs.isNotEmpty) {
-        await _upsertBatched(
-            client, 'paint_avaliador', insertAvs, 'id_propriedade,codigo');
-        result['avaliadores'] = insertAvs.length;
+        result['avaliadores'] = await _upsertCodedRowsSafely(
+          client,
+          'paint_avaliador',
+          insertAvs,
+          'id_propriedade,codigo',
+          avsCodigosUsados,
+        );
       }
     });
 
@@ -535,7 +559,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
                   'descricao': p['descricao'],
                 })
             .toList();
-        await _upsertBatched(client, 'paint_regime_alimentar', insertRegs,
+        await _upsertIgnore(client, 'paint_regime_alimentar', insertRegs,
             'id_propriedade,codigo');
         result['regimes'] = insertRegs.length;
       }
@@ -585,15 +609,22 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
   }
 }
 
-int _proximoCodigo(Set<String> existentes) {
-  final nums = <int>[];
-  for (final c in existentes) {
-    final n = int.tryParse(c.trim());
-    if (n != null && n > 0) nums.add(n);
+Set<String> _codigosUsados(Iterable<dynamic> codigos) {
+  return codigos
+      .map((c) => (c ?? '').toString().trim())
+      .where((c) => c.isNotEmpty)
+      .toSet();
+}
+
+String _proximoCodigoLivre(Set<String> usados) {
+  for (var n = 1; n <= 9999; n++) {
+    final codigo = n.toString().padLeft(4, '0');
+    if (!usados.contains(codigo)) {
+      usados.add(codigo);
+      return codigo;
+    }
   }
-  if (nums.isEmpty) return 1;
-  nums.sort();
-  return nums.last + 1;
+  throw Exception('Não há códigos PAINT livres entre 0001 e 9999.');
 }
 
 String _letraTrimestre(int mes) {
@@ -657,9 +688,41 @@ Future<void> _upsertBatched(
 ) async {
   const batch = 500;
   for (var i = 0; i < rows.length; i += batch) {
-    final slice = rows.sublist(i, i + batch > rows.length ? rows.length : i + batch);
+    final slice =
+        rows.sublist(i, i + batch > rows.length ? rows.length : i + batch);
     await client.from(table).upsert(slice, onConflict: onConflict);
   }
+}
+
+Future<int> _upsertCodedRowsSafely(
+  dynamic client,
+  String table,
+  List<Map<String, dynamic>> rows,
+  String onConflict,
+  Set<String> codigosUsados,
+) async {
+  var gravados = 0;
+  for (final original in rows) {
+    final row = Map<String, dynamic>.from(original);
+    var tentativas = 0;
+    while (tentativas < 5) {
+      try {
+        await _upsertIgnore(client, table, [row], onConflict);
+        gravados++;
+        break;
+      } catch (e) {
+        if (!_isDuplicateKeyError(e)) rethrow;
+        row['codigo'] = _proximoCodigoLivre(codigosUsados);
+        tentativas++;
+      }
+    }
+    if (tentativas >= 5) {
+      throw Exception(
+        'Não foi possível encontrar código livre para ${_nomeTabelaPaint(table)}.',
+      );
+    }
+  }
+  return gravados;
 }
 
 // Upsert que ignora duplicatas (não sobrescreve dados manuais existentes).
@@ -679,4 +742,54 @@ Future<void> _upsertIgnore(
           ignoreDuplicates: true,
         );
   }
+}
+
+bool _isDuplicateKeyError(Object e) {
+  final s = e.toString().toLowerCase();
+  return s.contains('23505') || s.contains('duplicate key');
+}
+
+String _mensagemFalhaEtapa(String label, Object e) {
+  final etapa = _labelEtapa(label);
+  if (_isDuplicateKeyError(e)) {
+    return '$etapa: já existia um registro com o mesmo código PAINT. '
+        'A etapa foi preservada para evitar duplicidade; tente importar novamente.';
+  }
+  return '$etapa: não foi possível concluir esta etapa. ${_resumoErroTecnico(e)}';
+}
+
+String _labelEtapa(String label) {
+  const labels = {
+    'inseminadores': 'Inseminadores',
+    'grupos_manejo': 'Grupos de manejo',
+    'localidades': 'Localidades',
+    'safra': 'Safra',
+    'composicao_racial': 'Composição racial',
+    'desmamas': 'Avaliações de desmama',
+    'sobreanos': 'Avaliações de sobreano',
+    'rahs': 'Avaliações de matrizes',
+    'diagnosticos': 'Diagnósticos',
+    'avaliadores': 'Avaliadores',
+    'regimes': 'Regimes alimentares',
+    'biblioteca': 'Biblioteca de touros',
+  };
+  return labels[label] ?? label;
+}
+
+String _nomeTabelaPaint(String table) {
+  const nomes = {
+    'paint_inseminador': 'inseminadores',
+    'paint_grupo_manejo': 'grupos de manejo',
+    'paint_avaliador': 'avaliadores',
+  };
+  return nomes[table] ?? table;
+}
+
+String _resumoErroTecnico(Object e) {
+  final raw = e.toString();
+  if (raw.contains('PostgrestException')) {
+    final match = RegExp(r'message:\s*([^,}]+)').firstMatch(raw);
+    if (match != null) return match.group(1)!.trim();
+  }
+  return raw;
 }

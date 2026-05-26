@@ -45,27 +45,44 @@ export function buildLine(layout: Field[], row: Record<string, unknown>): string
   return buf.join("");
 }
 
-// A12 — Manual §7.1 (12 caracteres = Programa(1) + SérieFazenda(4 esquerda)
-// + Animal(5 direita, trunca >5 pegando os 5 primeiros) + Ano(2 dígitos)).
+export type EstrategiaA12 = "compacto" | "espacado" | "ultimos_digitos_nome";
+
+// A12 — Manual §7.1 + variantes observadas no sample 000460.
 export function formatA12(opts: {
   programa?: string | null;
   serieFazenda: string;
   animal: string | number;
   ano: string | number;
+  estrategia?: EstrategiaA12 | null;
 }): string {
+  const estrategia = opts.estrategia ?? "compacto";
   const p = (opts.programa ?? "P").toString().slice(0, 1) || "P";
-  const serie = opts.serieFazenda.toString();
-  const s = (serie.length >= 4 ? serie.slice(0, 4) : serie + " ".repeat(4 - serie.length));
-  const aRaw = opts.animal.toString();
-  // Manual: "Caso a identificação possua mais de 5 caracteres, então deverá utilizar
-  // apenas os 5 dígitos iniciais e descartar o restante."
-  // Se <= 5: alinha à direita com espaços à esquerda.
+  const serieRaw = opts.serieFazenda.toString().trim();
+  const serie4 = serieRaw.length >= 4
+    ? serieRaw.slice(0, 4)
+    : serieRaw + " ".repeat(4 - serieRaw.length);
+  const yRaw = opts.ano.toString().padStart(2, "0");
+  const y = yRaw.length >= 2 ? yRaw.slice(-2) : "0".repeat(2 - yRaw.length) + yRaw;
+
+  let animalPart = opts.animal.toString().trim();
+  if (estrategia === "ultimos_digitos_nome") {
+    const digits = animalPart.replace(/\D/g, "");
+    animalPart = digits.length >= 6 ? digits.slice(-6) : digits;
+    return `${p}${serie4}${animalPart}${y}`.slice(0, 12).padEnd(12, " ");
+  }
+
+  const aRaw = animalPart;
   const a = aRaw.length > 5
     ? aRaw.slice(0, 5)
     : " ".repeat(5 - aRaw.length) + aRaw;
-  const yRaw = opts.ano.toString().padStart(2, "0");
-  const y = yRaw.length >= 2 ? yRaw.slice(-2) : "0".repeat(2 - yRaw.length) + yRaw;
-  return `${p}${s}${a}${y}`;
+
+  if (estrategia === "espacado") {
+    const serieTrim = serie4.trim();
+    const animalTrim = a.trim();
+    return `${p}${serieTrim} ${animalTrim} ${y}`.padEnd(12, " ").slice(0, 12);
+  }
+
+  return `${p}${serie4}${a}${y}`;
 }
 
 // Formata Date / ISO string -> dd/mm/aaaa

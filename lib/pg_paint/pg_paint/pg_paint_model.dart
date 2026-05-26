@@ -28,11 +28,19 @@ class PgPaintModel extends FlutterFlowModel<PgPaintWidget> {
   String? linkUltimoZip;
 
   String? configId;
+  String programa = 'P';
+  String estrategiaA12 = 'compacto';
+  String campoOrigemAnimal = 'numeroAnimal';
 
   bool carregandoStatus = true;
   bool importandoAuto = false;
   String? mensagemAuto;
   Map<String, int> counts = const {};
+
+  bool exportandoExcel = false;
+  bool importandoExcel = false;
+  String? mensagemExcel;
+  String? tipoExcelAtivo;
 
   @override
   void initState(BuildContext context) {

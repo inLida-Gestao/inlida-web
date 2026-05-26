@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:download/download.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -76,6 +77,9 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         _model.codTransmissaoController?.clear();
         _model.serieFazendaController?.clear();
         _model.codFazendaController?.clear();
+        _model.programa = 'P';
+        _model.estrategiaA12 = 'compacto';
+        _model.campoOrigemAnimal = 'numeroAnimal';
         _model.mensagemAuto = null;
         _model.mensagemExport = null;
         _model.linkUltimoZip = null;
@@ -101,9 +105,16 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       if (rows.isNotEmpty) {
         final r = rows.first;
         _model.configId = r['id']?.toString();
-        _model.codTransmissaoController?.text = (r['codigo_transmissao'] ?? '').toString();
-        _model.serieFazendaController?.text = (r['serie_fazenda'] ?? '').toString();
-        _model.codFazendaController?.text = (r['codigo_fazenda'] ?? '').toString();
+        _model.codTransmissaoController?.text =
+            (r['codigo_transmissao'] ?? '').toString();
+        _model.serieFazendaController?.text =
+            (r['serie_fazenda'] ?? '').toString();
+        _model.codFazendaController?.text =
+            (r['codigo_fazenda'] ?? '').toString();
+        _model.programa = (r['programa'] ?? 'P').toString();
+        _model.estrategiaA12 = (r['estrategia_a12'] ?? 'compacto').toString();
+        _model.campoOrigemAnimal =
+            (r['campo_origem_animal'] ?? 'numeroAnimal').toString();
       } else {
         _model.codFazendaController?.text = '0001';
       }
@@ -154,6 +165,9 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         'codigo_transmissao': codTx,
         'serie_fazenda': serie,
         'codigo_fazenda': codFz,
+        'programa': _model.programa,
+        'estrategia_a12': _model.estrategiaA12,
+        'campo_origem_animal': _model.campoOrigemAnimal,
         'updated_at': DateTime.now().toIso8601String(),
       };
       await SupaFlow.client
@@ -272,6 +286,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     'paint_avaliacao_sobreano',
     'paint_avaliacao_rah',
     'paint_diagnostico',
+    'paint_estoque',
   ];
 
   // paint_biblioteca_touros é catálogo global (sem id_propriedade).
@@ -343,19 +358,23 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
           '${r['composicao']} composições raciais',
         if ((r['avaliadores'] ?? 0) > 0) '${r['avaliadores']} avaliadores',
         if ((r['regimes'] ?? 0) > 0) '${r['regimes']} regimes alimentares',
-        if ((r['biblioteca'] ?? 0) > 0) '${r['biblioteca']} touros (biblioteca)',
+        if ((r['biblioteca'] ?? 0) > 0)
+          '${r['biblioteca']} touros (biblioteca)',
         if ((r['desmamas'] ?? 0) > 0) '${r['desmamas']} desmamas',
         if ((r['sobreanos'] ?? 0) > 0) '${r['sobreanos']} sobreanos',
         if ((r['rahs'] ?? 0) > 0) '${r['rahs']} RAH',
         if ((r['diagnosticos'] ?? 0) > 0) '${r['diagnosticos']} diagnósticos',
       ];
       final falhas = (r['falhas'] as List?)?.cast<String>() ?? const [];
-      final msgBase = novos.isEmpty
-          ? '✓ Nenhum novo registro — tudo já estava preenchido.'
-          : '✓ Importado: ${novos.join(', ')}.';
       final msg = falhas.isEmpty
-          ? msgBase
-          : '$msgBase\n⚠ ${falhas.length} etapa(s) falharam:\n• ${falhas.join('\n• ')}';
+          ? (novos.isEmpty
+              ? '✓ Nenhum novo registro — tudo já estava preenchido.'
+              : '✓ Importado: ${novos.join(', ')}.')
+          : (novos.isEmpty
+              ? '⚠ Importação concluída com alertas. Nenhum novo registro foi criado.\n'
+                  '${falhas.length} etapa(s) precisam de atenção:\n• ${falhas.join('\n• ')}'
+              : '⚠ Importação parcialmente concluída. Importado: ${novos.join(', ')}.\n'
+                  '${falhas.length} etapa(s) precisam de atenção:\n• ${falhas.join('\n• ')}');
       if (!_aindaMesmaPropriedade(propId)) {
         safeSetState(() => _model.importandoAuto = false);
         return;
@@ -390,6 +409,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     'paint_composicao_racial',
     'paint_biblioteca_touros',
     'paint_baixa',
+    'paint_estoque',
     'paint_touro_multiplo',
   ];
 
@@ -408,8 +428,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
   @override
   Widget build(BuildContext context) {
     // Depende só do id — assim qualquer troca no header reconstrói e dispara reload.
-    final idAtual =
-        context.select<FFAppState, String>((s) => s.propriedadeSelecionada.idPropriedade);
+    final idAtual = context.select<FFAppState, String>(
+        (s) => s.propriedadeSelecionada.idPropriedade);
     if (idAtual != _ultimaPropriedadeId) {
       _ultimaPropriedadeId = idAtual;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -467,6 +487,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                                   _configCompleta) ...[
                                 const SizedBox(height: 16),
                                 _cardStatus(context),
+                                const SizedBox(height: 16),
+                                _cardPlanilhasExcel(context),
                                 const SizedBox(height: 16),
                                 _cardCadastrosAuto(context),
                                 const SizedBox(height: 16),
@@ -530,7 +552,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.alternate),
         boxShadow: const [
-          BoxShadow(blurRadius: 8, color: Color(0x14000000), offset: Offset(0, 2)),
+          BoxShadow(
+              blurRadius: 8, color: Color(0x14000000), offset: Offset(0, 2)),
         ],
       ),
       child: Row(
@@ -575,7 +598,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
             ? Border.all(color: Colors.orange.shade400, width: 2)
             : null,
         boxShadow: const [
-          BoxShadow(blurRadius: 8, color: Color(0x14000000), offset: Offset(0, 2)),
+          BoxShadow(
+              blurRadius: 8, color: Color(0x14000000), offset: Offset(0, 2)),
         ],
       ),
       padding: const EdgeInsets.all(20),
@@ -675,6 +699,87 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                       maxLength: 4,
                       digitsOnly: true,
                     ),
+                    SizedBox(
+                      width: 120,
+                      child: DropdownButtonFormField<String>(
+                        value: _model.programa,
+                        decoration: InputDecoration(
+                          labelText: 'Programa A12',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'P', child: Text('P')),
+                          DropdownMenuItem(value: 'F', child: Text('F')),
+                        ],
+                        onChanged: (v) => safeSetState(
+                          () => _model.programa = v ?? 'P',
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 280,
+                      child: DropdownButtonFormField<String>(
+                        value: _model.estrategiaA12,
+                        decoration: InputDecoration(
+                          labelText: 'Estratégia A12',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'compacto',
+                            child: Text('Compacto (P+serie+animal)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'espacado',
+                            child: Text('Espaçado (sample 000460)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'ultimos_digitos_nome',
+                            child: Text('Últimos 6 dígitos do nome'),
+                          ),
+                        ],
+                        onChanged: (v) => safeSetState(
+                          () => _model.estrategiaA12 = v ?? 'compacto',
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 220,
+                      child: DropdownButtonFormField<String>(
+                        value: _model.campoOrigemAnimal,
+                        decoration: InputDecoration(
+                          labelText: 'Campo origem animal',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'numeroAnimal',
+                            child: Text('Número animal'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'nome',
+                            child: Text('Nome'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'chip',
+                            child: Text('Chip'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'codRegistro',
+                            child: Text('Registro'),
+                          ),
+                        ],
+                        onChanged: (v) => safeSetState(
+                          () => _model.campoOrigemAnimal = v ?? 'numeroAnimal',
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -682,12 +787,17 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                   children: [
                     FFButtonWidget(
                       onPressed: _model.salvandoConfig ? null : _salvarConfig,
-                      text: _model.salvandoConfig ? 'Salvando…' : 'Salvar configuração',
+                      text: _model.salvandoConfig
+                          ? 'Salvando…'
+                          : 'Salvar configuração',
                       options: FFButtonOptions(
                         height: 40,
-                        padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
+                        padding:
+                            const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
                         color: FlutterFlowTheme.of(context).primary,
-                        textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                        textStyle: FlutterFlowTheme.of(context)
+                            .titleSmall
+                            .override(
                               fontFamily: 'Readex Pro',
                               color: Colors.white,
                               useGoogleFonts:
@@ -726,9 +836,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         focusNode: focus,
         maxLength: maxLength,
         keyboardType: digitsOnly ? TextInputType.number : TextInputType.text,
-        inputFormatters: digitsOnly
-            ? [FilteringTextInputFormatter.digitsOnly]
-            : null,
+        inputFormatters:
+            digitsOnly ? [FilteringTextInputFormatter.digitsOnly] : null,
         decoration: InputDecoration(
           labelText: label,
           counterText: '',
@@ -810,9 +919,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                       ),
                     ),
                     FFButtonWidget(
-                      onPressed: (_model.exportando || !cfgOk)
-                          ? null
-                          : _gerarExport,
+                      onPressed:
+                          (_model.exportando || !cfgOk) ? null : _gerarExport,
                       text: _model.exportando
                           ? 'Gerando…'
                           : 'Gerar EXPORTACAO DADOS',
@@ -886,6 +994,231 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _exportarExcel(String tipo, String modo) async {
+    if (_idPropriedade.isEmpty) return;
+    safeSetState(() {
+      _model.exportandoExcel = true;
+      _model.mensagemExcel = null;
+      _model.tipoExcelAtivo = tipo;
+    });
+    try {
+      final ok = await paint_actions.exportPaintAvaliacaoExcel(
+        _idPropriedade,
+        tipo,
+        modo,
+      );
+      safeSetState(() {
+        _model.exportandoExcel = false;
+        _model.mensagemExcel = ok
+            ? '✓ Planilha $tipo ($modo) baixada.'
+            : '⚠ Nenhum animal elegível encontrado para gerar a planilha $tipo ou configuração PAINT incompleta.';
+      });
+    } catch (e) {
+      safeSetState(() {
+        _model.exportandoExcel = false;
+        _model.mensagemExcel = '⚠ Erro: $e';
+      });
+    }
+  }
+
+  Future<void> _importarExcel(String tipo) async {
+    if (_idPropriedade.isEmpty) return;
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx', 'xls'],
+      withData: true,
+    );
+    if (picked == null || picked.files.isEmpty) return;
+    final f = picked.files.first;
+    if (f.bytes == null) return;
+    safeSetState(() {
+      _model.importandoExcel = true;
+      _model.mensagemExcel = null;
+      _model.tipoExcelAtivo = tipo;
+    });
+    try {
+      final uploaded = FFUploadedFile(
+        name: f.name,
+        bytes: f.bytes,
+      );
+      final r = await paint_actions.importPaintAvaliacaoExcel(
+        _idPropriedade,
+        tipo,
+        uploaded,
+      );
+      final erros = (r['erros'] as List?)?.cast<Map>() ?? const [];
+      final detalhesErro = erros.take(5).map((e) {
+        final linha = e['linha']?.toString() ?? '?';
+        final motivo = e['motivo']?.toString() ?? 'Erro não informado.';
+        return 'Linha $linha: $motivo';
+      }).join('\n');
+      final msg = '✓ Importação $tipo: ${r['inseridos']} novos, '
+          '${r['atualizados']} atualizados.'
+          '${erros.isEmpty ? '' : '\n⚠ ${erros.length} linha(s) com erro.\n$detalhesErro'}';
+      safeSetState(() {
+        _model.importandoExcel = false;
+        _model.mensagemExcel = msg;
+      });
+      await _carregarStatus();
+    } catch (e) {
+      safeSetState(() {
+        _model.importandoExcel = false;
+        _model.mensagemExcel = '⚠ Erro na importação: $e';
+      });
+    }
+  }
+
+  Widget _cardPlanilhasExcel(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final busy = _model.exportandoExcel || _model.importandoExcel;
+    return _card(
+      context,
+      titulo: 'Planilhas de avaliação',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Baixe o modelo vazio ou com dados da fazenda, preencha as notas '
+            'técnicas no Excel e importe de volta antes de gerar o ZIP.',
+            style: theme.bodySmall,
+          ),
+          const SizedBox(height: 12),
+          ...['matrizes', 'desmama', 'sobreano'].map((tipo) {
+            final label = tipo == 'matrizes'
+                ? 'Matrizes (R/F/A/P)'
+                : tipo == 'desmama'
+                    ? 'Desmama'
+                    : 'Sobreano';
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: theme.titleSmall),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      FFButtonWidget(
+                        onPressed:
+                            busy ? null : () => _exportarExcel(tipo, 'vazio'),
+                        text: 'Modelo vazio',
+                        options: FFButtonOptions(
+                          height: 36,
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                              12, 0, 12, 0),
+                          color: theme.secondaryBackground,
+                          textStyle: theme.bodySmall.override(
+                            fontFamily: 'Readex Pro',
+                            color: theme.primary,
+                          ),
+                          borderSide: BorderSide(color: theme.primary),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      FFButtonWidget(
+                        onPressed: busy
+                            ? null
+                            : () => _exportarExcel(tipo, 'preenchido'),
+                        text: 'Com dados da fazenda',
+                        options: FFButtonOptions(
+                          height: 36,
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                              12, 0, 12, 0),
+                          color: theme.secondaryBackground,
+                          textStyle: theme.bodySmall.override(
+                            fontFamily: 'Readex Pro',
+                            color: theme.primary,
+                          ),
+                          borderSide: BorderSide(color: theme.primary),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      FFButtonWidget(
+                        onPressed: busy ? null : () => _importarExcel(tipo),
+                        text: _model.importandoExcel &&
+                                _model.tipoExcelAtivo == tipo
+                            ? 'Importando…'
+                            : 'Importar .xlsx',
+                        icon: const Icon(Icons.upload_file, size: 16),
+                        options: FFButtonOptions(
+                          height: 36,
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                              12, 0, 12, 0),
+                          color: theme.primary,
+                          textStyle: theme.bodySmall.override(
+                            fontFamily: 'Readex Pro',
+                            color: Colors.white,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FFButtonWidget(
+                onPressed:
+                    busy ? null : () => _exportarExcel('lista_touros', 'vazio'),
+                text: 'Modelo LISTA TOUROS',
+                options: FFButtonOptions(
+                  height: 36,
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
+                  color: theme.secondaryBackground,
+                  textStyle: theme.bodySmall,
+                  borderSide: BorderSide(color: theme.alternate),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              FFButtonWidget(
+                onPressed: busy
+                    ? null
+                    : () async {
+                        safeSetState(() => _model.exportandoExcel = true);
+                        try {
+                          await paint_actions.exportPaintResultadosExcel(
+                            _idPropriedade,
+                          );
+                          safeSetState(() {
+                            _model.exportandoExcel = false;
+                            _model.mensagemExcel =
+                                '✓ Relatório 460_RESULTADOS baixado.';
+                          });
+                        } catch (e) {
+                          safeSetState(() {
+                            _model.exportandoExcel = false;
+                            _model.mensagemExcel = '⚠ $e';
+                          });
+                        }
+                      },
+                text: 'Relatório 460 (resumo)',
+                options: FFButtonOptions(
+                  height: 36,
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
+                  color: theme.secondaryBackground,
+                  textStyle: theme.bodySmall,
+                  borderSide: BorderSide(color: theme.alternate),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ],
+          ),
+          if (_model.mensagemExcel != null) ...[
+            const SizedBox(height: 12),
+            Text(_model.mensagemExcel!, style: theme.bodyMedium),
+          ],
+        ],
+      ),
     );
   }
 
@@ -966,6 +1299,12 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                 tabela: 'paint_baixa',
                 count: _count('paint_baixa'),
               ),
+              _CadastroChip(
+                label: 'Estoque sêmen',
+                tabela: 'paint_estoque',
+                routeName: 'pgPaintEstoque',
+                count: _count('paint_estoque'),
+              ),
             ],
           ),
         ],
@@ -1012,8 +1351,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.info_outline,
-                  color: Colors.orange, size: 18),
+              const Icon(Icons.info_outline, color: Colors.orange, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -1043,7 +1381,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                 count: _count('paint_avaliacao_sobreano'),
               ),
               _CadastroChip(
-                label: 'RAH (raça/aprumo/harmonia)',
+                label: 'Matrizes (R/F/A/P)',
                 tabela: 'paint_avaliacao_rah',
                 routeName: 'pgPaintAvaliacaoRah',
                 count: _count('paint_avaliacao_rah'),

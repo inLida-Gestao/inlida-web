@@ -74,6 +74,8 @@ export '/pg_paint/cadastros/touro_multiplo/paint_touro_multiplo_widget.dart'
     show PaintTouroMultiploWidget;
 export '/pg_paint/cadastros/composicao_racial/paint_composicao_racial_widget.dart'
     show PaintComposicaoRacialWidget;
+export '/pg_paint/cadastros/estoque/paint_estoque_widget.dart'
+    show PaintEstoqueWidget;
 export '/pg_paint/avaliacoes/desmama/paint_avaliacao_desmama_widget.dart'
     show PaintAvaliacaoDesmamaWidget;
 export '/pg_paint/avaliacoes/sobreano/paint_avaliacao_sobreano_widget.dart'

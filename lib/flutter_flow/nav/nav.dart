@@ -197,6 +197,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => const PaintComposicaoRacialWidget(),
         ),
         FFRoute(
+          name: PaintEstoqueWidget.routeName,
+          path: PaintEstoqueWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => const PaintEstoqueWidget(),
+        ),
+        FFRoute(
           name: PaintAvaliacaoDesmamaWidget.routeName,
           path: PaintAvaliacaoDesmamaWidget.routePath,
           requireAuth: true,

@@ -10,10 +10,10 @@ class PaintAvaliacaoRahWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const PaintCrudScaffold(
-      titulo: 'Avaliação RAH (Raça / Aprumo / Harmonia)',
+      titulo: 'Avaliação matrizes (R / F / A / P)',
       subtitulo:
-          'Avaliação morfológica de matrizes e candidatos a CEIP. Notas '
-          'numéricas para cada característica + sigla de desclassificação.',
+          'Raça, Frame, Aprumo e Pigmentação conforme especificação PAINT. '
+          'Harmonia permanece para compatibilidade com export RAH.TXT.',
       tableName: 'paint_avaliacao_rah',
       orderBy: 'data',
       ascending: false,
@@ -22,16 +22,23 @@ class PaintAvaliacaoRahWidget extends StatelessWidget {
         PaintColumn('data', 'Data'),
         PaintColumn('peso', 'Peso'),
         PaintColumn('racial', 'Raça'),
+        PaintColumn('frame', 'Frame'),
         PaintColumn('aprumos', 'Aprumo'),
-        PaintColumn('harmonia', 'Harmonia'),
+        PaintColumn('pigmentacao', 'Pigment.'),
       ],
       fields: [
         PaintField(key: 'animal_a12', label: 'A12 do animal', required: true, maxLength: 12),
         PaintField(key: 'data', label: 'Data', type: PaintFieldType.date, required: true),
         PaintField(key: 'peso', label: 'Peso (kg)', type: PaintFieldType.decimal),
-        PaintField(key: 'racial', label: 'Nota Racial', type: PaintFieldType.decimal),
-        PaintField(key: 'aprumos', label: 'Nota Aprumos', type: PaintFieldType.decimal),
-        PaintField(key: 'harmonia', label: 'Nota Harmonia', type: PaintFieldType.decimal),
+        PaintField(key: 'racial', label: 'Raça (1–5)', type: PaintFieldType.decimal),
+        PaintField(key: 'frame', label: 'Frame (1–3)', type: PaintFieldType.decimal),
+        PaintField(key: 'aprumos', label: 'Aprumo (1–5)', type: PaintFieldType.decimal),
+        PaintField(
+          key: 'pigmentacao',
+          label: 'Pigmentação (1–3)',
+          type: PaintFieldType.decimal,
+        ),
+        PaintField(key: 'harmonia', label: 'Harmonia (legado)', type: PaintFieldType.decimal),
         PaintField(
           key: 'situacao_desclass',
           label: 'Sigla desclassificação (AP/BO/...)',
