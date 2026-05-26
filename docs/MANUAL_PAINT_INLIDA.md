@@ -37,16 +37,20 @@ A tela abre o painel da propriedade selecionada. Se trocar a propriedade no topo
 
 Na primeira utilização da propriedade, preencha a configuração PAINT:
 
-- `Código de transmissão`: deve ter exatamente 6 dígitos.
-- `Série fazenda`: campo obrigatório, com 1 a 4 caracteres.
-- `Código fazenda`: deve ter exatamente 4 dígitos.
-- `Programa`: normalmente `P` ou `F`, conforme orientação PAINT.
-- `Estratégia A12`: define como o identificador A12 será montado.
-- `Campo de origem do animal`: define qual campo da INLIDA será usado para formar o A12, como número do animal, nome, chip ou código de registro.
+- `Código de transmissão`: código de 6 dígitos fornecido pela equipe PAINT. Ele identifica a transmissão dos arquivos da fazenda para o PAINT.
+- `Série fazenda`: série da fazenda no PAINT, com 1 a 4 caracteres. Esse valor entra na composição do identificador A12 quando a estratégia escolhida usa a série.
+- `Código fazenda`: código de 4 dígitos da fazenda no PAINT. Deve ser preenchido exatamente como informado pela equipe PAINT.
+- `Programa A12`: programa usado na montagem do A12, normalmente `P` ou `F`, conforme orientação PAINT.
+- `Estratégia A12`: define como o sistema vai montar o identificador A12 de cada animal. Na estratégia compacta, por exemplo, o A12 é formado combinando o programa, a série da fazenda e o campo de origem do animal.
+- `Campo origem animal`: define qual informação cadastrada no rebanho da INLIDA será usada como base do animal dentro do A12. Exemplos comuns são número do animal, nome, chip ou código de registro.
 
 Depois de preencher, clique em `Salvar configuração`.
 
-A configuração é importante porque o A12 é a base de identificação dos animais no PAINT. Evite alterar a estratégia ou o campo de origem depois que avaliações já foram lançadas, a menos que tenha certeza de que deseja recalcular a identificação dos animais.
+A configuração é importante porque o A12 é a base de identificação dos animais no PAINT. O sistema usa o A12 para exportar os animais, validar planilhas importadas e atualizar avaliações já existentes. Por isso, os campos `Programa A12`, `Estratégia A12` e `Campo origem animal` precisam ser definidos antes de importar ou lançar avaliações.
+
+Exemplo prático: se a configuração estiver com `Programa A12` igual a `P`, `Série fazenda` igual a `1234` e `Campo origem animal` igual a `Número animal`, a identificação enviada ao PAINT será gerada a partir dessa combinação. Se depois a fazenda trocar o campo de origem para `Nome` ou `Chip`, o A12 calculado para os animais pode mudar.
+
+Evite alterar a estratégia ou o campo de origem depois que avaliações já foram lançadas, a menos que tenha certeza de que deseja recalcular a identificação dos animais. Uma mudança nesses campos pode fazer a planilha importada deixar de conferir com o animal correto ou criar novos registros em vez de atualizar avaliações existentes.
 
 ## 5. Importar Tudo Do Sistema
 
