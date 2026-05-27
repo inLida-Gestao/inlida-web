@@ -16,6 +16,7 @@ import '/flutter_flow/custom_functions.dart' as functions;
 import '/pg_rebanho/peso_decimal_formatter.dart';
 import '/index.dart';
 import 'dart:async';
+import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -49,6 +50,10 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   bool _salvandoPesagem = false;
+  late Future<List<RebanhoRow>> _rebanhoFuture;
+  Future<HistoricoPesagensRow?>? _desmamaPesagemFuture;
+  String? _desmamaPesagemFutureIdRebanho;
+  int _tabBarLastIndex = 0;
 
   DateTime _dateOnly(DateTime value) =>
       DateTime(value.year, value.month, value.day);
@@ -200,10 +205,40 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
     return pesagens.where(_pesagemAtiva).firstOrNull;
   }
 
+  Future<List<RebanhoRow>> _createRebanhoFuture() {
+    return RebanhoTable().querySingleRow(
+      queryFn: (q) => q.eqOrNull(
+        'id',
+        widget.rebanhoId,
+      ),
+    );
+  }
+
+  Future<HistoricoPesagensRow?> _getDesmamaPesagemFuture(String? idRebanho) {
+    if (_desmamaPesagemFuture == null ||
+        _desmamaPesagemFutureIdRebanho != idRebanho) {
+      _desmamaPesagemFutureIdRebanho = idRebanho;
+      _desmamaPesagemFuture = _loadDesmamaPesagem(idRebanho);
+    }
+
+    return _desmamaPesagemFuture!;
+  }
+
+  void _handleTabChange() {
+    final tabController = _model.tabBarController;
+    if (tabController == null || tabController.index == _tabBarLastIndex) {
+      return;
+    }
+
+    _tabBarLastIndex = tabController.index;
+    safeSetState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => PgRebanhoEditModel());
+    _rebanhoFuture = _createRebanhoFuture();
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -218,7 +253,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
       vsync: this,
       length: 4,
       initialIndex: 0,
-    )..addListener(() => safeSetState(() {}));
+    )..addListener(_handleTabChange);
 
     _model.numAnimalFocusNode ??= FocusNode();
 
@@ -276,6 +311,16 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
   }
 
   @override
+  void didUpdateWidget(PgRebanhoEditWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.rebanhoId != widget.rebanhoId) {
+      _rebanhoFuture = _createRebanhoFuture();
+      _desmamaPesagemFuture = null;
+      _desmamaPesagemFutureIdRebanho = null;
+    }
+  }
+
+  @override
   void dispose() {
     // Libera matriz/reprodutor usados na aba Progênie; a lista de Reprodução
     // usa filtroIDMatriz/filtroIDReprodutor (após "Aplicar filtro") e não deve
@@ -293,12 +338,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
     context.watch<FFAppState>();
 
     return FutureBuilder<List<RebanhoRow>>(
-      future: RebanhoTable().querySingleRow(
-        queryFn: (q) => q.eqOrNull(
-          'id',
-          widget.rebanhoId,
-        ),
-      ),
+      future: _rebanhoFuture,
       builder: (context, snapshot) {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
@@ -324,7 +364,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
             : null;
 
         return FutureBuilder<HistoricoPesagensRow?>(
-          future: _loadDesmamaPesagem(pgRebanhoEditRebanhoRow?.idRebanho),
+          future: _getDesmamaPesagemFuture(pgRebanhoEditRebanhoRow?.idRebanho),
           builder: (context, desmamaSnapshot) {
             if (desmamaSnapshot.connectionState == ConnectionState.waiting) {
               return Scaffold(
@@ -2435,15 +2475,16 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                                 Colors.transparent,
                                                                             onTap:
                                                                                 () async {
-                                                                              await showDialog(
+                                                                              await showAlignedDialog(
                                                                                 barrierColor: Colors.transparent,
                                                                                 context: context,
+                                                                                isGlobal: false,
+                                                                                avoidOverflow: true,
+                                                                                targetAnchor: const AlignmentDirectional(-1.0, 1.0).resolve(Directionality.of(context)),
+                                                                                followerAnchor: const AlignmentDirectional(-1.0, -1.0).resolve(Directionality.of(context)),
                                                                                 builder: (dialogContext) {
-                                                                                  return Dialog(
-                                                                                    elevation: 0,
-                                                                                    insetPadding: EdgeInsets.zero,
-                                                                                    backgroundColor: Colors.transparent,
-                                                                                    alignment: const AlignmentDirectional(0.0, -1.0).resolve(Directionality.of(context)),
+                                                                                  return Material(
+                                                                                    color: Colors.transparent,
                                                                                     child: GestureDetector(
                                                                                       onTap: () {
                                                                                         FocusScope.of(dialogContext).unfocus();
@@ -2615,15 +2656,16 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                                 Colors.transparent,
                                                                             onTap:
                                                                                 () async {
-                                                                              await showDialog(
+                                                                              await showAlignedDialog(
                                                                                 barrierColor: Colors.transparent,
                                                                                 context: context,
+                                                                                isGlobal: false,
+                                                                                avoidOverflow: true,
+                                                                                targetAnchor: const AlignmentDirectional(-1.0, 1.0).resolve(Directionality.of(context)),
+                                                                                followerAnchor: const AlignmentDirectional(-1.0, -1.0).resolve(Directionality.of(context)),
                                                                                 builder: (dialogContext) {
-                                                                                  return Dialog(
-                                                                                    elevation: 0,
-                                                                                    insetPadding: EdgeInsets.zero,
-                                                                                    backgroundColor: Colors.transparent,
-                                                                                    alignment: const AlignmentDirectional(0.0, -1.0).resolve(Directionality.of(context)),
+                                                                                  return Material(
+                                                                                    color: Colors.transparent,
                                                                                     child: GestureDetector(
                                                                                       onTap: () {
                                                                                         FocusScope.of(dialogContext).unfocus();
