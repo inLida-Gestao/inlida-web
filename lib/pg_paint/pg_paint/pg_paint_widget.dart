@@ -117,7 +117,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
             (r['serie_fazenda'] ?? '').toString();
         _model.codFazendaController?.text =
             (r['codigo_fazenda'] ?? '').toString();
-        _model.programa = (r['programa'] ?? 'P').toString();
+        _model.programa = 'P';
         _model.estrategiaA12 = (r['estrategia_a12'] ?? 'compacto').toString();
         _model.campoOrigemAnimal =
             (r['campo_origem_animal'] ?? 'numeroAnimal').toString();
@@ -859,20 +859,16 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                     ),
                     SizedBox(
                       width: 120,
-                      child: DropdownButtonFormField<String>(
-                        value: _model.programa,
+                      child: TextFormField(
+                        initialValue: 'P',
+                        readOnly: true,
+                        enabled: false,
                         decoration: InputDecoration(
                           labelText: 'Programa A12',
+                          helperText: 'Fixo: PAINT',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'P', child: Text('P')),
-                          DropdownMenuItem(value: 'F', child: Text('F')),
-                        ],
-                        onChanged: (v) => safeSetState(
-                          () => _model.programa = v ?? 'P',
                         ),
                       ),
                     ),

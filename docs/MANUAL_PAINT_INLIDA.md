@@ -40,7 +40,7 @@ Na primeira utilização da propriedade, preencha a configuração PAINT:
 - `Código de transmissão`: código de 6 dígitos fornecido pela equipe PAINT. Ele identifica a transmissão dos arquivos da fazenda para o PAINT.
 - `Série fazenda`: série da fazenda no PAINT, com 1 a 4 caracteres. Esse valor entra na composição do identificador A12 quando a estratégia escolhida usa a série.
 - `Código fazenda`: código de 4 dígitos da fazenda no PAINT. Deve ser preenchido exatamente como informado pela equipe PAINT.
-- `Programa A12`: programa usado na montagem do A12, normalmente `P` ou `F`, conforme orientação PAINT.
+- `Programa A12`: fixo em `P` (PAINT). Conforme manual oficial do PAINT (seção 7.1), todo animal sem origem em outro programa de melhoramento deve usar `P`. As demais siglas oficiais (`A`, `C`, `E`, `I`, `U`, `Z`, `Q`) só seriam necessárias para cadastrar animais oriundos de outros programas e hoje não estão habilitadas na tela.
 - `Estratégia A12`: define como o sistema vai montar o identificador A12 de cada animal. Na estratégia compacta, por exemplo, o A12 é formado combinando o programa, a série da fazenda e o campo de origem do animal.
 - `Campo origem animal`: define qual informação cadastrada no rebanho da INLIDA será usada como base do animal dentro do A12. Exemplos comuns são número do animal, nome, chip ou código de registro.
 
