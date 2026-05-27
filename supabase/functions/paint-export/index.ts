@@ -16,6 +16,8 @@ const CORS_HEADERS = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const RUNNING_JOB_TTL_MS = 5 * 60 * 1000;
+
 function jsonResponse(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
     status,
@@ -35,9 +37,40 @@ function buildZipName(codTransm: string, now: Date): string {
 
 function countLines(content: string): number {
   if (!content) return 0;
-  const parts = content.split("\r\n");
-  if (parts.length > 0 && parts[parts.length - 1] === "") parts.pop();
-  return parts.length;
+  let count = 1;
+  let index = 0;
+  while ((index = content.indexOf("\r\n", index)) !== -1) {
+    count += 1;
+    index += 2;
+  }
+  return content.endsWith("\r\n") ? count - 1 : count;
+}
+
+async function clearStaleRunningJobs(supa: any, idPropriedade: string, now: Date) {
+  const staleBefore = new Date(now.getTime() - RUNNING_JOB_TTL_MS).toISOString();
+  const { error } = await supa.from("paint_export_job")
+    .update({
+      status: "error",
+      erro: "Exportação anterior interrompida antes de finalizar.",
+      finished_at: now.toISOString(),
+    })
+    .eq("id_propriedade", idPropriedade)
+    .eq("status", "running")
+    .lt("started_at", staleBefore);
+  if (error) throw new Error(`limpar jobs antigos: ${error.message}`);
+}
+
+async function getActiveRunningJob(supa: any, idPropriedade: string, now: Date) {
+  const activeSince = new Date(now.getTime() - RUNNING_JOB_TTL_MS).toISOString();
+  const { data, error } = await supa.from("paint_export_job")
+    .select("id,started_at")
+    .eq("id_propriedade", idPropriedade)
+    .eq("status", "running")
+    .gte("started_at", activeSince)
+    .order("started_at", { ascending: false })
+    .limit(1);
+  if (error) throw new Error(`consultar exportação em andamento: ${error.message}`);
+  return data?.[0] ?? null;
 }
 
 const GENERATION_ORDER = [
@@ -128,6 +161,24 @@ serve(async (req) => {
     .eq("idPropriedade", idPropriedade)
     .limit(1);
 
+  const requestStartedAt = new Date();
+  try {
+    await clearStaleRunningJobs(supa, idPropriedade, requestStartedAt);
+    const activeJob = await getActiveRunningJob(supa, idPropriedade, requestStartedAt);
+    if (activeJob) {
+      return jsonResponse(200, {
+        ok: false,
+        error:
+          "Já existe uma exportação PAINT em andamento para esta propriedade. Aguarde finalizar antes de gerar outra.",
+        jobId: activeJob.id,
+        startedAt: activeJob.started_at,
+      });
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return jsonResponse(500, { ok: false, error: msg });
+  }
+
   const userId = (await supa.auth.getUser()).data.user?.id ?? null;
   const { data: jobRows, error: jobErr } = await supa
     .from("paint_export_job")
@@ -135,7 +186,7 @@ serve(async (req) => {
       id_propriedade: idPropriedade,
       usuario_id: userId,
       status: "running",
-      started_at: new Date().toISOString(),
+      started_at: requestStartedAt.toISOString(),
     })
     .select()
     .limit(1);
@@ -165,16 +216,13 @@ serve(async (req) => {
       const gen = GENERATORS[name];
       let content = "";
       if (gen) content = await gen(ctx);
+      const lineCount = countLines(content);
       counts[name.replace("_DELETE", "")] = counts[name.replace("_DELETE", "")] ??
-        countLines(content);
-      if (!name.endsWith("_DELETE")) {
-        counts[name] = countLines(content);
-      } else {
-        counts[name] = countLines(content);
-      }
+        lineCount;
+      counts[name] = lineCount;
       zip.addFile(`${name}.TXT`, encodeWin1252(content));
       console.log(
-        `[paint-export] ${name}.TXT lines=${countLines(content)} elapsed=${Date.now() - lastLogTs}ms`,
+        `[paint-export] ${name}.TXT lines=${lineCount} elapsed=${Date.now() - lastLogTs}ms`,
       );
       lastLogTs = Date.now();
 
@@ -198,7 +246,12 @@ serve(async (req) => {
       }
     }
 
-    const zipBytes = await zip.generateAsync({ type: "uint8array" });
+    // A compressão padrão consome CPU suficiente para estourar limite do
+    // Edge Worker em propriedades maiores. O PAINT só exige o contêiner ZIP.
+    const zipBytes = await zip.generateAsync({
+      type: "uint8array",
+      compression: "STORE",
+    });
 
     const nomeZip = buildZipName(config.codigo_transmissao, now);
     const storagePath = `${idPropriedade}/${nomeZip}`;
@@ -233,6 +286,7 @@ serve(async (req) => {
       ok: true,
       jobId,
       nomeZip,
+      storagePath,
       signedUrl: signed?.signedUrl,
       counts,
     });

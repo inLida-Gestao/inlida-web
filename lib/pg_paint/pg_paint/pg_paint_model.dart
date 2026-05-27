@@ -23,9 +23,17 @@ class PgPaintModel extends FlutterFlowModel<PgPaintWidget> {
   bool carregandoConfig = true;
   bool salvandoConfig = false;
   bool exportando = false;
+  bool baixandoExport = false;
   String? mensagemConfig;
   String? mensagemExport;
   String? linkUltimoZip;
+  String? exportJobId;
+  String? exportJobStatus;
+  String? exportJobErro;
+  String? exportNomeZip;
+  String? exportStoragePath;
+  DateTime? exportStartedAt;
+  DateTime? exportFinishedAt;
 
   String? configId;
   String programa = 'P';

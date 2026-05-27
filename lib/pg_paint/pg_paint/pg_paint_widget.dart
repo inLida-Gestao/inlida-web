@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '/backend/supabase/supabase.dart';
 import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
@@ -30,6 +32,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
   late PgPaintModel _model;
   final scaffoldKey = GlobalKey<ScaffoldState>();
   String? _ultimaPropriedadeId;
+  Timer? _exportStatusTimer;
 
   @override
   void initState() {
@@ -53,11 +56,13 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       }
       await _carregarConfig();
       await _carregarStatus();
+      await _carregarUltimoJobExport();
     });
   }
 
   @override
   void dispose() {
+    _pararAcompanhamentoExport();
     _model.dispose();
     super.dispose();
   }
@@ -83,6 +88,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         _model.mensagemAuto = null;
         _model.mensagemExport = null;
         _model.linkUltimoZip = null;
+        _limparJobExport();
       });
       return;
     }
@@ -195,14 +201,174 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     }
   }
 
+  void _limparJobExport() {
+    _model.exportJobId = null;
+    _model.exportJobStatus = null;
+    _model.exportJobErro = null;
+    _model.exportNomeZip = null;
+    _model.exportStoragePath = null;
+    _model.exportStartedAt = null;
+    _model.exportFinishedAt = null;
+  }
+
+  DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    return DateTime.tryParse(value.toString());
+  }
+
+  bool _jobExportTravado() {
+    if (_model.exportJobStatus != 'running') return false;
+    final started = _model.exportStartedAt;
+    if (started == null) return false;
+    return DateTime.now().toUtc().difference(started.toUtc()) >
+        const Duration(minutes: 5);
+  }
+
+  void _pararAcompanhamentoExport() {
+    _exportStatusTimer?.cancel();
+    _exportStatusTimer = null;
+  }
+
+  void _iniciarAcompanhamentoExport(String propId) {
+    _pararAcompanhamentoExport();
+    _exportStatusTimer =
+        Timer.periodic(const Duration(seconds: 3), (_) async {
+      if (!_aindaMesmaPropriedade(propId)) {
+        _pararAcompanhamentoExport();
+        return;
+      }
+      await _carregarUltimoJobExport(
+        propId: propId,
+        baixarQuandoConcluir: true,
+      );
+    });
+  }
+
+  Future<void> _carregarUltimoJobExport({
+    String? propId,
+    bool baixarQuandoConcluir = false,
+  }) async {
+    final idProp = propId ?? _idPropriedade;
+    if (idProp.isEmpty) return;
+    try {
+      final rows = await SupaFlow.client
+          .from('paint_export_job')
+          .select(
+              'id,status,erro,nome_zip,storage_path,total_animais,started_at,finished_at,created_at')
+          .eq('id_propriedade', idProp)
+          .order('created_at', ascending: false)
+          .limit(1);
+      if (!_aindaMesmaPropriedade(idProp)) return;
+      if (rows.isEmpty) {
+        safeSetState(() => _limparJobExport());
+        return;
+      }
+
+      final job = Map<String, dynamic>.from(rows.first as Map);
+      final status = job['status']?.toString();
+      final storagePath = job['storage_path']?.toString() ?? '';
+      final nomeZip = job['nome_zip']?.toString() ?? 'paint-export.zip';
+      safeSetState(() {
+        _model.exportJobId = job['id']?.toString();
+        _model.exportJobStatus = status;
+        _model.exportJobErro = job['erro']?.toString();
+        _model.exportNomeZip = nomeZip;
+        _model.exportStoragePath = storagePath;
+        _model.exportStartedAt = _parseDateTime(job['started_at']);
+        _model.exportFinishedAt = _parseDateTime(job['finished_at']);
+
+        if (status == 'running') {
+          _model.exportando = !_jobExportTravado();
+          _model.mensagemExport = _jobExportTravado()
+              ? 'A exportação anterior parece travada. Você pode tentar gerar novamente.'
+              : 'Exportação em andamento. A tela vai baixar o ZIP automaticamente quando concluir.';
+        } else if (status == 'error') {
+          _model.exportando = false;
+          _model.mensagemExport =
+              'Falha na exportação: ${_model.exportJobErro ?? 'erro não informado'}';
+        } else if (status == 'success' && !baixarQuandoConcluir) {
+          _model.exportando = false;
+          _model.mensagemExport = 'Última exportação concluída: $nomeZip';
+        }
+      });
+
+      if (status == 'running' &&
+          !_jobExportTravado() &&
+          !baixarQuandoConcluir &&
+          _exportStatusTimer == null) {
+        _iniciarAcompanhamentoExport(idProp);
+      } else if (status == 'running' && _jobExportTravado()) {
+        _pararAcompanhamentoExport();
+      } else if (status == 'error') {
+        _pararAcompanhamentoExport();
+      } else if (status == 'success' && baixarQuandoConcluir) {
+        _pararAcompanhamentoExport();
+        await _baixarZipExport(storagePath: storagePath, nomeZip: nomeZip);
+      }
+    } catch (e) {
+      if (!_aindaMesmaPropriedade(idProp)) return;
+      safeSetState(() {
+        _model.exportando = false;
+        _model.mensagemExport = 'Erro ao consultar status da exportação: $e';
+      });
+    }
+  }
+
+  Future<void> _baixarZipExport({
+    required String storagePath,
+    required String nomeZip,
+    String? signedUrl,
+  }) async {
+    if (storagePath.isEmpty && (signedUrl == null || signedUrl.isEmpty)) {
+      safeSetState(() {
+        _model.exportando = false;
+        _model.mensagemExport =
+            'Exportação concluída, mas o caminho do ZIP não foi retornado.';
+      });
+      return;
+    }
+
+    safeSetState(() => _model.baixandoExport = true);
+    try {
+      final url = signedUrl?.isNotEmpty == true
+          ? signedUrl!
+          : await SupaFlow.client.storage
+              .from('paint-exports')
+              .createSignedUrl(storagePath, 3600);
+      final zipResp = await http.get(Uri.parse(url));
+      if (zipResp.statusCode != 200) {
+        throw Exception('HTTP ${zipResp.statusCode}');
+      }
+      await download(Stream.fromIterable(zipResp.bodyBytes), nomeZip);
+      if (!mounted) return;
+      safeSetState(() {
+        _model.exportando = false;
+        _model.baixandoExport = false;
+        _model.linkUltimoZip = null;
+        _model.mensagemExport = 'Exportação concluída e baixada: $nomeZip';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      safeSetState(() {
+        _model.exportando = false;
+        _model.baixandoExport = false;
+        _model.linkUltimoZip = signedUrl;
+        _model.mensagemExport =
+            'Exportação concluída, mas falha ao baixar automaticamente: $e';
+      });
+    }
+  }
+
   Future<void> _gerarExport() async {
     if (_idPropriedade.isEmpty) return;
     final propId = _idPropriedade;
     safeSetState(() {
       _model.exportando = true;
+      _model.baixandoExport = false;
       _model.mensagemExport = null;
       _model.linkUltimoZip = null;
     });
+    _iniciarAcompanhamentoExport(propId);
     try {
       final response = await SupaFlow.client.functions.invoke(
         'paint-export',
@@ -216,57 +382,48 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       if (data is Map && data['ok'] == true) {
         final signedUrl = data['signedUrl']?.toString() ?? '';
         final nomeZip = data['nomeZip']?.toString() ?? 'paint-export.zip';
-        if (signedUrl.isNotEmpty) {
-          try {
-            final zipResp = await http.get(Uri.parse(signedUrl));
-            if (zipResp.statusCode == 200) {
-              await download(Stream.fromIterable(zipResp.bodyBytes), nomeZip);
-            } else {
-              throw Exception('HTTP ${zipResp.statusCode}');
-            }
-          } catch (e) {
-            if (!_aindaMesmaPropriedade(propId)) {
-              safeSetState(() => _model.exportando = false);
-              return;
-            }
-            safeSetState(() {
-              _model.exportando = false;
-              _model.linkUltimoZip = signedUrl;
-              _model.mensagemExport =
-                  'Exportação gerada, mas falha ao baixar automaticamente: $e';
-            });
-            return;
-          }
-        }
-        if (!_aindaMesmaPropriedade(propId)) {
-          safeSetState(() => _model.exportando = false);
-          return;
-        }
-        safeSetState(() {
-          _model.exportando = false;
-          _model.linkUltimoZip = null;
-          _model.mensagemExport = 'Exportação concluída: $nomeZip';
-        });
+        final storagePath = data['storagePath']?.toString() ??
+            _model.exportStoragePath ??
+            '';
+        _pararAcompanhamentoExport();
+        await _carregarUltimoJobExport(propId: propId);
+        await _baixarZipExport(
+          storagePath: storagePath,
+          nomeZip: nomeZip,
+          signedUrl: signedUrl,
+        );
       } else {
         if (!_aindaMesmaPropriedade(propId)) {
           safeSetState(() => _model.exportando = false);
           return;
         }
         final err = (data is Map ? data['error'] : null) ?? 'Resposta inválida';
-        safeSetState(() {
-          _model.exportando = false;
-          _model.mensagemExport = 'Falha: $err';
-        });
+        await _carregarUltimoJobExport(
+          propId: propId,
+          baixarQuandoConcluir: true,
+        );
+        if (_model.exportJobStatus != 'running') {
+          safeSetState(() {
+            _model.exportando = false;
+            _model.mensagemExport = 'Falha: $err';
+          });
+        }
       }
     } catch (e) {
       if (!_aindaMesmaPropriedade(propId)) {
         safeSetState(() => _model.exportando = false);
         return;
       }
-      safeSetState(() {
-        _model.exportando = false;
-        _model.mensagemExport = 'Erro ao gerar exportação: $e';
-      });
+      await _carregarUltimoJobExport(
+        propId: propId,
+        baixarQuandoConcluir: true,
+      );
+      if (_model.exportJobStatus != 'running') {
+        safeSetState(() {
+          _model.exportando = false;
+          _model.mensagemExport = 'Erro ao gerar exportação: $e';
+        });
+      }
     }
   }
 
@@ -435,6 +592,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _carregarConfig();
         await _carregarStatus();
+        await _carregarUltimoJobExport();
       });
     }
 
@@ -919,11 +1077,16 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                       ),
                     ),
                     FFButtonWidget(
-                      onPressed:
-                          (_model.exportando || !cfgOk) ? null : _gerarExport,
-                      text: _model.exportando
-                          ? 'Gerando…'
-                          : 'Gerar EXPORTACAO DADOS',
+                      onPressed: (_model.exportando ||
+                              _model.baixandoExport ||
+                              !cfgOk)
+                          ? null
+                          : _gerarExport,
+                      text: _model.baixandoExport
+                          ? 'Baixando…'
+                          : (_model.exportando
+                              ? 'Gerando…'
+                              : 'Gerar EXPORTACAO DADOS'),
                       icon: const Icon(
                         Icons.download,
                         size: 18,
@@ -958,6 +1121,60 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                   Text(
                     _model.mensagemExport!,
                     style: theme.bodyMedium,
+                  ),
+                ],
+                if (_model.exportJobStatus == 'running' &&
+                    !_jobExportTravado()) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Acompanhando status automaticamente...',
+                        style: theme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ],
+                if (_model.exportJobStatus == 'success' &&
+                    (_model.exportStoragePath ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  FFButtonWidget(
+                    onPressed: _model.baixandoExport
+                        ? null
+                        : () => _baixarZipExport(
+                              storagePath: _model.exportStoragePath!,
+                              nomeZip:
+                                  _model.exportNomeZip ?? 'paint-export.zip',
+                            ),
+                    text: _model.baixandoExport
+                        ? 'Baixando último ZIP...'
+                        : 'Baixar último ZIP gerado',
+                    icon: const Icon(Icons.download, size: 16),
+                    options: FFButtonOptions(
+                      height: 36,
+                      padding:
+                          const EdgeInsetsDirectional.fromSTEB(14, 0, 14, 0),
+                      color: theme.secondaryBackground,
+                      textStyle: theme.bodyMedium.override(
+                        fontFamily: 'Readex Pro',
+                        color: theme.primary,
+                        useGoogleFonts:
+                            GoogleFonts.asMap().containsKey('Readex Pro'),
+                      ),
+                      elevation: 0,
+                      borderSide: BorderSide(color: theme.primary),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ],
                 if (_model.linkUltimoZip != null) ...[
