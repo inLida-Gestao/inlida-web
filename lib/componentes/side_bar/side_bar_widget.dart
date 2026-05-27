@@ -682,42 +682,15 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                       child: Row(
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          Icon(
-                            Icons.science_outlined,
-                            color: FFAppState().navegacao == 'paint'
-                                ? FlutterFlowTheme.of(context).customColor10
-                                : FlutterFlowTheme.of(context).primaryText,
-                            size: 24.0,
+                          Expanded(
+                            child: Image.asset(
+                              'assets/images/logo_paint.png',
+                              height: 24.0,
+                              fit: BoxFit.contain,
+                              alignment: Alignment.centerLeft,
+                            ),
                           ),
-                          Text(
-                            'PAINT',
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  font: GoogleFonts.poppins(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
-                                  color: FFAppState().navegacao == 'paint'
-                                      ? FlutterFlowTheme.of(context)
-                                          .customColor10
-                                      : FlutterFlowTheme.of(context)
-                                          .primaryText,
-                                  fontSize: 16.0,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                          ),
-                        ].divide(const SizedBox(width: 8.0)),
+                        ],
                       ),
                     ),
                   ),
