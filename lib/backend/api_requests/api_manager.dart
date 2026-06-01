@@ -497,6 +497,7 @@ class ApiManager {
         ? sessionJwt
         : _accessToken;
     if (bearer != null && bearer.isNotEmpty) {
+      headers.removeWhere((key, _) => key.toLowerCase() == 'authorization');
       headers[HttpHeaders.authorizationHeader] = 'Bearer $bearer';
     }
     if (!apiUrl.startsWith('http')) {

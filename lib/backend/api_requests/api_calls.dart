@@ -1414,9 +1414,9 @@ class SupabaseEdgeGroup {
     return '$base/functions/v1/';
   }
 
-  /// Edge Functions com "Verify JWT" no Supabase exigem Bearer (anon ou sessão).
+  /// O ApiManager injeta o JWT da sessão em Authorization; manter Bearer anon
+  /// aqui cria header duplicado e quebra auth.uid() após ativar RLS.
   static Map<String, String> get authHeaders => {
-        'Authorization': 'Bearer ${SupabaseConfig.anonKey}',
         'apikey': SupabaseConfig.anonKey,
         'Content-Type': 'application/json',
       };
