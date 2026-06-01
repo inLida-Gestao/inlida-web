@@ -31,13 +31,21 @@ String formatA12({
   }
 
   final aRaw = animal;
+  // Campo Animal (5): identificação justificada à ESQUERDA, espaço sobra à
+  // direita (ex.: "4705 "). Manual A12 = Programa(1)+Série(4)+Animal(5)+Ano(2).
   final a = aRaw.length > 5
       ? aRaw.substring(0, 5)
-      : ' ' * (5 - aRaw.length) + aRaw;
+      : aRaw + ' ' * (5 - aRaw.length);
 
   if (estrategia == PaintEstrategiaA12.espacado) {
     final serieTrim = s.trim();
-    final animalTrim = a.trim();
+    // Reserva espaço para programa + série + 2 separadores + ano (2). O animal
+    // é truncado se necessário para nunca cortar o ano no final.
+    final espacoAnimal =
+        (12 - (p.length + serieTrim.length + 2 + y.length)).clamp(0, 5);
+    final animalTrim = a.trim().length > espacoAnimal
+        ? a.trim().substring(0, espacoAnimal)
+        : a.trim();
     final raw = '$p$serieTrim $animalTrim $y';
     return raw.length > 12 ? raw.substring(0, 12) : raw.padRight(12, ' ');
   }

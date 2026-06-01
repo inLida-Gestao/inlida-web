@@ -134,10 +134,32 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
       .neq("deletado", "SIM"),
     {
       columns:
-        "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,dataDesmama,pesoDesmama,status,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,created_at,updated_at,dataAcao",
+        "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,dataDesmama,pesoDesmama,status,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,loteNome,loteID,created_at,updated_at,dataAcao",
+      orderColumn: "id",
     },
   );
   ctx.rebanhoRows = rows;
+
+  // Mapa descrição-do-lote -> código do grupo de manejo PAINT. O grupo é criado
+  // a partir dos lotes (paint_grupo_manejo.descricao = nome do lote, máx. 20),
+  // e o animal liga-se ao lote por rebanho.loteNome.
+  const grupos = await selectAll<any>(
+    ctx.supa,
+    "paint_grupo_manejo",
+    (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
+    { columns: "codigo,descricao", orderColumn: "codigo" },
+  );
+  const grupoByDescricao = new Map<string, string>();
+  for (const g of grupos) {
+    const descr = String(g.descricao ?? "").trim().toUpperCase();
+    const cod = String(g.codigo ?? "").trim();
+    if (descr && cod) grupoByDescricao.set(descr, cod);
+  }
+  const grupoManejoDoLote = (loteNome: unknown): string => {
+    const nome = String(loteNome ?? "").trim().toUpperCase().slice(0, 20);
+    if (!nome) return "";
+    return grupoByDescricao.get(nome) ?? "";
+  };
 
   // Cache para uso em outros geradores.
   for (const r of rows) {
@@ -189,7 +211,7 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
       ani_mae: maeA12,
       ani_categoria: mapCategoria(r),
       ani_regime_alimentar: "",
-      ani_grupo_manejo: "",
+      ani_grupo_manejo: grupoManejoDoLote(r.loteNome),
       ani_local: "",
       ani_data_inclusao: formatDate(r.created_at ?? r.dataAcao ?? ctx.generationDateTime),
       ani_data_alteracao: formatDate(r.updated_at ?? r.dataAcao ?? ctx.generationDateTime),
@@ -321,6 +343,7 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
     {
       columns:
         "id,id_rebanho_matriz,id_rebanho_reprodutor,data_inseminacao,data_inicial,data_final,tipo_reproducao,partida_semen,previsao_parto,anotacoes,created_at,updated_at",
+      orderColumn: "id",
     },
   );
   ctx.reproducaoRows = rows;
@@ -540,6 +563,7 @@ async function paintTableGenerator<T extends Record<string, unknown>>(
     ctx.supa,
     table,
     (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
+    { orderColumn: "id" },
   );
   const lines: string[] = [];
   let recno = 0;
@@ -809,7 +833,10 @@ async function genPesagem(ctx: ExportContext): Promise<string> {
         ctx.supa,
         "historico_pesagens",
         (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
-        { columns: "id,id_rebanho,data_pesagem,peso,created_at,updated_at" },
+        {
+          columns: "id,id_rebanho,data_pesagem,peso,created_at,updated_at",
+          orderColumn: "id",
+        },
       );
     } catch (_e) {
       rows = [];
@@ -847,7 +874,12 @@ async function genPesagem(ctx: ExportContext): Promise<string> {
 // =============================================================================
 async function genRaca(ctx: ExportContext): Promise<string> {
   const layout = LAYOUTS.RACA;
-  const rows = await selectAll<any>(ctx.supa, "paint_codigo_raca", (q) => q);
+  const rows = await selectAll<any>(
+    ctx.supa,
+    "paint_codigo_raca",
+    (q) => q,
+    { orderColumn: "codigo" },
+  );
   const lines: string[] = [];
   let recno = 0;
   for (const r of rows) {

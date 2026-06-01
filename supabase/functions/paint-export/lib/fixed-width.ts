@@ -72,13 +72,21 @@ export function formatA12(opts: {
   }
 
   const aRaw = animalPart;
+  // Campo Animal (5): identificação justificada à ESQUERDA, espaço sobra à
+  // direita (ex.: "4705 "). Manual A12 = Programa(1)+Série(4)+Animal(5)+Ano(2).
   const a = aRaw.length > 5
     ? aRaw.slice(0, 5)
-    : " ".repeat(5 - aRaw.length) + aRaw;
+    : aRaw + " ".repeat(5 - aRaw.length);
 
   if (estrategia === "espacado") {
     const serieTrim = serie4.trim();
-    const animalTrim = a.trim();
+    // Reserva espaço para programa + série + 2 separadores + ano (2). O animal
+    // é truncado se necessário para nunca cortar o ano no final.
+    const espacoAnimal = Math.max(
+      0,
+      12 - (p.length + serieTrim.length + 2 + y.length),
+    );
+    const animalTrim = a.trim().slice(0, espacoAnimal);
     return `${p}${serieTrim} ${animalTrim} ${y}`.padEnd(12, " ").slice(0, 12);
   }
 

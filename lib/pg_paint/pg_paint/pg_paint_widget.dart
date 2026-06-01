@@ -380,7 +380,15 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       }
       final data = response.data;
       if (data is Map && data['ok'] == true) {
+        final isAsync = data['async'] == true;
         final signedUrl = data['signedUrl']?.toString() ?? '';
+        if (isAsync || signedUrl.isEmpty) {
+          await _carregarUltimoJobExport(
+            propId: propId,
+            baixarQuandoConcluir: true,
+          );
+          return;
+        }
         final nomeZip = data['nomeZip']?.toString() ?? 'paint-export.zip';
         final storagePath = data['storagePath']?.toString() ??
             _model.exportStoragePath ??

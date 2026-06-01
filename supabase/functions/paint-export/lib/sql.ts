@@ -19,6 +19,7 @@ export async function selectAll<T = Record<string, unknown>>(
   const cols = options?.columns ?? "*";
   while (true) {
     let q = supa.from(table).select(cols).range(offset, offset + PAGE_SIZE - 1);
+    // PostgREST exige ORDER BY estável ao paginar com range().
     if (options?.orderColumn) {
       q = q.order(options.orderColumn, { ascending: true });
     }

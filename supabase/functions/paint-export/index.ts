@@ -110,6 +110,107 @@ const GENERATION_ORDER = [
   "SAFRA_DELETE",
 ];
 
+async function runExportJob(
+  supa: ReturnType<typeof createClient>,
+  jobId: string,
+  idPropriedade: string,
+  config: PaintConfig,
+  faz: Record<string, unknown> | null,
+) {
+  try {
+    const now = new Date();
+    const ctx: ExportContext = {
+      supa,
+      config,
+      faz,
+      a12ByRebanhoId: new Map(),
+      numeroByRebanhoId: new Map(),
+      generationDate: formatDate(now),
+      generationTime: formatTime(now),
+      generationDateTime: now,
+    };
+
+    const zip = new JSZip();
+    const counts: Record<string, number> = {};
+    let lastLogTs = Date.now();
+
+    for (const name of GENERATION_ORDER) {
+      const gen = GENERATORS[name];
+      let content = "";
+      if (gen) content = await gen(ctx);
+      const lineCount = countLines(content);
+      counts[name.replace("_DELETE", "")] = counts[name.replace("_DELETE", "")] ??
+        lineCount;
+      counts[name] = lineCount;
+      zip.addFile(`${name}.TXT`, encodeWin1252(content));
+      console.log(
+        `[paint-export] ${name}.TXT lines=${lineCount} elapsed=${Date.now() - lastLogTs}ms`,
+      );
+      lastLogTs = Date.now();
+
+      if (name === "NASCIMENTO") ctx.rebanhoRows = undefined;
+      if (name === "COBERTURA") ctx.reproducaoRows = undefined;
+      if (name === "PESAGEM") ctx.pesagemRows = undefined;
+    }
+
+    const utr = await genUltimaTransmissao(ctx, counts);
+    counts["ULTIMA_TRANSMISSAO"] = countLines(utr);
+    zip.addFile("ULTIMA_TRANSMISSAO.TXT", encodeWin1252(utr));
+
+    for (const name of PAINT_ZIP_FILES) {
+      if (!zip.file(`${name}.TXT`)) {
+        zip.addFile(`${name}.TXT`, encodeWin1252(""));
+      }
+    }
+    for (const name of PAINT_FILES) {
+      if (!zip.file(`${name}.TXT`)) {
+        zip.addFile(`${name}.TXT`, encodeWin1252(""));
+      }
+    }
+
+    const zipBytes = await zip.generateAsync({
+      type: "uint8array",
+      compression: "STORE",
+    });
+
+    const nomeZip = buildZipName(config.codigo_transmissao, now);
+    const storagePath = `${idPropriedade}/${nomeZip}`;
+
+    const { error: uploadErr } = await supa.storage
+      .from("paint-exports")
+      .upload(storagePath, zipBytes, {
+        contentType: "application/zip",
+        upsert: true,
+      });
+    if (uploadErr) throw new Error(`upload: ${uploadErr.message}`);
+
+    await supa.from("paint_export_job").update({
+      status: "success",
+      nome_zip: nomeZip,
+      storage_path: storagePath,
+      total_animais: counts.ANIMAL ?? 0,
+      finished_at: new Date().toISOString(),
+    }).eq("id", jobId);
+
+    await supa.from("paint_registro_excluido")
+      .update({ exportado_em: new Date().toISOString() })
+      .eq("id_propriedade", idPropriedade)
+      .is("exportado_em", null);
+
+    console.log(
+      `[paint-export] concluído job=${jobId} zip=${nomeZip} animais=${counts.ANIMAL ?? 0}`,
+    );
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`[paint-export] erro job=${jobId}: ${msg}`);
+    await supa.from("paint_export_job").update({
+      status: "error",
+      erro: msg,
+      finished_at: new Date().toISOString(),
+    }).eq("id", jobId);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS });
@@ -195,108 +296,46 @@ serve(async (req) => {
   }
   const jobId = jobRows![0].id as string;
 
-  try {
-    const now = new Date();
-    const ctx: ExportContext = {
-      supa,
-      config,
-      faz: (faz && faz.length > 0) ? faz[0] : null,
-      a12ByRebanhoId: new Map(),
-      numeroByRebanhoId: new Map(),
-      generationDate: formatDate(now),
-      generationTime: formatTime(now),
-      generationDateTime: now,
-    };
-
-    const zip = new JSZip();
-    const counts: Record<string, number> = {};
-    let lastLogTs = Date.now();
-
-    for (const name of GENERATION_ORDER) {
-      const gen = GENERATORS[name];
-      let content = "";
-      if (gen) content = await gen(ctx);
-      const lineCount = countLines(content);
-      counts[name.replace("_DELETE", "")] = counts[name.replace("_DELETE", "")] ??
-        lineCount;
-      counts[name] = lineCount;
-      zip.addFile(`${name}.TXT`, encodeWin1252(content));
-      console.log(
-        `[paint-export] ${name}.TXT lines=${lineCount} elapsed=${Date.now() - lastLogTs}ms`,
-      );
-      lastLogTs = Date.now();
-
-      if (name === "NASCIMENTO") ctx.rebanhoRows = undefined;
-      if (name === "COBERTURA") ctx.reproducaoRows = undefined;
-      if (name === "PESAGEM") ctx.pesagemRows = undefined;
-    }
-
-    const utr = await genUltimaTransmissao(ctx, counts);
-    counts["ULTIMA_TRANSMISSAO"] = countLines(utr);
-    zip.addFile("ULTIMA_TRANSMISSAO.TXT", encodeWin1252(utr));
-
-    for (const name of PAINT_ZIP_FILES) {
-      if (!zip.file(`${name}.TXT`)) {
-        zip.addFile(`${name}.TXT`, encodeWin1252(""));
-      }
-    }
-    for (const name of PAINT_FILES) {
-      if (!zip.file(`${name}.TXT`)) {
-        zip.addFile(`${name}.TXT`, encodeWin1252(""));
-      }
-    }
-
-    // A compressão padrão consome CPU suficiente para estourar limite do
-    // Edge Worker em propriedades maiores. O PAINT só exige o contêiner ZIP.
-    const zipBytes = await zip.generateAsync({
-      type: "uint8array",
-      compression: "STORE",
-    });
-
-    const nomeZip = buildZipName(config.codigo_transmissao, now);
-    const storagePath = `${idPropriedade}/${nomeZip}`;
-
-    const { error: uploadErr } = await supa.storage
-      .from("paint-exports")
-      .upload(storagePath, zipBytes, {
-        contentType: "application/zip",
-        upsert: true,
-      });
-    if (uploadErr) throw new Error(`upload: ${uploadErr.message}`);
-
-    const { data: signed, error: signedErr } = await supa.storage
-      .from("paint-exports")
-      .createSignedUrl(storagePath, 3600);
-    if (signedErr) throw new Error(`signed url: ${signedErr.message}`);
-
-    await supa.from("paint_export_job").update({
-      status: "success",
-      nome_zip: nomeZip,
-      storage_path: storagePath,
-      total_animais: counts.ANIMAL ?? 0,
-      finished_at: new Date().toISOString(),
-    }).eq("id", jobId);
-
-    await supa.from("paint_registro_excluido")
-      .update({ exportado_em: new Date().toISOString() })
-      .eq("id_propriedade", idPropriedade)
-      .is("exportado_em", null);
-
-    return jsonResponse(200, {
-      ok: true,
-      jobId,
-      nomeZip,
-      storagePath,
-      signedUrl: signed?.signedUrl,
-      counts,
-    });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!serviceKey) {
     await supa.from("paint_export_job").update({
       status: "error",
-      erro: msg,
+      erro: "SUPABASE_SERVICE_ROLE_KEY não configurada na Edge Function.",
       finished_at: new Date().toISOString(),
     }).eq("id", jobId);
-    return jsonResponse(500, { ok: false, error: msg });
+    return jsonResponse(500, {
+      ok: false,
+      error: "Configuração do servidor incompleta. Contate o suporte.",
+    });
   }
+
+  const supaWorker = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    serviceKey,
+  );
+
+  const fazRow = (faz && faz.length > 0) ? faz[0] : null;
+  const exportTask = runExportJob(
+    supaWorker,
+    jobId,
+    idPropriedade,
+    config,
+    fazRow,
+  );
+
+  // Responde imediatamente para não estourar timeout do cliente (invoke) nem
+  // bloquear a UI; o app acompanha paint_export_job via polling.
+  // @ts-ignore EdgeRuntime global no Supabase
+  if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
+    EdgeRuntime.waitUntil(exportTask);
+  } else {
+    exportTask.catch((e) => console.error("[paint-export] background:", e));
+  }
+
+  return jsonResponse(202, {
+    ok: true,
+    async: true,
+    jobId,
+    message: "Exportação iniciada. Acompanhe o status na tela.",
+  });
 });

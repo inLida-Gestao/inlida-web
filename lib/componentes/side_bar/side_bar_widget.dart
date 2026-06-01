@@ -659,7 +659,7 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                   },
                   child: Container(
                     width: double.infinity,
-                    height: 56.0,
+                    height: 48.0,
                     decoration: BoxDecoration(
                       color: FlutterFlowTheme.of(context).customColor2,
                       boxShadow: [
@@ -678,19 +678,17 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                       borderRadius: BorderRadius.circular(6.0),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          Expanded(
-                            child: Image.asset(
-                              'assets/images/logo_paint.png',
-                              height: 24.0,
-                              fit: BoxFit.contain,
-                              alignment: Alignment.centerLeft,
-                            ),
-                          ),
-                        ],
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0,
+                        vertical: 6.0,
+                      ),
+                      child: Image.asset(
+                        'assets/images/logo_paint.png',
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.contain,
+                        alignment: Alignment.centerLeft,
+                        filterQuality: FilterQuality.high,
                       ),
                     ),
                   ),
