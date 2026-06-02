@@ -5,5 +5,8 @@
   "scripts": {
     "vercel-build": "bash scripts/vercel_build.sh",
     "build:web": "flutter build web --release --pwa-strategy=none --base-href / --web-renderer html"
+  },
+  "devDependencies": {
+    "supabase": "^2.103.0"
   }
 }
