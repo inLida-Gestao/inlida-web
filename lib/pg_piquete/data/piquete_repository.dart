@@ -195,6 +195,16 @@ class PiqueteRepository {
     return LimitePropriedadeBackendSummary.fromJson(_asMap(response));
   }
 
+  Future<void> excluirLimitePropriedade(String limiteId) async {
+    await _rpc(
+      'excluir_limite_propriedade',
+      {
+        'p_limite_id': limiteId,
+        'p_id_propriedade': idPropriedade,
+      },
+    );
+  }
+
   Future<PiqueteBackendDetail> salvarPiquete({
     String piqueteId = '',
     String retiroId = '',
@@ -229,6 +239,16 @@ class PiqueteRepository {
       'excluir_piquete',
       {
         'p_piquete_id': piqueteId,
+        'p_id_propriedade': idPropriedade,
+      },
+    );
+  }
+
+  Future<void> excluirRetiro(String retiroId) async {
+    await _rpc(
+      'excluir_retiro',
+      {
+        'p_retiro_id': retiroId,
         'p_id_propriedade': idPropriedade,
       },
     );

@@ -262,6 +262,15 @@ class PiqueteBackendStore extends ChangeNotifier {
     return saved;
   }
 
+  Future<void> deleteLimitePropriedade(String limiteId) async {
+    await _run(() async {
+      _syncPropertyContext();
+      await _repository.excluirLimitePropriedade(limiteId);
+      _limitePropriedade = null;
+      await load();
+    });
+  }
+
   Future<RetiroPrototype> updateRetiro({
     required RetiroPrototype retiro,
     required String nome,
@@ -286,6 +295,18 @@ class PiqueteBackendStore extends ChangeNotifier {
       await load();
     });
     return updated;
+  }
+
+  Future<void> deleteRetiro(String retiroId) async {
+    await _run(() async {
+      _syncPropertyContext();
+      await _repository.excluirRetiro(retiroId);
+      _retiros.removeWhere((retiro) => retiro.id == retiroId);
+      if (selectedRetiroId == retiroId) {
+        selectedRetiroId = semRetiroId;
+      }
+      await load();
+    });
   }
 
   Future<PiquetePrototype> addPiquete({

@@ -644,6 +644,21 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
               ),
             ),
           ),
+        if (retiro != null)
+          OutlinedButton.icon(
+            onPressed: () => _deleteRetiro(retiro),
+            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+            label: const Text('Excluir retiro'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.error,
+              side: BorderSide(color: theme.error),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -1096,66 +1111,108 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                         ),
                         const SizedBox(height: 24),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            PrototypeSecondaryButton(
-                              label: 'Cancelar',
-                              onPressed: () => Navigator.pop(dialogContext),
-                            ),
-                            PrototypePrimaryButton(
-                              label: editing
-                                  ? 'Salvar alterações'
-                                  : 'Salvar limite',
-                              icon: Icons.check_rounded,
-                              onPressed: () {
-                                final nome = nomeController.text.trim();
-                                final area = double.tryParse(
-                                      areaController.text.replaceAll(',', '.'),
-                                    ) ??
-                                    0;
-                                if (nome.isEmpty ||
-                                    area <= 0 ||
-                                    pontos.length < 3) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text(
-                                        'Informe nome, área e ao menos 3 pontos no mapa.',
-                                      ),
-                                      backgroundColor:
-                                          FlutterFlowTheme.of(context).error,
-                                    ),
-                                  );
-                                  return;
-                                }
-                                () async {
-                                  try {
-                                    await _store.saveLimitePropriedade(
-                                      limite: initial,
-                                      nome: nome,
-                                      areaHa: area,
-                                      anotacoes:
-                                          anotacoesController.text.trim(),
-                                      pontos: pontos,
-                                    );
-                                    if (!dialogContext.mounted) return;
-                                    Navigator.pop(dialogContext);
-                                  } catch (_) {
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          _store.errorMessage ??
-                                              'Não foi possível salvar o limite da propriedade.',
+                            if (editing)
+                              OutlinedButton.icon(
+                                onPressed: () async {
+                                  Navigator.pop(dialogContext);
+                                  await _deleteLimitePropriedade(initial);
+                                },
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 20,
+                                ),
+                                label: const Text('Excluir limite'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor:
+                                      FlutterFlowTheme.of(context).error,
+                                  side: BorderSide(
+                                    color: FlutterFlowTheme.of(context).error,
+                                  ),
+                                  minimumSize: const Size(44, 52),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 22,
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  textStyle: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              )
+                            else
+                              const SizedBox.shrink(),
+                            Row(
+                              children: [
+                                PrototypeSecondaryButton(
+                                  label: 'Cancelar',
+                                  onPressed: () => Navigator.pop(dialogContext),
+                                ),
+                                PrototypePrimaryButton(
+                                  label: editing
+                                      ? 'Salvar alterações'
+                                      : 'Salvar limite',
+                                  icon: Icons.check_rounded,
+                                  onPressed: () {
+                                    final nome = nomeController.text.trim();
+                                    final area = double.tryParse(
+                                          areaController.text
+                                              .replaceAll(',', '.'),
+                                        ) ??
+                                        0;
+                                    if (nome.isEmpty ||
+                                        area <= 0 ||
+                                        pontos.length < 3) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: const Text(
+                                            'Informe nome, área e ao menos 3 pontos no mapa.',
+                                          ),
+                                          backgroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .error,
                                         ),
-                                        backgroundColor:
-                                            FlutterFlowTheme.of(context).error,
-                                      ),
-                                    );
-                                  }
-                                }();
-                              },
+                                      );
+                                      return;
+                                    }
+                                    () async {
+                                      try {
+                                        await _store.saveLimitePropriedade(
+                                          limite: initial,
+                                          nome: nome,
+                                          areaHa: area,
+                                          anotacoes:
+                                              anotacoesController.text.trim(),
+                                          pontos: pontos,
+                                        );
+                                        if (!dialogContext.mounted) return;
+                                        Navigator.pop(dialogContext);
+                                      } catch (_) {
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              _store.errorMessage ??
+                                                  'Não foi possível salvar o limite da propriedade.',
+                                            ),
+                                            backgroundColor:
+                                                FlutterFlowTheme.of(context)
+                                                    .error,
+                                          ),
+                                        );
+                                      }
+                                    }();
+                                  },
+                                ),
+                              ].divide(const SizedBox(width: 12)),
                             ),
-                          ].divide(const SizedBox(width: 12)),
+                          ],
                         ),
                       ],
                     ),
@@ -1313,76 +1370,118 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                         ),
                         const SizedBox(height: 24),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            PrototypeSecondaryButton(
-                              label: 'Cancelar',
-                              onPressed: () => Navigator.pop(dialogContext),
-                            ),
-                            PrototypePrimaryButton(
-                              label: editing
-                                  ? 'Salvar alterações'
-                                  : 'Salvar retiro',
-                              icon: Icons.check_rounded,
-                              onPressed: () {
-                                final nome = nomeController.text.trim();
-                                final area = double.tryParse(
-                                      areaController.text.replaceAll(',', '.'),
-                                    ) ??
-                                    0;
-                                if (nome.isEmpty ||
-                                    area <= 0 ||
-                                    pontos.length < 3) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text(
-                                        'Informe nome, área e ao menos 3 pontos no mapa.',
-                                      ),
-                                      backgroundColor:
-                                          FlutterFlowTheme.of(context).error,
-                                    ),
-                                  );
-                                  return;
-                                }
-                                () async {
-                                  try {
-                                    if (editing) {
-                                      await _store.updateRetiro(
-                                        retiro: initial,
-                                        nome: nome,
-                                        areaHa: area,
-                                        anotacoes:
-                                            anotacoesController.text.trim(),
-                                        pontos: pontos,
-                                      );
-                                    } else {
-                                      await _store.addRetiro(
-                                        nome: nome,
-                                        areaHa: area,
-                                        anotacoes:
-                                            anotacoesController.text.trim(),
-                                        pontos: pontos,
-                                      );
-                                    }
-                                    if (!dialogContext.mounted) return;
-                                    Navigator.pop(dialogContext);
-                                  } catch (_) {
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          _store.errorMessage ??
-                                              'Não foi possível salvar o retiro.',
+                            if (editing)
+                              OutlinedButton.icon(
+                                onPressed: () async {
+                                  Navigator.pop(dialogContext);
+                                  await _deleteRetiro(initial);
+                                },
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 20,
+                                ),
+                                label: const Text('Excluir retiro'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor:
+                                      FlutterFlowTheme.of(context).error,
+                                  side: BorderSide(
+                                    color: FlutterFlowTheme.of(context).error,
+                                  ),
+                                  minimumSize: const Size(44, 52),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 22,
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  textStyle: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              )
+                            else
+                              const SizedBox.shrink(),
+                            Row(
+                              children: [
+                                PrototypeSecondaryButton(
+                                  label: 'Cancelar',
+                                  onPressed: () => Navigator.pop(dialogContext),
+                                ),
+                                PrototypePrimaryButton(
+                                  label: editing
+                                      ? 'Salvar alterações'
+                                      : 'Salvar retiro',
+                                  icon: Icons.check_rounded,
+                                  onPressed: () {
+                                    final nome = nomeController.text.trim();
+                                    final area = double.tryParse(
+                                          areaController.text
+                                              .replaceAll(',', '.'),
+                                        ) ??
+                                        0;
+                                    if (nome.isEmpty ||
+                                        area <= 0 ||
+                                        pontos.length < 3) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: const Text(
+                                            'Informe nome, área e ao menos 3 pontos no mapa.',
+                                          ),
+                                          backgroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .error,
                                         ),
-                                        backgroundColor:
-                                            FlutterFlowTheme.of(context).error,
-                                      ),
-                                    );
-                                  }
-                                }();
-                              },
+                                      );
+                                      return;
+                                    }
+                                    () async {
+                                      try {
+                                        if (editing) {
+                                          await _store.updateRetiro(
+                                            retiro: initial,
+                                            nome: nome,
+                                            areaHa: area,
+                                            anotacoes:
+                                                anotacoesController.text.trim(),
+                                            pontos: pontos,
+                                          );
+                                        } else {
+                                          await _store.addRetiro(
+                                            nome: nome,
+                                            areaHa: area,
+                                            anotacoes:
+                                                anotacoesController.text.trim(),
+                                            pontos: pontos,
+                                          );
+                                        }
+                                        if (!dialogContext.mounted) return;
+                                        Navigator.pop(dialogContext);
+                                      } catch (_) {
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              _store.errorMessage ??
+                                                  'Não foi possível salvar o retiro.',
+                                            ),
+                                            backgroundColor:
+                                                FlutterFlowTheme.of(context)
+                                                    .error,
+                                          ),
+                                        );
+                                      }
+                                    }();
+                                  },
+                                ),
+                              ].divide(const SizedBox(width: 12)),
                             ),
-                          ].divide(const SizedBox(width: 12)),
+                          ],
                         ),
                       ],
                     ),
@@ -1398,6 +1497,102 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     nomeController.dispose();
     areaController.dispose();
     anotacoesController.dispose();
+  }
+
+  Future<void> _deleteLimitePropriedade(
+    LimitePropriedadePrototype limite,
+  ) async {
+    final confirmed = await _confirmDelete(
+      title: 'Excluir limite da propriedade',
+      message:
+          'Tem certeza que deseja excluir o limite "${limite.nome}"? Retiros e piquetes existentes permanecem cadastrados, mas será necessário criar um novo limite antes de novas demarcações.',
+      confirmLabel: 'Excluir limite',
+    );
+    if (!confirmed) return;
+
+    try {
+      await _store.deleteLimitePropriedade(limite.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Limite excluído'),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível excluir o limite da propriedade.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteRetiro(RetiroPrototype retiro) async {
+    final confirmed = await _confirmDelete(
+      title: 'Excluir retiro',
+      message:
+          'Tem certeza que deseja excluir o retiro "${retiro.nome}"? Os piquetes vinculados serão mantidos e movidos para "Sem retiro".',
+      confirmLabel: 'Excluir retiro',
+    );
+    if (!confirmed) return;
+
+    try {
+      await _store.deleteRetiro(retiro.id);
+      if (!mounted) return;
+      safeSetState(() => _selectedPiqueteId = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Retiro excluído'),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ?? 'Não foi possível excluir o retiro.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
+  }
+
+  Future<bool> _confirmDelete({
+    required String title,
+    required String message,
+    required String confirmLabel,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final theme = FlutterFlowTheme.of(dialogContext);
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: TextButton.styleFrom(foregroundColor: theme.error),
+              child: Text(confirmLabel),
+            ),
+          ],
+        );
+      },
+    );
+
+    return confirmed ?? false;
   }
 
   Future<void> _showDeleteDialog(PiquetePrototype piquete) async {
