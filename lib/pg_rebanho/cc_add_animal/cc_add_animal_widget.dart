@@ -7,6 +7,7 @@ import '/flutter_flow/form_field_controller.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
+import '/pg_rebanho/categoria_rebanho_utils.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -1057,9 +1058,23 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   FormFieldController<String>(
                                                       null),
                                               options: const ['Fêmea', 'Macho'],
-                                              onChanged: (val) => safeSetState(
-                                                  () => _model
-                                                      .dropDownSexoValue = val),
+                                              onChanged: (val) =>
+                                                  safeSetState(() {
+                                                if (_model.dropDownSexoValue !=
+                                                    val) {
+                                                  _model.dDCatRebanhoFemeaValueController =
+                                                      FormFieldController<
+                                                          String>(null);
+                                                  _model.dDCatRebanhoFemeaValue =
+                                                      null;
+                                                  _model.dDCatRebanhoMachoValueController =
+                                                      FormFieldController<
+                                                          String>(null);
+                                                  _model.dDCatRebanhoMachoValue =
+                                                      null;
+                                                }
+                                                _model.dropDownSexoValue = val;
+                                              }),
                                               height: 56.0,
                                               textStyle: FlutterFlowTheme.of(
                                                       context)
@@ -1751,12 +1766,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .dDCatRebanhoFemeaValueController ??=
                                                     FormFieldController<String>(
                                                         null),
-                                                options: const [
-                                                  'Bezerra',
-                                                  'Novilha',
-                                                  'Vaca Multipara',
-                                                  'Vaca Primipara'
-                                                ],
+                                                options: categoriasRebanhoFemea,
                                                 onChanged: (val) =>
                                                     safeSetState(() => _model
                                                             .dDCatRebanhoFemeaValue =
@@ -1822,14 +1832,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .dDCatRebanhoMachoValueController ??=
                                                     FormFieldController<String>(
                                                         null),
-                                                options: const [
-                                                  'Boi Gordo',
-                                                  'Boi Magro',
-                                                  'Garrote',
-                                                  'Rufião',
-                                                  'Touro',
-                                                  'Bezerro'
-                                                ],
+                                                options: categoriasRebanhoMacho,
                                                 onChanged: (val) =>
                                                     safeSetState(() => _model
                                                             .dDCatRebanhoMachoValue =
@@ -4743,6 +4746,35 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                 );
                                 return;
                               }
+                              final sexoSelecionado = _model.dropDownSexoValue;
+                              final categoriaSelecionada =
+                                  categoriaRebanhoSelecionada(
+                                sexo: sexoSelecionado,
+                                categoriaFemea: _model.dDCatRebanhoFemeaValue,
+                                categoriaMacho: _model.dDCatRebanhoMachoValue,
+                              );
+                              if (!categoriaRebanhoCondizComSexo(
+                                sexo: sexoSelecionado,
+                                categoria: categoriaSelecionada,
+                              )) {
+                                await showDialog(
+                                  context: context,
+                                  builder: (alertDialogContext) {
+                                    return AlertDialog(
+                                      content: const Text(
+                                          'Selecione uma categoria compatível com o sexo do animal antes de salvar.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(alertDialogContext),
+                                          child: const Text('Ok'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                return;
+                              }
                               _model.isSaving = true;
                               safeSetState(() {});
                               _model.idRebanho = null;
@@ -4797,10 +4829,8 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                 'codRegistro':
                                     _model.codRegistroTextController.text,
                                 'nome': _model.nomeAnimalTextController.text,
-                                'sexo': _model.dropDownSexoValue,
-                                'categoria': _model.dropDownSexoValue == 'Macho'
-                                    ? _model.dDCatRebanhoMachoValue
-                                    : _model.dDCatRebanhoFemeaValue,
+                                'sexo': sexoSelecionado,
+                                'categoria': categoriaSelecionada,
                                 'dataNascimento':
                                     supaSerialize<DateTime>(_model.datePicked1),
                                 'pesoNascimento': pesoNascimentoParsedCC,

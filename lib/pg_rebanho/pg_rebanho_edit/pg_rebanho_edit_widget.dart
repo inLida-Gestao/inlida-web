@@ -13,6 +13,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
+import '/pg_rebanho/categoria_rebanho_utils.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
 import '/index.dart';
 import 'dart:async';
@@ -1208,7 +1209,21 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                         ],
                                                                         onChanged:
                                                                             (val) =>
-                                                                                safeSetState(() => _model.dropDownSexoValue = val),
+                                                                                safeSetState(() {
+                                                                          if (_model.dropDownSexoValue !=
+                                                                              val) {
+                                                                            _model.dDCatRebanhoFemeaValueController =
+                                                                                FormFieldController<String>(null);
+                                                                            _model.dDCatRebanhoFemeaValue =
+                                                                                null;
+                                                                            _model.dDCatRebanhoMachoValueController =
+                                                                                FormFieldController<String>(null);
+                                                                            _model.dDCatRebanhoMachoValue =
+                                                                                null;
+                                                                          }
+                                                                          _model.dropDownSexoValue =
+                                                                              val;
+                                                                        }),
                                                                         height:
                                                                             56.0,
                                                                         textStyle: FlutterFlowTheme.of(context)
@@ -1796,14 +1811,14 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                           controller: _model.dDCatRebanhoFemeaValueController ??=
                                                                               FormFieldController<String>(
                                                                             _model.dDCatRebanhoFemeaValue ??=
-                                                                                pgRebanhoEditRebanhoRow?.categoria,
+                                                                                categoriaRebanhoInicialParaSexo(
+                                                                              sexoSelecionado: _model.dropDownSexoValue,
+                                                                              sexoOriginal: pgRebanhoEditRebanhoRow?.sexo,
+                                                                              categoriaOriginal: pgRebanhoEditRebanhoRow?.categoria,
+                                                                            ),
                                                                           ),
-                                                                          options: const [
-                                                                            'Bezerra',
-                                                                            'Novilha',
-                                                                            'Vaca Multipara',
-                                                                            'Vaca Primipara'
-                                                                          ],
+                                                                          options:
+                                                                              categoriasRebanhoFemea,
                                                                           onChanged: (val) =>
                                                                               safeSetState(() => _model.dDCatRebanhoFemeaValue = val),
                                                                           height:
@@ -1864,16 +1879,14 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                           controller: _model.dDCatRebanhoMachoValueController ??=
                                                                               FormFieldController<String>(
                                                                             _model.dDCatRebanhoMachoValue ??=
-                                                                                pgRebanhoEditRebanhoRow?.categoria,
+                                                                                categoriaRebanhoInicialParaSexo(
+                                                                              sexoSelecionado: _model.dropDownSexoValue,
+                                                                              sexoOriginal: pgRebanhoEditRebanhoRow?.sexo,
+                                                                              categoriaOriginal: pgRebanhoEditRebanhoRow?.categoria,
+                                                                            ),
                                                                           ),
-                                                                          options: const [
-                                                                            'Boi Gordo',
-                                                                            'Boi Magro',
-                                                                            'Garrote',
-                                                                            'Rufião',
-                                                                            'Touro',
-                                                                            'Bezerro'
-                                                                          ],
+                                                                          options:
+                                                                              categoriasRebanhoMacho,
                                                                           onChanged: (val) =>
                                                                               safeSetState(() => _model.dDCatRebanhoMachoValue = val),
                                                                           height:
@@ -6376,6 +6389,45 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         FFLocalizations.of(
                                                                 context)
                                                             .languageCode;
+                                                    final sexoSelecionado =
+                                                        _model
+                                                            .dropDownSexoValue;
+                                                    final categoriaSelecionada =
+                                                        categoriaRebanhoSelecionada(
+                                                      sexo: sexoSelecionado,
+                                                      categoriaFemea: _model
+                                                          .dDCatRebanhoFemeaValue,
+                                                      categoriaMacho: _model
+                                                          .dDCatRebanhoMachoValue,
+                                                    );
+                                                    if (!categoriaRebanhoCondizComSexo(
+                                                      sexo: sexoSelecionado,
+                                                      categoria:
+                                                          categoriaSelecionada,
+                                                    )) {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            'Selecione uma categoria compatível com o sexo do animal antes de salvar.',
+                                                            style: TextStyle(
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .secondaryBackground,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                          ),
+                                                          backgroundColor:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .secondary,
+                                                        ),
+                                                      );
+                                                      return;
+                                                    }
                                                     // Resolver id_lote do lote selecionado (dropdown usa nome do lote)
                                                     String? idLoteNovo;
                                                     if (_model.dropDownLotesValue !=
@@ -6505,15 +6557,9 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         'nome': _model
                                                             .nomeAnimalTextController
                                                             .text,
-                                                        'sexo': _model
-                                                            .dropDownSexoValue,
-                                                        'categoria': _model
-                                                                    .dropDownSexoValue ==
-                                                                'Macho'
-                                                            ? _model
-                                                                .dDCatRebanhoMachoValue
-                                                            : _model
-                                                                .dDCatRebanhoFemeaValue,
+                                                        'sexo': sexoSelecionado,
+                                                        'categoria':
+                                                            categoriaSelecionada,
                                                         'dataNascimento':
                                                             supaSerialize<
                                                                     DateTime>(
