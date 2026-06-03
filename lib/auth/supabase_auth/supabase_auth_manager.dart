@@ -113,11 +113,12 @@ class SupabaseAuthManager extends AuthManager with EmailSignInManager {
   Future<BaseAuthUser?> createAccountWithEmail(
     BuildContext context,
     String email,
-    String password,
-  ) =>
+    String password, {
+    Map<String, dynamic>? data,
+  }) =>
       _signInOrCreateAccount(
         context,
-        () => emailCreateAccountFunc(email, password),
+        () => emailCreateAccountFunc(email, password, data: data),
       );
 
   /// Tries to sign in or create an account using Supabase Auth.
@@ -134,7 +135,9 @@ class SupabaseAuthManager extends AuthManager with EmailSignInManager {
       // after a user is signed in. This should be handled by the user stream,
       // but adding here too in case of a race condition where the user stream
       // doesn't assign the currentUser in time.
-      if (authUser != null) {
+      final hasActiveSession =
+          SupaFlow.client.auth.currentSession?.user.id == user?.id;
+      if (authUser != null && hasActiveSession) {
         currentUser = authUser;
         AppStateNotifier.instance.update(authUser);
       }

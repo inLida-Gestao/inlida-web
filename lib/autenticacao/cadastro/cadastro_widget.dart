@@ -1109,29 +1109,88 @@ class _CadastroWidgetState extends State<CadastroWidget> {
                                     .emailTextController.text
                                     .trim()
                                     .toLowerCase();
+                                final nomeCadastro =
+                                    _model.nomeTextController.text.trim();
+                                final telefoneCadastro =
+                                    _model.telefoneTextController.text.trim();
+                                final funcaoCadastro = _model.funcaoValue;
                                 final user =
                                     await authManager.createAccountWithEmail(
                                   context,
                                   emailCadastro,
                                   _model.senhaTextController.text,
+                                  data: {
+                                    'nome': nomeCadastro,
+                                    'telefone': telefoneCadastro,
+                                    'termos': _model.checkboxValue,
+                                    'funcao': funcaoCadastro,
+                                    'acesso': 'Gratis',
+                                  },
                                 );
+                                if (!context.mounted) {
+                                  return;
+                                }
                                 if (user == null) {
                                   return;
                                 }
+                                final userID = user.uid;
+                                if (userID == null || userID.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Não foi possível identificar o usuário criado.',
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
 
-                                await UsersTable().insert({
-                                  'nome': _model.nomeTextController.text,
-                                  'email': emailCadastro,
-                                  'termos': _model.checkboxValue,
-                                  'funcao': _model.funcaoValue,
-                                  'userID': currentUserUid,
-                                  'telefone':
-                                      _model.telefoneTextController.text,
-                                  'acesso': 'Gratis',
-                                });
+                                final hasActiveSession = SupaFlow
+                                        .client.auth.currentSession?.user.id ==
+                                    userID;
+                                if (hasActiveSession) {
+                                  final dadosUsuario = {
+                                    'nome': nomeCadastro,
+                                    'email': emailCadastro,
+                                    'termos': _model.checkboxValue,
+                                    'funcao': funcaoCadastro,
+                                    'userID': userID,
+                                    'telefone': telefoneCadastro,
+                                    'acesso': 'Gratis',
+                                  };
+                                  final usuarioExistente =
+                                      await UsersTable().queryRows(
+                                    queryFn: (q) =>
+                                        q.eqOrNull('userID', userID),
+                                    limit: 1,
+                                  );
 
-                                context.goNamedAuth(
-                                    PainelWidget.routeName, context.mounted);
+                                  if (usuarioExistente.isEmpty) {
+                                    await UsersTable().insert(dadosUsuario);
+                                  } else {
+                                    await UsersTable().update(
+                                      data: dadosUsuario,
+                                      matchingRows: (rows) =>
+                                          rows.eqOrNull('userID', userID),
+                                    );
+                                  }
+                                }
+
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                if (loggedIn) {
+                                  context.goNamedAuth(
+                                      PainelWidget.routeName, context.mounted);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Conta criada. Verifique seu e-mail para confirmar o acesso.',
+                                      ),
+                                    ),
+                                  );
+                                }
                               },
                         text: 'Criar conta',
                         options: FFButtonOptions(
