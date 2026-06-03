@@ -8,9 +8,21 @@ DECLARE
   v_nome text := NULLIF(NEW.raw_user_meta_data ->> 'nome', '');
   v_telefone text := NULLIF(NEW.raw_user_meta_data ->> 'telefone', '');
   v_funcao text := NULLIF(NEW.raw_user_meta_data ->> 'funcao', '');
-  v_acesso text := COALESCE(NULLIF(NEW.raw_user_meta_data ->> 'acesso', ''), 'Gratis');
-  v_termos boolean := NULLIF(NEW.raw_user_meta_data ->> 'termos', '')::boolean;
+  v_acesso_text text := NULLIF(NEW.raw_user_meta_data ->> 'acesso', '');
+  v_termos_text text := lower(NULLIF(NEW.raw_user_meta_data ->> 'termos', ''));
+  v_acesso public.tipo_acesso := 'Gratis'::public.tipo_acesso;
+  v_termos boolean;
 BEGIN
+  IF v_acesso_text IN ('Gratis', 'Pago', 'Cancelado', 'Vencido') THEN
+    v_acesso := v_acesso_text::public.tipo_acesso;
+  END IF;
+
+  IF v_termos_text IN ('true', 't', '1', 'yes', 'y', 'on') THEN
+    v_termos := true;
+  ELSIF v_termos_text IN ('false', 'f', '0', 'no', 'n', 'off') THEN
+    v_termos := false;
+  END IF;
+
   INSERT INTO public.users (
     "userID",
     email,
@@ -22,7 +34,7 @@ BEGIN
     excluido
   )
   SELECT
-    NEW.id::text,
+    NEW.id,
     lower(NEW.email),
     v_nome,
     v_telefone,
@@ -33,7 +45,7 @@ BEGIN
   WHERE NOT EXISTS (
     SELECT 1
     FROM public.users
-    WHERE "userID" = NEW.id::text
+    WHERE "userID" = NEW.id
   );
 
   UPDATE public.users
@@ -43,9 +55,9 @@ BEGIN
     telefone = COALESCE(v_telefone, telefone),
     termos = COALESCE(v_termos, termos),
     funcao = COALESCE(v_funcao, funcao),
-    acesso = COALESCE(NULLIF(acesso, ''), v_acesso, 'Gratis'),
+    acesso = COALESCE(acesso, v_acesso, 'Gratis'::public.tipo_acesso),
     excluido = COALESCE(excluido, false)
-  WHERE "userID" = NEW.id::text;
+  WHERE "userID" = NEW.id;
 
   RETURN NEW;
 END;
@@ -69,17 +81,25 @@ INSERT INTO public.users (
   excluido
 )
 SELECT
-  au.id::text,
+  au.id,
   lower(au.email),
   NULLIF(au.raw_user_meta_data ->> 'nome', ''),
   NULLIF(au.raw_user_meta_data ->> 'telefone', ''),
-  NULLIF(au.raw_user_meta_data ->> 'termos', '')::boolean,
+  CASE
+    WHEN lower(NULLIF(au.raw_user_meta_data ->> 'termos', '')) IN ('true', 't', '1', 'yes', 'y', 'on') THEN true
+    WHEN lower(NULLIF(au.raw_user_meta_data ->> 'termos', '')) IN ('false', 'f', '0', 'no', 'n', 'off') THEN false
+    ELSE NULL
+  END,
   NULLIF(au.raw_user_meta_data ->> 'funcao', ''),
-  COALESCE(NULLIF(au.raw_user_meta_data ->> 'acesso', ''), 'Gratis'),
+  CASE
+    WHEN NULLIF(au.raw_user_meta_data ->> 'acesso', '') IN ('Gratis', 'Pago', 'Cancelado', 'Vencido')
+      THEN (au.raw_user_meta_data ->> 'acesso')::public.tipo_acesso
+    ELSE 'Gratis'::public.tipo_acesso
+  END,
   false
 FROM auth.users au
 WHERE NOT EXISTS (
   SELECT 1
   FROM public.users u
-  WHERE u."userID" = au.id::text
+  WHERE u."userID" = au.id
 );
