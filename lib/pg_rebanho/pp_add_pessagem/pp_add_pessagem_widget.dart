@@ -334,8 +334,8 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                                 onTap: () async {
                                   final datePickedDate = await showDatePicker(
                                     context: context,
-                                    initialDate:
-                                        _model.datePicked ?? getCurrentTimestamp,
+                                    initialDate: _model.datePicked ??
+                                        getCurrentTimestamp,
                                     firstDate: DateTime(1900),
                                     lastDate: DateTime(2050),
                                     builder: (context, child) {
@@ -541,9 +541,8 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                                       .bodyMedium
                                       .fontStyle,
                                 ),
-                            keyboardType:
-                                const TextInputType.numberWithOptions(
-                                    decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             inputFormatters: const [
                               PesoDecimalInputFormatter(),
                             ],
@@ -619,8 +618,7 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                           );
                           return;
                         }
-                        final pesoTextoNorm = _model
-                            .pesoAddTextController.text
+                        final pesoTextoNorm = _model.pesoAddTextController.text
                             .trim()
                             .replaceAll(',', '.');
                         final pesoDouble = double.tryParse(pesoTextoNorm);
@@ -630,11 +628,13 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                               content: Text(
                                 'Informe um peso maior que zero.',
                                 style: TextStyle(
-                                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                                  color: FlutterFlowTheme.of(context)
+                                      .secondaryBackground,
                                 ),
                               ),
                               duration: const Duration(milliseconds: 3000),
-                              backgroundColor: FlutterFlowTheme.of(context).error,
+                              backgroundColor:
+                                  FlutterFlowTheme.of(context).error,
                             ),
                           );
                           return;
@@ -679,14 +679,12 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                               await HistoricoPesagensTable().queryRows(
                             queryFn: (q) => q
                                 .eqOrNull('idRebanho', idRebanho)
+                                .eqOrNull('deletado', 'NAO')
                                 .order('dataPesagem', ascending: false)
-                                .limit(100),
+                                .order('id', ascending: false),
+                            limit: 1,
                           );
-                          final ultima = ultimas
-                              .where((pesagem) =>
-                                  pesagem.deletado?.trim().toUpperCase() !=
-                                  'SIM')
-                              .firstOrNull;
+                          final ultima = ultimas.firstOrNull;
                           if (ultima != null) {
                             await RebanhoTable().update(
                               data: {

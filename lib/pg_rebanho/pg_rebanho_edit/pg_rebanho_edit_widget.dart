@@ -6372,6 +6372,10 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                 ),
                                                 FFButtonWidget(
                                                   onPressed: () async {
+                                                    final languageCode =
+                                                        FFLocalizations.of(
+                                                                context)
+                                                            .languageCode;
                                                     // Resolver id_lote do lote selecionado (dropdown usa nome do lote)
                                                     String? idLoteNovo;
                                                     if (_model.dropDownLotesValue !=
@@ -6438,11 +6442,9 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         : (_model.datePicked1 ??
                                                             pgRebanhoEditRebanhoRow
                                                                 ?.dataNascimento);
-                                                    // Regra de pesoAtual na edição:
-                                                    // - Se usuário informou pesoAtual, usa o valor digitado.
-                                                    // - Se pesoAtual vazio e pesoDesmama informado, usa pesoDesmama
-                                                    //   (e dataUltimaPesagem = dataDesmama).
-                                                    // - Se só pesoNascimento informado, NÃO setar pesoAtual.
+                                                    // Valores base para salvar a ficha; após sincronizar
+                                                    // historico_pesagens, a pesagem ativa mais recente
+                                                    // prevalece em pesoAtual/dataUltimaPesagem.
                                                     final double?
                                                         pesoNascimentoParsedEdit =
                                                         double.tryParse(_model
@@ -6833,6 +6835,36 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                               pesoAtualDigitadoEdit,
                                                         );
                                                       }
+                                                      final ultimaPesagemAtiva =
+                                                          await _syncPesoAtualAposPesagem(
+                                                        rebanhoId:
+                                                            pgRebanhoEditRebanhoRow
+                                                                ?.id,
+                                                        idRebanho:
+                                                            idRebanhoSync,
+                                                      );
+                                                      _model.pesoAtualTextController
+                                                              ?.text =
+                                                          PesoDecimalInputFormatter
+                                                              .formatDouble(
+                                                                  ultimaPesagemAtiva
+                                                                      ?.peso);
+                                                      _model.datePicked4 =
+                                                          ultimaPesagemAtiva
+                                                              ?.dataPesagem;
+                                                      _model
+                                                          .dataUltimaPesagemTextController
+                                                          ?.text = ultimaPesagemAtiva
+                                                                  ?.dataPesagem !=
+                                                              null
+                                                          ? dateTimeFormat(
+                                                              "d/M/y",
+                                                              ultimaPesagemAtiva
+                                                                  ?.dataPesagem,
+                                                              locale:
+                                                                  languageCode,
+                                                            )
+                                                          : '';
                                                     }
                                                     // Sincronizar id_animais do(s) lote(s): remover do lote antigo e incluir no novo
                                                     final idRebanhoAnimal =
