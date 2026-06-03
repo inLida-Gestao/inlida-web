@@ -257,12 +257,17 @@ class _AddUserWidgetState extends State<AddUserWidget> {
                 ),
                 FFButtonWidget(
                   onPressed: () async {
-                    _model.userBuscado = await UsersTable().queryRows(
-                      queryFn: (q) => q.eqOrNull(
+                    final emailBuscado =
+                        _model.textController.text.trim().toLowerCase();
+                    _model.userBuscado = (await UsersTable().queryRows(
+                      queryFn: (q) => q.ilike(
                         'email',
-                        _model.textController.text,
+                        emailBuscado,
                       ),
-                    );
+                    ))
+                        .where((user) =>
+                            user.email?.trim().toLowerCase() == emailBuscado)
+                        .toList();
                     if (widget.edit == false) {
                       if (_model.userBuscado != null &&
                           (_model.userBuscado)!.isNotEmpty) {
@@ -303,15 +308,20 @@ class _AddUserWidgetState extends State<AddUserWidget> {
                         _model.verificacaoUser =
                             await UsersPropriedadesTable().queryRows(
                           queryFn: (q) => q
-                              .eqOrNull(
+                              .ilike(
                                 'email',
-                                _model.textController.text,
+                                emailBuscado,
                               )
                               .eqOrNull(
                                 'idPropriedade',
                                 FFAppState().propriedadeEdit,
                               ),
                         );
+                        _model.verificacaoUser = _model.verificacaoUser
+                            ?.where((user) =>
+                                user.email?.trim().toLowerCase() ==
+                                emailBuscado)
+                            .toList();
                         if (_model.verificacaoUser != null &&
                             (_model.verificacaoUser)!.isNotEmpty) {
                           await showDialog(

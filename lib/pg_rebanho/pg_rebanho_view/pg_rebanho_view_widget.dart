@@ -228,31 +228,26 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
   bool _pesagemAtiva(HistoricoPesagensRow pesagem) =>
       pesagem.deletado?.trim().toUpperCase() != 'SIM';
 
-  Future<void> _marcarPesagemComoDeletada(
-    HistoricoPesagensRow pesagem,
+  Future<List<HistoricoPesagensRow>> _loadPesagensAtivas(
     String? idRebanho,
-  ) async {
-    if (idRebanho != null &&
-        idRebanho.trim().isNotEmpty &&
-        pesagem.dataPesagem != null &&
-        pesagem.peso != null) {
-      final inicioDia = _dateOnly(pesagem.dataPesagem!);
-      await HistoricoPesagensTable().update(
-        data: {
-          'deletado': 'SIM',
-        },
-        matchingRows: (rows) => rows
-            .eqOrNull('idRebanho', idRebanho)
-            .eqOrNull('peso', pesagem.peso)
-            .gteOrNull('dataPesagem', supaSerialize<DateTime>(inicioDia))
-            .ltOrNull(
-              'dataPesagem',
-              supaSerialize<DateTime>(inicioDia.add(const Duration(days: 1))),
-            ),
-      );
-      return;
+  ) {
+    final idRebanhoNormalizado = idRebanho?.trim();
+    if (idRebanhoNormalizado == null || idRebanhoNormalizado.isEmpty) {
+      return Future.value([]);
     }
 
+    return HistoricoPesagensTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('idRebanho', idRebanhoNormalizado)
+          .eqOrNull('deletado', 'NAO')
+          .order('dataPesagem')
+          .order('id'),
+    );
+  }
+
+  Future<void> _marcarPesagemComoDeletada(
+    HistoricoPesagensRow pesagem,
+  ) async {
     await HistoricoPesagensTable().update(
       data: {
         'deletado': 'SIM',
@@ -271,11 +266,13 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
 
     final pesagens = await HistoricoPesagensTable().queryRows(
       queryFn: (q) => q
-          .eqOrNull('idRebanho', idRebanho)
-          .order('dataPesagem', ascending: false),
-      limit: 100,
+          .eqOrNull('idRebanho', idRebanho.trim())
+          .eqOrNull('deletado', 'NAO')
+          .order('dataPesagem', ascending: false)
+          .order('id', ascending: false),
+      limit: 1,
     );
-    final ultima = pesagens.where(_pesagemAtiva).firstOrNull;
+    final ultima = pesagens.firstOrNull;
 
     await RebanhoTable().update(
       data: {
@@ -6454,15 +6451,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                       List<
                                                                           HistoricoPesagensRow>>()
                                                                     ..complete(
-                                                                        HistoricoPesagensTable()
-                                                                            .queryRows(
-                                                                      queryFn: (q) => q
-                                                                          .eqOrNull(
-                                                                            'idRebanho',
-                                                                            pgRebanhoViewRebanhoRow?.idRebanho,
-                                                                          )
-                                                                          .order('dataPesagem'),
-                                                                    )))
+                                                                        _loadPesagensAtivas(
+                                                                            pgRebanhoViewRebanhoRow?.idRebanho)))
                                                                   .future,
                                                               builder: (context,
                                                                   snapshot) {
@@ -6491,34 +6481,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                     containerPesagemHistoricoPesagensRowList =
                                                                     snapshot
                                                                         .data!;
-                                                                // Remove duplicatas: mesmo peso na mesma data exibido apenas uma vez
-                                                                final seenKey =
-                                                                    <String>{};
                                                                 final pesagens =
-                                                                    containerPesagemHistoricoPesagensRowList
-                                                                        .where(
-                                                                            _pesagemAtiva)
-                                                                        .where(
-                                                                            (p) {
-                                                                  final dateKey = p
-                                                                              .dataPesagem !=
-                                                                          null
-                                                                      ? p.dataPesagem!
-                                                                          .toIso8601String()
-                                                                          .substring(
-                                                                              0,
-                                                                              10)
-                                                                      : '';
-                                                                  final key =
-                                                                      '${dateKey}_${p.peso ?? ''}';
-                                                                  if (seenKey
-                                                                      .contains(
-                                                                          key))
-                                                                    return false;
-                                                                  seenKey
-                                                                      .add(key);
-                                                                  return true;
-                                                                }).toList();
+                                                                    containerPesagemHistoricoPesagensRowList;
 
                                                                 return Container(
                                                                   child:
@@ -6744,7 +6708,6 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                           if (confirmDialogResponse) {
                                                                                             await _marcarPesagemComoDeletada(
                                                                                               pesagensItem,
-                                                                                              pgRebanhoViewRebanhoRow?.idRebanho,
                                                                                             );
                                                                                             await _syncPesoAtualAposPesagem(
                                                                                               rebanhoId: pgRebanhoViewRebanhoRow?.id,

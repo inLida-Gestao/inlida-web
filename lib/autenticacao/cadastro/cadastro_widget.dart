@@ -1105,10 +1105,14 @@ class _CadastroWidgetState extends State<CadastroWidget> {
                                   return;
                                 }
 
+                                final emailCadastro = _model
+                                    .emailTextController.text
+                                    .trim()
+                                    .toLowerCase();
                                 final user =
                                     await authManager.createAccountWithEmail(
                                   context,
-                                  _model.emailTextController.text,
+                                  emailCadastro,
                                   _model.senhaTextController.text,
                                 );
                                 if (user == null) {
@@ -1117,7 +1121,7 @@ class _CadastroWidgetState extends State<CadastroWidget> {
 
                                 await UsersTable().insert({
                                   'nome': _model.nomeTextController.text,
-                                  'email': _model.emailTextController.text,
+                                  'email': emailCadastro,
                                   'termos': _model.checkboxValue,
                                   'funcao': _model.funcaoValue,
                                   'userID': currentUserUid,
