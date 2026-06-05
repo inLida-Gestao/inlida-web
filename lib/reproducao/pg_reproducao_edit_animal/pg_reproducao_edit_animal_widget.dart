@@ -12,6 +12,7 @@ import '/flutter_flow/form_field_controller.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
+import '/reproducao/reproducao_lote_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -4602,6 +4603,27 @@ class _PgReproducaoEditAnimalWidgetState
                                                 ),
                                                 FFButtonWidget(
                                                   onPressed: () async {
+                                                    final matrizComLote =
+                                                        await buscarMatrizComLote(
+                                                      idPropriedade: FFAppState()
+                                                          .propriedadeSelecionada
+                                                          .idPropriedade,
+                                                      idRebanho: FFAppState()
+                                                          .matrizSelecionada
+                                                          .idAnimal,
+                                                    );
+                                                    if (!context.mounted) {
+                                                      return;
+                                                    }
+                                                    final idLoteMatriz =
+                                                        nonEmptyString(
+                                                            matrizComLote
+                                                                ?.loteID);
+                                                    final nomeLoteMatriz =
+                                                        nonEmptyString(
+                                                            matrizComLote
+                                                                ?.loteNome);
+
                                                     if (_model.tipoReproducao ==
                                                         'Inseminação') {
                                                       await ReproducaoTable()
@@ -4679,6 +4701,14 @@ class _PgReproducaoEditAnimalWidgetState
                                                               FFAppState()
                                                                   .matrizSelecionada
                                                                   .idAnimal,
+                                                          if (idLoteMatriz !=
+                                                              null)
+                                                            'id_lote':
+                                                                idLoteMatriz,
+                                                          if (nomeLoteMatriz !=
+                                                              null)
+                                                            'loteNome':
+                                                                nomeLoteMatriz,
                                                           'id_rebanho_reprodutor':
                                                               FFAppState()
                                                                   .reprodutorSelecionado
@@ -4771,6 +4801,14 @@ class _PgReproducaoEditAnimalWidgetState
                                                               FFAppState()
                                                                   .matrizSelecionada
                                                                   .idAnimal,
+                                                          if (idLoteMatriz !=
+                                                              null)
+                                                            'id_lote':
+                                                                idLoteMatriz,
+                                                          if (nomeLoteMatriz !=
+                                                              null)
+                                                            'loteNome':
+                                                                nomeLoteMatriz,
                                                           'id_rebanho_reprodutor':
                                                               FFAppState()
                                                                   .reprodutorSelecionado

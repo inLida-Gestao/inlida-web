@@ -13,6 +13,7 @@ import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/index.dart';
+import '/reproducao/reproducao_lote_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -4237,12 +4238,29 @@ class _PgReproducaoAddAnimalWidgetState
                                         ),
                                         FFButtonWidget(
                                           onPressed: () async {
+                                            final idPropriedade = FFAppState()
+                                                .propriedadeSelecionada
+                                                .idPropriedade;
+                                            final matrizComLote =
+                                                await buscarMatrizComLote(
+                                              idPropriedade: idPropriedade,
+                                              idRebanho: FFAppState()
+                                                  .matrizSelecionada
+                                                  .idAnimal,
+                                            );
+                                            if (!context.mounted) {
+                                              return;
+                                            }
+                                            final idLoteMatriz = nonEmptyString(
+                                                matrizComLote?.loteID);
+                                            final nomeLoteMatriz =
+                                                nonEmptyString(
+                                                    matrizComLote?.loteNome);
+
                                             if (_model.tipoReproducao ==
                                                 'Inseminação') {
                                               await ReproducaoTable().insert({
-                                                'id_propriedade': FFAppState()
-                                                    .propriedadeSelecionada
-                                                    .idPropriedade,
+                                                'id_propriedade': idPropriedade,
                                                 'tipo_reproducao':
                                                     _model.tipoReproducao,
                                                 'score_corporal': _model.score,
@@ -4287,6 +4305,10 @@ class _PgReproducaoAddAnimalWidgetState
                                                 'id_rebanho_matriz': FFAppState()
                                                     .matrizSelecionada
                                                     .idAnimal,
+                                                if (idLoteMatriz != null)
+                                                  'id_lote': idLoteMatriz,
+                                                if (nomeLoteMatriz != null)
+                                                  'loteNome': nomeLoteMatriz,
                                                 'numMatriz': FFAppState()
                                                     .matrizSelecionada
                                                     .numAnimal,
@@ -4343,9 +4365,7 @@ class _PgReproducaoAddAnimalWidgetState
                                               });
                                             } else {
                                               await ReproducaoTable().insert({
-                                                'id_propriedade': FFAppState()
-                                                    .propriedadeSelecionada
-                                                    .idPropriedade,
+                                                'id_propriedade': idPropriedade,
                                                 'tipo_reproducao':
                                                     _model.tipoReproducao,
                                                 'score_corporal': _model.score,
@@ -4378,6 +4398,10 @@ class _PgReproducaoAddAnimalWidgetState
                                                 'id_rebanho_matriz': FFAppState()
                                                     .matrizSelecionada
                                                     .idAnimal,
+                                                if (idLoteMatriz != null)
+                                                  'id_lote': idLoteMatriz,
+                                                if (nomeLoteMatriz != null)
+                                                  'loteNome': nomeLoteMatriz,
                                                 'numMatriz': FFAppState()
                                                     .matrizSelecionada
                                                     .numAnimal,
