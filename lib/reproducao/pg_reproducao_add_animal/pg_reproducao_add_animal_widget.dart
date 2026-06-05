@@ -4251,11 +4251,26 @@ class _PgReproducaoAddAnimalWidgetState
                                             if (!context.mounted) {
                                               return;
                                             }
-                                            final idLoteMatriz = nonEmptyString(
-                                                matrizComLote?.loteID);
+                                            final dataReferenciaLote =
+                                                _model.tipoReproducao ==
+                                                        'Inseminação'
+                                                    ? _model.datePicked1
+                                                    : _model.datePicked3;
+                                            final loteMatrizCompativel =
+                                                loteMatrizCompativelComData(
+                                              matrizComLote,
+                                              dataReferenciaLote,
+                                            );
+                                            final idLoteMatriz =
+                                                loteMatrizCompativel
+                                                    ? nonEmptyString(
+                                                        matrizComLote?.loteID)
+                                                    : null;
                                             final nomeLoteMatriz =
-                                                nonEmptyString(
-                                                    matrizComLote?.loteNome);
+                                                loteMatrizCompativel
+                                                    ? nonEmptyString(
+                                                        matrizComLote?.loteNome)
+                                                    : null;
 
                                             if (_model.tipoReproducao ==
                                                 'Inseminação') {

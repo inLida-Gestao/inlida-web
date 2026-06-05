@@ -5,6 +5,20 @@ String? nonEmptyString(String? value) {
   return trimmed == null || trimmed.isEmpty ? null : trimmed;
 }
 
+DateTime _dateOnly(DateTime value) =>
+    DateTime(value.year, value.month, value.day);
+
+bool loteMatrizCompativelComData(
+  RebanhoRow? matriz,
+  DateTime? dataReferencia,
+) {
+  final dataEntradaLote = matriz?.dataEntradaLote;
+  if (dataEntradaLote == null || dataReferencia == null) {
+    return true;
+  }
+  return !_dateOnly(dataEntradaLote).isAfter(_dateOnly(dataReferencia));
+}
+
 Future<RebanhoRow?> buscarMatrizComLote({
   required String idPropriedade,
   required String idRebanho,

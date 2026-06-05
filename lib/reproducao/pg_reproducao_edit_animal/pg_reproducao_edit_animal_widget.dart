@@ -4615,14 +4615,34 @@ class _PgReproducaoEditAnimalWidgetState
                                                     if (!context.mounted) {
                                                       return;
                                                     }
+                                                    final dataReferenciaLote =
+                                                        _model.tipoReproducao ==
+                                                                'Inseminação'
+                                                            ? (_model
+                                                                    .datePicked1 ??
+                                                                pgReproducaoEditAnimalReproducaoRow
+                                                                    ?.dataInseminacao)
+                                                            : (_model
+                                                                    .datePicked3 ??
+                                                                pgReproducaoEditAnimalReproducaoRow
+                                                                    ?.dataInicial);
+                                                    final loteMatrizCompativel =
+                                                        loteMatrizCompativelComData(
+                                                      matrizComLote,
+                                                      dataReferenciaLote,
+                                                    );
                                                     final idLoteMatriz =
-                                                        nonEmptyString(
-                                                            matrizComLote
-                                                                ?.loteID);
+                                                        loteMatrizCompativel
+                                                            ? nonEmptyString(
+                                                                matrizComLote
+                                                                    ?.loteID)
+                                                            : null;
                                                     final nomeLoteMatriz =
-                                                        nonEmptyString(
-                                                            matrizComLote
-                                                                ?.loteNome);
+                                                        loteMatrizCompativel
+                                                            ? nonEmptyString(
+                                                                matrizComLote
+                                                                    ?.loteNome)
+                                                            : null;
 
                                                     if (_model.tipoReproducao ==
                                                         'Inseminação') {
