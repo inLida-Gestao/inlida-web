@@ -9,6 +9,56 @@ import 'package:provider/provider.dart';
 import 'add_user_model.dart';
 export 'add_user_model.dart';
 
+List<Map<String, dynamic>> _rpcRows(dynamic response) {
+  if (response is List) {
+    final rows = <Map<String, dynamic>>[];
+    for (final item in response) {
+      if (item is Map) {
+        rows.add(Map<String, dynamic>.from(item));
+      }
+    }
+    return rows;
+  }
+
+  if (response is Map) {
+    return [Map<String, dynamic>.from(response)];
+  }
+
+  return const [];
+}
+
+Map<String, dynamic>? _firstRpcRow(dynamic response) {
+  final rows = _rpcRows(response);
+  return rows.isEmpty ? null : rows.first;
+}
+
+UsersDTStruct? _userFromRpcResponse(dynamic response) {
+  final row = _firstRpcRow(response);
+  return row == null ? null : UsersDTStruct.fromMap(row);
+}
+
+Future<void> _showAddUserAlert(
+  BuildContext context, {
+  String? title,
+  required String content,
+}) async {
+  await showDialog(
+    context: context,
+    builder: (alertDialogContext) {
+      return AlertDialog(
+        title: title == null ? null : Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(alertDialogContext),
+            child: const Text('Ok'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 class AddUserWidget extends StatefulWidget {
   const AddUserWidget({
     super.key,
@@ -226,10 +276,10 @@ class _AddUserWidgetState extends State<AddUserWidget> {
                   options: FFButtonOptions(
                     width: 137.0,
                     height: 56.0,
-                    padding:
-                        const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                    iconPadding:
-                        const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                        16.0, 0.0, 16.0, 0.0),
+                    iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                        0.0, 0.0, 0.0, 0.0),
                     color: Colors.white,
                     textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                           font: GoogleFonts.poppins(
@@ -259,135 +309,122 @@ class _AddUserWidgetState extends State<AddUserWidget> {
                   onPressed: () async {
                     final emailBuscado =
                         _model.textController.text.trim().toLowerCase();
-                    _model.userBuscado = (await UsersTable().queryRows(
-                      queryFn: (q) => q.ilike(
-                        'email',
-                        emailBuscado,
-                      ),
-                    ))
-                        .where((user) =>
-                            user.email?.trim().toLowerCase() == emailBuscado)
-                        .toList();
+                    if (emailBuscado.isEmpty) {
+                      await _showAddUserAlert(
+                        context,
+                        title: 'E-mail obrigatório',
+                        content: 'Informe o e-mail do usuário.',
+                      );
+                      return;
+                    }
+
                     if (widget.edit == false) {
-                      if (_model.userBuscado != null &&
-                          (_model.userBuscado)!.isNotEmpty) {
-                        FFAppState().addToUsersPropriedade(UsersDTStruct(
-                          nome: _model.userBuscado?.firstOrNull?.nome,
-                          email: _model.userBuscado?.firstOrNull?.email,
-                          foto: _model.userBuscado?.firstOrNull?.foto,
-                          telefone: _model.userBuscado?.firstOrNull?.telefone,
-                          excluido: _model.userBuscado?.firstOrNull?.excluido,
-                          permissao: _model.userBuscado?.firstOrNull?.permissao,
-                          funcao: _model.userBuscado?.firstOrNull?.funcao,
-                          userID: _model.userBuscado?.firstOrNull?.userID,
-                        ));
+                      _model.userBuscado = _userFromRpcResponse(
+                        await SupaFlow.client.rpc(
+                          'buscar_usuario_por_email',
+                          params: {
+                            'p_email': emailBuscado,
+                          },
+                        ),
+                      );
+                      if (!context.mounted) {
+                        return;
+                      }
+
+                      if (_model.userBuscado != null) {
+                        final usuario = _model.userBuscado!;
+                        final usuarioJaAdicionado =
+                            FFAppState().usersPropriedade.any(
+                                  (user) =>
+                                      user.userID == usuario.userID ||
+                                      user.email.trim().toLowerCase() ==
+                                          emailBuscado,
+                                );
+
+                        if (usuarioJaAdicionado) {
+                          await _showAddUserAlert(
+                            context,
+                            content:
+                                'Este usuário já foi adicionado nesta propriedade',
+                          );
+                          return;
+                        }
+
+                        FFAppState().addToUsersPropriedade(usuario);
                         safeSetState(() {});
                         Navigator.pop(context);
+                        return;
                       } else {
-                        await showDialog(
-                          context: context,
-                          builder: (alertDialogContext) {
-                            return AlertDialog(
-                              title: const Text('Usuário não existe'),
-                              content: const Text(
-                                  'Usuário não encontrado ou e-mail digitado incorreto, verifique o e-mail e tente novamente.'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(alertDialogContext),
-                                  child: const Text('Ok'),
-                                ),
-                              ],
-                            );
-                          },
+                        await _showAddUserAlert(
+                          context,
+                          title: 'Usuário não existe',
+                          content:
+                              'Usuário não encontrado ou e-mail digitado incorreto, verifique o e-mail e tente novamente.',
                         );
                       }
                     } else {
-                      if (_model.userBuscado != null &&
-                          (_model.userBuscado)!.isNotEmpty) {
-                        _model.verificacaoUser =
-                            await UsersPropriedadesTable().queryRows(
-                          queryFn: (q) => q
-                              .ilike(
-                                'email',
-                                emailBuscado,
-                              )
-                              .eqOrNull(
-                                'idPropriedade',
-                                FFAppState().propriedadeEdit,
-                              ),
-                        );
-                        _model.verificacaoUser = _model.verificacaoUser
-                            ?.where((user) =>
-                                user.email?.trim().toLowerCase() ==
-                                emailBuscado)
-                            .toList();
-                        if (_model.verificacaoUser != null &&
-                            (_model.verificacaoUser)!.isNotEmpty) {
-                          await showDialog(
-                            context: context,
-                            builder: (alertDialogContext) {
-                              return AlertDialog(
-                                content: const Text(
-                                    'Este usuário já foi adicionado nesta propriedade'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(alertDialogContext),
-                                    child: const Text('Ok'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        } else {
-                          await UsersPropriedadesTable().insert({
-                            'user_id': _model.userBuscado?.firstOrNull?.userID,
-                            'nome': _model.userBuscado?.firstOrNull?.nome,
-                            'email': _model.userBuscado?.firstOrNull?.email,
-                            'foto': _model.userBuscado?.firstOrNull?.foto,
-                            'permissao':
-                                _model.userBuscado?.firstOrNull?.permissao,
-                            'idPropriedade': FFAppState().propriedadeEdit,
-                            'deletado': 'NAO',
-                          });
-                          // usersID em propriedades: trigger users_propriedades_sync_users_id (Supabase).
-                          FFAppState().refreshPropriedades = true;
-                          FFAppState().refreshEditProp = true;
-                          safeSetState(() {});
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Usuário adicionado na propriedade',
-                                style: TextStyle(
-                                  color: FlutterFlowTheme.of(context)
-                                      .secondaryBackground,
-                                ),
-                              ),
-                              duration: const Duration(milliseconds: 4000),
-                              backgroundColor:
-                                  FlutterFlowTheme.of(context).secondary,
-                            ),
-                          );
-                          Navigator.pop(context);
-                        }
-                      } else {
-                        await showDialog(
-                          context: context,
-                          builder: (alertDialogContext) {
-                            return AlertDialog(
-                              title: const Text('Usuário não existe'),
-                              content: const Text(
-                                  'Usuário não encontrado ou e-mail digitado incorreto, verifique o e-mail e tente novamente.'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(alertDialogContext),
-                                  child: const Text('Ok'),
-                                ),
-                              ],
-                            );
+                      final idPropriedade =
+                          (widget.idPropriedade ?? FFAppState().propriedadeEdit)
+                              .trim();
+                      _model.usuarioPropriedadeResultado = _firstRpcRow(
+                        await SupaFlow.client.rpc(
+                          'adicionar_usuario_propriedade_por_email',
+                          params: {
+                            'p_id_propriedade': idPropriedade,
+                            'p_email': emailBuscado,
                           },
+                        ),
+                      );
+                      if (!context.mounted) {
+                        return;
+                      }
+
+                      final status = _model
+                          .usuarioPropriedadeResultado?['status']
+                          ?.toString();
+                      final message = _model
+                          .usuarioPropriedadeResultado?['message']
+                          ?.toString();
+
+                      if (status == 'adicionado') {
+                        FFAppState().refreshPropriedades = true;
+                        FFAppState().refreshEditProp = true;
+                        safeSetState(() {});
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              message ?? 'Usuário adicionado na propriedade.',
+                              style: TextStyle(
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
+                              ),
+                            ),
+                            duration: const Duration(milliseconds: 4000),
+                            backgroundColor:
+                                FlutterFlowTheme.of(context).secondary,
+                          ),
+                        );
+                        Navigator.pop(context);
+                        return;
+                      } else if (status == 'ja_adicionado') {
+                        await _showAddUserAlert(
+                          context,
+                          content: message ??
+                              'Este usuário já foi adicionado nesta propriedade',
+                        );
+                      } else if (status == 'nao_encontrado') {
+                        await _showAddUserAlert(
+                          context,
+                          title: 'Usuário não existe',
+                          content: message ??
+                              'Usuário não encontrado ou e-mail digitado incorreto, verifique o e-mail e tente novamente.',
+                        );
+                      } else {
+                        await _showAddUserAlert(
+                          context,
+                          title: 'Não foi possível adicionar usuário',
+                          content: message ??
+                              'Verifique os dados informados e tente novamente.',
                         );
                       }
                     }
@@ -398,10 +435,10 @@ class _AddUserWidgetState extends State<AddUserWidget> {
                   options: FFButtonOptions(
                     width: 137.0,
                     height: 56.0,
-                    padding:
-                        const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                    iconPadding:
-                        const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                        16.0, 0.0, 16.0, 0.0),
+                    iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                        0.0, 0.0, 0.0, 0.0),
                     color: FlutterFlowTheme.of(context).primary,
                     textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                           font: GoogleFonts.poppins(
