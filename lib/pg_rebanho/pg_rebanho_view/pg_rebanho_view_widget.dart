@@ -1347,12 +1347,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
               );
             }
 
-            final desmamaPesagem = desmamaSnapshot.data;
             final effectiveDataDesmamaView =
-                pgRebanhoViewRebanhoRow?.dataDesmama ??
-                    desmamaPesagem?.dataPesagem;
+                pgRebanhoViewRebanhoRow?.dataDesmama;
             final effectivePesoDesmamaView =
-                pgRebanhoViewRebanhoRow?.pesoDesmama ?? desmamaPesagem?.peso;
+                pgRebanhoViewRebanhoRow?.pesoDesmama;
 
             return GestureDetector(
               onTap: () {

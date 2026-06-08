@@ -4631,14 +4631,25 @@ class _PgReproducaoEditAnimalWidgetState
                                                       matrizComLote,
                                                       dataReferenciaLote,
                                                     );
+                                                    final reproducaoTemLoteSalvo =
+                                                        nonEmptyString(
+                                                                    pgReproducaoEditAnimalReproducaoRow
+                                                                        ?.idLote) !=
+                                                                null ||
+                                                            nonEmptyString(
+                                                                    pgReproducaoEditAnimalReproducaoRow
+                                                                        ?.loteNome) !=
+                                                                null;
                                                     final idLoteMatriz =
-                                                        loteMatrizCompativel
+                                                        !reproducaoTemLoteSalvo &&
+                                                                loteMatrizCompativel
                                                             ? nonEmptyString(
                                                                 matrizComLote
                                                                     ?.loteID)
                                                             : null;
                                                     final nomeLoteMatriz =
-                                                        loteMatrizCompativel
+                                                        !reproducaoTemLoteSalvo &&
+                                                                loteMatrizCompativel
                                                             ? nonEmptyString(
                                                                 matrizComLote
                                                                     ?.loteNome)

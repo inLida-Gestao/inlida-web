@@ -8,63 +8,12 @@ import '/backend/supabase/supabase.dart';
 import 'package:excel/excel.dart';
 import 'package:download/download.dart';
 
-DateTime _dateOnly(DateTime value) =>
-    DateTime(value.year, value.month, value.day);
-
 String? _nonEmptyExportText(dynamic value) {
   final text = value?.toString().trim();
   if (text == null || text.isEmpty || text.toLowerCase() == 'null') {
     return null;
   }
   return text;
-}
-
-DateTime? _parseDateForReproducaoExport(dynamic value) {
-  if (value == null) return null;
-  if (value is DateTime) return value;
-  if (value is String) {
-    final text = value.trim();
-    if (text.isEmpty) return null;
-    return DateTime.tryParse(text);
-  }
-  if (value is int) {
-    final absValue = value.abs();
-    if (absValue > 2000000000000000) {
-      return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
-    }
-    if (absValue > 2000000000000) {
-      return DateTime.fromMillisecondsSinceEpoch(value, isUtc: true);
-    }
-    if (absValue > 2000000000) {
-      return DateTime.fromMillisecondsSinceEpoch(value * 1000, isUtc: true);
-    }
-  }
-  if (value is double) {
-    final asInt = value.round();
-    if ((value - asInt).abs() < 1e-9) {
-      return _parseDateForReproducaoExport(asInt);
-    }
-  }
-  return DateTime.tryParse(value.toString());
-}
-
-DateTime? _dataReferenciaReproducao(Map<String, dynamic> row) {
-  return _parseDateForReproducaoExport(row['data_inseminacao']) ??
-      _parseDateForReproducaoExport(row['data_inicial']) ??
-      _parseDateForReproducaoExport(row['created_at']);
-}
-
-bool _loteAtualCompativelComDataReproducao(
-  Map<String, dynamic> row,
-  Map<String, dynamic> matriz,
-) {
-  final dataReferencia = _dataReferenciaReproducao(row);
-  final dataEntradaLote =
-      _parseDateForReproducaoExport(matriz['dataEntradaLote']);
-  if (dataReferencia == null || dataEntradaLote == null) {
-    return true;
-  }
-  return !_dateOnly(dataEntradaLote).isAfter(_dateOnly(dataReferencia));
 }
 
 Future<Map<String, String>> _buscarNomesLotesPorIdReproducaoExport(
@@ -97,35 +46,6 @@ Future<Map<String, String>> _buscarNomesLotesPorIdReproducaoExport(
   return nomesPorId;
 }
 
-Future<Map<String, Map<String, dynamic>>> _buscarMatrizesReproducaoExport(
-  String idPropriedade,
-  Iterable<String> idsRebanho,
-) async {
-  const idChunk = 200;
-  final ids = idsRebanho.toSet().toList();
-  final matrizesPorId = <String, Map<String, dynamic>>{};
-
-  for (var start = 0; start < ids.length; start += idChunk) {
-    final end = start + idChunk > ids.length ? ids.length : start + idChunk;
-    final chunk = ids.sublist(start, end);
-    final rows = await SupaFlow.client
-        .from('rebanho')
-        .select('idRebanho,loteID,loteNome,dataEntradaLote')
-        .eq('idPropriedade', idPropriedade)
-        .inFilter('idRebanho', chunk);
-
-    for (final item in rows) {
-      final row = Map<String, dynamic>.from(item);
-      final id = _nonEmptyExportText(row['idRebanho']);
-      if (id != null) {
-        matrizesPorId[id] = row;
-      }
-    }
-  }
-
-  return matrizesPorId;
-}
-
 Future<void> _preencherLotesAusentesReproducaoExport(
   List<Map<String, dynamic>> rows,
   String idPropriedade,
@@ -142,35 +62,6 @@ Future<void> _preencherLotesAusentesReproducaoExport(
     final nomeLote = idLote == null ? null : nomesLotesPorId[idLote];
     if (nomeLote != null) {
       row['loteNome'] = nomeLote;
-    }
-  }
-
-  final idsMatrizes = rows
-      .where((row) => _nonEmptyExportText(row['loteNome']) == null)
-      .map((row) => _nonEmptyExportText(row['id_rebanho_matriz']))
-      .whereType<String>();
-  final matrizes =
-      await _buscarMatrizesReproducaoExport(idPropriedade, idsMatrizes);
-
-  for (final row in rows) {
-    if (_nonEmptyExportText(row['loteNome']) != null) {
-      continue;
-    }
-
-    final idMatriz = _nonEmptyExportText(row['id_rebanho_matriz']);
-    final matriz = idMatriz == null ? null : matrizes[idMatriz];
-    if (matriz == null || !_loteAtualCompativelComDataReproducao(row, matriz)) {
-      continue;
-    }
-
-    final idLoteMatriz = _nonEmptyExportText(matriz['loteID']);
-    final nomeLoteMatriz = _nonEmptyExportText(matriz['loteNome']) ??
-        (idLoteMatriz == null ? null : nomesLotesPorId[idLoteMatriz]);
-    if (nomeLoteMatriz != null) {
-      row['loteNome'] = nomeLoteMatriz;
-    }
-    if (_nonEmptyExportText(row['id_lote']) == null && idLoteMatriz != null) {
-      row['id_lote'] = idLoteMatriz;
     }
   }
 }
