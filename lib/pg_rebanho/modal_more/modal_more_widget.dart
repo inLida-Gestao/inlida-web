@@ -347,17 +347,22 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
             Builder(
               builder: (context) => FFButtonWidget(
                 onPressed: () async {
-                  Navigator.pop(context);
-                  await showDialog(
+                  final rootNavigator = Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  );
+                  final rootContext = rootNavigator.context;
+                  rootNavigator.pop();
+                  await showDialog<bool>(
                     barrierColor: const Color(0x29000000),
-                    context: context,
+                    context: rootContext,
                     builder: (dialogContext) {
                       return Dialog(
                         elevation: 0,
                         insetPadding: EdgeInsets.zero,
                         backgroundColor: Colors.transparent,
                         alignment: const AlignmentDirectional(0.0, 0.0)
-                            .resolve(Directionality.of(context)),
+                            .resolve(Directionality.of(dialogContext)),
                         child: PpAddPessagemWidget(
                           rebanhoId: widget.rebanhoId!,
                         ),

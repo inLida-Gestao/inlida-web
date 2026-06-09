@@ -720,6 +720,24 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                             ),
                           );
                           Navigator.pop(context, true);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Não foi possível adicionar a pesagem. Tente novamente.',
+                                  style: TextStyle(
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryBackground,
+                                  ),
+                                ),
+                                duration: const Duration(milliseconds: 4000),
+                                backgroundColor:
+                                    FlutterFlowTheme.of(context).error,
+                              ),
+                            );
+                          }
+                          rethrow;
                         } finally {
                           _salvandoPesagem = false;
                           if (mounted) {
