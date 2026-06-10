@@ -225,15 +225,59 @@ List<RebanhoDTStruct>? rebanhoSortingFunction(
   int index,
   bool order,
 ) {
-  // sort list of rebanhoDT based on dataNascimento and numeroAnimal
   rebanhosSort.sort((a, b) {
-    int comparison = a.dataNascimento.compareTo(b.dataNascimento);
-    if (comparison == 0) {
-      comparison = a.numeroAnimal.compareTo(b.numeroAnimal);
+    var comparison = switch (index) {
+      0 => _compareNumeroAnimal(a.numeroAnimal, b.numeroAnimal),
+      3 => _compareDateText(a.dataNascimento, b.dataNascimento),
+      _ => _compareNumeroAnimal(a.numeroAnimal, b.numeroAnimal),
+    };
+
+    if (comparison == 0 && index != 0) {
+      comparison = _compareNumeroAnimal(a.numeroAnimal, b.numeroAnimal);
     }
     return order ? comparison : -comparison;
   });
   return rebanhosSort;
+}
+
+int _compareNumeroAnimal(String a, String b) {
+  final aNumero = _primeiroNumero(a);
+  final bNumero = _primeiroNumero(b);
+
+  if (aNumero != null && bNumero != null) {
+    final numeroComparison = aNumero.compareTo(bNumero);
+    if (numeroComparison != 0) {
+      return numeroComparison;
+    }
+  } else if (aNumero != null) {
+    return -1;
+  } else if (bNumero != null) {
+    return 1;
+  }
+
+  return a.trim().toLowerCase().compareTo(b.trim().toLowerCase());
+}
+
+int? _primeiroNumero(String value) {
+  final match = RegExp(r'\d+').firstMatch(value);
+  return match == null ? null : int.tryParse(match.group(0)!);
+}
+
+int _compareDateText(String a, String b) {
+  final aDate = DateTime.tryParse(a);
+  final bDate = DateTime.tryParse(b);
+
+  if (aDate != null && bDate != null) {
+    return aDate.compareTo(bDate);
+  }
+  if (aDate != null) {
+    return -1;
+  }
+  if (bDate != null) {
+    return 1;
+  }
+
+  return a.compareTo(b);
 }
 
 List<String>? gerarAnos() {
