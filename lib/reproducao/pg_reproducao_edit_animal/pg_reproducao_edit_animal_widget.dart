@@ -77,6 +77,7 @@ class _PgReproducaoEditAnimalWidgetState
           nomeAnimal: row.nomeMatriz,
           dataNascAnimal: row.nascimentoMatriz?.toString(),
           racaAnimal: row.racaMatriz,
+          categoria: row.categoria,
           idAnimal: row.idRebanhoMatriz,
         );
         FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct(
@@ -586,96 +587,192 @@ class _PgReproducaoEditAnimalWidgetState
                                                             MainAxisSize.max,
                                                         children: [
                                                           Flexible(
-                                                            child: Container(
-                                                              width: double
-                                                                  .infinity,
-                                                              height: 56.0,
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .customColor2,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            8.0),
-                                                              ),
-                                                              child: Padding(
-                                                                padding: const EdgeInsetsDirectional
-                                                                    .fromSTEB(
-                                                                        12.0,
-                                                                        0.0,
-                                                                        12.0,
-                                                                        0.0),
-                                                                child: Row(
-                                                                  mainAxisSize:
-                                                                      MainAxisSize
-                                                                          .max,
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .spaceBetween,
-                                                                  children: [
-                                                                    Text(
-                                                                      '${valueOrDefault<String>(
-                                                                        pgReproducaoEditAnimalReproducaoRow?.numMatriz ==
-                                                                                'null'
-                                                                            ? 'S/N'
-                                                                            : valueOrDefault<String>(
-                                                                                pgReproducaoEditAnimalReproducaoRow?.numMatriz,
-                                                                                'S/N',
-                                                                              ),
-                                                                        'S/N',
-                                                                      )} • ${valueOrDefault<String>(
-                                                                        pgReproducaoEditAnimalReproducaoRow?.nomeMatriz ==
-                                                                                'null'
-                                                                            ? 'S/N'
-                                                                            : valueOrDefault<String>(
-                                                                                pgReproducaoEditAnimalReproducaoRow?.nomeMatriz,
-                                                                                'S/N',
-                                                                              ),
-                                                                        'S/N',
-                                                                      )} • ${valueOrDefault<String>(
-                                                                        () {
-                                                                          if (pgReproducaoEditAnimalReproducaoRow?.nascimentoMatriz ==
-                                                                              null) {
-                                                                            return 'N/A';
-                                                                          } else if (pgReproducaoEditAnimalReproducaoRow?.nascimentoMatriz ==
-                                                                              null) {
-                                                                            return 'N/A';
-                                                                          } else {
-                                                                            return dateTimeFormat(
-                                                                              "d/M/y",
-                                                                              pgReproducaoEditAnimalReproducaoRow?.nascimentoMatriz,
-                                                                              locale: FFLocalizations.of(context).languageCode,
-                                                                            );
-                                                                          }
-                                                                        }(),
-                                                                        'N/A',
-                                                                      )}',
-                                                                      style: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .bodyMedium
-                                                                          .override(
-                                                                            font:
-                                                                                GoogleFonts.poppins(
-                                                                              fontWeight: FontWeight.w600,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                            fontSize:
-                                                                                16.0,
-                                                                            letterSpacing:
+                                                            child: Builder(
+                                                              builder:
+                                                                  (context) =>
+                                                                      InkWell(
+                                                                splashColor: Colors
+                                                                    .transparent,
+                                                                focusColor: Colors
+                                                                    .transparent,
+                                                                hoverColor: Colors
+                                                                    .transparent,
+                                                                highlightColor:
+                                                                    Colors
+                                                                        .transparent,
+                                                                onTap:
+                                                                    () async {
+                                                                  await showDialog(
+                                                                    barrierColor:
+                                                                        Colors
+                                                                            .transparent,
+                                                                    context:
+                                                                        context,
+                                                                    builder:
+                                                                        (dialogContext) {
+                                                                      return Dialog(
+                                                                        elevation:
+                                                                            0,
+                                                                        insetPadding:
+                                                                            EdgeInsets.zero,
+                                                                        backgroundColor:
+                                                                            Colors.transparent,
+                                                                        alignment: const AlignmentDirectional(
                                                                                 0.0,
-                                                                            fontWeight:
-                                                                                FontWeight.w600,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                0.0)
+                                                                            .resolve(Directionality.of(context)),
+                                                                        child:
+                                                                            GestureDetector(
+                                                                          onTap:
+                                                                              () {
+                                                                            FocusScope.of(dialogContext).unfocus();
+                                                                            FocusManager.instance.primaryFocus?.unfocus();
+                                                                          },
+                                                                          child:
+                                                                              const SizedBox(
+                                                                            height:
+                                                                                450.0,
+                                                                            width:
+                                                                                370.0,
+                                                                            child:
+                                                                                PopupRebanhosWidget(
+                                                                              sexo: 'Fêmea',
+                                                                            ),
                                                                           ),
+                                                                        ),
+                                                                      );
+                                                                    },
+                                                                  );
+                                                                  safeSetState(
+                                                                      () {});
+                                                                },
+                                                                child:
+                                                                    Container(
+                                                                  width: double
+                                                                      .infinity,
+                                                                  height: 56.0,
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .customColor2,
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            8.0),
+                                                                  ),
+                                                                  child:
+                                                                      Padding(
+                                                                    padding: const EdgeInsetsDirectional
+                                                                        .fromSTEB(
+                                                                            12.0,
+                                                                            0.0,
+                                                                            12.0,
+                                                                            0.0),
+                                                                    child: Row(
+                                                                      mainAxisSize:
+                                                                          MainAxisSize
+                                                                              .max,
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .spaceBetween,
+                                                                      children: [
+                                                                        Text(
+                                                                          '${valueOrDefault<String>(
+                                                                            FFAppState().matrizSelecionada.numAnimal == 'null'
+                                                                                ? 'S/N'
+                                                                                : valueOrDefault<String>(
+                                                                                    FFAppState().matrizSelecionada.numAnimal,
+                                                                                    'S/N',
+                                                                                  ),
+                                                                            'S/N',
+                                                                          )} • ${valueOrDefault<String>(
+                                                                            FFAppState().matrizSelecionada.nomeAnimal == 'null'
+                                                                                ? 'S/N'
+                                                                                : valueOrDefault<String>(
+                                                                                    FFAppState().matrizSelecionada.nomeAnimal,
+                                                                                    'S/N',
+                                                                                  ),
+                                                                            'S/N',
+                                                                          )} • ${valueOrDefault<String>(
+                                                                            () {
+                                                                              if (FFAppState().matrizSelecionada.dataNascAnimal == 'null') {
+                                                                                return 'N/A';
+                                                                              } else if (FFAppState().matrizSelecionada.dataNascAnimal == '') {
+                                                                                return 'N/A';
+                                                                              } else {
+                                                                                return valueOrDefault<String>(
+                                                                                  dateTimeFormat(
+                                                                                    "d/M/y",
+                                                                                    functions.converterParaData(FFAppState().matrizSelecionada.dataNascAnimal),
+                                                                                    locale: FFLocalizations.of(context).languageCode,
+                                                                                  ),
+                                                                                  'N/A',
+                                                                                );
+                                                                              }
+                                                                            }(),
+                                                                            'N/A',
+                                                                          )}',
+                                                                          style: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .override(
+                                                                                font: GoogleFonts.poppins(
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                ),
+                                                                                fontSize: 16.0,
+                                                                                letterSpacing: 0.0,
+                                                                                fontWeight: FontWeight.w600,
+                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                              ),
+                                                                        ),
+                                                                        Icon(
+                                                                          Icons
+                                                                              .open_in_new_rounded,
+                                                                          color:
+                                                                              FlutterFlowTheme.of(context).primaryText,
+                                                                          size:
+                                                                              24.0,
+                                                                        ),
+                                                                      ],
                                                                     ),
-                                                                  ],
+                                                                  ),
                                                                 ),
                                                               ),
                                                             ),
                                                           ),
+                                                          if ((FFAppState()
+                                                                      .matrizSelecionada
+                                                                      .idAnimal !=
+                                                                  '') ||
+                                                              (FFAppState()
+                                                                      .matrizSelecionada
+                                                                      .numAnimal !=
+                                                                  ''))
+                                                            InkWell(
+                                                              splashColor: Colors
+                                                                  .transparent,
+                                                              focusColor: Colors
+                                                                  .transparent,
+                                                              hoverColor: Colors
+                                                                  .transparent,
+                                                              highlightColor:
+                                                                  Colors
+                                                                      .transparent,
+                                                              onTap: () async {
+                                                                FFAppState()
+                                                                        .matrizSelecionada =
+                                                                    AnimalSelecionadoStruct();
+                                                                safeSetState(
+                                                                    () {});
+                                                              },
+                                                              child: Icon(
+                                                                Icons.close,
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .accent3,
+                                                                size: 24.0,
+                                                              ),
+                                                            ),
                                                         ].divide(const SizedBox(
                                                             width: 16.0)),
                                                       ),
@@ -4732,6 +4829,29 @@ class _PgReproducaoEditAnimalWidgetState
                                                               FFAppState()
                                                                   .matrizSelecionada
                                                                   .idAnimal,
+                                                          'categoria':
+                                                              FFAppState()
+                                                                  .matrizSelecionada
+                                                                  .categoria,
+                                                          'numMatriz':
+                                                              FFAppState()
+                                                                  .matrizSelecionada
+                                                                  .numAnimal,
+                                                          'nomeMatriz':
+                                                              FFAppState()
+                                                                  .matrizSelecionada
+                                                                  .nomeAnimal,
+                                                          'nascimentoMatriz':
+                                                              supaSerialize<
+                                                                      DateTime>(
+                                                                  functions.converterParaData(
+                                                                      FFAppState()
+                                                                          .matrizSelecionada
+                                                                          .dataNascAnimal)),
+                                                          'racaMatriz':
+                                                              FFAppState()
+                                                                  .matrizSelecionada
+                                                                  .racaAnimal,
                                                           if (idLoteMatriz !=
                                                               null)
                                                             'id_lote':
@@ -4832,6 +4952,29 @@ class _PgReproducaoEditAnimalWidgetState
                                                               FFAppState()
                                                                   .matrizSelecionada
                                                                   .idAnimal,
+                                                          'categoria':
+                                                              FFAppState()
+                                                                  .matrizSelecionada
+                                                                  .categoria,
+                                                          'numMatriz':
+                                                              FFAppState()
+                                                                  .matrizSelecionada
+                                                                  .numAnimal,
+                                                          'nomeMatriz':
+                                                              FFAppState()
+                                                                  .matrizSelecionada
+                                                                  .nomeAnimal,
+                                                          'nascimentoMatriz':
+                                                              supaSerialize<
+                                                                      DateTime>(
+                                                                  functions.converterParaData(
+                                                                      FFAppState()
+                                                                          .matrizSelecionada
+                                                                          .dataNascAnimal)),
+                                                          'racaMatriz':
+                                                              FFAppState()
+                                                                  .matrizSelecionada
+                                                                  .racaAnimal,
                                                           if (idLoteMatriz !=
                                                               null)
                                                             'id_lote':
