@@ -8,6 +8,7 @@ import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/pg_rebanho/categoria_rebanho_utils.dart';
+import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -4899,21 +4900,14 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                       FFLocalizations.of(context).languageCode,
                                 )}',
                               });
-                              final pesoNascimentoHist = pesoNascimentoParsedCC;
-                              if (pesoNascimentoHist != null &&
-                                  pesoNascimentoHist > 0) {
-                                await HistoricoPesagensTable().insert({
-                                  'idRebanho': _model.idRebanho,
-                                  'id_propriedade': FFAppState()
-                                      .propriedadeSelecionada
-                                      .idPropriedade,
-                                  'dataPesagem': supaSerialize<DateTime>(
-                                      _model.datePicked1),
-                                  'tipo': 'Nascimento',
-                                  'peso': pesoNascimentoHist,
-                                  'deletado': 'NAO',
-                                });
-                              }
+                              await sincronizarPesagemNascimentoRebanho(
+                                idRebanho: _model.idRebanho,
+                                idPropriedade: FFAppState()
+                                    .propriedadeSelecionada
+                                    .idPropriedade,
+                                dataNascimento: _model.datePicked1,
+                                pesoNascimento: pesoNascimentoParsedCC,
+                              );
                               final pesoDesmamaHist = pesoDesmamaParsedCC;
                               if (pesoDesmamaHist != null &&
                                   pesoDesmamaHist > 0) {

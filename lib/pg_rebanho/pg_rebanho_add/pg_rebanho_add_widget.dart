@@ -12,6 +12,7 @@ import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/pg_rebanho/categoria_rebanho_utils.dart';
+import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -6816,23 +6817,15 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                 .reprodutorSelecionado
                                                 .idAnimal,
                                           });
-                                          final _pesoPesoNascimentoHist =
-                                              pesoNascimentoParsedAdd;
-                                          if (_pesoPesoNascimentoHist != null && _pesoPesoNascimentoHist > 0) {
-                                            await HistoricoPesagensTable()
-                                                .insert({
-                                              'idRebanho': _model.idRebanho,
-                                              'id_propriedade': FFAppState()
-                                                  .propriedadeSelecionada
-                                                  .idPropriedade,
-                                              'dataPesagem':
-                                                  supaSerialize<DateTime>(
-                                                      _model.datePicked1),
-                                              'tipo': 'Nascimento',
-                                              'peso': _pesoPesoNascimentoHist,
-                                              'deletado': 'NAO',
-                                            });
-                                          }
+                                          await sincronizarPesagemNascimentoRebanho(
+                                            idRebanho: _model.idRebanho,
+                                            idPropriedade: FFAppState()
+                                                .propriedadeSelecionada
+                                                .idPropriedade,
+                                            dataNascimento: _model.datePicked1,
+                                            pesoNascimento:
+                                                pesoNascimentoParsedAdd,
+                                          );
                                           final _pesoPesoDesmamaHist = double.tryParse(_model.pesoDesmamaTextController.text.replaceAll(',', '.'));
                                           if (_pesoPesoDesmamaHist != null && _pesoPesoDesmamaHist > 0) {
                                             await HistoricoPesagensTable()

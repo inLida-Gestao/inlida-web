@@ -6711,83 +6711,17 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         pgRebanhoEditRebanhoRow
                                                             ?.idRebanho;
                                                     if (idRebanhoSync != null) {
-                                                      if (pesoNascimentoParsedEdit !=
-                                                              null &&
-                                                          pesoNascimentoParsedEdit >
-                                                              0) {
-                                                        final existentesNasc =
-                                                            await HistoricoPesagensTable()
-                                                                .queryRows(
-                                                          queryFn: (q) => q
-                                                              .eqOrNull(
-                                                                  'idRebanho',
-                                                                  idRebanhoSync)
-                                                              .eqOrNull('tipo',
-                                                                  'Nascimento')
-                                                              .order('id',
-                                                                  ascending:
-                                                                      false),
-                                                        );
-                                                        final existenteNasc =
-                                                            existentesNasc
-                                                                .where(
-                                                                    _pesagemAtiva)
-                                                                .firstOrNull;
-                                                        if (existenteNasc !=
-                                                            null) {
-                                                          await HistoricoPesagensTable()
-                                                              .update(
-                                                            data: {
-                                                              'peso':
-                                                                  pesoNascimentoParsedEdit,
-                                                              if (effectiveDataNascimentoForSave !=
-                                                                  null)
-                                                                'dataPesagem':
-                                                                    supaSerialize<
-                                                                            DateTime>(
-                                                                        effectiveDataNascimentoForSave),
-                                                            },
-                                                            matchingRows: (rows) =>
-                                                                rows.eqOrNull(
-                                                                    'id',
-                                                                    existenteNasc
-                                                                        .id),
-                                                          );
-                                                        } else if (effectiveDataNascimentoForSave !=
-                                                            null) {
-                                                          await _registrarPesagemSeNaoExistir(
-                                                            idRebanho:
-                                                                idRebanhoSync,
-                                                            idPropriedade: FFAppState()
-                                                                .propriedadeSelecionada
-                                                                .idPropriedade,
-                                                            tipo: 'Nascimento',
-                                                            dataPesagem:
-                                                                effectiveDataNascimentoForSave,
-                                                            peso:
-                                                                pesoNascimentoParsedEdit,
-                                                          );
-                                                        } else {
-                                                          await HistoricoPesagensTable()
-                                                              .insert({
-                                                            'idRebanho':
-                                                                idRebanhoSync,
-                                                            'id_propriedade':
-                                                                FFAppState()
-                                                                    .propriedadeSelecionada
-                                                                    .idPropriedade,
-                                                            'dataPesagem':
-                                                                supaSerialize<
-                                                                        DateTime>(
-                                                                    effectiveDataNascimentoForSave),
-                                                            'tipo':
-                                                                'Nascimento',
-                                                            'peso':
-                                                                pesoNascimentoParsedEdit,
-                                                            'deletado': 'NAO',
-                                                          });
-                                                        }
-                                                      }
+                                                      await sincronizarPesagemNascimentoRebanho(
+                                                        idRebanho:
+                                                            idRebanhoSync,
+                                                        idPropriedade: FFAppState()
+                                                            .propriedadeSelecionada
+                                                            .idPropriedade,
+                                                        dataNascimento:
+                                                            effectiveDataNascimentoForSave,
+                                                        pesoNascimento:
+                                                            pesoNascimentoParsedEdit,
+                                                      );
                                                       if (pesoDesmamaParsedEdit !=
                                                               null &&
                                                           pesoDesmamaParsedEdit >
