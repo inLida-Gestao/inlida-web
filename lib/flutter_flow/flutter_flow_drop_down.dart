@@ -135,6 +135,21 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
   @override
   void initState() {
     super.initState();
+    _registerControllerListener();
+  }
+
+  @override
+  void didUpdateWidget(covariant FlutterFlowDropDown<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller ||
+        oldWidget.multiSelectController != widget.multiSelectController ||
+        oldWidget.isMultiSelect != widget.isMultiSelect) {
+      _unregisterControllerListener(oldWidget);
+      _registerControllerListener();
+    }
+  }
+
+  void _registerControllerListener() {
     if (isMultiSelect) {
       _lastMultiValue = multiSelectController.value != null
           ? List<T>.from(multiSelectController.value!)
@@ -164,6 +179,14 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
     }
   }
 
+  void _unregisterControllerListener(FlutterFlowDropDown<T> targetWidget) {
+    if (targetWidget.isMultiSelect) {
+      targetWidget.multiSelectController?.removeListener(_listener);
+    } else {
+      targetWidget.controller?.removeListener(_listener);
+    }
+  }
+
   bool _listsEqual(List<T>? a, List<T>? b) {
     if (a == null && b == null) return true;
     if (a == null || b == null) return false;
@@ -176,11 +199,7 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
 
   @override
   void dispose() {
-    if (isMultiSelect) {
-      multiSelectController.removeListener(_listener);
-    } else {
-      controller.removeListener(_listener);
-    }
+    _unregisterControllerListener(widget);
     super.dispose();
   }
 

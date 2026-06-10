@@ -19,6 +19,18 @@ void main() {
       categoriaRebanhoCondizComSexo(sexo: 'Fêmea', categoria: 'Bezerro'),
       isFalse,
     );
+    expect(
+      categoriaRebanhoCondizComSexo(sexo: 'Femea', categoria: 'Bezerra'),
+      isTrue,
+    );
+    expect(
+      categoriaRebanhoCondizComSexo(sexo: 'FÃªmea', categoria: 'Bezerra'),
+      isTrue,
+    );
+    expect(
+      categoriaRebanhoCondizComSexo(sexo: 'Macho', categoria: 'RufiÃ£o'),
+      isTrue,
+    );
   });
 
   test('categoria inicial é descartada quando o sexo muda', () {

@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
+import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import 'pp_add_pessagem_model.dart';
 export 'pp_add_pessagem_model.dart';
 
@@ -674,30 +675,11 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                             dataPesagem: _model.datePicked!,
                             peso: pesoDouble,
                           );
-                          // Atualiza ficha com a pesagem mais recente (última por data)
-                          final ultimas =
-                              await HistoricoPesagensTable().queryRows(
-                            queryFn: (q) => q
-                                .eqOrNull('idRebanho', idRebanho)
-                                .eqOrNull('deletado', 'NAO')
-                                .order('dataPesagem', ascending: false)
-                                .order('id', ascending: false),
-                            limit: 1,
+                          await sincronizarUltimaPesagemRebanho(
+                            rebanhoId: widget.rebanhoId,
+                            idRebanho: idRebanho,
+                            sincronizarPesoAtual: true,
                           );
-                          final ultima = ultimas.firstOrNull;
-                          if (ultima != null) {
-                            await RebanhoTable().update(
-                              data: {
-                                'pesoAtual': ultima.peso,
-                                'dataUltimaPesagem':
-                                    supaSerialize<DateTime>(ultima.dataPesagem),
-                              },
-                              matchingRows: (rows) => rows.eqOrNull(
-                                'idRebanho',
-                                idRebanho,
-                              ),
-                            );
-                          }
                           FFAppState().refreshPesagem = true;
                           if (!context.mounted) {
                             return;

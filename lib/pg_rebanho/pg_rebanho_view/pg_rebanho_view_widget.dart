@@ -9,6 +9,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/pg_rebanho/modal_more/modal_more_widget.dart';
+import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import '/pg_rebanho/pp_add_pessagem/pp_add_pessagem_widget.dart';
 import '/reproducao/modal_more_reproducao/modal_more_reproducao_widget.dart';
 import 'dart:async';
@@ -239,7 +240,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     return HistoricoPesagensTable().queryRows(
       queryFn: (q) => q
           .eqOrNull('idRebanho', idRebanhoNormalizado)
-          .eqOrNull('deletado', 'NAO')
+          .or('deletado.is.null,deletado.neq.SIM')
           .order('dataPesagem')
           .order('id'),
     );
@@ -260,29 +261,11 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     required int? rebanhoId,
     required String? idRebanho,
   }) async {
-    if (rebanhoId == null || idRebanho == null || idRebanho.trim().isEmpty) {
-      return null;
-    }
-
-    final pesagens = await HistoricoPesagensTable().queryRows(
-      queryFn: (q) => q
-          .eqOrNull('idRebanho', idRebanho.trim())
-          .eqOrNull('deletado', 'NAO')
-          .order('dataPesagem', ascending: false)
-          .order('id', ascending: false),
-      limit: 1,
+    return sincronizarUltimaPesagemRebanho(
+      rebanhoId: rebanhoId,
+      idRebanho: idRebanho,
+      sincronizarPesoAtual: true,
     );
-    final ultima = pesagens.firstOrNull;
-
-    await RebanhoTable().update(
-      data: {
-        'pesoAtual': ultima?.peso,
-        'dataUltimaPesagem': supaSerialize<DateTime>(ultima?.dataPesagem),
-      },
-      matchingRows: (rows) => rows.eqOrNull('id', rebanhoId),
-    );
-
-    return ultima;
   }
 
   Future<HistoricoPesagensRow?> _loadDesmamaPesagem(String? idRebanho) async {
@@ -1292,17 +1275,37 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     super.dispose();
   }
 
+  Future<List<RebanhoRow>> _createRebanhoFuture() async {
+    final rows = await RebanhoTable().querySingleRow(
+      queryFn: (q) => q.eqOrNull(
+        'idRebanho',
+        widget.idRebanho,
+      ),
+    );
+    final row = rows.firstOrNull;
+    if (row == null) {
+      return rows;
+    }
+
+    await sincronizarUltimaPesagemRebanho(
+      rebanhoId: row.id,
+      idRebanho: row.idRebanho,
+    );
+
+    return RebanhoTable().querySingleRow(
+      queryFn: (q) => q.eqOrNull(
+        'idRebanho',
+        widget.idRebanho,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
     return FutureBuilder<List<RebanhoRow>>(
-      future: RebanhoTable().querySingleRow(
-        queryFn: (q) => q.eqOrNull(
-          'idRebanho',
-          widget.idRebanho,
-        ),
-      ),
+      future: _createRebanhoFuture(),
       builder: (context, snapshot) {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {

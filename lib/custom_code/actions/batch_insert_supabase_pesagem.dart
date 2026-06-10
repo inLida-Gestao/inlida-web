@@ -7,6 +7,7 @@ import '/backend/supabase/supabase.dart';
 
 import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '/pg_rebanho/pesagem_rebanho_sync.dart';
 
 class _PesagemRebanhoLookup {
   final Map<String, _AnimalInfo> byFiveFields;
@@ -575,6 +576,7 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
       final List<Map<String, dynamic>> rowsParaInserir = [];
       final List<Map<String, dynamic>> rowsParaAtualizar = [];
       final dedupKeysNoChunk = <String>{};
+      final idsRebanhoParaSincronizar = <String>{};
 
       for (final row in chunk) {
         final idRebanho = row['_idRebanho'] as String;
@@ -671,14 +673,18 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
         final idRebanho = row['_idRebanho'] as String;
         final tipo = _normalizeTipoPesagem(row['tipo']);
         final peso = _parseDoubleSafe(row['peso']);
-        final dataPesagem =
-            _convertDateFormat((row['dataPesagem'] ?? '').toString());
 
         await _updateRebanhoAfterPesagem(
           idRebanho: idRebanho,
           tipo: tipo,
           peso: peso,
-          dataPesagem: dataPesagem,
+        );
+        idsRebanhoParaSincronizar.add(idRebanho);
+      }
+
+      for (final idRebanho in idsRebanhoParaSincronizar) {
+        await sincronizarUltimaPesagemRebanho(
+          idRebanho: idRebanho,
         );
       }
     }
@@ -708,7 +714,6 @@ Future<void> _updateRebanhoAfterPesagem({
   required String idRebanho,
   required String? tipo,
   double? peso,
-  String? dataPesagem,
 }) async {
   if (peso == null) return;
 
@@ -722,9 +727,6 @@ Future<void> _updateRebanhoAfterPesagem({
       data['pesoDesmama'] = peso;
     } else if (tipoNorm == 'atual') {
       data['pesoAtual'] = peso;
-      if (dataPesagem != null) {
-        data['dataUltimaPesagem'] = dataPesagem;
-      }
     }
 
     if (data.isNotEmpty) {

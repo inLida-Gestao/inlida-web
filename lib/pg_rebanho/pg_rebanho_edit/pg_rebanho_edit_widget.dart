@@ -14,6 +14,7 @@ import '/flutter_flow/form_field_controller.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/pg_rebanho/categoria_rebanho_utils.dart';
+import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
 import '/index.dart';
 import 'dart:async';
@@ -73,7 +74,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
     return HistoricoPesagensTable().queryRows(
       queryFn: (q) => q
           .eqOrNull('idRebanho', idRebanhoNormalizado)
-          .eqOrNull('deletado', 'NAO')
+          .or('deletado.is.null,deletado.neq.SIM')
           .order('dataPesagem')
           .order('id'),
     );
@@ -161,29 +162,11 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
     required int? rebanhoId,
     required String? idRebanho,
   }) async {
-    if (rebanhoId == null || idRebanho == null || idRebanho.trim().isEmpty) {
-      return null;
-    }
-
-    final pesagens = await HistoricoPesagensTable().queryRows(
-      queryFn: (q) => q
-          .eqOrNull('idRebanho', idRebanho.trim())
-          .eqOrNull('deletado', 'NAO')
-          .order('dataPesagem', ascending: false)
-          .order('id', ascending: false),
-      limit: 1,
+    return sincronizarUltimaPesagemRebanho(
+      rebanhoId: rebanhoId,
+      idRebanho: idRebanho,
+      sincronizarPesoAtual: true,
     );
-    final ultima = pesagens.firstOrNull;
-
-    await RebanhoTable().update(
-      data: {
-        'pesoAtual': ultima?.peso,
-        'dataUltimaPesagem': supaSerialize<DateTime>(ultima?.dataPesagem),
-      },
-      matchingRows: (rows) => rows.eqOrNull('id', rebanhoId),
-    );
-
-    return ultima;
   }
 
   Future<HistoricoPesagensRow?> _loadDesmamaPesagem(String? idRebanho) async {
@@ -203,7 +186,23 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
     return pesagens.where(_pesagemAtiva).firstOrNull;
   }
 
-  Future<List<RebanhoRow>> _createRebanhoFuture() {
+  Future<List<RebanhoRow>> _createRebanhoFuture() async {
+    final rows = await RebanhoTable().querySingleRow(
+      queryFn: (q) => q.eqOrNull(
+        'id',
+        widget.rebanhoId,
+      ),
+    );
+    final row = rows.firstOrNull;
+    if (row == null) {
+      return rows;
+    }
+
+    await sincronizarUltimaPesagemRebanho(
+      rebanhoId: row.id,
+      idRebanho: row.idRebanho,
+    );
+
     return RebanhoTable().querySingleRow(
       queryFn: (q) => q.eqOrNull(
         'id',
@@ -6391,14 +6390,23 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                             .languageCode;
                                                     final sexoSelecionado =
                                                         _model
-                                                            .dropDownSexoValue;
+                                                                .dropDownSexoValueController
+                                                                ?.value ??
+                                                            _model
+                                                                .dropDownSexoValue;
                                                     final categoriaSelecionada =
                                                         categoriaRebanhoSelecionada(
                                                       sexo: sexoSelecionado,
                                                       categoriaFemea: _model
-                                                          .dDCatRebanhoFemeaValue,
+                                                              .dDCatRebanhoFemeaValueController
+                                                              ?.value ??
+                                                          _model
+                                                              .dDCatRebanhoFemeaValue,
                                                       categoriaMacho: _model
-                                                          .dDCatRebanhoMachoValue,
+                                                              .dDCatRebanhoMachoValueController
+                                                              ?.value ??
+                                                          _model
+                                                              .dDCatRebanhoMachoValue,
                                                     );
                                                     if (!categoriaRebanhoCondizComSexo(
                                                       sexo: sexoSelecionado,

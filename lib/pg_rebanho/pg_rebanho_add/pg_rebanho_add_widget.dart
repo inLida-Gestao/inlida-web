@@ -11,6 +11,7 @@ import '/flutter_flow/form_field_controller.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
+import '/pg_rebanho/categoria_rebanho_utils.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -1177,10 +1178,27 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                   'Fêmea',
                                                                   'Macho'
                                                                 ],
-                                                                onChanged: (val) =>
-                                                                    safeSetState(() =>
-                                                                        _model.dropDownSexoValue =
-                                                                            val),
+                                                                onChanged:
+                                                                    (val) =>
+                                                                        safeSetState(
+                                                                            () {
+                                                                  if (_model
+                                                                          .dropDownSexoValue !=
+                                                                      val) {
+                                                                    _model
+                                                                        .dDCatRebanhoFemeaValueController
+                                                                        ?.reset();
+                                                                    _model.dDCatRebanhoFemeaValue =
+                                                                        null;
+                                                                    _model
+                                                                        .dDCatRebanhoMachoValueController
+                                                                        ?.reset();
+                                                                    _model.dDCatRebanhoMachoValue =
+                                                                        null;
+                                                                  }
+                                                                  _model.dropDownSexoValue =
+                                                                      val;
+                                                                }),
                                                                 height: 56.0,
                                                                 textStyle: FlutterFlowTheme.of(
                                                                         context)
@@ -1958,12 +1976,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       FormFieldController<
                                                                               String>(
                                                                           null),
-                                                                  options: const [
-                                                                    'Bezerra',
-                                                                    'Novilha',
-                                                                    'Vaca Multipara',
-                                                                    'Vaca Primipara'
-                                                                  ],
+                                                                  options:
+                                                                      categoriasRebanhoFemea,
                                                                   onChanged: (val) =>
                                                                       safeSetState(() =>
                                                                           _model.dDCatRebanhoFemeaValue =
@@ -2040,14 +2054,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                       FormFieldController<
                                                                               String>(
                                                                           null),
-                                                                  options: const [
-                                                                    'Boi Gordo',
-                                                                    'Boi Magro',
-                                                                    'Garrote',
-                                                                    'Rufião',
-                                                                    'Touro',
-                                                                    'Bezerro'
-                                                                  ],
+                                                                  options:
+                                                                      categoriasRebanhoMacho,
                                                                   onChanged: (val) =>
                                                                       safeSetState(() =>
                                                                           _model.dDCatRebanhoMachoValue =
@@ -6591,6 +6599,45 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             );
                                             return;
                                           }
+                                          final sexoSelecionado =
+                                              _model.dropDownSexoValueController
+                                                      ?.value ??
+                                                  _model.dropDownSexoValue;
+                                          final categoriaSelecionada =
+                                              categoriaRebanhoSelecionada(
+                                            sexo: sexoSelecionado,
+                                            categoriaFemea: _model
+                                                    .dDCatRebanhoFemeaValueController
+                                                    ?.value ??
+                                                _model.dDCatRebanhoFemeaValue,
+                                            categoriaMacho: _model
+                                                    .dDCatRebanhoMachoValueController
+                                                    ?.value ??
+                                                _model.dDCatRebanhoMachoValue,
+                                          );
+                                          if (!categoriaRebanhoCondizComSexo(
+                                            sexo: sexoSelecionado,
+                                            categoria: categoriaSelecionada,
+                                          )) {
+                                            await showDialog(
+                                              context: context,
+                                              builder: (alertDialogContext) {
+                                                return AlertDialog(
+                                                  content: const Text(
+                                                      'Selecione uma categoria compatível com o sexo do animal antes de salvar.'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              alertDialogContext),
+                                                      child: const Text('Ok'),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                            return;
+                                          }
                                           _model.isSaving = true;
                                           safeSetState(() {});
                                           _model.idRebanho = null;
@@ -6606,9 +6653,15 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                           safeSetState(() {});
                                           // Regra de pesoAtual:
                                           // - Se usuário informou pesoAtual, usa o valor digitado.
-                                          // - Se pesoAtual vazio e pesoDesmama informado, usa pesoDesmama
-                                          //   (e dataUltimaPesagem = dataDesmama).
+                                          // - Se pesoAtual vazio e pesoDesmama informado, usa pesoDesmama.
                                           // - Se só pesoNascimento informado, NÃO setar pesoAtual.
+                                          // dataUltimaPesagem usa a maior data do histórico registrado.
+                                          final double?
+                                              pesoNascimentoParsedAdd =
+                                              double.tryParse(_model
+                                                  .pesoNascimentoTextController
+                                                  .text
+                                                  .replaceAll(',', '.'));
                                           final double? pesoDesmamaParsedAdd =
                                               double.tryParse(_model
                                                   .pesoDesmamaTextController
@@ -6622,12 +6675,27 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                   pesoDesmamaParsedAdd;
                                           final DateTime?
                                               dataUltimaPesagemFinalAdd =
-                                              pesoAtualDigitadoAdd != null
-                                                  ? _model.datePicked4
-                                                  : (pesoDesmamaParsedAdd !=
-                                                          null
-                                                      ? _model.datePicked3
-                                                      : null);
+                                              [
+                                            if (pesoNascimentoParsedAdd !=
+                                                    null &&
+                                                pesoNascimentoParsedAdd > 0)
+                                              _model.datePicked1,
+                                            if (pesoDesmamaParsedAdd != null &&
+                                                pesoDesmamaParsedAdd > 0)
+                                              _model.datePicked3,
+                                            if (pesoAtualDigitadoAdd != null &&
+                                                pesoAtualDigitadoAdd > 0)
+                                              _model.datePicked4,
+                                          ]
+                                                  .whereType<DateTime>()
+                                                  .fold<DateTime?>(null,
+                                                      (latest, current) {
+                                            if (latest == null ||
+                                                current.isAfter(latest)) {
+                                              return current;
+                                            }
+                                            return latest;
+                                          });
                                           await RebanhoTable().insert({
                                             'idPropriedade': FFAppState()
                                                 .propriedadeSelecionada
@@ -6640,12 +6708,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                 .codRegistroTextController.text,
                                             'nome': _model
                                                 .nomeAnimalTextController.text,
-                                            'sexo': _model.dropDownSexoValue,
-                                            'categoria': _model
-                                                        .dropDownSexoValue ==
-                                                    'Macho'
-                                                ? _model.dDCatRebanhoMachoValue
-                                                : _model.dDCatRebanhoFemeaValue,
+                                            'sexo': sexoSelecionado,
+                                            'categoria': categoriaSelecionada,
                                             'dataNascimento':
                                                 supaSerialize<DateTime>(
                                                     _model.datePicked1),
@@ -6752,7 +6816,8 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                 .reprodutorSelecionado
                                                 .idAnimal,
                                           });
-                                          final _pesoPesoNascimentoHist = double.tryParse(_model.pesoNascimentoTextController.text.replaceAll(',', '.'));
+                                          final _pesoPesoNascimentoHist =
+                                              pesoNascimentoParsedAdd;
                                           if (_pesoPesoNascimentoHist != null && _pesoPesoNascimentoHist > 0) {
                                             await HistoricoPesagensTable()
                                                 .insert({

@@ -4746,12 +4746,20 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                 );
                                 return;
                               }
-                              final sexoSelecionado = _model.dropDownSexoValue;
+                              final sexoSelecionado =
+                                  _model.dropDownSexoValueController?.value ??
+                                      _model.dropDownSexoValue;
                               final categoriaSelecionada =
                                   categoriaRebanhoSelecionada(
                                 sexo: sexoSelecionado,
-                                categoriaFemea: _model.dDCatRebanhoFemeaValue,
-                                categoriaMacho: _model.dDCatRebanhoMachoValue,
+                                categoriaFemea: _model
+                                        .dDCatRebanhoFemeaValueController
+                                        ?.value ??
+                                    _model.dDCatRebanhoFemeaValue,
+                                categoriaMacho: _model
+                                        .dDCatRebanhoMachoValueController
+                                        ?.value ??
+                                    _model.dDCatRebanhoMachoValue,
                               );
                               if (!categoriaRebanhoCondizComSexo(
                                 sexo: sexoSelecionado,
@@ -4791,6 +4799,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                               // - Entre pesoAtual e pesoDesmama, usa a pesagem
                               //   com data mais recente.
                               // - Se só pesoNascimento informado, NÃO setar pesoAtual.
+                              // dataUltimaPesagem usa a maior data do histórico registrado.
                               final double? pesoNascimentoParsedCC =
                                   double.tryParse(_model
                                       .pesoNascimentoTextController.text
@@ -4804,21 +4813,38 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                       .pesoAtualTextController.text
                                       .replaceAll(',', '.'));
                               double? pesoAtualFinalCC;
-                              DateTime? dataUltimaPesagemFinalCC;
+                              DateTime? dataPesoAtualFinalCC;
                               if (pesoAtualDigitadoCC != null &&
                                   pesoAtualDigitadoCC > 0) {
                                 pesoAtualFinalCC = pesoAtualDigitadoCC;
-                                dataUltimaPesagemFinalCC = _model.datePicked4;
+                                dataPesoAtualFinalCC = _model.datePicked4;
                               }
                               if (pesoDesmamaParsedCC != null &&
                                   pesoDesmamaParsedCC > 0 &&
                                   _model.datePicked3 != null &&
-                                  (dataUltimaPesagemFinalCC == null ||
+                                  (dataPesoAtualFinalCC == null ||
                                       _model.datePicked3!
-                                          .isAfter(dataUltimaPesagemFinalCC))) {
+                                          .isAfter(dataPesoAtualFinalCC))) {
                                 pesoAtualFinalCC = pesoDesmamaParsedCC;
-                                dataUltimaPesagemFinalCC = _model.datePicked3;
+                                dataPesoAtualFinalCC = _model.datePicked3;
                               }
+                              final DateTime? dataUltimaPesagemFinalCC = [
+                                if (pesoNascimentoParsedCC != null &&
+                                    pesoNascimentoParsedCC > 0)
+                                  _model.datePicked1,
+                                if (pesoDesmamaParsedCC != null &&
+                                    pesoDesmamaParsedCC > 0)
+                                  _model.datePicked3,
+                                if (pesoAtualDigitadoCC != null &&
+                                    pesoAtualDigitadoCC > 0)
+                                  _model.datePicked4,
+                              ].whereType<DateTime>().fold<DateTime?>(null,
+                                  (latest, current) {
+                                if (latest == null || current.isAfter(latest)) {
+                                  return current;
+                                }
+                                return latest;
+                              });
                               await RebanhoTable().insert({
                                 'idPropriedade': FFAppState()
                                     .propriedadeSelecionada

@@ -8,6 +8,7 @@ import '/backend/supabase/supabase.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '/pg_rebanho/pesagem_rebanho_sync.dart';
 
 final Random _idRebanhoRandom = Random.secure();
 
@@ -1224,6 +1225,11 @@ Future<bool> _pesagemAtivaJaExiste(Map<String, dynamic> pesagem) async {
 Future<void> _insertPesagens(List<Map<String, dynamic>> pesagens) async {
   final dedupKeys = <String>{};
   final pesagensNovas = <Map<String, dynamic>>[];
+  final idsRebanhoParaSincronizar = pesagens
+      .map((pesagem) => pesagem['idRebanho']?.toString().trim())
+      .whereType<String>()
+      .where((idRebanho) => idRebanho.isNotEmpty)
+      .toSet();
 
   for (final pesagem in pesagens) {
     if (!dedupKeys.add(_composePesagemRecordKey(pesagem))) {
@@ -1235,7 +1241,10 @@ Future<void> _insertPesagens(List<Map<String, dynamic>> pesagens) async {
     pesagensNovas.add(pesagem);
   }
 
-  if (pesagensNovas.isEmpty) return;
+  if (pesagensNovas.isEmpty) {
+    await _syncDataUltimaPesagem(idsRebanhoParaSincronizar);
+    return;
+  }
 
   try {
     await Supabase.instance.client
@@ -1256,6 +1265,16 @@ Future<void> _insertPesagens(List<Map<String, dynamic>> pesagens) async {
         print('Erro ao inserir pesagem individual: $individualError');
       }
     }
+  }
+
+  await _syncDataUltimaPesagem(idsRebanhoParaSincronizar);
+}
+
+Future<void> _syncDataUltimaPesagem(Set<String> idsRebanho) async {
+  for (final idRebanho in idsRebanho) {
+    await sincronizarUltimaPesagemRebanho(
+      idRebanho: idRebanho,
+    );
   }
 }
 
