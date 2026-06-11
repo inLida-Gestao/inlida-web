@@ -2796,6 +2796,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                                 width: 370.0,
                                                                                 child: PopupRebanhosWidget(
                                                                                   sexo: 'Fêmea',
+                                                                                  mostrarTodasMatrizes: true,
                                                                                 ),
                                                                               ),
                                                                             ),
