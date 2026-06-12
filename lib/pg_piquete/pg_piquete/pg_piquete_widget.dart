@@ -122,12 +122,31 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     context.pushNamed(PgAddPiqueteWidget.routeName);
   }
 
-  void _openRetiroDialog({RetiroPrototype? initial}) {
+  Future<void> _openRetiroDialog({RetiroPrototype? initial}) async {
     if (!_store.temLimitePropriedade) {
       _showLimiteRequiredSnack();
       return;
     }
-    _showRetiroDialog(initial: initial);
+
+    try {
+      await _store.load();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível atualizar os retiros existentes.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
+
+    if (!mounted) return;
+    final refreshedInitial =
+        initial == null ? null : (_store.retiroById(initial.id) ?? initial);
+    await _showRetiroDialog(initial: refreshedInitial);
   }
 
   void _showLimiteRequiredSnack() {
@@ -634,7 +653,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
       actions: [
         if (retiro != null)
           OutlinedButton.icon(
-            onPressed: () => _showRetiroDialog(initial: retiro),
+            onPressed: () => _openRetiroDialog(initial: retiro),
             icon: const Icon(Icons.edit_location_alt_outlined, size: 18),
             label: const Text('Editar retiro'),
             style: OutlinedButton.styleFrom(
