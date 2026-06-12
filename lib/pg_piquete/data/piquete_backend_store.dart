@@ -8,6 +8,7 @@ class PiqueteBackendStore extends ChangeNotifier {
   PiqueteBackendStore._();
 
   static final PiqueteBackendStore instance = PiqueteBackendStore._();
+  static const optionsPageSize = 50;
 
   final PiqueteRepository _repository = const PiqueteRepository();
 
@@ -136,7 +137,7 @@ class PiqueteBackendStore extends ChangeNotifier {
   Future<void> loadOptions({String piqueteId = ''}) async {
     await _run(() async {
       _syncPropertyContext();
-      await _loadOptionsRaw(piqueteId: piqueteId);
+      await _loadOptionsRaw(piqueteId: piqueteId, limit: optionsPageSize);
     });
   }
 
@@ -157,24 +158,168 @@ class PiqueteBackendStore extends ChangeNotifier {
       loaded = detail.piquete;
       _upsertPiquete(detail.piquete);
       _historicoPorPiquete[detail.piquete.id] = historico;
-      await _loadOptionsRaw(piqueteId: detail.piquete.id);
+      await ensureSelectedOptions(
+        animaisIds: detail.piquete.animaisIds,
+        lotesIds: detail.piquete.lotesIds,
+      );
     });
     return loaded;
   }
 
-  Future<void> _loadOptionsRaw({String piqueteId = ''}) async {
-    final animaisFuture =
-        _repository.buscarAnimaisDisponiveis(piqueteId: piqueteId);
-    final lotesFuture =
-        _repository.buscarLotesDisponiveis(piqueteId: piqueteId);
+  Future<void> _loadOptionsRaw({
+    String piqueteId = '',
+    int limit = optionsPageSize,
+  }) async {
+    final animaisFuture = _repository.buscarAnimaisDisponiveis(
+      piqueteId: piqueteId,
+      limite: limit,
+      offset: 0,
+    );
+    final lotesFuture = _repository.buscarLotesDisponiveis(
+      piqueteId: piqueteId,
+      limite: limit,
+      offset: 0,
+    );
     final animais = await animaisFuture;
     final lotes = await lotesFuture;
-    _animais
-      ..clear()
-      ..addAll(animais.map((option) => option.animal));
-    _lotes
-      ..clear()
-      ..addAll(lotes.map((option) => option.lote));
+    _upsertAnimais(animais.map((option) => option.animal));
+    _upsertLotes(lotes.map((option) => option.lote));
+  }
+
+  Future<PiqueteOptionsPage<AnimalPrototype>> buscarAnimaisDisponiveisPage({
+    String piqueteId = '',
+    String pesquisa = '',
+    int offset = 0,
+    int limit = optionsPageSize,
+    String status = '',
+    String sexo = '',
+    String categoria = '',
+    String raca = '',
+    String origem = '',
+    String lote = '',
+    String dataNascimentoDe = '',
+    String dataNascimentoAte = '',
+  }) async {
+    try {
+      _syncPropertyContext();
+      final options = await _repository.buscarAnimaisDisponiveis(
+        piqueteId: piqueteId,
+        pesquisa: pesquisa,
+        limite: limit + 1,
+        offset: offset,
+        status: status,
+        sexo: sexo,
+        categoria: categoria,
+        raca: raca,
+        origem: origem,
+        lote: lote,
+        dataNascimentoDe: dataNascimentoDe,
+        dataNascimentoAte: dataNascimentoAte,
+      );
+      final animais = options.map((option) => option.animal).toList();
+      final hasNext = animais.length > limit;
+      final pageItems = hasNext ? animais.take(limit).toList() : animais;
+      _upsertAnimais(pageItems);
+      errorMessage = null;
+      notifyListeners();
+      return PiqueteOptionsPage(
+        items: pageItems,
+        offset: offset,
+        limit: limit,
+        hasNext: hasNext,
+      );
+    } on PiqueteRepositoryException catch (error) {
+      errorMessage = error.message;
+      notifyListeners();
+      rethrow;
+    } catch (error) {
+      errorMessage = error.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<PiqueteOptionsPage<LotePrototype>> buscarLotesDisponiveisPage({
+    String piqueteId = '',
+    String pesquisa = '',
+    int offset = 0,
+    int limit = optionsPageSize,
+    String status = '',
+    String dataCriacaoDe = '',
+    String dataCriacaoAte = '',
+  }) async {
+    try {
+      _syncPropertyContext();
+      final options = await _repository.buscarLotesDisponiveis(
+        piqueteId: piqueteId,
+        pesquisa: pesquisa,
+        limite: limit + 1,
+        offset: offset,
+        status: status,
+        dataCriacaoDe: dataCriacaoDe,
+        dataCriacaoAte: dataCriacaoAte,
+      );
+      final lotes = options.map((option) => option.lote).toList();
+      final hasNext = lotes.length > limit;
+      final pageItems = hasNext ? lotes.take(limit).toList() : lotes;
+      _upsertLotes(pageItems);
+      errorMessage = null;
+      notifyListeners();
+      return PiqueteOptionsPage(
+        items: pageItems,
+        offset: offset,
+        limit: limit,
+        hasNext: hasNext,
+      );
+    } on PiqueteRepositoryException catch (error) {
+      errorMessage = error.message;
+      notifyListeners();
+      rethrow;
+    } catch (error) {
+      errorMessage = error.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> ensureSelectedOptions({
+    Iterable<String> animaisIds = const [],
+    Iterable<String> lotesIds = const [],
+  }) async {
+    _syncPropertyContext();
+    final missingAnimais = animaisIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty && animaisByIds([id]).isEmpty)
+        .toSet();
+    final missingLotes = lotesIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty && lotesByIds([id]).isEmpty)
+        .toSet();
+
+    if (missingAnimais.isEmpty && missingLotes.isEmpty) return;
+
+    try {
+      final animaisFuture = missingAnimais.isEmpty
+          ? Future<List<AnimalPiqueteOption>>.value(const [])
+          : _repository.buscarAnimaisPorIds(missingAnimais);
+      final lotesFuture = missingLotes.isEmpty
+          ? Future<List<LotePiqueteOption>>.value(const [])
+          : _repository.buscarLotesPorIds(missingLotes);
+      final animais = await animaisFuture;
+      final lotes = await lotesFuture;
+      _upsertAnimais(animais.map((option) => option.animal));
+      _upsertLotes(lotes.map((option) => option.lote));
+      errorMessage = null;
+      notifyListeners();
+    } on PiqueteRepositoryException catch (error) {
+      errorMessage = error.message;
+      notifyListeners();
+      rethrow;
+    } catch (error) {
+      errorMessage = error.toString();
+      notifyListeners();
+      rethrow;
+    }
   }
 
   List<PiquetePrototype> piquetesDoRetiro(String? retiroId) {
@@ -468,4 +613,44 @@ class PiqueteBackendStore extends ChangeNotifier {
       _piquetes[index] = piquete;
     }
   }
+
+  void _upsertAnimais(Iterable<AnimalPrototype> animais) {
+    for (final animal in animais) {
+      final index = _animais.indexWhere((item) => item.id == animal.id);
+      if (index == -1) {
+        _animais.add(animal);
+      } else {
+        _animais[index] = animal;
+      }
+    }
+  }
+
+  void _upsertLotes(Iterable<LotePrototype> lotes) {
+    for (final lote in lotes) {
+      final index = _lotes.indexWhere((item) => item.id == lote.id);
+      if (index == -1) {
+        _lotes.add(lote);
+      } else {
+        _lotes[index] = lote;
+      }
+    }
+  }
+}
+
+class PiqueteOptionsPage<T> {
+  const PiqueteOptionsPage({
+    required this.items,
+    required this.offset,
+    required this.limit,
+    required this.hasNext,
+  });
+
+  final List<T> items;
+  final int offset;
+  final int limit;
+  final bool hasNext;
+
+  bool get hasPrevious => offset > 0;
+  int get firstItemNumber => items.isEmpty ? 0 : offset + 1;
+  int get lastItemNumber => offset + items.length;
 }

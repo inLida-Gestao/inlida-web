@@ -23,6 +23,8 @@ class PgPiqueteWidget extends StatefulWidget {
 }
 
 class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
+  static const _existingRetiroColor = Color(0xFF7C3AED);
+
   late PgPiqueteModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
@@ -652,8 +654,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
             style: OutlinedButton.styleFrom(
               foregroundColor: theme.error,
               side: BorderSide(color: theme.error),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -1065,6 +1066,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                               points: pontos,
                               editable: true,
                               height: mapHeight,
+                              pointsLegendLabel:
+                                  editing ? 'Limite em edição' : 'Novo limite',
                               preferUserLocation: !editing,
                               onChanged: (value) => setDialogState(() {
                                 pontos = value;
@@ -1232,6 +1235,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
 
   Future<void> _showRetiroDialog({RetiroPrototype? initial}) async {
     final editing = initial != null;
+    final existingRetiroAreas = _existingRetiroAreas(except: initial);
     final nomeController = TextEditingController(text: initial?.nome ?? '');
     final areaController = TextEditingController(
       text: _formatAreaInput(initial?.areaHa ?? 0),
@@ -1267,9 +1271,13 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                       children: [
                         PrototypePageHeader(
                           title: editing ? 'Editar retiro' : 'Criar retiro',
-                          subtitle: editing
-                              ? 'Ajuste dados e demarcação do retiro'
-                              : 'Demarque uma área interna do limite da propriedade',
+                          subtitle: existingRetiroAreas.isEmpty
+                              ? (editing
+                                  ? 'Ajuste dados e demarcação do retiro'
+                                  : 'Demarque uma área interna do limite da propriedade')
+                              : (editing
+                                  ? 'Outros retiros aparecem em roxo para evitar sobreposição'
+                                  : 'Retiros já cadastrados aparecem em roxo para evitar sobreposição'),
                           actions: [
                             IconButton(
                               onPressed: () => Navigator.pop(dialogContext),
@@ -1322,6 +1330,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                               points: pontos,
                               retiroPoints:
                                   _store.limitePropriedade?.pontos ?? const [],
+                              piqueteAreas: existingRetiroAreas,
+                              pointsLegendLabel:
+                                  editing ? 'Retiro em edição' : 'Novo retiro',
                               editable: true,
                               height: mapHeight,
                               preferUserLocation: !editing,
@@ -1497,6 +1508,24 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     nomeController.dispose();
     areaController.dispose();
     anotacoesController.dispose();
+  }
+
+  List<PiqueteMapArea> _existingRetiroAreas({RetiroPrototype? except}) {
+    final exceptId = except?.id;
+    return _store.retiros
+        .where((retiro) => retiro.id != exceptId)
+        .where((retiro) => retiro.pontos.length >= 3)
+        .map(
+          (retiro) => PiqueteMapArea(
+            name: retiro.nome,
+            points: retiro.pontos,
+            color: _existingRetiroColor,
+            legendLabel: 'Retiro existente',
+            fillOpacity: 0.20,
+            borderStrokeWidth: 3.2,
+          ),
+        )
+        .toList();
   }
 
   Future<void> _deleteLimitePropriedade(

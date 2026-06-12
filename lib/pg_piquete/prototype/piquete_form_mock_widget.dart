@@ -53,6 +53,8 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   final _anotacoesController = TextEditingController();
   final _searchAvailableController = TextEditingController();
   final _searchSelectedController = TextEditingController();
+  final _animalLoteFilterController = TextEditingController();
+  Timer? _selectorSearchDebounce;
 
   late String _retiroId;
   late List<String> _forrageirasSelecionadas;
@@ -61,7 +63,46 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   late List<String> _animaisIds;
   late List<String> _lotesIds;
   late bool _areaEditadaManualmente;
+  List<AnimalPrototype> _animalOptionsPage = const [];
+  List<LotePrototype> _loteOptionsPage = const [];
+  int _animalOffset = 0;
+  int _loteOffset = 0;
+  int _animalRequestId = 0;
+  int _loteRequestId = 0;
+  bool _animalHasNext = false;
+  bool _loteHasNext = false;
+  bool _loadingAnimals = false;
+  bool _loadingLotes = false;
+  String? _animalOptionsError;
+  String? _loteOptionsError;
+  String _animalStatusFilter = '';
+  String _animalSexoFilter = '';
+  String _animalCategoriaFilter = '';
+  String _animalRacaFilter = '';
+  String _animalOrigemFilter = '';
+  DateTime? _animalNascimentoDeFilter;
+  DateTime? _animalNascimentoAteFilter;
+  String _loteStatusFilter = '';
+  DateTime? _loteCriacaoDeFilter;
+  DateTime? _loteCriacaoAteFilter;
 
+  static const _selectorPageSize = PiqueteBackendStore.optionsPageSize;
+  static const _animalSexoOptions = ['Fêmea', 'Macho'];
+  static const _animalCategoriaFemeaOptions = [
+    'Bezerra',
+    'Novilha',
+    'Vaca Multipara',
+    'Vaca Primipara',
+  ];
+  static const _animalCategoriaMachoOptions = [
+    'Boi Gordo',
+    'Boi Magro',
+    'Garrote',
+    'Rufião',
+    'Touro',
+    'Bezerro',
+  ];
+  static const _loteStatusOptions = ['Ativo', 'Inativo'];
   static const _forrageiraOptions = [
     'Brachiaria ruziensis',
     'Massai (Panicum maximum)',
@@ -74,6 +115,9 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   void initState() {
     super.initState();
     _applyInitial(widget.initial);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_loadInitialSelectorData());
+    });
   }
 
   @override
@@ -82,6 +126,9 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     if (_initialIdentity(widget.initial) !=
         _initialIdentity(oldWidget.initial)) {
       _applyInitial(widget.initial);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(_loadInitialSelectorData());
+      });
     }
   }
 
@@ -92,6 +139,8 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     _anotacoesController.dispose();
     _searchAvailableController.dispose();
     _searchSelectedController.dispose();
+    _animalLoteFilterController.dispose();
+    _selectorSearchDebounce?.cancel();
     super.dispose();
   }
 
@@ -224,7 +273,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
                     child: _ModeButton(
                       label: 'Adicionar animal',
                       selected: _mode == 'animal',
-                      onTap: () => safeSetState(() => _mode = 'animal'),
+                      onTap: () => _selectMode('animal'),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -232,7 +281,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
                     child: _ModeButton(
                       label: 'Adicionar lote',
                       selected: _mode == 'lote',
-                      onTap: () => safeSetState(() => _mode = 'lote'),
+                      onTap: () => _selectMode('lote'),
                     ),
                   ),
                 ],
@@ -262,38 +311,55 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   }
 
   Widget _buildAnimalSelector() {
-    final availableQuery = _searchAvailableController.text.trim().toLowerCase();
     final selectedQuery = _searchSelectedController.text.trim().toLowerCase();
     final selectedSet = _animaisIds.toSet();
-    final available = _store
-        .animaisDisponiveis(exceptPiqueteId: widget.initial?.id)
-        .where((a) => !selectedSet.contains(a.id))
-        .where((a) => a.status.trim().toLowerCase() == 'na propriedade')
-        .where((a) =>
-            availableQuery.isEmpty ||
-            a.nome.toLowerCase().contains(availableQuery) ||
-            a.numero.toLowerCase().contains(availableQuery))
-        .toList();
-    final selected = _store.animaisByIds(_animaisIds).where((a) {
+    final available =
+        _animalOptionsPage.where((a) => !selectedSet.contains(a.id)).toList();
+    final selected = _selectedAnimais().where((a) {
       return selectedQuery.isEmpty ||
           a.nome.toLowerCase().contains(selectedQuery) ||
           a.numero.toLowerCase().contains(selectedQuery);
     }).toList();
 
     return _DualPanel<AnimalPrototype>(
-      leftTitle: 'Animais fora deste piquete (${available.length})',
+      leftTitle: 'Animais fora deste piquete',
       rightTitle: 'Animais neste piquete (${_animaisIds.length})',
       leftItems: available,
       rightItems: selected,
       leftSearch: _searchAvailableController,
       rightSearch: _searchSelectedController,
+      leftLoading: _loadingAnimals,
+      leftErrorMessage: _animalOptionsError,
+      leftFilters: _buildAnimalFilters(),
+      leftPageLabel: _pageLabel(
+        offset: _animalOffset,
+        itemCount: _animalOptionsPage.length,
+        hasNext: _animalHasNext,
+      ),
+      leftHasPrevious: _animalOffset > 0,
+      leftHasNext: _animalHasNext,
+      leftOnPreviousPage: _loadingAnimals
+          ? null
+          : () => _loadAnimalOptions(
+                offset: (_animalOffset - _selectorPageSize)
+                    .clamp(0, _animalOffset)
+                    .toInt(),
+              ),
+      leftOnNextPage: _loadingAnimals
+          ? null
+          : () => _loadAnimalOptions(
+                offset: _animalOffset + _selectorPageSize,
+              ),
       emptyRightMessage:
           'Nenhum animal foi adicionado neste piquete. Selecione um animal à esquerda.',
       itemBuilder: (animal) => _AnimalTile(animal: animal),
-      onAdd: (animal) => safeSetState(() => _animaisIds.add(animal.id)),
+      onAdd: (animal) => safeSetState(() {
+        if (!_animaisIds.contains(animal.id)) _animaisIds.add(animal.id);
+      }),
       onRemove: (animal) =>
           safeSetState(() => _animaisIds.removeWhere((id) => id == animal.id)),
-      onSearchChanged: () => safeSetState(() {}),
+      onSearchChanged: _scheduleAvailableSearch,
+      onSelectedSearchChanged: () => safeSetState(() {}),
     );
   }
 
@@ -332,6 +398,464 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     }
   }
 
+  Future<void> _loadInitialSelectorData() async {
+    try {
+      await _store.ensureSelectedOptions(
+        animaisIds: _animaisIds,
+        lotesIds: _lotesIds,
+      );
+      if (mounted) safeSetState(() {});
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível carregar os itens já selecionados.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
+
+    await _loadCurrentModeOptions(reset: true);
+  }
+
+  void _selectMode(String mode) {
+    if (_mode == mode) return;
+    safeSetState(() => _mode = mode);
+    unawaited(_loadCurrentModeOptions(reset: true));
+  }
+
+  Future<void> _loadCurrentModeOptions({bool reset = false}) {
+    if (_mode == 'lote') {
+      return _loadLoteOptions(reset: reset);
+    }
+    return _loadAnimalOptions(reset: reset);
+  }
+
+  void _scheduleAvailableSearch() {
+    _selectorSearchDebounce?.cancel();
+    _selectorSearchDebounce = Timer(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
+      unawaited(_loadCurrentModeOptions(reset: true));
+    });
+  }
+
+  Future<void> _loadAnimalOptions({
+    int? offset,
+    bool reset = false,
+  }) async {
+    final nextOffset = reset ? 0 : (offset ?? _animalOffset);
+    final requestId = ++_animalRequestId;
+    safeSetState(() {
+      _loadingAnimals = true;
+      _animalOptionsError = null;
+      if (reset) _animalOffset = 0;
+    });
+
+    try {
+      final page = await _store.buscarAnimaisDisponiveisPage(
+        piqueteId: widget.initial?.id ?? '',
+        pesquisa: _searchAvailableController.text.trim(),
+        offset: nextOffset,
+        limit: _selectorPageSize,
+        status: _animalStatusFilter,
+        sexo: _animalSexoFilter,
+        categoria: _animalCategoriaFilter,
+        raca: _animalRacaFilter,
+        origem: _animalOrigemFilter,
+        lote: _animalLoteFilterController.text.trim(),
+        dataNascimentoDe: _dateParam(_animalNascimentoDeFilter),
+        dataNascimentoAte: _dateParam(_animalNascimentoAteFilter),
+      );
+      if (!mounted || requestId != _animalRequestId) return;
+      safeSetState(() {
+        _animalOptionsPage = page.items;
+        _animalOffset = page.offset;
+        _animalHasNext = page.hasNext;
+        _loadingAnimals = false;
+      });
+    } catch (_) {
+      if (!mounted || requestId != _animalRequestId) return;
+      safeSetState(() {
+        _animalOptionsPage = const [];
+        _animalHasNext = false;
+        _loadingAnimals = false;
+        _animalOptionsError =
+            _store.errorMessage ?? 'Não foi possível carregar os animais.';
+      });
+    }
+  }
+
+  Future<void> _loadLoteOptions({
+    int? offset,
+    bool reset = false,
+  }) async {
+    final nextOffset = reset ? 0 : (offset ?? _loteOffset);
+    final requestId = ++_loteRequestId;
+    safeSetState(() {
+      _loadingLotes = true;
+      _loteOptionsError = null;
+      if (reset) _loteOffset = 0;
+    });
+
+    try {
+      final page = await _store.buscarLotesDisponiveisPage(
+        piqueteId: widget.initial?.id ?? '',
+        pesquisa: _searchAvailableController.text.trim(),
+        offset: nextOffset,
+        limit: _selectorPageSize,
+        status: _loteStatusFilter,
+        dataCriacaoDe: _dateParam(_loteCriacaoDeFilter),
+        dataCriacaoAte: _dateParam(_loteCriacaoAteFilter),
+      );
+      if (!mounted || requestId != _loteRequestId) return;
+      safeSetState(() {
+        _loteOptionsPage = page.items;
+        _loteOffset = page.offset;
+        _loteHasNext = page.hasNext;
+        _loadingLotes = false;
+      });
+    } catch (_) {
+      if (!mounted || requestId != _loteRequestId) return;
+      safeSetState(() {
+        _loteOptionsPage = const [];
+        _loteHasNext = false;
+        _loadingLotes = false;
+        _loteOptionsError =
+            _store.errorMessage ?? 'Não foi possível carregar os lotes.';
+      });
+    }
+  }
+
+  Widget _buildAnimalFilters() {
+    final racaOptions = _appStateOptions(FFAppState().raca);
+    final origemOptions = _appStateOptions(FFAppState().origemRebanho);
+    final statusOptions = _appStateOptions(FFAppState().statusRebanho);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            SizedBox(
+              width: 155,
+              child: _FilterDropdown(
+                label: 'Status',
+                value: _animalStatusFilter,
+                options: statusOptions,
+                hint: 'Todos',
+                onChanged: (value) => _setAnimalFilter(
+                  status: value ?? '',
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 135,
+              child: _FilterDropdown(
+                label: 'Sexo',
+                value: _animalSexoFilter,
+                options: _animalSexoOptions,
+                hint: 'Todos',
+                onChanged: (value) => _setAnimalFilter(
+                  sexo: value ?? '',
+                  clearCategoria: true,
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 170,
+              child: _FilterDropdown(
+                label: 'Categoria',
+                value: _animalCategoriaFilter,
+                options: _categoriaOptions,
+                hint: 'Todas',
+                onChanged: (value) => _setAnimalFilter(
+                  categoria: value ?? '',
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 170,
+              child: _FilterDropdown(
+                label: 'Raça',
+                value: _animalRacaFilter,
+                options: racaOptions,
+                hint: 'Todas',
+                onChanged: (value) => _setAnimalFilter(
+                  raca: value ?? '',
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 165,
+              child: _FilterDropdown(
+                label: 'Origem',
+                value: _animalOrigemFilter,
+                options: origemOptions,
+                hint: 'Todas',
+                onChanged: (value) => _setAnimalFilter(
+                  origem: value ?? '',
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 180,
+              child: _TextField(
+                label: 'Lote',
+                hint: 'Nome ou ID',
+                controller: _animalLoteFilterController,
+                onChanged: (_) => _scheduleAvailableSearch(),
+              ),
+            ),
+            SizedBox(
+              width: 150,
+              child: _DateFilterField(
+                label: 'Nascimento de',
+                value: _animalNascimentoDeFilter,
+                onPick: () => _pickAnimalNascimentoDe(),
+                onClear: _animalNascimentoDeFilter == null
+                    ? null
+                    : () => _setAnimalFilter(nascimentoDe: null),
+              ),
+            ),
+            SizedBox(
+              width: 150,
+              child: _DateFilterField(
+                label: 'Nascimento até',
+                value: _animalNascimentoAteFilter,
+                onPick: () => _pickAnimalNascimentoAte(),
+                onClear: _animalNascimentoAteFilter == null
+                    ? null
+                    : () => _setAnimalFilter(nascimentoAte: null),
+              ),
+            ),
+          ],
+        ),
+        if (_hasAnimalFilters) ...[
+          const SizedBox(height: 10),
+          TextButton.icon(
+            onPressed: _clearAnimalFilters,
+            icon: const Icon(Icons.filter_alt_off_rounded, size: 18),
+            label: const Text('Limpar filtros'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildLoteFilters() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            SizedBox(
+              width: 155,
+              child: _FilterDropdown(
+                label: 'Status',
+                value: _loteStatusFilter,
+                options: _loteStatusOptions,
+                hint: 'Todos',
+                onChanged: (value) => _setLoteFilter(
+                  status: value ?? '',
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 150,
+              child: _DateFilterField(
+                label: 'Criação de',
+                value: _loteCriacaoDeFilter,
+                onPick: () => _pickLoteCriacaoDe(),
+                onClear: _loteCriacaoDeFilter == null
+                    ? null
+                    : () => _setLoteFilter(criacaoDe: null),
+              ),
+            ),
+            SizedBox(
+              width: 150,
+              child: _DateFilterField(
+                label: 'Criação até',
+                value: _loteCriacaoAteFilter,
+                onPick: () => _pickLoteCriacaoAte(),
+                onClear: _loteCriacaoAteFilter == null
+                    ? null
+                    : () => _setLoteFilter(criacaoAte: null),
+              ),
+            ),
+          ],
+        ),
+        if (_hasLoteFilters) ...[
+          const SizedBox(height: 10),
+          TextButton.icon(
+            onPressed: _clearLoteFilters,
+            icon: const Icon(Icons.filter_alt_off_rounded, size: 18),
+            label: const Text('Limpar filtros'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  List<String> get _categoriaOptions {
+    if (_animalSexoFilter == 'Fêmea') {
+      return _animalCategoriaFemeaOptions;
+    }
+    if (_animalSexoFilter == 'Macho') {
+      return _animalCategoriaMachoOptions;
+    }
+    return [
+      ..._animalCategoriaFemeaOptions,
+      ..._animalCategoriaMachoOptions,
+    ];
+  }
+
+  bool get _hasAnimalFilters =>
+      _animalStatusFilter.isNotEmpty ||
+      _animalSexoFilter.isNotEmpty ||
+      _animalCategoriaFilter.isNotEmpty ||
+      _animalRacaFilter.isNotEmpty ||
+      _animalOrigemFilter.isNotEmpty ||
+      _animalLoteFilterController.text.trim().isNotEmpty ||
+      _animalNascimentoDeFilter != null ||
+      _animalNascimentoAteFilter != null;
+
+  bool get _hasLoteFilters =>
+      _loteStatusFilter.isNotEmpty ||
+      _loteCriacaoDeFilter != null ||
+      _loteCriacaoAteFilter != null;
+
+  List<String> _appStateOptions(List<String> values) {
+    return values
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  void _setAnimalFilter({
+    String? status,
+    String? sexo,
+    String? categoria,
+    String? raca,
+    String? origem,
+    Object? nascimentoDe = _dateFilterNotChanged,
+    Object? nascimentoAte = _dateFilterNotChanged,
+    bool clearCategoria = false,
+  }) {
+    safeSetState(() {
+      if (status != null) _animalStatusFilter = status;
+      if (sexo != null) _animalSexoFilter = sexo;
+      if (categoria != null) _animalCategoriaFilter = categoria;
+      if (raca != null) _animalRacaFilter = raca;
+      if (origem != null) _animalOrigemFilter = origem;
+      if (nascimentoDe != _dateFilterNotChanged) {
+        _animalNascimentoDeFilter = nascimentoDe as DateTime?;
+      }
+      if (nascimentoAte != _dateFilterNotChanged) {
+        _animalNascimentoAteFilter = nascimentoAte as DateTime?;
+      }
+      if (clearCategoria) _animalCategoriaFilter = '';
+    });
+    unawaited(_loadAnimalOptions(reset: true));
+  }
+
+  void _setLoteFilter({
+    String? status,
+    Object? criacaoDe = _dateFilterNotChanged,
+    Object? criacaoAte = _dateFilterNotChanged,
+  }) {
+    safeSetState(() {
+      if (status != null) _loteStatusFilter = status;
+      if (criacaoDe != _dateFilterNotChanged) {
+        _loteCriacaoDeFilter = criacaoDe as DateTime?;
+      }
+      if (criacaoAte != _dateFilterNotChanged) {
+        _loteCriacaoAteFilter = criacaoAte as DateTime?;
+      }
+    });
+    unawaited(_loadLoteOptions(reset: true));
+  }
+
+  void _clearAnimalFilters() {
+    safeSetState(() {
+      _animalStatusFilter = '';
+      _animalSexoFilter = '';
+      _animalCategoriaFilter = '';
+      _animalRacaFilter = '';
+      _animalOrigemFilter = '';
+      _animalNascimentoDeFilter = null;
+      _animalNascimentoAteFilter = null;
+      _animalLoteFilterController.clear();
+    });
+    unawaited(_loadAnimalOptions(reset: true));
+  }
+
+  void _clearLoteFilters() {
+    safeSetState(() {
+      _loteStatusFilter = '';
+      _loteCriacaoDeFilter = null;
+      _loteCriacaoAteFilter = null;
+    });
+    unawaited(_loadLoteOptions(reset: true));
+  }
+
+  Future<void> _pickAnimalNascimentoDe() async {
+    final picked = await _pickFilterDate(_animalNascimentoDeFilter);
+    if (picked == null) return;
+    _setAnimalFilter(nascimentoDe: picked);
+  }
+
+  Future<void> _pickAnimalNascimentoAte() async {
+    final picked = await _pickFilterDate(_animalNascimentoAteFilter);
+    if (picked == null) return;
+    _setAnimalFilter(nascimentoAte: picked);
+  }
+
+  Future<void> _pickLoteCriacaoDe() async {
+    final picked = await _pickFilterDate(_loteCriacaoDeFilter);
+    if (picked == null) return;
+    _setLoteFilter(criacaoDe: picked);
+  }
+
+  Future<void> _pickLoteCriacaoAte() async {
+    final picked = await _pickFilterDate(_loteCriacaoAteFilter);
+    if (picked == null) return;
+    _setLoteFilter(criacaoAte: picked);
+  }
+
+  Future<DateTime?> _pickFilterDate(DateTime? initialDate) {
+    final now = DateTime.now();
+    return showDatePicker(
+      context: context,
+      initialDate: initialDate ?? now,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(now.year + 5),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: FlutterFlowTheme.of(context).primary,
+                ),
+          ),
+          child: child!,
+        );
+      },
+    );
+  }
+
+  static const Object _dateFilterNotChanged = Object();
+
+  String _dateParam(DateTime? date) {
+    if (date == null) return '';
+    return date.toIso8601String().split('T').first;
+  }
+
   void _handleMapChanged(List<MapPoint> value) {
     safeSetState(() {
       _pontos = value;
@@ -351,37 +875,102 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     });
   }
 
+  String _pageLabel({
+    required int offset,
+    required int itemCount,
+    required bool hasNext,
+  }) {
+    if (itemCount == 0) return 'Nenhum item nesta busca';
+    final first = offset + 1;
+    final last = offset + itemCount;
+    return hasNext
+        ? 'Exibindo $first-$last de mais resultados'
+        : 'Exibindo $first-$last';
+  }
+
+  List<AnimalPrototype> _selectedAnimais() {
+    final loadedById = {
+      for (final animal in _store.animaisByIds(_animaisIds)) animal.id: animal,
+    };
+    return _animaisIds.map((id) {
+      return loadedById[id] ??
+          AnimalPrototype(
+            id: id,
+            numero: id,
+            nome: 'Animal selecionado',
+            sexo: '',
+            categoria: '',
+            raca: '',
+            dataNascimento: '',
+            loteNome: '',
+          );
+    }).toList();
+  }
+
+  List<LotePrototype> _selectedLotes() {
+    final loadedById = {
+      for (final lote in _store.lotesByIds(_lotesIds)) lote.id: lote,
+    };
+    return _lotesIds.map((id) {
+      return loadedById[id] ??
+          LotePrototype(
+            id: id,
+            nome: 'Lote selecionado',
+            qtdAnimais: 0,
+            status: 'Ativo',
+          );
+    }).toList();
+  }
+
   Widget _buildLoteSelector() {
-    final availableQuery = _searchAvailableController.text.trim().toLowerCase();
     final selectedQuery = _searchSelectedController.text.trim().toLowerCase();
     final selectedSet = _lotesIds.toSet();
-    final available = _store
-        .lotesDisponiveis(exceptPiqueteId: widget.initial?.id)
-        .where((l) => !selectedSet.contains(l.id))
-        .where((l) => l.status.trim().toLowerCase() == 'ativo')
-        .where((l) =>
-            availableQuery.isEmpty ||
-            l.nome.toLowerCase().contains(availableQuery))
-        .toList();
-    final selected = _store.lotesByIds(_lotesIds).where((l) {
+    final available =
+        _loteOptionsPage.where((l) => !selectedSet.contains(l.id)).toList();
+    final selected = _selectedLotes().where((l) {
       return selectedQuery.isEmpty ||
           l.nome.toLowerCase().contains(selectedQuery);
     }).toList();
 
     return _DualPanel<LotePrototype>(
-      leftTitle: 'Lotes fora deste piquete (${available.length})',
+      leftTitle: 'Lotes fora deste piquete',
       rightTitle: 'Lotes neste piquete (${_lotesIds.length})',
       leftItems: available,
       rightItems: selected,
       leftSearch: _searchAvailableController,
       rightSearch: _searchSelectedController,
+      leftLoading: _loadingLotes,
+      leftErrorMessage: _loteOptionsError,
+      leftFilters: _buildLoteFilters(),
+      leftPageLabel: _pageLabel(
+        offset: _loteOffset,
+        itemCount: _loteOptionsPage.length,
+        hasNext: _loteHasNext,
+      ),
+      leftHasPrevious: _loteOffset > 0,
+      leftHasNext: _loteHasNext,
+      leftOnPreviousPage: _loadingLotes
+          ? null
+          : () => _loadLoteOptions(
+                offset: (_loteOffset - _selectorPageSize)
+                    .clamp(0, _loteOffset)
+                    .toInt(),
+              ),
+      leftOnNextPage: _loadingLotes
+          ? null
+          : () => _loadLoteOptions(
+                offset: _loteOffset + _selectorPageSize,
+              ),
       emptyRightMessage:
           'Nenhum lote foi adicionado neste piquete. Selecione um lote à esquerda.',
       itemBuilder: (lote) => _LoteTile(lote: lote),
-      onAdd: (lote) => safeSetState(() => _lotesIds.add(lote.id)),
+      onAdd: (lote) => safeSetState(() {
+        if (!_lotesIds.contains(lote.id)) _lotesIds.add(lote.id);
+      }),
       onRemove: (lote) =>
           safeSetState(() => _lotesIds.removeWhere((id) => id == lote.id)),
-      onSearchChanged: () => safeSetState(() {}),
+      onSearchChanged: _scheduleAvailableSearch,
+      onSelectedSearchChanged: () => safeSetState(() {}),
     );
   }
 
@@ -448,6 +1037,29 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     _nomeController.text = initial?.nome ?? '';
     _areaController.text = _formatAreaForInput(initial?.areaHa ?? 0);
     _anotacoesController.text = initial?.anotacoes ?? '';
+    _searchAvailableController.clear();
+    _searchSelectedController.clear();
+    _animalLoteFilterController.clear();
+    _animalOptionsPage = const [];
+    _loteOptionsPage = const [];
+    _animalOffset = 0;
+    _loteOffset = 0;
+    _animalHasNext = false;
+    _loteHasNext = false;
+    _loadingAnimals = false;
+    _loadingLotes = false;
+    _animalOptionsError = null;
+    _loteOptionsError = null;
+    _animalStatusFilter = '';
+    _animalSexoFilter = '';
+    _animalCategoriaFilter = '';
+    _animalRacaFilter = '';
+    _animalOrigemFilter = '';
+    _animalNascimentoDeFilter = null;
+    _animalNascimentoAteFilter = null;
+    _loteStatusFilter = '';
+    _loteCriacaoDeFilter = null;
+    _loteCriacaoAteFilter = null;
   }
 
   String _formatAreaForInput(double area) {
@@ -488,6 +1100,15 @@ class _DualPanel<T> extends StatelessWidget {
     required this.onAdd,
     required this.onRemove,
     required this.onSearchChanged,
+    this.onSelectedSearchChanged,
+    this.leftLoading = false,
+    this.leftErrorMessage,
+    this.leftFilters,
+    this.leftPageLabel,
+    this.leftHasPrevious = false,
+    this.leftHasNext = false,
+    this.leftOnPreviousPage,
+    this.leftOnNextPage,
   });
 
   final String leftTitle;
@@ -501,6 +1122,15 @@ class _DualPanel<T> extends StatelessWidget {
   final ValueChanged<T> onAdd;
   final ValueChanged<T> onRemove;
   final VoidCallback onSearchChanged;
+  final VoidCallback? onSelectedSearchChanged;
+  final bool leftLoading;
+  final String? leftErrorMessage;
+  final Widget? leftFilters;
+  final String? leftPageLabel;
+  final bool leftHasPrevious;
+  final bool leftHasNext;
+  final VoidCallback? leftOnPreviousPage;
+  final VoidCallback? leftOnNextPage;
 
   @override
   Widget build(BuildContext context) {
@@ -516,6 +1146,14 @@ class _DualPanel<T> extends StatelessWidget {
           actionLabel: 'Adicionar',
           onAction: onAdd,
           onSearchChanged: onSearchChanged,
+          loading: leftLoading,
+          errorMessage: leftErrorMessage,
+          filters: leftFilters,
+          pageLabel: leftPageLabel,
+          hasPrevious: leftHasPrevious,
+          hasNext: leftHasNext,
+          onPreviousPage: leftOnPreviousPage,
+          onNextPage: leftOnNextPage,
         );
         final right = _SelectionPanel<T>(
           title: rightTitle,
@@ -526,7 +1164,7 @@ class _DualPanel<T> extends StatelessWidget {
           actionLabel: 'Remover',
           onAction: onRemove,
           emptyMessage: emptyRightMessage,
-          onSearchChanged: onSearchChanged,
+          onSearchChanged: onSelectedSearchChanged ?? onSearchChanged,
         );
         if (narrow) {
           return Column(
@@ -557,6 +1195,14 @@ class _SelectionPanel<T> extends StatelessWidget {
     required this.onAction,
     required this.onSearchChanged,
     this.emptyMessage,
+    this.loading = false,
+    this.errorMessage,
+    this.filters,
+    this.pageLabel,
+    this.hasPrevious = false,
+    this.hasNext = false,
+    this.onPreviousPage,
+    this.onNextPage,
   });
 
   final String title;
@@ -568,6 +1214,14 @@ class _SelectionPanel<T> extends StatelessWidget {
   final ValueChanged<T> onAction;
   final VoidCallback onSearchChanged;
   final String? emptyMessage;
+  final bool loading;
+  final String? errorMessage;
+  final Widget? filters;
+  final String? pageLabel;
+  final bool hasPrevious;
+  final bool hasNext;
+  final VoidCallback? onPreviousPage;
+  final VoidCallback? onNextPage;
 
   @override
   Widget build(BuildContext context) {
@@ -604,8 +1258,26 @@ class _SelectionPanel<T> extends StatelessWidget {
             hint: 'Pesquisar',
             onChanged: (_) => onSearchChanged(),
           ),
+          if (filters != null) ...[
+            const SizedBox(height: 14),
+            filters!,
+          ],
           const SizedBox(height: 16),
-          if (items.isEmpty)
+          if (loading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 58),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 58),
+              child: PrototypeEmptyState(
+                title: 'Não foi possível carregar',
+                message: errorMessage!,
+                icon: Icons.warning_amber_rounded,
+              ),
+            )
+          else if (items.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 58),
               child: PrototypeEmptyState(
@@ -640,6 +1312,34 @@ class _SelectionPanel<T> extends StatelessWidget {
                 ),
               );
             }),
+          if (!loading &&
+              errorMessage == null &&
+              (pageLabel != null || hasPrevious || hasNext)) ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    pageLabel ?? '',
+                    style: GoogleFonts.poppins(
+                      color: theme.secondaryText,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                OutlinedButton(
+                  onPressed: hasPrevious ? onPreviousPage : null,
+                  child: const Text('Anterior'),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  onPressed: hasNext ? onNextPage : null,
+                  child: const Text('Próxima'),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -768,6 +1468,160 @@ class _ModeButton extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FilterDropdown extends StatelessWidget {
+  const _FilterDropdown({
+    required this.label,
+    required this.value,
+    required this.options,
+    required this.hint,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String value;
+  final List<String> options;
+  final String hint;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final effectiveOptions = [
+      if (value.isNotEmpty && !options.contains(value)) value,
+      ...options,
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            color: theme.primaryText,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          initialValue: value.isEmpty ? '' : value,
+          isExpanded: true,
+          items: [
+            DropdownMenuItem(
+              value: '',
+              child: Text(hint),
+            ),
+            ...effectiveOptions.map(
+              (option) => DropdownMenuItem(
+                value: option,
+                child: Text(option),
+              ),
+            ),
+          ],
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            isDense: true,
+            filled: true,
+            fillColor: theme.customColor2,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            border: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DateFilterField extends StatelessWidget {
+  const _DateFilterField({
+    required this.label,
+    required this.value,
+    required this.onPick,
+    this.onClear,
+  });
+
+  final String label;
+  final DateTime? value;
+  final VoidCallback onPick;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final text = value == null
+        ? 'Selecionar'
+        : dateTimeFormat(
+            'd/M/y',
+            value,
+            locale: FFLocalizations.of(context).languageCode,
+          );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            color: theme.primaryText,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onPick,
+          child: Container(
+            height: 46,
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 8, 0),
+            decoration: BoxDecoration(
+              color: theme.customColor2,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    text,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      color: value == null
+                          ? theme.secondaryText
+                          : theme.primaryText,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                if (onClear != null)
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: onClear,
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: theme.secondaryText,
+                      size: 18,
+                    ),
+                  )
+                else
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    color: theme.secondaryText,
+                    size: 18,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

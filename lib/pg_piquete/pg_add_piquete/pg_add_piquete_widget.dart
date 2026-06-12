@@ -58,7 +58,6 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
   Future<void> _loadFormData() async {
     try {
       await _store.load();
-      await _store.loadOptions();
     } catch (_) {
       // A mensagem amigável fica no store e é exibida na tela.
     }

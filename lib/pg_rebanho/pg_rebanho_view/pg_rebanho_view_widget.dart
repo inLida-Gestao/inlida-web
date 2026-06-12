@@ -22,7 +22,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'pg_rebanho_view_model.dart';
 export 'pg_rebanho_view_model.dart';
 
@@ -223,6 +222,19 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  Future<List<RebanhoRow>>? _rebanhoFuture;
+  String? _rebanhoFutureKey;
+  Future<HistoricoPesagensRow?>? _desmamaPesagemFuture;
+  String? _desmamaPesagemFutureKey;
+  Future<List<ReproducaoRow>>? _reproducoesMatrizFuture;
+  String? _reproducoesMatrizFutureKey;
+  Future<List<ReproducaoRow>>? _reproducoesReprodutorFuture;
+  String? _reproducoesReprodutorFutureKey;
+  Future<List<SanidadeRow>>? _sanidadesFuture;
+  String? _sanidadesFutureKey;
+  VoidCallback? _disposeReproducaoRefreshListener;
+  VoidCallback? _disposeSanidadeRefreshListener;
+
   DateTime _dateOnly(DateTime value) =>
       DateTime(value.year, value.month, value.day);
 
@@ -283,6 +295,175 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     );
 
     return pesagens.where(_pesagemAtiva).firstOrNull;
+  }
+
+  String _futureKey(List<String?> values) =>
+      values.map((value) => value?.trim() ?? '').join('|');
+
+  Future<List<RebanhoRow>> _getRebanhoFuture() {
+    final key = widget.idRebanho?.trim() ?? '';
+    if (_rebanhoFuture == null || _rebanhoFutureKey != key) {
+      _rebanhoFutureKey = key;
+      _rebanhoFuture = _createRebanhoFuture();
+    }
+    return _rebanhoFuture!;
+  }
+
+  Future<HistoricoPesagensRow?> _getDesmamaPesagemFuture(String? idRebanho) {
+    final key = idRebanho?.trim() ?? '';
+    if (_desmamaPesagemFuture == null || _desmamaPesagemFutureKey != key) {
+      _desmamaPesagemFutureKey = key;
+      _desmamaPesagemFuture = _loadDesmamaPesagem(idRebanho);
+    }
+    return _desmamaPesagemFuture!;
+  }
+
+  Future<List<ReproducaoRow>> _loadReproducoesMatriz(
+    String? idRebanho,
+    String? idPropriedade,
+  ) {
+    final rebanho = idRebanho?.trim();
+    final propriedade = idPropriedade?.trim();
+    if (rebanho == null ||
+        rebanho.isEmpty ||
+        propriedade == null ||
+        propriedade.isEmpty) {
+      return Future.value([]);
+    }
+
+    return ReproducaoTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull(
+            'id_rebanho_matriz',
+            rebanho,
+          )
+          .eqOrNull(
+            'id_propriedade',
+            propriedade,
+          ),
+    );
+  }
+
+  Future<List<ReproducaoRow>> _getReproducoesMatrizFuture({
+    required String? idRebanho,
+    required String? idPropriedade,
+  }) {
+    final key = _futureKey([idRebanho, idPropriedade]);
+    if (_reproducoesMatrizFuture == null ||
+        _reproducoesMatrizFutureKey != key) {
+      _reproducoesMatrizFutureKey = key;
+      _reproducoesMatrizFuture = _loadReproducoesMatriz(
+        idRebanho,
+        idPropriedade,
+      );
+    }
+    return _reproducoesMatrizFuture!;
+  }
+
+  Future<List<ReproducaoRow>> _loadReproducoesReprodutor(
+    String? idRebanho,
+    String? idPropriedade,
+  ) {
+    final rebanho = idRebanho?.trim();
+    final propriedade = idPropriedade?.trim();
+    if (rebanho == null ||
+        rebanho.isEmpty ||
+        propriedade == null ||
+        propriedade.isEmpty) {
+      return Future.value([]);
+    }
+
+    return ReproducaoTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull(
+            'id_rebanho_reprodutor',
+            rebanho,
+          )
+          .eqOrNull(
+            'id_propriedade',
+            propriedade,
+          ),
+    );
+  }
+
+  Future<List<ReproducaoRow>> _getReproducoesReprodutorFuture({
+    required String? idRebanho,
+    required String? idPropriedade,
+  }) {
+    final key = _futureKey([idRebanho, idPropriedade]);
+    if (_reproducoesReprodutorFuture == null ||
+        _reproducoesReprodutorFutureKey != key) {
+      _reproducoesReprodutorFutureKey = key;
+      _reproducoesReprodutorFuture = _loadReproducoesReprodutor(
+        idRebanho,
+        idPropriedade,
+      );
+    }
+    return _reproducoesReprodutorFuture!;
+  }
+
+  Future<List<SanidadeRow>> _loadSanidades(
+    String? idRebanho,
+    String? idPropriedade,
+  ) {
+    final rebanho = idRebanho?.trim();
+    final propriedade = idPropriedade?.trim();
+    if (rebanho == null ||
+        rebanho.isEmpty ||
+        propriedade == null ||
+        propriedade.isEmpty) {
+      return Future.value([]);
+    }
+
+    return SanidadeTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull(
+            'id_rebanho',
+            rebanho,
+          )
+          .eqOrNull(
+            'id_propriedade',
+            propriedade,
+          )
+          .eqOrNull(
+            'deletado',
+            'NAO',
+          ),
+    );
+  }
+
+  Future<List<SanidadeRow>> _getSanidadesFuture({
+    required String? idRebanho,
+    required String? idPropriedade,
+  }) {
+    final key = _futureKey([idRebanho, idPropriedade]);
+    if (_sanidadesFuture == null || _sanidadesFutureKey != key) {
+      _sanidadesFutureKey = key;
+      _sanidadesFuture = _loadSanidades(
+        idRebanho,
+        idPropriedade,
+      );
+    }
+    return _sanidadesFuture!;
+  }
+
+  void _resetRebanhoCache() {
+    _rebanhoFuture = null;
+    _rebanhoFutureKey = null;
+    _desmamaPesagemFuture = null;
+    _desmamaPesagemFutureKey = null;
+  }
+
+  void _resetReproducoesCache() {
+    _reproducoesMatrizFuture = null;
+    _reproducoesMatrizFutureKey = null;
+    _reproducoesReprodutorFuture = null;
+    _reproducoesReprodutorFutureKey = null;
+  }
+
+  void _resetSanidadesCache() {
+    _sanidadesFuture = null;
+    _sanidadesFutureKey = null;
   }
 
   String _formatKg(double? value) {
@@ -1177,6 +1358,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
 
   void _resetPesagensCache() {
     _model.requestCompleter = null;
+    _resetRebanhoCache();
     _model.dataDesmamaTextController2?.dispose();
     _model.dataDesmamaTextController2 = null;
     _model.pesoDesmamaTextController2?.dispose();
@@ -1203,13 +1385,23 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
         FFAppState().refreshPesagem = false;
         safeSetState(_resetPesagensCache);
       });
+      _disposeReproducaoRefreshListener =
+          FFAppState().onRefresh('refreshReproducao', () {
+        FFAppState().refreshReproducao = false;
+        safeSetState(_resetReproducoesCache);
+      });
+      _disposeSanidadeRefreshListener =
+          FFAppState().onRefresh('refreshSanidade', () {
+        FFAppState().refreshSanidade = false;
+        safeSetState(_resetSanidadesCache);
+      });
     });
 
     _model.tabBarController = TabController(
       vsync: this,
       length: 5,
       initialIndex: 0,
-    )..addListener(() => safeSetState(() {}));
+    );
 
     _model.nomeAnimalFocusNode1 ??= FocusNode();
 
@@ -1270,6 +1462,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
 
   @override
   void dispose() {
+    _disposeReproducaoRefreshListener?.call();
+    _disposeSanidadeRefreshListener?.call();
     _model.dispose();
 
     super.dispose();
@@ -1302,10 +1496,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     return FutureBuilder<List<RebanhoRow>>(
-      future: _createRebanhoFuture(),
+      future: _getRebanhoFuture(),
       builder: (context, snapshot) {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
@@ -1331,7 +1523,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
             : null;
 
         return FutureBuilder<HistoricoPesagensRow?>(
-          future: _loadDesmamaPesagem(pgRebanhoViewRebanhoRow?.idRebanho),
+          future: _getDesmamaPesagemFuture(pgRebanhoViewRebanhoRow?.idRebanho),
           builder: (context, desmamaSnapshot) {
             if (desmamaSnapshot.connectionState == ConnectionState.waiting) {
               return Scaffold(
@@ -1719,15 +1911,6 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                     ],
                                                     controller:
                                                         _model.tabBarController,
-                                                    onTap: (i) async {
-                                                      [
-                                                        () async {},
-                                                        () async {},
-                                                        () async {},
-                                                        () async {},
-                                                        () async {}
-                                                      ][i]();
-                                                    },
                                                   ),
                                                 ),
                                                 Expanded(
@@ -6451,9 +6634,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                               future: (_model.requestCompleter ??= Completer<
                                                                       List<
                                                                           HistoricoPesagensRow>>()
-                                                                    ..complete(
-                                                                        _loadPesagensAtivas(
-                                                                            pgRebanhoViewRebanhoRow?.idRebanho)))
+                                                                    ..complete(_loadPesagensAtivas(
+                                                                        pgRebanhoViewRebanhoRow
+                                                                            ?.idRebanho)))
                                                                   .future,
                                                               builder: (context,
                                                                   snapshot) {
@@ -6782,20 +6965,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                   List<
                                                                       ReproducaoRow>>(
                                                                 future:
-                                                                    ReproducaoTable()
-                                                                        .queryRows(
-                                                                  queryFn: (q) => q
-                                                                      .eqOrNull(
-                                                                        'id_rebanho_matriz',
-                                                                        pgRebanhoViewRebanhoRow
-                                                                            ?.idRebanho,
-                                                                      )
-                                                                      .eqOrNull(
-                                                                        'id_propriedade',
-                                                                        FFAppState()
-                                                                            .propriedadeSelecionada
-                                                                            .idPropriedade,
-                                                                      ),
+                                                                    _getReproducoesMatrizFuture(
+                                                                  idRebanho:
+                                                                      pgRebanhoViewRebanhoRow
+                                                                          ?.idRebanho,
+                                                                  idPropriedade:
+                                                                      FFAppState()
+                                                                          .propriedadeSelecionada
+                                                                          .idPropriedade,
                                                                 ),
                                                                 builder: (context,
                                                                     snapshot) {
@@ -7439,20 +7616,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                   List<
                                                                       ReproducaoRow>>(
                                                                 future:
-                                                                    ReproducaoTable()
-                                                                        .queryRows(
-                                                                  queryFn: (q) => q
-                                                                      .eqOrNull(
-                                                                        'id_rebanho_reprodutor',
-                                                                        pgRebanhoViewRebanhoRow
-                                                                            ?.idRebanho,
-                                                                      )
-                                                                      .eqOrNull(
-                                                                        'id_propriedade',
-                                                                        FFAppState()
-                                                                            .propriedadeSelecionada
-                                                                            .idPropriedade,
-                                                                      ),
+                                                                    _getReproducoesReprodutorFuture(
+                                                                  idRebanho:
+                                                                      pgRebanhoViewRebanhoRow
+                                                                          ?.idRebanho,
+                                                                  idPropriedade:
+                                                                      FFAppState()
+                                                                          .propriedadeSelecionada
+                                                                          .idPropriedade,
                                                                 ),
                                                                 builder: (context,
                                                                     snapshot) {
@@ -8100,24 +8271,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                   List<
                                                                       SanidadeRow>>(
                                                                 future:
-                                                                    SanidadeTable()
-                                                                        .queryRows(
-                                                                  queryFn: (q) => q
-                                                                      .eqOrNull(
-                                                                        'id_rebanho',
-                                                                        pgRebanhoViewRebanhoRow
-                                                                            ?.idRebanho,
-                                                                      )
-                                                                      .eqOrNull(
-                                                                        'id_propriedade',
-                                                                        FFAppState()
-                                                                            .propriedadeSelecionada
-                                                                            .idPropriedade,
-                                                                      )
-                                                                      .eqOrNull(
-                                                                        'deletado',
-                                                                        'NAO',
-                                                                      ),
+                                                                    _getSanidadesFuture(
+                                                                  idRebanho:
+                                                                      pgRebanhoViewRebanhoRow
+                                                                          ?.idRebanho,
+                                                                  idPropriedade:
+                                                                      FFAppState()
+                                                                          .propriedadeSelecionada
+                                                                          .idPropriedade,
                                                                 ),
                                                                 builder: (context,
                                                                     snapshot) {
@@ -8689,7 +8850,11 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                           ),
                                                         ],
                                                       ),
-                                                    ],
+                                                    ]
+                                                        .map((child) =>
+                                                            _KeepAliveTab(
+                                                                child: child))
+                                                        .toList(),
                                                   ),
                                                 ),
                                               ],
@@ -8963,6 +9128,27 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
         );
       },
     );
+  }
+}
+
+class _KeepAliveTab extends StatefulWidget {
+  const _KeepAliveTab({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_KeepAliveTab> createState() => _KeepAliveTabState();
+}
+
+class _KeepAliveTabState extends State<_KeepAliveTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
 

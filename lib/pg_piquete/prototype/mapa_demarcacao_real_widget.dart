@@ -42,6 +42,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
     this.retiroPoints = const [],
     this.piqueteAreas = const [],
     this.retiroAsPrimary = false,
+    this.pointsLegendLabel = 'Piquete',
     this.editable = false,
     this.height = 448,
     this.preferUserLocation = false,
@@ -56,6 +57,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
   final List<MapPoint> retiroPoints;
   final List<PiqueteMapArea> piqueteAreas;
   final bool retiroAsPrimary;
+  final String pointsLegendLabel;
   final bool editable;
   final double height;
   final bool preferUserLocation;
@@ -73,10 +75,18 @@ class PiqueteMapArea {
   const PiqueteMapArea({
     required this.name,
     required this.points,
+    this.color = const Color(0xFF18A058),
+    this.legendLabel = 'Piquete',
+    this.fillOpacity = 0.30,
+    this.borderStrokeWidth = 3.2,
   });
 
   final String name;
   final List<MapPoint> points;
+  final Color color;
+  final String legendLabel;
+  final double fillOpacity;
+  final double borderStrokeWidth;
 }
 
 class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
@@ -111,6 +121,10 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
         (area) => _PiqueteAreaLatLng(
           name: area.name,
           points: area.points.map(_toLatLng).toList(),
+          color: area.color,
+          legendLabel: area.legendLabel,
+          fillOpacity: area.fillOpacity,
+          borderStrokeWidth: area.borderStrokeWidth,
         ),
       )
       .where((area) => area.points.length > 1)
@@ -189,7 +203,10 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
     }
 
     if (widget.editable && _points.isEmpty && _retiroLatLngPoints.isNotEmpty) {
-      return 'O contorno amarelo é o limite da propriedade ou do retiro. Desenhe o piquete em verde dentro dessa área.';
+      final overlays = _piqueteAreaLatLngs.isEmpty
+          ? ''
+          : ' Áreas existentes também aparecem no mapa para comparação.';
+      return 'O contorno amarelo é a referência. Use o verde para demarcar ${widget.pointsLegendLabel.toLowerCase()}.$overlays';
     }
 
     if (widget.editable) {
@@ -202,7 +219,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
           : 'Piquetes em verde.';
     }
 
-    return 'Limite de referência em amarelo e piquete em verde.';
+    return 'Limite de referência em amarelo e ${widget.pointsLegendLabel.toLowerCase()} em verde.';
   }
 
   @override
@@ -399,9 +416,11 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                               for (final area in _piqueteAreaLatLngs)
                                 Polygon(
                                   points: area.points,
-                                  color: _piqueteColor.withValues(alpha: 0.30),
-                                  borderColor: _piqueteColor,
-                                  borderStrokeWidth: 3.2,
+                                  color: area.color.withValues(
+                                    alpha: area.fillOpacity,
+                                  ),
+                                  borderColor: area.color,
+                                  borderStrokeWidth: area.borderStrokeWidth,
                                 ),
                             ],
                           ),
@@ -438,7 +457,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                                     title: area.name,
                                     subtitle:
                                         '${area.points.length} pontos demarcados',
-                                    color: _piqueteColor,
+                                    color: area.color,
                                   ),
                                 ),
                             ],
@@ -520,8 +539,9 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                       child: _MapLegend(
                         retiroColor: _retiroColor,
                         piqueteColor: _piqueteColor,
-                        hasPiquete: _latLngPoints.isNotEmpty ||
-                            _piqueteAreaLatLngs.isNotEmpty,
+                        hasPiquete: _latLngPoints.isNotEmpty,
+                        piqueteLabel: widget.pointsLegendLabel,
+                        overlayItems: _overlayLegendEntries,
                       ),
                     ),
                     Positioned(
@@ -672,6 +692,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                             retiroPoints: widget.retiroPoints,
                             piqueteAreas: widget.piqueteAreas,
                             retiroAsPrimary: widget.retiroAsPrimary,
+                            pointsLegendLabel: widget.pointsLegendLabel,
                             editable: widget.editable,
                             height: mapHeight,
                             preferUserLocation: widget.preferUserLocation,
@@ -953,8 +974,24 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
       .join(';');
 
   String _areasSignature(List<PiqueteMapArea> areas) => areas
-      .map((area) => '${area.name}:${_pointsSignature(area.points)}')
+      .map((area) =>
+          '${area.name}:${area.legendLabel}:${area.color}:${_pointsSignature(area.points)}')
       .join('|');
+
+  List<_MapLegendEntry> get _overlayLegendEntries {
+    final entries = <_MapLegendEntry>[];
+    for (final area in _piqueteAreaLatLngs) {
+      final label =
+          area.legendLabel.trim().isEmpty ? 'Piquete' : area.legendLabel.trim();
+      final exists = entries.any(
+        (entry) => entry.label == label && entry.color == area.color,
+      );
+      if (!exists) {
+        entries.add(_MapLegendEntry(color: area.color, label: label));
+      }
+    }
+    return entries;
+  }
 
   Future<void> _focusUserLocation({bool auto = false}) async {
     if (_locatingUser) return;
@@ -1048,10 +1085,18 @@ class _PiqueteAreaLatLng {
   const _PiqueteAreaLatLng({
     required this.name,
     required this.points,
+    required this.color,
+    required this.legendLabel,
+    required this.fillOpacity,
+    required this.borderStrokeWidth,
   });
 
   final String name;
   final List<ll.LatLng> points;
+  final Color color;
+  final String legendLabel;
+  final double fillOpacity;
+  final double borderStrokeWidth;
 }
 
 class _DraggablePointMarker extends StatelessWidget {
@@ -1171,11 +1216,15 @@ class _MapLegend extends StatelessWidget {
     required this.retiroColor,
     required this.piqueteColor,
     required this.hasPiquete,
+    required this.piqueteLabel,
+    required this.overlayItems,
   });
 
   final Color retiroColor;
   final Color piqueteColor;
   final bool hasPiquete;
+  final String piqueteLabel;
+  final List<_MapLegendEntry> overlayItems;
 
   @override
   Widget build(BuildContext context) {
@@ -1206,7 +1255,15 @@ class _MapLegend extends StatelessWidget {
             const SizedBox(height: 8),
             _LegendItem(
               color: piqueteColor,
-              label: 'Piquete',
+              label: piqueteLabel,
+              textColor: theme.primaryText,
+            ),
+          ],
+          for (final item in overlayItems) ...[
+            const SizedBox(height: 8),
+            _LegendItem(
+              color: item.color,
+              label: item.label,
               textColor: theme.primaryText,
             ),
           ],
@@ -1214,6 +1271,16 @@ class _MapLegend extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MapLegendEntry {
+  const _MapLegendEntry({
+    required this.color,
+    required this.label,
+  });
+
+  final Color color;
+  final String label;
 }
 
 class _LegendItem extends StatelessWidget {

@@ -125,12 +125,34 @@ class PiqueteRepository {
 
   Future<List<AnimalPiqueteOption>> buscarAnimaisDisponiveis({
     String piqueteId = '',
+    String pesquisa = '',
+    int limite = 50,
+    int offset = 0,
+    String status = '',
+    String sexo = '',
+    String categoria = '',
+    String raca = '',
+    String origem = '',
+    String lote = '',
+    String dataNascimentoDe = '',
+    String dataNascimentoAte = '',
   }) async {
     final response = await _rpc(
       'buscar_animais_disponiveis_piquete',
       {
         'p_id_propriedade': idPropriedade,
         'p_piquete_id': piqueteId,
+        'p_pesquisa': pesquisa,
+        'p_limite': limite,
+        'p_offset': offset,
+        'p_status': status,
+        'p_sexo': sexo,
+        'p_categoria': categoria,
+        'p_raca': raca,
+        'p_origem': origem,
+        'p_lote': lote,
+        'p_data_nascimento_de': dataNascimentoDe,
+        'p_data_nascimento_ate': dataNascimentoAte,
       },
     );
     return _asList(response)
@@ -140,12 +162,68 @@ class PiqueteRepository {
 
   Future<List<LotePiqueteOption>> buscarLotesDisponiveis({
     String piqueteId = '',
+    String pesquisa = '',
+    int limite = 50,
+    int offset = 0,
+    String status = '',
+    String dataCriacaoDe = '',
+    String dataCriacaoAte = '',
   }) async {
     final response = await _rpc(
       'buscar_lotes_disponiveis_piquete',
       {
         'p_id_propriedade': idPropriedade,
         'p_piquete_id': piqueteId,
+        'p_pesquisa': pesquisa,
+        'p_limite': limite,
+        'p_offset': offset,
+        'p_status': status,
+        'p_data_criacao_de': dataCriacaoDe,
+        'p_data_criacao_ate': dataCriacaoAte,
+      },
+    );
+    return _asList(response)
+        .map((item) => LotePiqueteOption.fromJson(item))
+        .toList();
+  }
+
+  Future<List<AnimalPiqueteOption>> buscarAnimaisPorIds(
+    Iterable<String> animaisIds,
+  ) async {
+    final ids = animaisIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (ids.isEmpty) return const [];
+
+    final response = await _rpc(
+      'buscar_animais_piquete_por_ids',
+      {
+        'p_id_propriedade': idPropriedade,
+        'p_animais_ids': ids,
+      },
+    );
+    return _asList(response)
+        .map((item) => AnimalPiqueteOption.fromJson(item))
+        .toList();
+  }
+
+  Future<List<LotePiqueteOption>> buscarLotesPorIds(
+    Iterable<String> lotesIds,
+  ) async {
+    final ids = lotesIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (ids.isEmpty) return const [];
+
+    final response = await _rpc(
+      'buscar_lotes_piquete_por_ids',
+      {
+        'p_id_propriedade': idPropriedade,
+        'p_lotes_ids': ids,
       },
     );
     return _asList(response)
