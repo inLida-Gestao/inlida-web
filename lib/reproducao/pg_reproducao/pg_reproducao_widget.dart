@@ -137,6 +137,7 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
               ),
               pLoteNome: FFAppState().filtroLoteNome,
               pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+              pCategoria: FFAppState().filtroCategoriaRepro,
               pInseminador: FFAppState().filtroInseminador,
               pLimite: FFAppConstants.limit,
               pOffset: functions.calcDeslocamento(
@@ -2718,6 +2719,8 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                         pIdPropriedade: FFAppState()
                                                             .propriedadeSelecionada
                                                             .idPropriedade,
+                                                        pCategoria: FFAppState()
+                                                            .filtroCategoriaRepro,
                                                         pInseminador: FFAppState()
                                                             .filtroInseminador,
                                                         pMatriz: FFAppState()

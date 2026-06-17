@@ -388,6 +388,7 @@ class BuscarReproducaoFiltrosCall {
     String? pPesquisa = '',
     String? pReprodutor = '',
     String? pStatusReproducao = '',
+    String? pCategoria = '',
     String? pTipoReproducao = '',
     String? pSortColumn = 'data',
     String? pSortDirection = 'desc',
@@ -410,6 +411,7 @@ ${pStatusReproducao?.trim().isNotEmpty == true ? '  "p_status_reproducao": "${es
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
   "p_matriz": "${escapeStringForJson(pMatriz)}",
   "p_reprodutor": "${escapeStringForJson(pReprodutor)}",
+${pCategoria?.trim().isNotEmpty == true ? '  "p_categoria": "${escapeStringForJson(pCategoria)}",\n' : ''}
   "p_limite": $pLimite,
   "p_offset": $pOffset,
   "p_sort_column": "${escapeStringForJson(pSortColumn)}",
@@ -453,6 +455,7 @@ class CountReproducaoFiltrosCall {
     String? pPesquisa = '',
     String? pReprodutor = '',
     String? pStatusReproducao = '',
+    String? pCategoria = '',
     String? pTipoReproducao = '',
   }) async {
     final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
@@ -472,7 +475,7 @@ ${pStatusReproducao?.trim().isNotEmpty == true ? '  "p_status_reproducao": "${es
   "p_inseminador": "${escapeStringForJson(pInseminador)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
   "p_matriz": "${escapeStringForJson(pMatriz)}",
-  "p_reprodutor": "${escapeStringForJson(pReprodutor)}"
+  "p_reprodutor": "${escapeStringForJson(pReprodutor)}"${pCategoria?.trim().isNotEmpty == true ? ',\n  "p_categoria": "${escapeStringForJson(pCategoria)}"' : ''}
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Count Reproducao Filtros ',
