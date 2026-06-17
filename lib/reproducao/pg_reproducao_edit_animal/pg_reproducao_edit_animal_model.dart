@@ -29,6 +29,9 @@ class PgReproducaoEditAnimalModel
   // State field(s) for Cio dropdown widget.
   String? cioDropdownValue;
   FormFieldController<String>? cioDropdownValueController;
+  // State field(s) for DropDownLote widget.
+  String? dropDownLoteValue;
+  FormFieldController<String>? dropDownLoteValueController;
 
   ///  State fields for stateful widgets in this page.
 
@@ -70,6 +73,7 @@ class PgReproducaoEditAnimalModel
   TextEditingController? dataParidaTextController;
   String? Function(BuildContext, String?)? dataParidaTextControllerValidator;
   DateTime? datePicked5;
+
   /// Quando true, salva `data_parto` como null.
   bool dataPartoCleared = false;
   // State field(s) for DropDownStatus widget.
