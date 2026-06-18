@@ -657,6 +657,16 @@ ZIP final **não** remove automaticamente animais vendidos, mortos ou baixados,
 porque o formato PAINT pode exigir esses registros (arquivos de baixa, categoria
 ou delete). Revise as baixas antes de enviar.
 
+### Filtro por data: o ZIP não é filtrado (por design)
+
+Por decisão das calls PAINT ("o PAINT recebe todos os dados"), a geração do ZIP
+**não** aplica filtro por data de nascimento ou de avaliação. O ZIP sempre reflete
+o conjunto completo de dados elegíveis da propriedade.
+
+Os filtros de data existem apenas como conveniência da INLIDA no momento de
+**importar do sistema** e de **baixar/importar planilhas** (seções 7 e 8). Eles
+não alteram o conteúdo do arquivo final enviado ao Gencis.
+
 ---
 
 ## 14. Pré-Validação (Não Bloqueante)
@@ -673,7 +683,7 @@ Cada item traz a tabela, a regra, a quantidade e exemplos.
 
 | Tabela | Regra |
 |--------|-------|
-| ANIMAL | Animal PO sem brinco numérico de 5 dígitos |
+| ANIMAL | Animal sem brinco numérico de 5 dígitos (todos os animais; base do A12) |
 | ANIMAL | Animal sem raça |
 | DESMAMA | Avaliação incompleta (falta peso, nota C/P/M/U ou grupo de manejo) |
 | ANO_SOBREANO | Sobreano sem desmama prévia (manual §8.3) |
@@ -684,6 +694,7 @@ Cada item traz a tabela, a regra, a quantidade e exemplos.
 
 | Tabela | Regra |
 |--------|-------|
+| ANIMAL | Animal PO sem tipo de registro definido (apenas inferido pela raça) |
 | BAIXA | Animais vendidos/mortos sem registro de baixa |
 | GERAL | Validação pesada omitida quando há volume alto de animais |
 
@@ -761,7 +772,7 @@ A largura (número de caracteres por linha) é definida em
 - `ANO_SOBREANO.TXT` (24): `sbr_parceiro`, `sbr_animal_id`, `sbr_fazenda`, `sbr_data`, `sbr_peso`, `sbr_nota_c`, `sbr_nota_p`, `sbr_nota_m`, `sbr_nota_u`, `sbr_nota_t`, `sbr_situacao_desclassifica1`, `sbr_situacao_desclassifica2`, `sbr_nota_ce`, `sbr_nota_a`, `sbr_regime_alimentar_animal`, `sbr_grupo_manejo`, `sbr_local`, `sbr_avaliador`, `sbr_obs`, `sbr_data_inclusao`, `sbr_data_alteracao`, `sbr_hora_alteracao`, `sbr_enviar`, `sbr_recno`.
 - `AVALIADOR.TXT` (10): `ava_parceiro`, `ava_id`, `ava_descri`, `ava_situacao`, `ava_fazenda`, `ava_data_inclusao`, `ava_data_alteracao`, `ava_hora_alteracao`, `ava_enviar`, `ava_recno`.
 - `BAIXA.TXT` (14): `bai_parceiro`, `bai_animal_A12`, `bai_fazenda`, `bai_animal`, `bai_data_morte`, `bai_motivo`, `bai_preco`, `bai_data_inclusao`, `bai_obs`, `bai_data_alteracao`, `bai_hora_alteracao`, `bai_enviar`, `bai_recno`, `bai_reserva`.
-- `COBERTURA.TXT` (23): `cob_parceiro`, `cob_safra_id`, `cob_animal_id`, `cob_data`, `cob_fazenda`, `cob_tipo`, `cob_periodo`, `cob_touro`, `cob_cat_touro`, `cob_doses`, `cob_partida`, `cob_inseminador`, `cob_prevparto`, `cob_dtinirepasse`, `cob_dtfimrepasse`, `cob_obs`, `cob_local_id`, `cob_grpmanejo_id`, `cob_data_inclusao`, `cob_data_alteracao`, `cob_hora_alteracao`, `cob_enviar`, `cob_recno`. O `cob_cat_touro` é `TT` quando há touro.
+- `COBERTURA.TXT` (23): `cob_parceiro`, `cob_safra_id`, `cob_animal_id`, `cob_data`, `cob_fazenda`, `cob_tipo`, `cob_periodo`, `cob_touro`, `cob_cat_touro`, `cob_doses`, `cob_partida`, `cob_inseminador`, `cob_prevparto`, `cob_dtinirepasse`, `cob_dtfimrepasse`, `cob_obs`, `cob_local_id`, `cob_grpmanejo_id`, `cob_data_inclusao`, `cob_data_alteracao`, `cob_hora_alteracao`, `cob_enviar`, `cob_recno`. O `cob_cat_touro` é `TT` quando há touro. O `cob_touro` recebe o A12 do reprodutor. O `cob_inseminador` é resolvido para o código PAINT a partir do nome do inseminador registrado na reprodução (`reproducao.inseminador` → `paint_inseminador.codigo`).
 - `COMPOSICAO_RACIAL.TXT` (10): `cpr_parceiro`, `cpr_animal_id`, `cpr_raca_id`, `cpr_indice`, `cpr_fazenda`, `cpr_data_inclusao`, `cpr_data_alteracao`, `cpr_hora_alteracao`, `cpr_enviar`, `cpr_recno`.
 - `DESMAMA.TXT` (23): `dsm_parceiro`, `dsm_animal_id`, `dsm_fazenda`, `dsm_data`, `dsm_peso`, `dsm_nota_c`, `dsm_nota_p`, `dsm_nota_m`, `dsm_nota_u`, `dsm_situacao_desclassifica1`, `dsm_situacao_desclassifica2`, `dsm_nota_ce`, `dsm_nota_a`, `dsm_regime_alimentar_animal`, `dsm_grupo_manejo`, `dsm_avaliador`, `dsm_local`, `dsm_obs`, `dsm_data_inclusao`, `dsm_data_alteracao`, `dsm_hora_alteracao`, `dsm_enviar`, `dsm_recno`.
 - `DIAGNOSTICO.TXT` (14): `dgn_parceiro`, `dgn_safra_id`, `dgn_animal_id`, `dgn_data`, `dgn_fazenda`, `dgn_local_id`, `dgn_grpmanejo_id`, `dgn_resultado`, `dgn_obs`, `dgn_data_inclusao`, `dgn_data_alteracao`, `dgn_hora_alteracao`, `dgn_enviar`, `dgn_recno`. O `dgn_resultado` é `P` ou `V`.
@@ -772,7 +783,7 @@ A largura (número de caracteres por linha) é definida em
 - `LOCALIDADE.TXT` (11): `lde_parceiro`, `lde_id`, `lde_descri`, `lde_fazenda`, `lde_tipo`, `lde_obs`, `lde_data_inclusao`, `lde_data_alteracao`, `lde_hora_alteracao`, `lde_enviar`, `lde_recno`. Coordenadas (lat/long), quando existirem, são exportadas em `lde_obs`.
 - `NASCIMENTO.TXT` (35): `nas_parceiro`, `nas_safra_id`, `nas_animal_id`, `nas_data_cob`, `nas_seq`, `nas_fazenda`, `nas_seriefaz`, `nas_programa`, `nas_animal`, `nas_tpparto`, `nas_animal_produto_id`, `nas_sexo`, `nas_tipo`, `nas_peso`, `nas_tamanho`, `nas_descri`, `nas_brinco`, `nas_raca`, `nas_data_nasc`, `nas_rgn`, `nas_rgd`, `nas_pai`, `nas_categoria`, `nas_prevparto`, `nas_regime_alimentar`, `nas_grupo_manejo`, `nas_local`, `nas_data_inclusao`, `nas_data_alteracao`, `nas_hora_alteracao`, `nas_prematuro`, `nas_roubada`, `nas_enviar`, `nas_atuprog`, `nas_recno`.
 - `PESAGEM.TXT` (16): `pes_parceiro`, `pes_animal_id`, `pes_fazenda`, `pes_data`, `pes_peso`, `pes_racial`, `pes_situacao_desclassifica`, `pes_grupo_manejo`, `pes_local`, `pes_data_inclusao`, `pes_data_alteracao`, `pes_hora_alteracao`, `pes_enviar`, `pes_recno`, `pes_safra_id`, `pes_frame`.
-- `RACA.TXT` (15): `rac_parceiro`, `rac_codigo`, `rac_descricao`, `rac_gestacao_max`, `rac_gestacao_med`, `rac_gestacao_min`, `rac_extra1`, `rac_extra2`, `rac_extra3`, `rac_pad`, `rac_data_inclusao`, `rac_data_alteracao`, `rac_hora_alteracao`, `rac_enviar`, `rac_recno`.
+- `RACA.TXT` (15): `rac_parceiro`, `rac_codigo`, `rac_descricao`, `rac_gestacao_max`, `rac_gestacao_med`, `rac_gestacao_min`, `rac_extra1`, `rac_extra2`, `rac_extra3`, `rac_pad`, `rac_data_inclusao`, `rac_data_alteracao`, `rac_hora_alteracao`, `rac_enviar`, `rac_recno`. Observação: o **grau sanguíneo** de cada animal é exportado em `COMPOSICAO_RACIAL.cpr_indice` (fração por raça, soma 1.0), e não nesta tabela. Os campos `rac_extra1/2/3` correspondem, no manual, a peso de nascimento médio (fêmea/macho) e idade mínima da novilha; permanecem como valores padrão até o PAINT fornecer a tabela por raça (pendente de confirmação).
 - `RAH.TXT` (14): `rah_parceiro`, `rah_animal_id`, `rah_fazenda`, `rah_data`, `rah_peso`, `rah_racial`, `rah_aprumos`, `rah_harmonia`, `rah_situacao_desclassifica`, `rah_data_inclusao`, `rah_data_alteracao`, `rah_hora_alteracao`, `rah_enviar`, `rah_recno`.
 - `REGIME_ALIMENTAR.TXT` (9): `rga_parceiro`, `rga_id`, `rga_descri`, `rga_fazenda`, `rga_data_inclusao`, `rga_data_alteracao`, `rga_hora_alteracao`, `rga_enviar`, `rga_recno`.
 - `SAFRA.TXT` (12): `sfr_parceiro`, `sfr_id`, `sfr_fazenda`, `sfr_descri`, `sfr_data_inicio`, `sfr_data_final`, `sfr_obs`, `sfr_data_inclusao`, `sfr_data_alteracao`, `sfr_hora_alteracao`, `sfr_enviar`, `sfr_recno`.
@@ -936,6 +947,10 @@ resposta do PAINT.
 - A doadora e o pai reais entram na tabela ANIMAL (genealogia). A receptora é
   apontada nas tabelas de cobertura e nascimento.
 - A composição racial da receptora é obrigatória.
+- Na exportação, a cobertura por transferência de embrião é classificada com
+  `cob_tipo = E` (`mapTipoCobertura`). O apontamento de doadora/pai real depende
+  de como os dados são lançados no cadastro; ainda **não há um fluxo de UI
+  dedicado** "cadastrar embrião como sêmen" (pendência de produto).
 
 ### Outras tabelas
 
@@ -1001,3 +1016,40 @@ Resumo das melhorias desta rodada, para referência rápida.
 
 - Ajustes de layout (ex.: `ESTOQUE.est_obs` e tipos de `recno` em GRUPO_MANEJO e
   SAFRA), com larguras travadas por testes end-to-end.
+- Correção do `COBERTURA.cob_inseminador`: agora resolvido para o código PAINT a
+  partir do nome do inseminador em `reproducao.inseminador`.
+- Novas validações de pré-exportação: brinco numérico obrigatório para todos os
+  animais (erro) e aviso para animal PO sem tipo de registro definido.
+
+---
+
+## 21. Status de Homologação por Tabela
+
+Esta seção consolida a auditoria das tarefas solicitadas pela equipe PAINT,
+verificadas item a item contra o código e este manual. O detalhamento completo
+(com referência de arquivo/linha por subtarefa) está em
+`docs/PAINT_AUDITORIA_TAREFAS.md`.
+
+Legenda: OK = implementado e documentado; PEND = pendente de confirmação/decisão.
+
+| Tema | Status | Observação |
+|------|--------|------------|
+| Exportação — identificador único (A12 + nº + data nasc.) | OK | Validado na importação; A12 é a chave na exportação |
+| Exportação — filtro por data | OK (por design) | ZIP não filtrado; filtros só nas planilhas/importação |
+| Matrizes — filtro antes de baixar com dados | OK | Filtro por tipo na tela |
+| ANIMAL — avaliação refletida (RAH), pai (A12), grupo, categoria/anterior, A12 PO e do touro | OK | — |
+| ANIMAL — tipo de registro preenchido + aviso PO sem tipo | OK | Aviso na pré-validação |
+| ANIMAL — brinco obrigatório + raça obrigatória | OK | Erros na pré-validação |
+| ANIMAL — `rac1/rac2` = grau sanguíneo | PEND | Grau sanguíneo está em `COMPOSICAO_RACIAL.cpr_indice`; extras da RACA a confirmar com o PAINT |
+| COMPOSICAO_RACIAL — `recno` | OK | Tipo N, sequencial |
+| Cadastros automáticos → TXT | OK | Inseminador, grupo, regime, avaliador |
+| Embrião como sêmen (mãe/pai real) | PEND | Regra descrita; sem fluxo de UI dedicado |
+| NASCIMENTO — espaçamentos, peso, A12 do pai, data de nascimento | OK | — |
+| DESMAMA — notas, `recno`, regime e grupo de manejo | OK | — |
+| A12 — montagem e espaçamento (NASCIMENTO/COBERTURA/COMPOSIÇÃO + alinhamento) | OK | Campo Animal à esquerda |
+| ANO_SOBREANO — local opcional, notas, avaliador, grupo, `recno` | OK | — |
+| DIAGNÓSTICO — grupo de manejo | OK | — |
+| COBERTURA — `cob_grpm`, `recno`, inseminador, A12 do touro | OK | Inseminador corrigido nesta rodada |
+
+Pendências em aberto (PEND): interpretação dos campos extras de `RACA` e fluxo de
+cadastro de embrião na UI — ambos dependem de confirmação com o PAINT/produto.

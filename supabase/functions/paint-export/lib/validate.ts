@@ -64,17 +64,28 @@ export async function validatePaintExport(
     },
   );
 
-  const poSemBrinco = item("ANIMAL", "Animal PO sem brinco numérico (5 dígitos)");
+  // Brinco numérico é obrigatório para todos os animais (PO e não-PO): é a base
+  // do segmento Animal do A12 (call PAINT). Tipo de registro é obrigatório para
+  // PO; quando não há valor explícito (apenas inferido pela raça), gera aviso.
+  const semBrinco = item("ANIMAL", "Animal sem brinco numérico (5 dígitos)");
   const semRaca = item("ANIMAL", "Animal sem raça");
+  const poSemTipo = item(
+    "ANIMAL",
+    "Animal PO sem tipo de registro definido (inferido pela raça)",
+  );
   for (const r of rebanho) {
     const brincoDigits = String(r.numeroAnimal ?? "").replace(/\D/g, "");
-    if (isAnimalPO(r) && brincoDigits.length === 0) {
-      add(poSemBrinco, String(r.numeroAnimal ?? r.idRebanho));
+    if (brincoDigits.length === 0) {
+      add(semBrinco, String(r.numeroAnimal ?? r.idRebanho));
     }
     if (!String(r.raca ?? "").trim()) add(semRaca, String(r.numeroAnimal ?? r.idRebanho));
+    if (isAnimalPO(r) && !String(r.tipo_registro ?? "").trim()) {
+      add(poSemTipo, String(r.numeroAnimal ?? r.idRebanho));
+    }
   }
-  if (poSemBrinco.qtd) erros.push(poSemBrinco);
+  if (semBrinco.qtd) erros.push(semBrinco);
   if (semRaca.qtd) erros.push(semRaca);
+  if (poSemTipo.qtd) avisos.push(poSemTipo);
 
   // -------------------------------------------------------------------------
   // DESMAMA — obrigatórios A12, data, peso, C/P/M/U, grupo de manejo.

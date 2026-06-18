@@ -83,6 +83,25 @@ async function loadGrupoByDescricao(ctx: ExportContext): Promise<Map<string, str
   return map;
 }
 
+// Mapa nome-do-inseminador (UPPER) -> código PAINT. paint_inseminador é criado
+// a partir de reproducao.inseminador (nome); a tabela COBERTURA referencia o
+// inseminador pelo nome, então precisamos resolver para o código cadastrado.
+async function loadInseminadorByNome(ctx: ExportContext): Promise<Map<string, string>> {
+  const ins = await selectAll<any>(
+    ctx.supa,
+    "paint_inseminador",
+    (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
+    { columns: "codigo,nome", orderColumn: "codigo" },
+  );
+  const map = new Map<string, string>();
+  for (const i of ins) {
+    const nome = String(i.nome ?? "").trim().toUpperCase();
+    const cod = String(i.codigo ?? "").trim();
+    if (nome && cod) map.set(nome, cod);
+  }
+  return map;
+}
+
 // Mapa idRebanho -> loteNome (a partir do pre-fetch de rebanho em genAnimal).
 function loteByRebanhoId(ctx: ExportContext): Map<string, string> {
   const map = new Map<string, string>();
@@ -307,7 +326,7 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
       .neq("deletado", "SIM"),
     {
       columns:
-        "id,id_rebanho_matriz,id_rebanho_reprodutor,data_inseminacao,data_inicial,data_final,tipo_reproducao,partida_semen,previsao_parto,anotacoes,created_at,updated_at",
+        "id,id_rebanho_matriz,id_rebanho_reprodutor,data_inseminacao,data_inicial,data_final,tipo_reproducao,partida_semen,previsao_parto,inseminador,anotacoes,created_at,updated_at",
       orderColumn: "id",
     },
   );
@@ -317,6 +336,8 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
   // (call PAINT), exportado quando disponível.
   const grupoByDescricao = await loadGrupoByDescricao(ctx);
   const loteByReb = loteByRebanhoId(ctx);
+  // Inseminador: reproducao guarda o nome; resolvemos para o código PAINT.
+  const inseminadorByNome = await loadInseminadorByNome(ctx);
 
   const lines: string[] = [];
   let recno = 0;
@@ -341,7 +362,9 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
       cob_cat_touro: touroA12 ? "TT" : "",
       cob_doses: "",
       cob_partida: r.partida_semen ? String(r.partida_semen).slice(0, 6) : "",
-      cob_inseminador: (r.inseminador_codigo ?? "").toString().slice(0, 4),
+      cob_inseminador: (inseminadorByNome.get(
+        String(r.inseminador ?? "").trim().toUpperCase(),
+      ) ?? "").slice(0, 4),
       cob_prevparto: formatDate(r.previsao_parto),
       cob_dtinirepasse: formatDate(r.data_inicial),
       cob_dtfimrepasse: formatDate(r.data_final),
