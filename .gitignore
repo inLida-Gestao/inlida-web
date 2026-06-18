@@ -1,6 +1,18 @@
 # Supabase CLI – estado local (não versionar)
 supabase/.temp/
 
+# Node / dependências
+node_modules/
+
+# Editor / Cursor
+.cursor/
+
+# Arquivos temporários de chamadas MCP
+.mcp-*.json
+
+# Flutter iOS – artefatos efêmeros gerados pelo build
+**/ios/Flutter/ephemeral/
+
 # Miscellaneous
 *.class
 *.log

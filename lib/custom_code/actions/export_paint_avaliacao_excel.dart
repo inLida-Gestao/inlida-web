@@ -10,11 +10,19 @@ import 'package:excel/excel.dart';
 /// Exporta template Excel PAINT de avaliações ou lista de touros.
 /// [tipo]: matrizes | desmama | sobreano | lista_touros
 /// [modo]: vazio | preenchido (ignorado para lista_touros)
+///
+/// Filtros opcionais (reunião 01/06 — evitar baixar grandes volumes, ex.:
+/// Cachoeira ~1.400 registros): intervalo de data de nascimento e, no modo
+/// preenchido, intervalo de data de avaliação.
 Future<bool> exportPaintAvaliacaoExcel(
   String idPropriedade,
   String tipo,
-  String modo,
-) async {
+  String modo, {
+  DateTime? dataNascimentoDe,
+  DateTime? dataNascimentoAte,
+  DateTime? dataAvaliacaoDe,
+  DateTime? dataAvaliacaoAte,
+}) async {
   if (idPropriedade.isEmpty) return false;
   final t = tipo.toLowerCase().trim();
   final m = modo.toLowerCase().trim();
@@ -55,7 +63,13 @@ Future<bool> exportPaintAvaliacaoExcel(
   }
 
   final rebanho = await fetchRebanhoPaint(idPropriedade);
-  final animais = rebanho.where(filtro).toList();
+  final animais = rebanho.where(filtro).where((r) {
+    return dentroIntervaloData(
+      parseDateIso(r['dataNascimento']),
+      dataNascimentoDe,
+      dataNascimentoAte,
+    );
+  }).toList();
   if (animais.isEmpty) return false;
 
   Map<String, Map<String, dynamic>> existentes = {};
@@ -96,6 +110,15 @@ Future<bool> exportPaintAvaliacaoExcel(
           exist = e.value;
           break;
         }
+      }
+      // Filtro por data de avaliação (apenas no modo preenchido).
+      if ((dataAvaliacaoDe != null || dataAvaliacaoAte != null) &&
+          !dentroIntervaloData(
+            parseDateIso(exist?['data']),
+            dataAvaliacaoDe,
+            dataAvaliacaoAte,
+          )) {
+        continue;
       }
     }
 

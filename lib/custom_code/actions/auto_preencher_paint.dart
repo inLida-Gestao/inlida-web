@@ -11,9 +11,22 @@ import 'paint_helpers.dart';
 /// (reproducao, lotes, rebanho, historico_pesagens) para a propriedade
 /// selecionada. Idempotente — rodar 2x não duplica.
 ///
+/// Filtros opcionais (reunião 01/06 — evitar volumes grandes, ex.: Cachoeira
+/// ~1.400 registros): intervalo de data de nascimento do animal e intervalo de
+/// data do evento/avaliação. Os filtros afetam apenas as avaliações derivadas
+/// por animal (composição, desmama, sobreano, RAH, diagnóstico); os cadastros
+/// de apoio (inseminadores, grupos, localidades, safras, avaliadores, regimes,
+/// biblioteca) são sempre importados integralmente.
+///
 /// Retorna contagens por categoria (quantos itens novos foram inseridos).
 /// Chave 'erro' (>0) sinaliza falha geral, com 'mensagem' contendo o erro.
-Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
+Future<Map<String, dynamic>> autoPreencherPaint(
+  String? idPropriedade, {
+  DateTime? dataNascimentoDe,
+  DateTime? dataNascimentoAte,
+  DateTime? dataAvaliacaoDe,
+  DateTime? dataAvaliacaoAte,
+}) async {
   final result = <String, dynamic>{
     'inseminadores': 0,
     'grupos': 0,
@@ -51,7 +64,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
     final configRows = await client
         .from('paint_fazenda_config')
         .select(
-          'codigo_transmissao,serie_fazenda,codigo_fazenda,'
+          'codigo_transmissao,serie_fazenda,serie_raca_po,codigo_fazenda,'
           'programa,estrategia_a12,campo_origem_animal',
         )
         .eq('id_propriedade', idPropriedade)
@@ -72,6 +85,9 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
     final paintCfg = PaintConfigExcel(
       codigoTransmissao: (cfgRow['codigo_transmissao'] ?? '').toString(),
       serieFazenda: serieFazenda,
+      serieRacaPo: (cfgRow['serie_raca_po'] ?? '').toString().trim().isEmpty
+          ? null
+          : (cfgRow['serie_raca_po']).toString().trim(),
       codigoFazenda: (cfgRow['codigo_fazenda'] ?? '0001').toString(),
       programa: (cfgRow['programa'] ?? 'P').toString(),
       estrategia: parseEstrategiaA12(cfgRow['estrategia_a12']?.toString()),
@@ -187,6 +203,15 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
     }
 
     String a12Of(Map<String, dynamic> r) => a12FromRebanho(r, paintCfg);
+
+    // Filtros opcionais por data — aplicados só às avaliações por animal.
+    bool nascDentro(Map<String, dynamic> r) => dentroIntervaloData(
+          parseDateIso(r['dataNascimento']),
+          dataNascimentoDe,
+          dataNascimentoAte,
+        );
+    bool avDentro(String? iso) =>
+        dentroIntervaloData(iso, dataAvaliacaoDe, dataAvaliacaoAte);
 
     // ---------------- 1. INSEMINADORES ----------------
     await exec('inseminadores', () async {
@@ -310,6 +335,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
           .toSet();
       final insertComp = <Map<String, dynamic>>[];
       for (final r in rebanhoRows) {
+        if (!nascDentro(r)) continue;
         final a = a12Of(r);
         if (a.isEmpty) continue;
         final racaCod = mapRacaCodigo(r['raca']);
@@ -337,6 +363,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
       final insertDes = <Map<String, dynamic>>[];
       for (final r in rebanhoRows) {
         if (!filtroDesmama(r)) continue;
+        if (!nascDentro(r)) continue;
         final peso = r['pesoDesmama'];
         final data = r['dataDesmama'];
         if (peso == null || data == null) continue;
@@ -344,6 +371,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
         if (a.isEmpty) continue;
         final dataStr = parseDateIso(data);
         if (dataStr == null) continue;
+        if (!avDentro(dataStr)) continue;
         final key = '$a|$dataStr';
         if (desExist.contains(key)) continue;
         desExist.add(key);
@@ -375,6 +403,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
         final reb = rebanhoById[idReb];
         if (reb == null) continue;
         if (!filtroSobreano(reb)) continue;
+        if (!nascDentro(reb)) continue;
         DateTime? dPes;
         if (dataP is String && dataP.isNotEmpty) {
           dPes = DateTime.tryParse(dataP);
@@ -400,6 +429,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
         final a = a12Of(reb);
         if (a.isEmpty) continue;
         final dataStr = dPes.toIso8601String().substring(0, 10);
+        if (!avDentro(dataStr)) continue;
         final key = '$a|$dataStr';
         if (sobExist.contains(key)) continue;
         sobExist.add(key);
@@ -412,6 +442,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
       }
       for (final reb in rebanhoRows) {
         if (!filtroSobreano(reb)) continue;
+        if (!nascDentro(reb)) continue;
         final peso = reb['pesoAtual'];
         final data = reb['dataUltimaPesagem'];
         if (peso == null || data == null) continue;
@@ -419,6 +450,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
         if (a.isEmpty) continue;
         final dataStr = parseDateIso(data);
         if (dataStr == null) continue;
+        if (!avDentro(dataStr)) continue;
         final key = '$a|$dataStr';
         if (sobExist.contains(key)) continue;
         sobExist.add(key);
@@ -443,6 +475,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
       final insertRah = <Map<String, dynamic>>[];
       for (final r in rebanhoRows) {
         if (!filtroMatrizes(r)) continue;
+        if (!nascDentro(r)) continue;
         final peso = r['pesoAtual'];
         final data = r['dataUltimaPesagem'];
         if (peso == null || data == null) continue;
@@ -450,6 +483,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
         if (a.isEmpty) continue;
         final dataStr = parseDateIso(data);
         if (dataStr == null) continue;
+        if (!avDentro(dataStr)) continue;
         final key = '$a|$dataStr';
         if (rahExist.contains(key)) continue;
         rahExist.add(key);
@@ -488,6 +522,8 @@ Future<Map<String, dynamic>> autoPreencherPaint(String? idPropriedade) async {
         final idMatriz = rep['id_rebanho_matriz']?.toString() ?? '';
         final reb = rebanhoById[idMatriz];
         if (reb == null) continue;
+        if (!nascDentro(reb)) continue;
+        if (!avDentro(parseDateIso(dataDiag))) continue;
         final a = a12Of(reb);
         if (a.isEmpty) continue;
         final dataStr = dataDiag is String ? dataDiag : dataDiag.toString();

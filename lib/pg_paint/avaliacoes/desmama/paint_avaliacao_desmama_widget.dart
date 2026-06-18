@@ -45,26 +45,31 @@ class PaintAvaliacaoDesmamaWidget extends StatelessWidget {
           key: 'peso',
           label: 'Peso (kg)',
           type: PaintFieldType.decimal,
+          required: true,
         ),
         const PaintField(
           key: 'nota_c',
           label: 'Nota Conformação (C)',
           type: PaintFieldType.decimal,
+          required: true,
         ),
         const PaintField(
           key: 'nota_p',
           label: 'Nota Precocidade (P)',
           type: PaintFieldType.decimal,
+          required: true,
         ),
         const PaintField(
           key: 'nota_m',
           label: 'Nota Musculosidade (M)',
           type: PaintFieldType.decimal,
+          required: true,
         ),
         const PaintField(
           key: 'nota_u',
           label: 'Nota Umbigo (U)',
           type: PaintFieldType.decimal,
+          required: true,
         ),
         const PaintField(
           key: 'situacao_desclass1',
@@ -86,6 +91,7 @@ class PaintAvaliacaoDesmamaWidget extends StatelessWidget {
           key: 'grupo_manejo_codigo',
           label: 'Grupo de manejo',
           type: PaintFieldType.dropdown,
+          required: true,
           optionsLoader: () =>
               _opcoes('paint_grupo_manejo', 'codigo', 'descricao'),
         ),

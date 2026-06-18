@@ -2,12 +2,15 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import { JSZip } from "https://deno.land/x/jszip@0.11.0/mod.ts";
 
 import { GENERATORS, genUltimaTransmissao, type ExportContext, type PaintConfig }
   from "./lib/generators.ts";
 import { PAINT_FILES, PAINT_ZIP_FILES } from "./lib/layouts.ts";
 import { encodeWin1252, formatDate, formatTime } from "./lib/fixed-width.ts";
+import { buildZipStore, type ZipEntry } from "./lib/zip-store.ts";
+import { selectAll } from "./lib/sql.ts";
+import { a12FromRebanho } from "./lib/paint_mappers.ts";
+import { validatePaintExport } from "./lib/validate.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -16,7 +19,7 @@ const CORS_HEADERS = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const RUNNING_JOB_TTL_MS = 5 * 60 * 1000;
+const STALE_JOB_MS = 12 * 60 * 1000;
 
 function jsonResponse(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -47,11 +50,12 @@ function countLines(content: string): number {
 }
 
 async function clearStaleRunningJobs(supa: any, idPropriedade: string, now: Date) {
-  const staleBefore = new Date(now.getTime() - RUNNING_JOB_TTL_MS).toISOString();
+  const staleBefore = new Date(now.getTime() - STALE_JOB_MS).toISOString();
   const { error } = await supa.from("paint_export_job")
     .update({
       status: "error",
-      erro: "Exportação anterior interrompida antes de finalizar.",
+      erro:
+        "Exportação interrompida: tempo máximo excedido no servidor (sem ZIP gerado). Tente novamente.",
       finished_at: now.toISOString(),
     })
     .eq("id_propriedade", idPropriedade)
@@ -60,13 +64,11 @@ async function clearStaleRunningJobs(supa: any, idPropriedade: string, now: Date
   if (error) throw new Error(`limpar jobs antigos: ${error.message}`);
 }
 
-async function getActiveRunningJob(supa: any, idPropriedade: string, now: Date) {
-  const activeSince = new Date(now.getTime() - RUNNING_JOB_TTL_MS).toISOString();
+async function getActiveRunningJob(supa: any, idPropriedade: string) {
   const { data, error } = await supa.from("paint_export_job")
     .select("id,started_at")
     .eq("id_propriedade", idPropriedade)
     .eq("status", "running")
-    .gte("started_at", activeSince)
     .order("started_at", { ascending: false })
     .limit(1);
   if (error) throw new Error(`consultar exportação em andamento: ${error.message}`);
@@ -110,6 +112,31 @@ const GENERATION_ORDER = [
   "SAFRA_DELETE",
 ];
 
+const REBANHO_EXPORT_COLUMNS =
+  "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,tipo_registro,dataDesmama,pesoDesmama,status,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,loteNome,loteID,created_at,updated_at,dataAcao";
+
+/** Carrega rebanho uma vez e monta cache A12 compartilhado pelos geradores. */
+async function prefetchRebanho(ctx: ExportContext): Promise<void> {
+  if (ctx.rebanhoRows && ctx.rebanhoRows.length > 0) return;
+  const rows = await selectAll<Record<string, unknown>>(
+    ctx.supa,
+    "rebanho",
+    (q) => q.eq("idPropriedade", ctx.config.id_propriedade).neq("deletado", "SIM"),
+    { columns: REBANHO_EXPORT_COLUMNS, orderColumn: "id" },
+  );
+  ctx.rebanhoRows = rows;
+  for (const r of rows) {
+    const a12 = a12FromRebanho(ctx.config, r);
+    if (r.idRebanho) {
+      ctx.a12ByRebanhoId.set(String(r.idRebanho), a12);
+      ctx.numeroByRebanhoId.set(String(r.idRebanho), String(r.numeroAnimal ?? ""));
+    }
+  }
+  console.log(
+    `[paint-export] prefetch rebanho=${rows.length} a12=${ctx.a12ByRebanhoId.size}`,
+  );
+}
+
 async function runExportJob(
   supa: ReturnType<typeof createClient>,
   jobId: string,
@@ -130,11 +157,50 @@ async function runExportJob(
       generationDateTime: now,
     };
 
-    const zip = new JSZip();
-    const counts: Record<string, number> = {};
-    let lastLogTs = Date.now();
+    // Uma única carga do rebanho (evita duplicar ~10k linhas na validação).
+    await prefetchRebanho(ctx);
+    const skipHeavyValidation = (ctx.rebanhoRows?.length ?? 0) > 3000;
+    // Só retém o rebanho para validação quando ela realmente vai rodar; caso
+    // contrário a referência manteria ~10k linhas presas na memória do worker
+    // durante toda a geração (contribui para WORKER_RESOURCE_LIMIT).
+    const rebanhoRowsForValidation = skipHeavyValidation
+      ? undefined
+      : ctx.rebanhoRows;
 
+    const zipEntries: ZipEntry[] = [];
+    const zipNames = new Set<string>();
+    const addZipFile = (name: string, data: Uint8Array) => {
+      if (zipNames.has(name)) return;
+      zipNames.add(name);
+      zipEntries.push({ name, data });
+    };
+    const counts: Record<string, number> = {};
+    const startTs = Date.now();
+    let lastLogTs = startTs;
+    // Grava progresso no próprio job: se o worker for morto por limite de
+    // recursos, o último estágio registrado mostra exatamente onde parou.
+    const stageTimings: Record<string, number> = {};
+    const writeProgress = async (stage: string, done: number) => {
+      try {
+        await supa.from("paint_export_job").update({
+          validacao: {
+            progresso: {
+              stage,
+              done,
+              total: GENERATION_ORDER.length,
+              elapsedMs: Date.now() - startTs,
+              timings: stageTimings,
+            },
+          },
+        }).eq("id", jobId);
+      } catch (_e) { /* progresso é best-effort */ }
+    };
+
+    await writeProgress("prefetch_done", 0);
+
+    let idx = 0;
     for (const name of GENERATION_ORDER) {
+      idx += 1;
       const gen = GENERATORS[name];
       let content = "";
       if (gen) content = await gen(ctx);
@@ -142,36 +208,69 @@ async function runExportJob(
       counts[name.replace("_DELETE", "")] = counts[name.replace("_DELETE", "")] ??
         lineCount;
       counts[name] = lineCount;
-      zip.addFile(`${name}.TXT`, encodeWin1252(content));
+      addZipFile(`${name}.TXT`, encodeWin1252(content));
+      content = ""; // libera a string grande imediatamente
+      const took = Date.now() - lastLogTs;
+      stageTimings[name] = took;
       console.log(
-        `[paint-export] ${name}.TXT lines=${lineCount} elapsed=${Date.now() - lastLogTs}ms`,
+        `[paint-export] ${name}.TXT lines=${lineCount} elapsed=${took}ms`,
       );
       lastLogTs = Date.now();
 
       if (name === "NASCIMENTO") ctx.rebanhoRows = undefined;
       if (name === "COBERTURA") ctx.reproducaoRows = undefined;
       if (name === "PESAGEM") ctx.pesagemRows = undefined;
+
+      // Atualiza progresso só nos arquivos pesados (evita 30 writes).
+      if (lineCount > 2000 || idx % 6 === 0) await writeProgress(name, idx);
     }
+    await writeProgress("files_done", GENERATION_ORDER.length);
 
     const utr = await genUltimaTransmissao(ctx, counts);
     counts["ULTIMA_TRANSMISSAO"] = countLines(utr);
-    zip.addFile("ULTIMA_TRANSMISSAO.TXT", encodeWin1252(utr));
+    addZipFile("ULTIMA_TRANSMISSAO.TXT", encodeWin1252(utr));
 
-    for (const name of PAINT_ZIP_FILES) {
-      if (!zip.file(`${name}.TXT`)) {
-        zip.addFile(`${name}.TXT`, encodeWin1252(""));
+    const EMPTY = new Uint8Array(0);
+    for (const name of PAINT_ZIP_FILES) addZipFile(`${name}.TXT`, EMPTY);
+    for (const name of PAINT_FILES) addZipFile(`${name}.TXT`, EMPTY);
+
+    await writeProgress("zipping", GENERATION_ORDER.length);
+    const zipBytes = buildZipStore(zipEntries);
+    zipEntries.length = 0; // libera os bytes individuais; já estão no zipBytes
+    console.log(
+      `[paint-export] zip pronto job=${jobId} bytes=${zipBytes.length} elapsed=${Date.now() - startTs}ms`,
+    );
+    await writeProgress("uploading", GENERATION_ORDER.length);
+
+    // Pré-validação após gerar arquivos (não bloqueia o ZIP). Em volume alto,
+    // omitimos por completo para economizar CPU/RAM no worker.
+    let validacao: unknown = null;
+    if (skipHeavyValidation) {
+      validacao = {
+        erros: [],
+        avisos: [{
+          tabela: "GERAL",
+          regra: "Validação detalhada omitida (volume alto na propriedade)",
+          qtd: 0,
+          exemplos: [],
+        }],
+        geradoEm: new Date().toISOString(),
+      };
+      console.log(`[paint-export] validação omitida job=${jobId} (volume alto)`);
+    } else {
+      try {
+        validacao = await validatePaintExport(supa, config, {
+          rebanhoRows: rebanhoRowsForValidation,
+          skipHeavyChecks: false,
+        });
+        const r = validacao as { erros: unknown[]; avisos: unknown[] };
+        console.log(
+          `[paint-export] validação job=${jobId} erros=${r.erros.length} avisos=${r.avisos.length}`,
+        );
+      } catch (e) {
+        console.error(`[paint-export] validação falhou: ${e}`);
       }
     }
-    for (const name of PAINT_FILES) {
-      if (!zip.file(`${name}.TXT`)) {
-        zip.addFile(`${name}.TXT`, encodeWin1252(""));
-      }
-    }
-
-    const zipBytes = await zip.generateAsync({
-      type: "uint8array",
-      compression: "STORE",
-    });
 
     const nomeZip = buildZipName(config.codigo_transmissao, now);
     const storagePath = `${idPropriedade}/${nomeZip}`;
@@ -189,6 +288,7 @@ async function runExportJob(
       nome_zip: nomeZip,
       storage_path: storagePath,
       total_animais: counts.ANIMAL ?? 0,
+      validacao,
       finished_at: new Date().toISOString(),
     }).eq("id", jobId);
 
@@ -265,7 +365,7 @@ serve(async (req) => {
   const requestStartedAt = new Date();
   try {
     await clearStaleRunningJobs(supa, idPropriedade, requestStartedAt);
-    const activeJob = await getActiveRunningJob(supa, idPropriedade, requestStartedAt);
+    const activeJob = await getActiveRunningJob(supa, idPropriedade);
     if (activeJob) {
       return jsonResponse(200, {
         ok: false,

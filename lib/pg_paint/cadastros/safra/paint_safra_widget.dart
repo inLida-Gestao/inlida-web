@@ -33,8 +33,7 @@ class PaintSafraWidget extends StatelessWidget {
         ),
         PaintField(
           key: 'descricao',
-          label: 'Descrição',
-          required: true,
+          label: 'Descrição (opcional, ex.: REPRODUÇÃO 23-24)',
           maxLength: 40,
         ),
         PaintField(

@@ -16,3 +16,4 @@ export 'year_month_range_picker.dart' show YearMonthRangePicker;
 export 'super_nascimentos_chart.dart' show SuperNascimentosChart;
 export 'diagnosticos_categoria_chart.dart' show DiagnosticosCategoriaChart;
 export 'diagnosticos_periodo_table.dart' show DiagnosticosPeriodoTable;
+export 'paint_tipo_registro_dropdown.dart' show PaintTipoRegistroDropdown;

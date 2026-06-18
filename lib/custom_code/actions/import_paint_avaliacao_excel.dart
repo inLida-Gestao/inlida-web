@@ -169,6 +169,25 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       continue;
     }
 
+    // Identificador único PAINT: A12 + número + data de nascimento. Quando a
+    // planilha trouxer a coluna preenchida, confere com o rebanho para evitar
+    // associar a avaliação ao animal errado.
+    final iNasc = idx('data_nascimento');
+    if (iNasc >= 0) {
+      final nascCel = parseDateIso(_celValue(row, iNasc));
+      if (nascCel != null) {
+        final nascReb = parseDateIso(reb['dataNascimento']);
+        if (nascReb != null && nascCel != nascReb) {
+          erros.add({
+            'linha': linha,
+            'motivo':
+                'Data_Nascimento $nascCel não confere com o animal do A12 $a12Key (rebanho: $nascReb).',
+          });
+          continue;
+        }
+      }
+    }
+
     final iNum = idx('numero_animal');
     if (iNum >= 0) {
       final num = _cel(row, iNum);

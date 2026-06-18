@@ -6,19 +6,32 @@ import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
 import { LAYOUTS } from "./layouts.ts";
 import {
   buildLine,
-  formatA12,
   type EstrategiaA12,
   formatDate,
-  formatTime,
   formatNumeric,
   joinLines,
 } from "./fixed-width.ts";
 import { selectAll } from "./sql.ts";
+import {
+  a12FromRebanho,
+  derivaSafraCodigo,
+  extractAnimal5,
+  extractBrinco5,
+  grupoManejoFromLote,
+  mapBaixaMotivo,
+  mapCategoriaAnterior,
+  mapCategoriaPaint,
+  mapRacaPaint,
+  mapTipoCobertura,
+  mapTipoRegistro,
+  resolveSerieA12,
+} from "./paint_mappers.ts";
 
 export interface PaintConfig {
   id_propriedade: string;
   codigo_transmissao: string; // 6 chars
   serie_fazenda: string; // até 4 chars
+  serie_raca_po?: string | null; // série do registro p/ animais PO (ex.: JLK)
   codigo_fazenda: string; // 4 chars
   programa?: string | null;
   estrategia_a12?: EstrategiaA12 | null;
@@ -42,51 +55,41 @@ export interface ExportContext {
   generationDateTime: Date;
 }
 
-// Calcula A12 com a mesma regra usada no Flutter: o campo de origem do animal
-// vem de paint_fazenda_config.campo_origem_animal.
-type RebanhoPaintLike = {
-  numeroAnimal?: unknown;
-  dataNascimento?: unknown;
-  nome?: unknown;
-  chip?: unknown;
-  codRegistro?: unknown;
-};
-
-function asText(value: unknown): string {
-  return value === null || value === undefined ? "" : String(value).trim();
-}
-
-export function a12FromRebanho(
-  config: PaintConfig,
-  animalRow: RebanhoPaintLike,
-): string {
-  const estrategia = (config.estrategia_a12 ?? "compacto") as EstrategiaA12;
-  const campo = config.campo_origem_animal ?? "numeroAnimal";
-  let animal = asText(animalRow.numeroAnimal);
-  if (campo === "nome") animal = asText(animalRow.nome) || animal;
-  else if (campo === "chip") animal = asText(animalRow.chip) || animal;
-  else if (campo === "codRegistro") {
-    animal = asText(animalRow.codRegistro) || animal;
-  }
-
-  const dataNasc = asText(animalRow.dataNascimento);
-  if (!animal || !dataNasc) return "";
-  const nasc = new Date(dataNasc);
-  if (isNaN(nasc.getTime())) return "";
-  const ano = nasc.getUTCFullYear().toString();
-
-  return formatA12({
-    programa: config.programa ?? "P",
-    serieFazenda: config.serie_fazenda,
-    animal,
-    ano,
-    estrategia,
-  });
-}
+// A12 e demais regras de domínio: ver ./paint_mappers.ts (espelho Dart em
+// lib/custom_code/actions/paint_mappers.dart). a12FromRebanho é PO-aware.
+export { a12FromRebanho };
 
 function fazendaField(ctx: ExportContext): string {
   const cod = (ctx.config.codigo_fazenda ?? "").toString();
   return cod.padStart(30, " ").slice(0, 30);
+}
+
+// Mapa descrição-do-lote (UPPER, 20 chars) -> código do grupo de manejo PAINT.
+// O grupo é criado a partir dos lotes (paint_grupo_manejo.descricao = nome do
+// lote) e o animal liga-se ao lote por rebanho.loteNome (manual §8.4).
+async function loadGrupoByDescricao(ctx: ExportContext): Promise<Map<string, string>> {
+  const grupos = await selectAll<any>(
+    ctx.supa,
+    "paint_grupo_manejo",
+    (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
+    { columns: "codigo,descricao", orderColumn: "codigo" },
+  );
+  const map = new Map<string, string>();
+  for (const g of grupos) {
+    const descr = String(g.descricao ?? "").trim().toUpperCase();
+    const cod = String(g.codigo ?? "").trim();
+    if (descr && cod) map.set(descr, cod);
+  }
+  return map;
+}
+
+// Mapa idRebanho -> loteNome (a partir do pre-fetch de rebanho em genAnimal).
+function loteByRebanhoId(ctx: ExportContext): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const r of ctx.rebanhoRows ?? []) {
+    if (r.idRebanho) map.set(String(r.idRebanho), String(r.loteNome ?? ""));
+  }
+  return map;
 }
 
 // =============================================================================
@@ -134,38 +137,22 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
       .neq("deletado", "SIM"),
     {
       columns:
-        "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,dataDesmama,pesoDesmama,status,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,loteNome,loteID,created_at,updated_at,dataAcao",
+        "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,tipo_registro,dataDesmama,pesoDesmama,status,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,loteNome,loteID,created_at,updated_at,dataAcao",
       orderColumn: "id",
     },
   );
   ctx.rebanhoRows = rows;
 
-  // Mapa descrição-do-lote -> código do grupo de manejo PAINT. O grupo é criado
-  // a partir dos lotes (paint_grupo_manejo.descricao = nome do lote, máx. 20),
-  // e o animal liga-se ao lote por rebanho.loteNome.
-  const grupos = await selectAll<any>(
-    ctx.supa,
-    "paint_grupo_manejo",
-    (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
-    { columns: "codigo,descricao", orderColumn: "codigo" },
-  );
-  const grupoByDescricao = new Map<string, string>();
-  for (const g of grupos) {
-    const descr = String(g.descricao ?? "").trim().toUpperCase();
-    const cod = String(g.codigo ?? "").trim();
-    if (descr && cod) grupoByDescricao.set(descr, cod);
-  }
-  const grupoManejoDoLote = (loteNome: unknown): string => {
-    const nome = String(loteNome ?? "").trim().toUpperCase().slice(0, 20);
-    if (!nome) return "";
-    return grupoByDescricao.get(nome) ?? "";
-  };
-
-  // Cache para uso em outros geradores.
-  for (const r of rows) {
-    const a12 = a12FromRebanho(ctx.config, r);
-    if (r.idRebanho) ctx.a12ByRebanhoId.set(String(r.idRebanho), a12);
-    if (r.idRebanho) ctx.numeroByRebanhoId.set(String(r.idRebanho), String(r.numeroAnimal ?? ""));
+  const grupoByDescricao = await loadGrupoByDescricao(ctx);
+  // Cache para uso em outros geradores (pode já vir preenchido no prefetch).
+  if (ctx.a12ByRebanhoId.size === 0) {
+    for (const r of rows) {
+      const a12 = a12FromRebanho(ctx.config, r);
+      if (r.idRebanho) ctx.a12ByRebanhoId.set(String(r.idRebanho), a12);
+      if (r.idRebanho) {
+        ctx.numeroByRebanhoId.set(String(r.idRebanho), String(r.numeroAnimal ?? ""));
+      }
+    }
   }
 
   // Carrega últimas baixas para mapear sigla DC/VD/DE/MT.
@@ -180,38 +167,55 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
     if (b.animal_a12 && sigla) baixaByA12.set(String(b.animal_a12).trim(), sigla);
   }
 
+  // Notas R/F/A/P da avaliação de matrizes (RAH) refletidas no ANIMAL.
+  // Mantém a última avaliação por A12 (maior data).
+  const rahRows = await selectAll<any>(
+    ctx.supa,
+    "paint_avaliacao_rah",
+    (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
+    { columns: "animal_a12,data,racial,aprumos,harmonia,frame,pigmentacao", orderColumn: "data" },
+  );
+  const rahByA12 = new Map<string, any>();
+  for (const rah of rahRows) {
+    const key = String(rah.animal_a12 ?? "").trim();
+    if (key) rahByA12.set(key, rah); // ordenado por data asc → fica a última
+  }
+
   const lines: string[] = [];
   let recno = 0;
   for (const r of rows) {
     recno += 1;
-    const a12 = a12FromRebanho(ctx.config, r);
+    const a12 = ctx.a12ByRebanhoId.get(String(r.idRebanho ?? "")) ??
+      a12FromRebanho(ctx.config, r);
     const paiA12 = r.rebanhoIdReprodutor && ctx.a12ByRebanhoId.has(String(r.rebanhoIdReprodutor))
       ? ctx.a12ByRebanhoId.get(String(r.rebanhoIdReprodutor))!
       : "";
     const maeA12 = r.rebanhoIdMatriz && ctx.a12ByRebanhoId.has(String(r.rebanhoIdMatriz))
       ? ctx.a12ByRebanhoId.get(String(r.rebanhoIdMatriz))!
       : "";
+    const categoria = mapCategoriaPaint(r);
+    const rah = rahByA12.get(a12.trim());
     const row: Record<string, unknown> = {
       ani_parceiro: ctx.config.codigo_transmissao,
       ani_programa: (ctx.config.programa ?? "P").toString().slice(0, 1),
-      ani_serie_fazenda: ctx.config.serie_fazenda,
-      ani_animal: truncToFive(r.numeroAnimal),
+      ani_serie_fazenda: resolveSerieA12(r, ctx.config),
+      ani_animal: extractAnimal5(r.numeroAnimal),
       ani_data_nasc: formatDate(r.dataNascimento),
       ani_A12: a12,
       ani_A17: "", // 17 espaços (manual: "Preencher com espaços em branco")
       ani_sexo: (r.sexo ?? "").toString().slice(0, 1).toUpperCase(),
-      ani_tipo: "", // tipo de livro (POI/PO/CL/LA/LA1/CEIP) — não há origem direta
+      ani_tipo: mapTipoRegistro(r), // PO / CL / vazio (manual §11.4)
       ani_nome: (r.nome ?? "").toString().slice(0, 30),
       ani_fazenda: ctx.config.codigo_fazenda,
-      ani_brinco: (r.numeroAnimal ?? "").toString().slice(0, 15),
-      ani_raca: mapRaca(r.raca),
+      ani_brinco: extractBrinco5(r.numeroAnimal), // 5 dígitos, sem sigla (JLK)
+      ani_raca: mapRacaPaint(r.raca),
       ani_ceip: "",
       ani_rgd: (r.codRegistro ?? "").toString().slice(0, 15),
       ani_pai: paiA12,
       ani_mae: maeA12,
-      ani_categoria: mapCategoria(r),
+      ani_categoria: categoria,
       ani_regime_alimentar: "",
-      ani_grupo_manejo: grupoManejoDoLote(r.loteNome),
+      ani_grupo_manejo: grupoManejoFromLote(r.loteNome, grupoByDescricao),
       ani_local: "",
       ani_data_inclusao: formatDate(r.created_at ?? r.dataAcao ?? ctx.generationDateTime),
       ani_data_alteracao: formatDate(r.updated_at ?? r.dataAcao ?? ctx.generationDateTime),
@@ -222,61 +226,18 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
       ani_recno: recno,
       ani_extra2: "",
       ani_id_eletronica: (r.chip ?? "").toString().slice(0, 20),
-      ani_categoria_ant: "",
-      ani_racial: "",
-      ani_frame: "",
+      ani_categoria_ant: mapCategoriaAnterior(categoria),
+      ani_racial: rah ? formatNumeric(rah.racial, 8, 2) : "",
+      ani_frame: rah ? formatNumeric(rah.frame, 8, 2) : "",
       ani_situacao_desclassifica: "",
       ani_situacao_desclassifica2: "",
-      ani_aprumo: "",
+      ani_aprumo: rah ? formatNumeric(rah.aprumos, 8, 2) : "",
       ani_observacao: (r.anotacoes ?? "").toString().slice(0, 40),
-      ani_pigmentacao: "",
+      ani_pigmentacao: rah ? formatNumeric(rah.pigmentacao, 8, 2) : "",
     };
     lines.push(buildLine(layout, row));
   }
   return joinLines(lines);
-}
-
-function truncToFive(num: unknown): string {
-  const s = String(num ?? "");
-  // Manual: "use os 5 dígitos iniciais e descarte o restante" se >5;
-  // se <=5, alinha à direita -> handled by pad C? campo C alinha à esquerda.
-  // Para ANIMAL.txt o campo ani_animal é C (alinha à esquerda).
-  return s.length > 5 ? s.slice(0, 5) : s;
-}
-
-function mapBaixaMotivo(motivo: string): string {
-  const m = motivo.toUpperCase();
-  if (m === "MORTE") return "MT";
-  if (m === "VENDA") return "VD";
-  if (m === "DESCARTE") return "DC";
-  if (m === "EXCLUSAO") return "DE";
-  return "";
-}
-
-function mapRaca(raca: unknown): string {
-  if (!raca) return "NE"; // assume Nelore por padrão (rebanho do PAINT é Nelore)
-  const r = String(raca).toUpperCase();
-  if (r.includes("NELORE MOCHO")) return "NO";
-  if (r.includes("NELORE")) return "NE";
-  if (r.includes("ANGUS")) return "AR";
-  if (r.includes("BRAHMAN")) return "BR";
-  if (r.includes("GUZER")) return "GZ";
-  if (r.includes("SENEPOL")) return "SE";
-  if (r.includes("SIMENTAL")) return "SM";
-  if (r.includes("TABAPU")) return "TB";
-  return r.length >= 2 ? r.slice(0, 2) : "NE";
-}
-
-function mapCategoria(r: any): string {
-  // Categoria PAINT: AD/AM/GN/MT/NV/RF/TM/TS/TT/VB/VD/VT
-  const status = String(r.status ?? "").toUpperCase();
-  if (status === "VENDIDO" || r.dataVenda) return "VD";
-  if (status === "MORTO" || r.data_morte) return "MT";
-  const sexo = String(r.sexo ?? "").toUpperCase();
-  if (sexo === "M") return r.dataDesmama ? "AD" : "AM";
-  // fêmea
-  if (r.dataDesmama) return "VT";
-  return "AM";
 }
 
 // =============================================================================
@@ -289,6 +250,10 @@ async function genComposicaoRacial(ctx: ExportContext): Promise<string> {
     ctx.supa,
     "paint_composicao_racial",
     (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
+    {
+      columns: "animal_a12,raca_codigo,indice,created_at,updated_at",
+      orderColumn: "id",
+    },
   );
 
   const lines: string[] = [];
@@ -347,31 +312,42 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
     },
   );
   ctx.reproducaoRows = rows;
+
+  // Grupo de manejo da matriz (via lote) — não obrigatório na cobertura
+  // (call PAINT), exportado quando disponível.
+  const grupoByDescricao = await loadGrupoByDescricao(ctx);
+  const loteByReb = loteByRebanhoId(ctx);
+
   const lines: string[] = [];
   let recno = 0;
   for (const r of rows) {
     recno += 1;
     const matrizA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_matriz)) ?? "";
     const touroA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_reprodutor)) ?? "";
+    const grpMatriz = grupoManejoFromLote(
+      loteByReb.get(String(r.id_rebanho_matriz)),
+      grupoByDescricao,
+    );
     lines.push(buildLine(layout, {
       cob_parceiro: ctx.config.codigo_transmissao,
-      cob_safra_id: derivaSafra(r.data_inseminacao),
+      cob_safra_id: derivaSafraCodigo(r.data_inseminacao ?? r.data_inicial),
       cob_animal_id: matrizA12,
       cob_data: formatDate(r.data_inseminacao),
       cob_fazenda: ctx.config.codigo_fazenda,
       cob_tipo: mapTipoCobertura(r.tipo_reproducao),
       cob_periodo: "M",
       cob_touro: touroA12,
-      cob_cat_touro: matrizA12 ? "TT" : "",
+      // Categoria do TOURO (não da matriz). Touro de monta/IA → TT.
+      cob_cat_touro: touroA12 ? "TT" : "",
       cob_doses: "",
       cob_partida: r.partida_semen ? String(r.partida_semen).slice(0, 6) : "",
-      cob_inseminador: "",
+      cob_inseminador: (r.inseminador_codigo ?? "").toString().slice(0, 4),
       cob_prevparto: formatDate(r.previsao_parto),
       cob_dtinirepasse: formatDate(r.data_inicial),
       cob_dtfimrepasse: formatDate(r.data_final),
       cob_obs: (r.anotacoes ?? "").toString().slice(0, 40),
       cob_local_id: "",
-      cob_grpmanejo_id: "",
+      cob_grpmanejo_id: grpMatriz,
       cob_data_inclusao: formatDate(r.created_at),
       cob_data_alteracao: formatDate(r.updated_at ?? r.created_at),
       cob_hora_alteracao: ctx.generationTime,
@@ -380,28 +356,6 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
     }));
   }
   return joinLines(lines);
-}
-
-function mapTipoCobertura(tipo: unknown): string {
-  const t = String(tipo ?? "").toUpperCase();
-  if (t.includes("IATF")) return "F";
-  if (t.includes("INSEMINA")) return "I";
-  if (t.includes("MONTA CONTROL")) return "C";
-  if (t.includes("EMBRI")) return "E";
-  return "R";
-}
-
-function derivaSafra(data: unknown): string {
-  if (!data) return "";
-  const d = new Date(String(data));
-  if (isNaN(d.getTime())) return "";
-  // Manual §8.5: safra = animais nascidos entre 01/06 e 31/05 do ano seguinte.
-  // Para a estação de monta de ano X (que gera nascimentos em X+1), usa-se
-  // ano da estação. Estimamos: se mês <= 5, ano-1, senão ano corrente. Tag = 'P'.
-  const m = d.getUTCMonth() + 1;
-  const y = d.getUTCFullYear();
-  const safraAno = m <= 5 ? y - 1 : y;
-  return `${safraAno}P`;
 }
 
 // =============================================================================
@@ -417,6 +371,23 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
       .neq("deletado", "SIM"),
   );
   const rows = rowsAll.filter((r) => r.dataNascimento != null);
+
+  const grupoByDescricao = await loadGrupoByDescricao(ctx);
+
+  // Cobertura por matriz (data da cobertura + previsão de parto). reproducaoRows
+  // é limpo após COBERTURA, então re-consultamos enxuto.
+  const reproRows = await selectAll<any>(
+    ctx.supa,
+    "reproducao",
+    (q) => q.eq("id_propriedade", ctx.config.id_propriedade).neq("deletado", "SIM"),
+    { columns: "id_rebanho_matriz,data_inseminacao,data_inicial,previsao_parto", orderColumn: "id_rebanho_matriz" },
+  );
+  const coberturaByMatriz = new Map<string, any>();
+  for (const c of reproRows) {
+    const key = String(c.id_rebanho_matriz ?? "");
+    if (key) coberturaByMatriz.set(key, c); // última cobertura da matriz
+  }
+
   const lines: string[] = [];
   let recno = 0;
   for (const r of rows) {
@@ -427,42 +398,40 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
     const paiA12 = r.rebanhoIdReprodutor
       ? ctx.a12ByRebanhoId.get(String(r.rebanhoIdReprodutor)) ?? ""
       : "";
-    const ano = r.dataNascimento
-      ? new Date(r.dataNascimento).getUTCFullYear().toString().slice(-2)
-      : "00";
+    const cob = coberturaByMatriz.get(String(r.rebanhoIdMatriz));
     lines.push(buildLine(layout, {
       nas_parceiro: ctx.config.codigo_transmissao,
-      nas_safra_id: derivaSafra(r.dataNascimento),
+      nas_safra_id: derivaSafraCodigo(r.dataNascimento),
       nas_animal_id: matrizA12,
-      nas_data_cob: "",
+      nas_data_cob: cob ? formatDate(cob.data_inseminacao ?? cob.data_inicial) : "",
       nas_seq: "1",
       nas_fazenda: ctx.config.codigo_fazenda,
-      nas_seriefaz: ctx.config.serie_fazenda,
-      nas_programa: "P",
-      nas_animal: truncToFive(r.numeroAnimal),
+      nas_seriefaz: resolveSerieA12(r, ctx.config),
+      nas_programa: (ctx.config.programa ?? "P").toString().slice(0, 1),
+      nas_animal: extractAnimal5(r.numeroAnimal),
       nas_tpparto: "NORMAL",
       nas_animal_produto_id: a12Cria,
       nas_sexo: String(r.sexo ?? "").slice(0, 1).toUpperCase(),
-      nas_tipo: "",
+      nas_tipo: mapTipoRegistro(r),
       nas_peso: formatNumeric(r.pesoNascimento, 8, 2),
       nas_tamanho: "",
       nas_descri: (r.nome ?? "").toString().slice(0, 30),
-      nas_brinco: (r.numeroAnimal ?? "").toString().slice(0, 15),
-      nas_raca: mapRaca(r.raca),
+      nas_brinco: extractBrinco5(r.numeroAnimal),
+      nas_raca: mapRacaPaint(r.raca),
       nas_data_nasc: formatDate(r.dataNascimento),
       nas_rgn: "",
       nas_rgd: (r.codRegistro ?? "").toString().slice(0, 15),
       nas_pai: paiA12,
-      nas_categoria: mapCategoria(r),
-      nas_prevparto: "",
+      nas_categoria: mapCategoriaPaint(r),
+      nas_prevparto: cob ? formatDate(cob.previsao_parto) : "",
       nas_regime_alimentar: "",
-      nas_grupo_manejo: "",
+      nas_grupo_manejo: grupoManejoFromLote(r.loteNome, grupoByDescricao),
       nas_local: "",
       nas_data_inclusao: formatDate(r.created_at),
       nas_data_alteracao: formatDate(r.updated_at ?? r.created_at),
       nas_hora_alteracao: ctx.generationTime,
       nas_prematuro: "False",
-      nas_roubada: r.rebanhoIdMatriz ? "False" : "True ",
+      nas_roubada: paiA12 ? "False" : "True ",
       nas_enviar: "True ",
       nas_atuprog: "False",
       nas_recno: recno,
@@ -472,32 +441,12 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
 }
 
 // =============================================================================
-// ESTOQUE — paint_estoque (homologado 000460).
+// ESTOQUE — manual + call PAINT: gerar ESTOQUE.TXT sempre VAZIO (apenas o
+// arquivo, sem conteúdo). O cadastro paint_estoque permanece no app, mas não é
+// exportado até o PAINT solicitar.
 // =============================================================================
-async function genEstoque(ctx: ExportContext): Promise<string> {
-  return paintTableGenerator(ctx, "ESTOQUE", "paint_estoque", (r, recno) => ({
-    est_parceiro: ctx.config.codigo_transmissao,
-    est_touro_a12: r.touro_a12,
-    est_codigo_fazenda: fazendaField(ctx),
-    est_descricao: (r.descricao ?? "").toString().slice(0, 30),
-    est_pad1: "",
-    est_data_aquisicao: formatDate(r.data_aquisicao),
-    est_tipo_operacao: (r.tipo_operacao ?? "COMPRA").toString().slice(0, 10),
-    est_quantidade: formatNumeric(r.quantidade_doses, 8, 2),
-    est_pad2: "",
-    est_valor_unitario: formatNumeric(r.valor_unitario, 8, 2),
-    est_valor_total: formatNumeric(r.valor_total, 9, 2),
-    est_coeficiente: formatNumeric(r.coeficiente, 6, 2),
-    est_data_inclusao: formatDate(r.created_at),
-    est_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    est_hora_alteracao: ctx.generationTime,
-    est_enviar: "True ",
-    est_recno: recno,
-    est_codigo_partida: (r.codigo_partida ?? "").toString().slice(0, 6),
-    est_obs: (r.obs ?? "").toString().slice(0, 35),
-    est_status: (r.status_semen ?? "").toString().slice(0, 4),
-    est_reserva: "",
-  }));
+async function genEstoque(_ctx: ExportContext): Promise<string> {
+  return "";
 }
 
 // =============================================================================
@@ -557,13 +506,14 @@ async function paintTableGenerator<T extends Record<string, unknown>>(
   layoutKey: keyof typeof LAYOUTS,
   table: string,
   mapper: (row: any, recno: number) => Record<string, unknown>,
+  columns?: string,
 ): Promise<string> {
   const layout = LAYOUTS[layoutKey];
   const rows = await selectAll<any>(
     ctx.supa,
     table,
     (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
-    { orderColumn: "id" },
+    { orderColumn: "id", columns },
   );
   const lines: string[] = [];
   let recno = 0;
@@ -697,14 +647,14 @@ async function genDiagnostico(ctx: ExportContext): Promise<string> {
     dgn_fazenda: ctx.config.codigo_fazenda,
     dgn_local_id: r.local_codigo ?? "",
     dgn_grpmanejo_id: r.grupo_manejo_codigo ?? "",
-    dgn_resultado: r.resultado === "P" ? "PRENHA" : "VAZIA",
+    dgn_resultado: r.resultado === "P" ? "P" : "V", // manual campo 008: P ou V
     dgn_obs: (r.obs ?? "").toString().slice(0, 40),
     dgn_data_inclusao: formatDate(r.created_at),
     dgn_data_alteracao: formatDate(r.updated_at ?? r.created_at),
     dgn_hora_alteracao: ctx.generationTime,
     dgn_enviar: "True ",
     dgn_recno: recno,
-  }));
+  }), "safra_codigo,animal_a12,data,local_codigo,grupo_manejo_codigo,resultado,obs,created_at,updated_at");
 }
 
 async function genGrupoManejo(ctx: ExportContext): Promise<string> {
@@ -743,14 +693,26 @@ async function genLocalidade(ctx: ExportContext): Promise<string> {
     lde_id: r.codigo,
     lde_descri: (r.descricao ?? "").toString().slice(0, 20),
     lde_fazenda: ctx.config.codigo_fazenda,
-    lde_tipo: "",
-    lde_obs: (r.obs ?? "").toString().slice(0, 40),
+    lde_tipo: "", // manual campo 005: exportar em branco
+    // Coordenadas para avaliação genética (call Juliana). O layout não tem
+    // campos dedicados, então gravamos lat/long em lde_obs quando informados.
+    lde_obs: localidadeObs(r),
     lde_data_inclusao: formatDate(r.created_at),
     lde_data_alteracao: formatDate(r.updated_at ?? r.created_at),
     lde_hora_alteracao: ctx.generationTime,
     lde_enviar: "True ",
     lde_recno: recno,
   }));
+}
+
+function localidadeObs(r: any): string {
+  const lat = r.latitude;
+  const lng = r.longitude;
+  if (lat != null && lng != null) {
+    const geo = `LAT:${Number(lat).toFixed(6)} LNG:${Number(lng).toFixed(6)}`;
+    return geo.slice(0, 40);
+  }
+  return (r.obs ?? "").toString().slice(0, 40);
 }
 
 async function genRegimeAlimentar(ctx: ExportContext): Promise<string> {
@@ -862,7 +824,7 @@ async function genPesagem(ctx: ExportContext): Promise<string> {
       pes_hora_alteracao: ctx.generationTime,
       pes_enviar: "True ",
       pes_recno: recno,
-      pes_safra_id: derivaSafra(r.data_pesagem ?? r.data),
+      pes_safra_id: derivaSafraCodigo(r.data_pesagem ?? r.data),
       pes_frame: "",
     }));
   }
@@ -892,9 +854,13 @@ async function genRaca(ctx: ExportContext): Promise<string> {
       rac_gestacao_max: formatNumeric(r.gestacao_max ?? 0, 8, 2),
       rac_gestacao_med: formatNumeric(r.gestacao_med ?? 0, 8, 2),
       rac_gestacao_min: formatNumeric(r.gestacao_min ?? 0, 8, 2),
-      rac_extra1: formatNumeric(0, 8, 2),
-      rac_extra2: formatNumeric(0, 8, 2),
-      rac_extra3: formatNumeric(300, 8, 2),
+      // Manual §9: os números após a gestação são peso de nascimento médio de
+      // fêmea (extra1) e macho (extra2) e idade mínima da novilha para entrar
+      // em reprodução (extra3). Não relevante p/ avaliação (call PAINT); valores
+      // padrão até o PAINT fornecer a tabela por raça.
+      rac_extra1: formatNumeric(r.peso_nasc_femea ?? 0, 8, 2),
+      rac_extra2: formatNumeric(r.peso_nasc_macho ?? 0, 8, 2),
+      rac_extra3: formatNumeric(r.idade_min_novilha ?? 300, 8, 2),
       rac_pad: "",
       rac_data_inclusao: formatDate(r.created_at ?? "2005-04-27"),
       rac_data_alteracao: formatDate(r.updated_at ?? "2005-04-27"),

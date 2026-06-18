@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'pg_paint_model.dart';
 export 'pg_paint_model.dart';
 
@@ -33,6 +34,10 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   String? _ultimaPropriedadeId;
   Timer? _exportStatusTimer;
+  Timer? _exportUiTimer;
+
+  static const Duration _exportPollInterval = Duration(seconds: 8);
+  static const Duration _exportStuckAfter = Duration(minutes: 12);
 
   @override
   void initState() {
@@ -45,6 +50,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     _model.serieFazendaController = TextEditingController();
     _model.codFazendaFocus = FocusNode();
     _model.codFazendaController = TextEditingController();
+    _model.serieRacaPoFocus = FocusNode();
+    _model.serieRacaPoController = TextEditingController();
 
     // Alinha com o primeiro build para não disparar reload duplicado.
     _ultimaPropriedadeId = FFAppState().propriedadeSelecionada.idPropriedade;
@@ -67,6 +74,104 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     super.dispose();
   }
 
+  int _elapsedExportSeconds() {
+    final started = _model.exportStartedAt;
+    if (started == null) return 0;
+    return DateTime.now()
+        .toUtc()
+        .difference(started.toUtc())
+        .inSeconds
+        .clamp(0, 35999);
+  }
+
+  String _formatDurationClock(int totalSeconds) {
+    final seconds = totalSeconds.clamp(0, 35999);
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  String _formatElapsedExport() => _formatDurationClock(_elapsedExportSeconds());
+
+  /// Heurística calibrada para propriedades grandes (~10k animais ≈ 5 min).
+  int _estimarSegundosExportHeuristica() {
+    final comp = _count('paint_composicao_racial');
+    final desm = _count('paint_avaliacao_desmama');
+    final diag = _count('paint_diagnostico');
+    final sob = _count('paint_avaliacao_sobreano');
+    final seconds =
+        60 + comp ~/ 200 + desm ~/ 40 + diag ~/ 50 + sob ~/ 50;
+    return seconds.clamp(120, 600);
+  }
+
+  int _exportEstimatedSecondsEffective() {
+    final base =
+        _model.exportEstimatedSeconds ?? _estimarSegundosExportHeuristica();
+    final elapsed = _elapsedExportSeconds();
+    if (elapsed > base) return (elapsed * 1.2).round().clamp(base, 900);
+    return base;
+  }
+
+  String _formatEstimatedExport() =>
+      '~${_formatDurationClock(_exportEstimatedSecondsEffective())}';
+
+  String _formatProgressExportLabel() =>
+      '${_formatElapsedExport()} / ${_formatEstimatedExport()}';
+
+  double _progressExportFraction() {
+    final est = _exportEstimatedSecondsEffective();
+    if (est <= 0) return 0;
+    return (_elapsedExportSeconds() / est).clamp(0.0, 0.98);
+  }
+
+  bool _exportPassouDoEstimado() {
+    final base =
+        _model.exportEstimatedSeconds ?? _estimarSegundosExportHeuristica();
+    return _elapsedExportSeconds() > base;
+  }
+
+  Future<void> _carregarEstimativaExport(String propId) async {
+    try {
+      final rows = await SupaFlow.client
+          .from('paint_export_job')
+          .select('started_at,finished_at')
+          .eq('id_propriedade', propId)
+          .eq('status', 'success')
+          .order('finished_at', ascending: false)
+          .limit(3);
+      for (final raw in rows) {
+        final r = Map<String, dynamic>.from(raw as Map);
+        final started = _parseDateTime(r['started_at']);
+        final finished = _parseDateTime(r['finished_at']);
+        if (started == null || finished == null) continue;
+        final dur = finished.difference(started).inSeconds;
+        if (dur >= 45 && dur <= 900) {
+          _model.exportEstimatedSeconds = dur;
+          return;
+        }
+      }
+    } catch (_) {
+      // Mantém heurística abaixo.
+    }
+    _model.exportEstimatedSeconds = _estimarSegundosExportHeuristica();
+  }
+
+  void _iniciarTimerExportUi() {
+    _exportUiTimer?.cancel();
+    _exportUiTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted || _model.exportJobStatus != 'running' || _jobExportTravado()) {
+        _pararTimerExportUi();
+        return;
+      }
+      safeSetState(() {});
+    });
+  }
+
+  void _pararTimerExportUi() {
+    _exportUiTimer?.cancel();
+    _exportUiTimer = null;
+  }
+
   String get _idPropriedade =>
       FFAppState().propriedadeSelecionada.idPropriedade;
 
@@ -82,6 +187,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         _model.codTransmissaoController?.clear();
         _model.serieFazendaController?.clear();
         _model.codFazendaController?.clear();
+        _model.serieRacaPoController?.clear();
         _model.programa = 'P';
         _model.estrategiaA12 = 'compacto';
         _model.campoOrigemAnimal = 'numeroAnimal';
@@ -101,6 +207,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       _model.codTransmissaoController?.clear();
       _model.serieFazendaController?.clear();
       _model.codFazendaController?.clear();
+      _model.serieRacaPoController?.clear();
 
       final rows = await SupaFlow.client
           .from('paint_fazenda_config')
@@ -117,6 +224,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
             (r['serie_fazenda'] ?? '').toString();
         _model.codFazendaController?.text =
             (r['codigo_fazenda'] ?? '').toString();
+        _model.serieRacaPoController?.text =
+            (r['serie_raca_po'] ?? '').toString();
         _model.programa = 'P';
         _model.estrategiaA12 = (r['estrategia_a12'] ?? 'compacto').toString();
         _model.campoOrigemAnimal =
@@ -144,6 +253,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     final codTx = _model.codTransmissaoController?.text.trim() ?? '';
     final serie = _model.serieFazendaController?.text.trim() ?? '';
     final codFz = _model.codFazendaController?.text.trim() ?? '';
+    final serieRacaPo = _model.serieRacaPoController?.text.trim() ?? '';
 
     if (!RegExp(r'^[0-9]{6}$').hasMatch(codTx)) {
       safeSetState(() => _model.mensagemConfig =
@@ -171,6 +281,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         'codigo_transmissao': codTx,
         'serie_fazenda': serie,
         'codigo_fazenda': codFz,
+        'serie_raca_po': serieRacaPo.isEmpty ? null : serieRacaPo,
         'programa': _model.programa,
         'estrategia_a12': _model.estrategiaA12,
         'campo_origem_animal': _model.campoOrigemAnimal,
@@ -209,6 +320,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     _model.exportStoragePath = null;
     _model.exportStartedAt = null;
     _model.exportFinishedAt = null;
+    _model.exportEstimatedSeconds = null;
   }
 
   DateTime? _parseDateTime(dynamic value) {
@@ -220,19 +332,45 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     if (_model.exportJobStatus != 'running') return false;
     final started = _model.exportStartedAt;
     if (started == null) return false;
-    return DateTime.now().toUtc().difference(started.toUtc()) >
-        const Duration(minutes: 5);
+    return DateTime.now().toUtc().difference(started.toUtc()) > _exportStuckAfter;
+  }
+
+  Future<void> _marcarExportacaoTravadaComoErro() async {
+    final jobId = _model.exportJobId;
+    if (jobId == null || _model.exportJobStatus != 'running') return;
+    try {
+      await SupaFlow.client
+          .from('paint_export_job')
+          .update({
+            'status': 'error',
+            'erro':
+                'Exportação cancelada: tempo máximo excedido sem conclusão no servidor.',
+            'finished_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', jobId)
+          .eq('status', 'running');
+    } catch (_) {
+      // Ignora — o backend pode já ter marcado como erro.
+    }
+  }
+
+  Future<void> _cancelarExportacaoTravadaERecarregar() async {
+    await _marcarExportacaoTravadaComoErro();
+    _pararAcompanhamentoExport();
+    await _carregarUltimoJobExport();
   }
 
   void _pararAcompanhamentoExport() {
     _exportStatusTimer?.cancel();
     _exportStatusTimer = null;
+    _pararTimerExportUi();
   }
 
   void _iniciarAcompanhamentoExport(String propId) {
     _pararAcompanhamentoExport();
+    _iniciarTimerExportUi();
     _exportStatusTimer =
-        Timer.periodic(const Duration(seconds: 3), (_) async {
+        Timer.periodic(_exportPollInterval, (_) async {
       if (!_aindaMesmaPropriedade(propId)) {
         _pararAcompanhamentoExport();
         return;
@@ -268,6 +406,19 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       final status = job['status']?.toString();
       final storagePath = job['storage_path']?.toString() ?? '';
       final nomeZip = job['nome_zip']?.toString() ?? 'paint-export.zip';
+      _model.exportJobId = job['id']?.toString();
+      _model.exportJobStatus = status;
+      _model.exportStartedAt = _parseDateTime(job['started_at']);
+      if (status == 'running' && _jobExportTravado()) {
+        await _marcarExportacaoTravadaComoErro();
+        return _carregarUltimoJobExport(
+          propId: idProp,
+          baixarQuandoConcluir: baixarQuandoConcluir,
+        );
+      }
+      if (status == 'running' && _model.exportEstimatedSeconds == null) {
+        await _carregarEstimativaExport(idProp);
+      }
       safeSetState(() {
         _model.exportJobId = job['id']?.toString();
         _model.exportJobStatus = status;
@@ -280,8 +431,12 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         if (status == 'running') {
           _model.exportando = !_jobExportTravado();
           _model.mensagemExport = _jobExportTravado()
-              ? 'A exportação anterior parece travada. Você pode tentar gerar novamente.'
-              : 'Exportação em andamento. A tela vai baixar o ZIP automaticamente quando concluir.';
+              ? 'A exportação excedeu o tempo esperado no servidor. Use "Cancelar e tentar novamente" abaixo.'
+              : 'Gerando ZIP no servidor (${_formatProgressExportLabel()}). '
+                  'Pode levar alguns minutos em propriedades grandes.';
+          if (!_jobExportTravado() && _exportUiTimer == null) {
+            _iniciarTimerExportUi();
+          }
         } else if (status == 'error') {
           _model.exportando = false;
           _model.mensagemExport =
@@ -330,21 +485,30 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
 
     safeSetState(() => _model.baixandoExport = true);
     try {
-      final url = signedUrl?.isNotEmpty == true
+      // O ZIP tem ~15MB. Gerar a URL assinada com retry (o gateway do storage
+      // às vezes responde 504 transitório) e baixar direto pelo navegador,
+      // sem puxar o arquivo inteiro pela memória do app.
+      final baseUrl = signedUrl?.isNotEmpty == true
           ? signedUrl!
-          : await SupaFlow.client.storage
-              .from('paint-exports')
-              .createSignedUrl(storagePath, 3600);
-      final zipResp = await http.get(Uri.parse(url));
-      if (zipResp.statusCode != 200) {
-        throw Exception('HTTP ${zipResp.statusCode}');
+          : await _criarUrlAssinadaComRetry(storagePath);
+      // Força Content-Disposition: attachment com o nome correto.
+      final sep = baseUrl.contains('?') ? '&' : '?';
+      final urlDownload = '$baseUrl${sep}download=${Uri.encodeComponent(nomeZip)}';
+
+      final aberto = await _baixarPorNavegador(urlDownload);
+      if (!aberto) {
+        // Fallback: baixa os bytes e usa o helper de download do app.
+        final zipResp = await http.get(Uri.parse(urlDownload));
+        if (zipResp.statusCode != 200) {
+          throw Exception('HTTP ${zipResp.statusCode}');
+        }
+        await download(Stream.fromIterable(zipResp.bodyBytes), nomeZip);
       }
-      await download(Stream.fromIterable(zipResp.bodyBytes), nomeZip);
       if (!mounted) return;
       safeSetState(() {
         _model.exportando = false;
         _model.baixandoExport = false;
-        _model.linkUltimoZip = null;
+        _model.linkUltimoZip = baseUrl;
         _model.mensagemExport = 'Exportação concluída e baixada: $nomeZip';
       });
     } catch (e) {
@@ -354,14 +518,44 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         _model.baixandoExport = false;
         _model.linkUltimoZip = signedUrl;
         _model.mensagemExport =
-            'Exportação concluída, mas falha ao baixar automaticamente: $e';
+            'Exportação concluída. Se o download não iniciar, toque em '
+            '"Baixar último ZIP gerado". (detalhe: $e)';
       });
+    }
+  }
+
+  Future<String> _criarUrlAssinadaComRetry(String storagePath) async {
+    Object? ultimoErro;
+    for (var tentativa = 1; tentativa <= 3; tentativa++) {
+      try {
+        return await SupaFlow.client.storage
+            .from('paint-exports')
+            .createSignedUrl(storagePath, 3600);
+      } catch (e) {
+        ultimoErro = e;
+        if (tentativa < 3) {
+          await Future.delayed(Duration(milliseconds: 600 * tentativa));
+        }
+      }
+    }
+    throw Exception('Não foi possível gerar o link do ZIP: $ultimoErro');
+  }
+
+  Future<bool> _baixarPorNavegador(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (!await canLaunchUrl(uri)) return false;
+      return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      return false;
     }
   }
 
   Future<void> _gerarExport() async {
     if (_idPropriedade.isEmpty) return;
     final propId = _idPropriedade;
+    _model.exportEstimatedSeconds = null;
+    await _carregarEstimativaExport(propId);
     safeSetState(() {
       _model.exportando = true;
       _model.baixandoExport = false;
@@ -500,7 +694,13 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       _model.mensagemAuto = null;
     });
     try {
-      final r = await paint_actions.autoPreencherPaint(propId);
+      final r = await paint_actions.autoPreencherPaint(
+        propId,
+        dataNascimentoDe: _model.importNascDe,
+        dataNascimentoAte: _model.importNascAte,
+        dataAvaliacaoDe: _model.importAvDe,
+        dataAvaliacaoAte: _model.importAvAte,
+      );
       if (!_aindaMesmaPropriedade(propId)) {
         safeSetState(() => _model.importandoAuto = false);
         return;
@@ -531,15 +731,17 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         if ((r['diagnosticos'] ?? 0) > 0) '${r['diagnosticos']} diagnósticos',
       ];
       final falhas = (r['falhas'] as List?)?.cast<String>() ?? const [];
-      final msg = falhas.isEmpty
-          ? (novos.isEmpty
-              ? '✓ Nenhum novo registro — tudo já estava preenchido.'
-              : '✓ Importado: ${novos.join(', ')}.')
-          : (novos.isEmpty
-              ? '⚠ Importação concluída com alertas. Nenhum novo registro foi criado.\n'
-                  '${falhas.length} etapa(s) precisam de atenção:\n• ${falhas.join('\n• ')}'
-              : '⚠ Importação parcialmente concluída. Importado: ${novos.join(', ')}.\n'
-                  '${falhas.length} etapa(s) precisam de atenção:\n• ${falhas.join('\n• ')}');
+      final prefixoFiltro = _descricaoFiltroImport();
+      final msg = prefixoFiltro +
+          (falhas.isEmpty
+              ? (novos.isEmpty
+                  ? '✓ Nenhum novo registro — tudo já estava preenchido.'
+                  : '✓ Importado: ${novos.join(', ')}.')
+              : (novos.isEmpty
+                  ? '⚠ Importação concluída com alertas. Nenhum novo registro foi criado.\n'
+                      '${falhas.length} etapa(s) precisam de atenção:\n• ${falhas.join('\n• ')}'
+                  : '⚠ Importação parcialmente concluída. Importado: ${novos.join(', ')}.\n'
+                      '${falhas.length} etapa(s) precisam de atenção:\n• ${falhas.join('\n• ')}'));
       if (!_aindaMesmaPropriedade(propId)) {
         safeSetState(() => _model.importandoAuto = false);
         return;
@@ -559,6 +761,25 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         _model.mensagemAuto = '⚠ Erro: $e';
       });
     }
+  }
+
+  /// Prefixo de mensagem indicando os filtros de data ativos na importação.
+  String _descricaoFiltroImport() {
+    String? intervalo(DateTime? de, DateTime? ate) {
+      if (de == null && ate == null) return null;
+      final ini = de != null ? dateTimeFormat('dd/MM/yyyy', de) : '…';
+      final fim = ate != null ? dateTimeFormat('dd/MM/yyyy', ate) : '…';
+      return '$ini a $fim';
+    }
+
+    final nasc = intervalo(_model.importNascDe, _model.importNascAte);
+    final aval = intervalo(_model.importAvDe, _model.importAvAte);
+    if (nasc == null && aval == null) return '';
+    final partes = [
+      if (nasc != null) 'nasc.: $nasc',
+      if (aval != null) 'aval.: $aval',
+    ];
+    return 'Filtros aplicados (${partes.join(' / ')}).\n';
   }
 
   int _count(String tabela) => _model.counts[tabela] ?? 0;
@@ -865,6 +1086,16 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                       maxLength: 4,
                       digitsOnly: true,
                     ),
+                    _campoTexto(
+                      label: 'Série registro PO (ex.: JLK)',
+                      controller: _model.serieRacaPoController,
+                      focus: _model.serieRacaPoFocus,
+                      width: 320,
+                      maxLength: 4,
+                      helperText:
+                          'Opcional se o brinco/registro já traz a sigla (ex.: JLK4705). '
+                          'Usado como fallback quando o animal PO não tem sigla no cadastro.',
+                    ),
                     SizedBox(
                       width: 120,
                       child: TextFormField(
@@ -990,6 +1221,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     double width = 260,
     int? maxLength,
     bool digitsOnly = false,
+    String? helperText,
   }) {
     return SizedBox(
       width: width,
@@ -1002,6 +1234,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
             digitsOnly ? [FilteringTextInputFormatter.digitsOnly] : null,
         decoration: InputDecoration(
           labelText: label,
+          helperText: helperText,
+          helperMaxLines: 3,
           counterText: '',
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
@@ -1009,6 +1243,240 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         ),
         onChanged: (_) => safeSetState(() {}),
       ),
+    );
+  }
+
+  Widget _campoData({
+    required String label,
+    required DateTime? valor,
+    required ValueChanged<DateTime?> onChanged,
+    double width = 180,
+  }) {
+    final theme = FlutterFlowTheme.of(context);
+    return SizedBox(
+      width: width,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () async {
+          final picked = await showDatePicker(
+            context: context,
+            initialDate: valor ?? DateTime.now(),
+            firstDate: DateTime(1990),
+            lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+          );
+          if (picked != null) onChanged(picked);
+        },
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: label,
+            isDense: true,
+            suffixIcon: valor != null
+                ? IconButton(
+                    icon: const Icon(Icons.clear, size: 16),
+                    splashRadius: 16,
+                    onPressed: () => onChanged(null),
+                  )
+                : const Icon(Icons.calendar_today, size: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(
+            valor != null
+                ? dateTimeFormat('dd/MM/yyyy', valor)
+                : 'dd/mm/aaaa',
+            style: valor != null
+                ? theme.bodyMedium
+                : theme.bodyMedium.override(
+                    fontFamily: 'Readex Pro',
+                    color: theme.secondaryText,
+                    useGoogleFonts:
+                        GoogleFonts.asMap().containsKey('Readex Pro'),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  int _contaFiltros(DateTime? a, DateTime? b, DateTime? c, DateTime? d) {
+    var n = 0;
+    if (a != null) n++;
+    if (b != null) n++;
+    if (c != null) n++;
+    if (d != null) n++;
+    return n;
+  }
+
+  /// Botão que abre o modal de filtros, destacado quando há filtros ativos.
+  Widget _botaoFiltro({
+    required int ativos,
+    required VoidCallback? onPressed,
+    String textoBase = 'Filtros',
+  }) {
+    final theme = FlutterFlowTheme.of(context);
+    final ativo = ativos > 0;
+    return FFButtonWidget(
+      onPressed: onPressed,
+      text: ativo ? '$textoBase ($ativos)' : textoBase,
+      icon: Icon(
+        ativo ? Icons.filter_alt : Icons.filter_alt_outlined,
+        size: 16,
+        color: ativo ? Colors.white : theme.primary,
+      ),
+      options: FFButtonOptions(
+        height: 36,
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
+        color: ativo ? theme.primary : theme.secondaryBackground,
+        textStyle: theme.bodySmall.override(
+          fontFamily: 'Readex Pro',
+          color: ativo ? Colors.white : theme.primary,
+          useGoogleFonts: GoogleFonts.asMap().containsKey('Readex Pro'),
+        ),
+        elevation: 0,
+        borderSide: BorderSide(color: theme.primary),
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
+
+  /// Abre um modal com os filtros opcionais por data (nascimento + avaliação).
+  /// Mantém estado temporário e só aplica ao confirmar.
+  Future<void> _abrirFiltroDatas({
+    required String titulo,
+    required DateTime? nascDe,
+    required DateTime? nascAte,
+    required DateTime? avDe,
+    required DateTime? avAte,
+    required void Function(
+            DateTime? nascDe, DateTime? nascAte, DateTime? avDe, DateTime? avAte)
+        onAplicar,
+    bool incluiAvaliacao = true,
+  }) async {
+    final theme = FlutterFlowTheme.of(context);
+    DateTime? tNascDe = nascDe;
+    DateTime? tNascAte = nascAte;
+    DateTime? tAvDe = avDe;
+    DateTime? tAvAte = avAte;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setLocal) {
+            return Dialog(
+              insetPadding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Container(
+                width: 460,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.filter_alt, color: theme.primary, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(titulo, style: theme.titleMedium),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 20),
+                          splashRadius: 18,
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Em branco considera todos os registros.',
+                      style: theme.bodySmall.override(
+                        fontFamily: 'Readex Pro',
+                        color: theme.secondaryText,
+                        useGoogleFonts:
+                            GoogleFonts.asMap().containsKey('Readex Pro'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        _campoData(
+                          label: 'Nascimento de',
+                          valor: tNascDe,
+                          onChanged: (d) => setLocal(() => tNascDe = d),
+                        ),
+                        _campoData(
+                          label: 'Nascimento até',
+                          valor: tNascAte,
+                          onChanged: (d) => setLocal(() => tNascAte = d),
+                        ),
+                        if (incluiAvaliacao) ...[
+                          _campoData(
+                            label: 'Avaliação de',
+                            valor: tAvDe,
+                            onChanged: (d) => setLocal(() => tAvDe = d),
+                          ),
+                          _campoData(
+                            label: 'Avaliação até',
+                            valor: tAvAte,
+                            onChanged: (d) => setLocal(() => tAvAte = d),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () => setLocal(() {
+                            tNascDe = null;
+                            tNascAte = null;
+                            tAvDe = null;
+                            tAvAte = null;
+                          }),
+                          icon: const Icon(Icons.clear_all, size: 16),
+                          label: const Text('Limpar'),
+                          style: TextButton.styleFrom(
+                              foregroundColor: theme.primary),
+                        ),
+                        FFButtonWidget(
+                          onPressed: () {
+                            onAplicar(tNascDe, tNascAte, tAvDe, tAvAte);
+                            Navigator.of(dialogContext).pop();
+                          },
+                          text: 'Aplicar',
+                          options: FFButtonOptions(
+                            width: 120,
+                            height: 40,
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                20, 0, 20, 0),
+                            color: theme.primary,
+                            textStyle: theme.titleSmall.override(
+                              fontFamily: 'Readex Pro',
+                              color: Colors.white,
+                              useGoogleFonts:
+                                  GoogleFonts.asMap().containsKey('Readex Pro'),
+                            ),
+                            elevation: 0,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -1052,10 +1520,58 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                       'automaticamente.',
                 ),
                 const SizedBox(height: 16),
+                Text(
+                  'Importar do sistema',
+                  style: theme.labelMedium.override(
+                    fontFamily: 'Readex Pro',
+                    fontWeight: FontWeight.w600,
+                    useGoogleFonts:
+                        GoogleFonts.asMap().containsKey('Readex Pro'),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Deriva cadastros e avaliações a partir do rebanho, reprodução '
+                  'e pesagens. Os filtros por data limitam só as avaliações '
+                  '(desmama, sobreano, RAH etc.); cadastros de apoio entram '
+                  'sempre.',
+                  style: theme.bodySmall.override(
+                    fontFamily: 'Readex Pro',
+                    color: theme.secondaryText,
+                    useGoogleFonts:
+                        GoogleFonts.asMap().containsKey('Readex Pro'),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
+                    _botaoFiltro(
+                      textoBase: 'Filtros importação',
+                      ativos: _contaFiltros(
+                        _model.importNascDe,
+                        _model.importNascAte,
+                        _model.importAvDe,
+                        _model.importAvAte,
+                      ),
+                      onPressed: !cfgOk
+                          ? null
+                          : () => _abrirFiltroDatas(
+                                titulo: 'Filtros — Importar tudo do sistema',
+                                nascDe: _model.importNascDe,
+                                nascAte: _model.importNascAte,
+                                avDe: _model.importAvDe,
+                                avAte: _model.importAvAte,
+                                onAplicar: (nd, na, ad, aa) => safeSetState(() {
+                                  _model.importNascDe = nd;
+                                  _model.importNascAte = na;
+                                  _model.importAvDe = ad;
+                                  _model.importAvAte = aa;
+                                }),
+                              ),
+                    ),
                     FFButtonWidget(
                       onPressed: (_model.importandoAuto || !cfgOk)
                           ? null
@@ -1080,38 +1596,60 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    FFButtonWidget(
-                      onPressed: (_model.exportando ||
-                              _model.baixandoExport ||
-                              !cfgOk)
-                          ? null
-                          : _gerarExport,
-                      text: _model.baixandoExport
-                          ? 'Baixando…'
-                          : (_model.exportando
-                              ? 'Gerando…'
-                              : 'Gerar EXPORTACAO DADOS'),
-                      icon: const Icon(
-                        Icons.download,
-                        size: 18,
-                        color: Colors.white,
-                      ),
-                      options: FFButtonOptions(
-                        height: 44,
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(24, 0, 24, 0),
-                        color: theme.primary,
-                        textStyle: theme.titleSmall.override(
-                          fontFamily: 'Readex Pro',
-                          color: Colors.white,
-                          useGoogleFonts:
-                              GoogleFonts.asMap().containsKey('Readex Pro'),
-                        ),
-                        elevation: 0,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
                   ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Exportar para PAINT',
+                  style: theme.labelMedium.override(
+                    fontFamily: 'Readex Pro',
+                    fontWeight: FontWeight.w600,
+                    useGoogleFonts:
+                        GoogleFonts.asMap().containsKey('Readex Pro'),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Gera o ZIP com todos os dados já cadastrados nesta propriedade '
+                  '(sem filtros de data).',
+                  style: theme.bodySmall.override(
+                    fontFamily: 'Readex Pro',
+                    color: theme.secondaryText,
+                    useGoogleFonts:
+                        GoogleFonts.asMap().containsKey('Readex Pro'),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                FFButtonWidget(
+                  onPressed: (_model.exportando ||
+                          _model.baixandoExport ||
+                          !cfgOk)
+                      ? null
+                      : _gerarExport,
+                  text: _model.baixandoExport
+                      ? 'Baixando…'
+                      : (_model.exportando
+                          ? 'Gerando… ${_formatProgressExportLabel()}'
+                          : 'Gerar EXPORTACAO DADOS'),
+                  icon: const Icon(
+                    Icons.download,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                  options: FFButtonOptions(
+                    height: 44,
+                    padding:
+                        const EdgeInsetsDirectional.fromSTEB(24, 0, 24, 0),
+                    color: theme.primary,
+                    textStyle: theme.titleSmall.override(
+                      fontFamily: 'Readex Pro',
+                      color: Colors.white,
+                      useGoogleFonts:
+                          GoogleFonts.asMap().containsKey('Readex Pro'),
+                    ),
+                    elevation: 0,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 if (_model.mensagemAuto != null) ...[
                   const SizedBox(height: 12),
@@ -1128,25 +1666,147 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                   ),
                 ],
                 if (_model.exportJobStatus == 'running' &&
-                    !_jobExportTravado()) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: theme.primary,
+                    _jobExportTravado()) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: theme.error.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: theme.error.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Exportação sem resposta do servidor',
+                          style: theme.bodyMedium.override(
+                            fontFamily: 'Readex Pro',
+                            fontWeight: FontWeight.w600,
+                            color: theme.error,
+                            useGoogleFonts:
+                                GoogleFonts.asMap().containsKey('Readex Pro'),
+                          ),
                         ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Decorridos ${_formatElapsedExport()} sem conclusão. '
+                          'O worker do servidor pode ter sido interrompido — '
+                          'isso não gera o ZIP automaticamente.',
+                          style: theme.bodySmall.override(
+                            fontFamily: 'Readex Pro',
+                            color: theme.secondaryText,
+                            useGoogleFonts:
+                                GoogleFonts.asMap().containsKey('Readex Pro'),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        FFButtonWidget(
+                          onPressed: _cancelarExportacaoTravadaERecarregar,
+                          text: 'Cancelar e tentar novamente',
+                          icon: const Icon(Icons.refresh, size: 16),
+                          options: FFButtonOptions(
+                            height: 36,
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                14, 0, 14, 0),
+                            color: theme.error,
+                            textStyle: theme.bodyMedium.override(
+                              fontFamily: 'Readex Pro',
+                              color: Colors.white,
+                              useGoogleFonts: GoogleFonts.asMap()
+                                  .containsKey('Readex Pro'),
+                            ),
+                            elevation: 0,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (_model.exportJobStatus == 'running' &&
+                    !_jobExportTravado()) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: theme.primary.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: theme.primary.withValues(alpha: 0.22),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Acompanhando status automaticamente...',
-                        style: theme.bodySmall,
-                      ),
-                    ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: theme.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Exportação em andamento',
+                                    style: theme.bodyMedium.override(
+                                      fontFamily: 'Readex Pro',
+                                      fontWeight: FontWeight.w600,
+                                      useGoogleFonts: GoogleFonts.asMap()
+                                          .containsKey('Readex Pro'),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Tempo: ${_formatProgressExportLabel()}'
+                                    '${_exportPassouDoEstimado() ? ' (estimativa em revisão)' : ''}',
+                                    style: theme.bodySmall.override(
+                                      fontFamily: 'Readex Pro',
+                                      color: theme.secondaryText,
+                                      useGoogleFonts: GoogleFonts.asMap()
+                                          .containsKey('Readex Pro'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            minHeight: 4,
+                            value: _progressExportFraction(),
+                            backgroundColor:
+                                theme.primary.withValues(alpha: 0.12),
+                            color: theme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'A geração continua no servidor mesmo se você sair desta '
+                          'tela. Ao voltar ao módulo PAINT, o status é atualizado '
+                          'e o ZIP baixa automaticamente quando concluir.',
+                          style: theme.bodySmall.override(
+                            fontFamily: 'Readex Pro',
+                            color: theme.secondaryText,
+                            useGoogleFonts:
+                                GoogleFonts.asMap().containsKey('Readex Pro'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
                 if (_model.exportJobStatus == 'success' &&
@@ -1225,17 +1885,29 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       _model.mensagemExcel = null;
       _model.tipoExcelAtivo = tipo;
     });
+    final preenchido = modo == 'preenchido';
+    final temFiltro = _model.excelNascDe[tipo] != null ||
+        _model.excelNascAte[tipo] != null ||
+        (preenchido &&
+            (_model.excelAvDe[tipo] != null ||
+                _model.excelAvAte[tipo] != null));
     try {
       final ok = await paint_actions.exportPaintAvaliacaoExcel(
         _idPropriedade,
         tipo,
         modo,
+        dataNascimentoDe: _model.excelNascDe[tipo],
+        dataNascimentoAte: _model.excelNascAte[tipo],
+        dataAvaliacaoDe: preenchido ? _model.excelAvDe[tipo] : null,
+        dataAvaliacaoAte: preenchido ? _model.excelAvAte[tipo] : null,
       );
       safeSetState(() {
         _model.exportandoExcel = false;
         _model.mensagemExcel = ok
             ? '✓ Planilha $tipo ($modo) baixada.'
-            : '⚠ Nenhum animal elegível encontrado para gerar a planilha $tipo ou configuração PAINT incompleta.';
+            : (temFiltro
+                ? '⚠ Nenhum animal no intervalo de datas selecionado para a planilha $tipo.'
+                : '⚠ Nenhum animal elegível encontrado para gerar a planilha $tipo ou configuração PAINT incompleta.');
       });
     } catch (e) {
       safeSetState(() {
@@ -1324,6 +1996,30 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
+                      _botaoFiltro(
+                        ativos: _contaFiltros(
+                          _model.excelNascDe[tipo],
+                          _model.excelNascAte[tipo],
+                          _model.excelAvDe[tipo],
+                          _model.excelAvAte[tipo],
+                        ),
+                        onPressed: busy
+                            ? null
+                            : () => _abrirFiltroDatas(
+                                  titulo: 'Filtros — $label',
+                                  nascDe: _model.excelNascDe[tipo],
+                                  nascAte: _model.excelNascAte[tipo],
+                                  avDe: _model.excelAvDe[tipo],
+                                  avAte: _model.excelAvAte[tipo],
+                                  onAplicar: (nd, na, ad, aa) =>
+                                      safeSetState(() {
+                                    _model.excelNascDe[tipo] = nd;
+                                    _model.excelNascAte[tipo] = na;
+                                    _model.excelAvDe[tipo] = ad;
+                                    _model.excelAvAte[tipo] = aa;
+                                  }),
+                                ),
+                      ),
                       FFButtonWidget(
                         onPressed:
                             busy ? null : () => _exportarExcel(tipo, 'vazio'),

@@ -2,10 +2,12 @@
 
 import '/backend/supabase/supabase.dart';
 import 'paint_helpers.dart';
+import 'paint_mappers.dart' show resolveSerieA12;
 
 class PaintConfigExcel {
   final String codigoTransmissao;
   final String serieFazenda;
+  final String? serieRacaPo;
   final String codigoFazenda;
   final String programa;
   final PaintEstrategiaA12 estrategia;
@@ -14,6 +16,7 @@ class PaintConfigExcel {
   const PaintConfigExcel({
     required this.codigoTransmissao,
     required this.serieFazenda,
+    this.serieRacaPo,
     required this.codigoFazenda,
     this.programa = 'P',
     this.estrategia = PaintEstrategiaA12.compacto,
@@ -34,10 +37,22 @@ Future<PaintConfigExcel?> loadPaintConfig(String idPropriedade) async {
   return PaintConfigExcel(
     codigoTransmissao: (r['codigo_transmissao'] ?? '').toString(),
     serieFazenda: serie,
+    serieRacaPo: (r['serie_raca_po'] ?? '').toString().trim().isEmpty
+        ? null
+        : (r['serie_raca_po']).toString().trim(),
     codigoFazenda: (r['codigo_fazenda'] ?? '0001').toString(),
     programa: (r['programa'] ?? 'P').toString(),
     estrategia: parseEstrategiaA12(r['estrategia_a12']?.toString()),
     campoOrigemAnimal: (r['campo_origem_animal'] ?? 'numeroAnimal').toString(),
+  );
+}
+
+// Série usada no A12 (mesma regra de paint_mappers.resolveSerieA12).
+String serieA12Excel(Map<String, dynamic> r, PaintConfigExcel cfg) {
+  return resolveSerieA12(
+    r,
+    serieFazenda: cfg.serieFazenda,
+    serieRacaPo: cfg.serieRacaPo,
   );
 }
 
@@ -55,7 +70,10 @@ String animalIdFromRebanho(Map<String, dynamic> r, PaintConfigExcel cfg) {
 }
 
 String a12FromRebanho(Map<String, dynamic> r, PaintConfigExcel cfg) {
-  final id = animalIdFromRebanho(r, cfg);
+  final idRaw = animalIdFromRebanho(r, cfg);
+  // Sigla do registro (ex.: JLK) não entra na numeração — usa só os dígitos.
+  final digits = idRaw.replaceAll(RegExp(r'\D'), '');
+  final id = digits.isNotEmpty ? digits : idRaw;
   final nasc = r['dataNascimento'];
   DateTime? d;
   if (nasc is String && nasc.isNotEmpty) {
@@ -66,7 +84,7 @@ String a12FromRebanho(Map<String, dynamic> r, PaintConfigExcel cfg) {
   if (id.isEmpty || d == null) return '';
   return formatA12(
     programa: cfg.programa,
-    serieFazenda: cfg.serieFazenda,
+    serieFazenda: serieA12Excel(r, cfg),
     animal: id,
     ano: d.year,
     estrategia: cfg.estrategia,
@@ -260,6 +278,24 @@ String? parseDateIso(dynamic v) {
         .substring(0, 10);
   }
   return null;
+}
+
+/// Verifica se uma data ISO (string) está dentro do intervalo [de, ate].
+/// Intervalo aberto quando ambos os limites são nulos (sempre dentro).
+/// Usado pelos filtros opcionais de import/export PAINT.
+bool dentroIntervaloData(String? iso, DateTime? de, DateTime? ate) {
+  if (de == null && ate == null) return true;
+  if (iso == null || iso.isEmpty) return false;
+  final d = DateTime.tryParse(iso);
+  if (d == null) return false;
+  if (de != null && d.isBefore(DateTime(de.year, de.month, de.day))) {
+    return false;
+  }
+  if (ate != null &&
+      d.isAfter(DateTime(ate.year, ate.month, ate.day, 23, 59, 59))) {
+    return false;
+  }
+  return true;
 }
 
 String sexoMF(dynamic sexo) {

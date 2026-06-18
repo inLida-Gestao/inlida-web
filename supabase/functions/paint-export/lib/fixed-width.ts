@@ -11,6 +11,18 @@ export interface Field {
   fim: number; // 1-based, inclusive
 }
 
+// Detecta surrogate (codepoint > 0xFFFF representado por 2 unidades UTF-16).
+// A largura PAINT é medida em BYTES Windows-1252 e `encodeWin1252` emite 1 byte
+// por codepoint; portanto a contagem/corte de `pad` precisa ser por CODEPOINT,
+// não por unidade UTF-16, senão um emoji no nome encurta a linha em 1 byte.
+function hasSurrogate(s: string): boolean {
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c >= 0xD800 && c <= 0xDBFF) return true;
+  }
+  return false;
+}
+
 // Tipo `C` (caracter): alinha à esquerda, espaço à direita, trunca em fim.
 // Tipo `N` (numérico): alinha à direita, espaço à esquerda.
 // Tipo `D` (data): sempre 10 chars `dd/mm/aaaa`. Vazio = 10 espaços.
@@ -19,30 +31,76 @@ export function pad(value: unknown, field: Field): string {
     return " ".repeat(field.tam);
   }
   const s = String(value);
-  if (field.type === "C") {
-    return s.length >= field.tam
-      ? s.slice(0, field.tam)
-      : s + " ".repeat(field.tam - s.length);
+  if (field.type === "D") {
+    // D mede por codepoint para casar com a contagem de bytes do encoder.
+    return [...s].length === 10 ? s : " ".repeat(10);
   }
-  if (field.type === "N") {
+  // Caminho rápido: sem surrogates, `length` UTF-16 == nº de codepoints.
+  if (!hasSurrogate(s)) {
+    if (field.type === "C") {
+      return s.length >= field.tam
+        ? s.slice(0, field.tam)
+        : s + " ".repeat(field.tam - s.length);
+    }
     return s.length >= field.tam
       ? s.slice(-field.tam)
       : " ".repeat(field.tam - s.length) + s;
   }
-  // D
-  if (s.length === 10) return s;
-  return " ".repeat(10);
+  // Caminho seguro p/ surrogates: opera por codepoint para garantir largura
+  // exata em bytes Windows-1252 (1 codepoint = 1 byte na saída).
+  const chars = [...s];
+  if (field.type === "C") {
+    return chars.length >= field.tam
+      ? chars.slice(0, field.tam).join("")
+      : s + " ".repeat(field.tam - chars.length);
+  }
+  return chars.length >= field.tam
+    ? chars.slice(chars.length - field.tam).join("")
+    : " ".repeat(field.tam - chars.length) + s;
+}
+
+interface LayoutMeta {
+  max: number;
+  // Campos ordenados por posição inicial (layouts PAINT são contíguos, sem
+  // sobreposição) — permite montar a linha por concatenação direta, evitando
+  // alocar um array de chars por linha (chamado ~70k vezes em props grandes).
+  sorted: Field[];
+}
+
+const layoutMetaCache = new WeakMap<Field[], LayoutMeta>();
+const SPACES = " ".repeat(512);
+
+function spaces(n: number): string {
+  return n <= 0 ? "" : (n <= SPACES.length ? SPACES.slice(0, n) : " ".repeat(n));
+}
+
+function layoutMeta(layout: Field[]): LayoutMeta {
+  let meta = layoutMetaCache.get(layout);
+  if (meta === undefined) {
+    let max = 0;
+    for (const f of layout) if (f.fim > max) max = f.fim;
+    const sorted = [...layout].sort((a, b) => a.ini - b.ini);
+    meta = { max, sorted };
+    layoutMetaCache.set(layout, meta);
+  }
+  return meta;
 }
 
 // Garante linha de tamanho exato = max(field.fim) preenchida pelo layout.
+// `pad` sempre devolve exatamente field.tam chars, então basta concatenar os
+// campos em ordem e preencher os intervalos com espaços.
 export function buildLine(layout: Field[], row: Record<string, unknown>): string {
-  const max = Math.max(...layout.map((f) => f.fim));
-  const buf = new Array<string>(max).fill(" ");
-  for (const f of layout) {
-    const padded = pad(row[f.name], f);
-    for (let i = 0; i < f.tam; i++) buf[f.ini - 1 + i] = padded[i] ?? " ";
+  const { max, sorted } = layoutMeta(layout);
+  let out = "";
+  let pos = 0; // próxima coluna esperada (0-based)
+  for (const f of sorted) {
+    const start = f.ini - 1;
+    if (start > pos) out += spaces(start - pos);
+    out += pad(row[f.name], f);
+    pos = start + f.tam;
   }
-  return buf.join("");
+  if (pos < max) out += spaces(max - pos);
+  return out;
 }
 
 export type EstrategiaA12 = "compacto" | "espacado" | "ultimos_digitos_nome";
@@ -135,19 +193,15 @@ const WIN1252_MAP: Record<string, number> = {
 };
 
 export function encodeWin1252(text: string): Uint8Array {
-  const out: number[] = [];
+  // text.length conta unidades UTF-16; cada char latino vira 1 byte. Surrogates
+  // (>0xFFFF) usam 2 unidades mas 1 codepoint → super-dimensiona com segurança.
+  const out = new Uint8Array(text.length);
+  let j = 0;
   for (const ch of text) {
     const code = ch.codePointAt(0)!;
-    if (code <= 0x7F) {
-      out.push(code);
-    } else if (code <= 0xFF) {
-      out.push(code);
-    } else {
-      const mapped = WIN1252_MAP[ch];
-      out.push(mapped ?? 0x3F /* ? */);
-    }
+    out[j++] = code <= 0xFF ? code : (WIN1252_MAP[ch] ?? 0x3F /* ? */);
   }
-  return new Uint8Array(out);
+  return j === out.length ? out : out.subarray(0, j);
 }
 
 // Junta um array de linhas com CRLF + EOL final (sample 000460 usa CRLF).

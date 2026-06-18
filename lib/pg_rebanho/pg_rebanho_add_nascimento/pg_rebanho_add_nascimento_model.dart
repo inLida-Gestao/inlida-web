@@ -89,6 +89,8 @@ class PgRebanhoAddNascimentoModel
   // State field(s) for DropDownRaca widget.
   String? dropDownRacaValue;
   FormFieldController<String>? dropDownRacaValueController;
+  String? dropDownTipoRegistroValue;
+  FormFieldController<String>? dropDownTipoRegistroValueController;
   // State field(s) for DropDownLotes widget.
   String? dropDownLotesValue;
   FormFieldController<String>? dropDownLotesValueController;

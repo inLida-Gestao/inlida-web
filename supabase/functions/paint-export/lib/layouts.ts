@@ -238,7 +238,7 @@ export const LAYOUTS: Record<string, Field[]> = {
     f("est_enviar", "C", 5, 172, 176),
     f("est_recno", "N", 9, 177, 185),
     f("est_codigo_partida", "C", 6, 186, 191),
-    f("est_obs", "C", 35, 192, 220),
+    f("est_obs", "C", 29, 192, 220),
     f("est_status", "C", 4, 221, 224),
     f("est_reserva", "C", 80, 225, 304),
   ],
@@ -280,7 +280,7 @@ export const LAYOUTS: Record<string, Field[]> = {
     f("grm_data_alteracao", "D", 10, 71, 80),
     f("grm_hora_alteracao", "C", 8, 81, 88),
     f("grm_enviar", "C", 5, 89, 93),
-    f("grm_recno", "C", 9, 94, 102),
+    f("grm_recno", "N", 9, 94, 102),
   ],
 
   // ---------------------------------------------------------------------------
@@ -472,7 +472,7 @@ export const LAYOUTS: Record<string, Field[]> = {
     f("sfr_data_alteracao", "D", 10, 152, 161),
     f("sfr_hora_alteracao", "C", 8, 162, 169),
     f("sfr_enviar", "C", 5, 170, 174),
-    f("sfr_recno", "C", 9, 175, 183),
+    f("sfr_recno", "N", 9, 175, 183),
   ],
 
   // ---------------------------------------------------------------------------

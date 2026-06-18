@@ -20,6 +20,12 @@ class PgPaintModel extends FlutterFlowModel<PgPaintWidget> {
   TextEditingController? codFazendaController;
   String? Function(BuildContext, String?)? codFazendaValidator;
 
+  // Série do registro da raça para animais PO (ex.: JLK). Inferida do brinco/
+  // codRegistro quando possível; este campo é fallback na config PAINT.
+  FocusNode? serieRacaPoFocus;
+  TextEditingController? serieRacaPoController;
+  String? Function(BuildContext, String?)? serieRacaPoValidator;
+
   bool carregandoConfig = true;
   bool salvandoConfig = false;
   bool exportando = false;
@@ -34,6 +40,8 @@ class PgPaintModel extends FlutterFlowModel<PgPaintWidget> {
   String? exportStoragePath;
   DateTime? exportStartedAt;
   DateTime? exportFinishedAt;
+  /// Duração estimada em segundos (heurística ou última exportação bem-sucedida).
+  int? exportEstimatedSeconds;
 
   String? configId;
   String programa = 'P';
@@ -49,6 +57,35 @@ class PgPaintModel extends FlutterFlowModel<PgPaintWidget> {
   bool importandoExcel = false;
   String? mensagemExcel;
   String? tipoExcelAtivo;
+
+  // Filtros opcionais (data nascimento / data avaliação) do card Status PAINT,
+  // aplicados em "Importar tudo do sistema".
+  DateTime? importNascDe;
+  DateTime? importNascAte;
+  DateTime? importAvDe;
+  DateTime? importAvAte;
+
+  // Filtros opcionais por tipo de planilha, aplicados em "Com dados da fazenda".
+  final Map<String, DateTime?> excelNascDe = {
+    'matrizes': null,
+    'desmama': null,
+    'sobreano': null,
+  };
+  final Map<String, DateTime?> excelNascAte = {
+    'matrizes': null,
+    'desmama': null,
+    'sobreano': null,
+  };
+  final Map<String, DateTime?> excelAvDe = {
+    'matrizes': null,
+    'desmama': null,
+    'sobreano': null,
+  };
+  final Map<String, DateTime?> excelAvAte = {
+    'matrizes': null,
+    'desmama': null,
+    'sobreano': null,
+  };
 
   @override
   void initState(BuildContext context) {
@@ -66,5 +103,7 @@ class PgPaintModel extends FlutterFlowModel<PgPaintWidget> {
     serieFazendaController?.dispose();
     codFazendaFocus?.dispose();
     codFazendaController?.dispose();
+    serieRacaPoFocus?.dispose();
+    serieRacaPoController?.dispose();
   }
 }

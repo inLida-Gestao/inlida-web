@@ -69,6 +69,9 @@ class CcAddAnimalModel extends FlutterFlowModel<CcAddAnimalWidget> {
   // State field(s) for DropDownRaca widget.
   String? dropDownRacaValue;
   FormFieldController<String>? dropDownRacaValueController;
+  // State field(s) for DropDownTipoRegistro widget.
+  String? dropDownTipoRegistroValue;
+  FormFieldController<String>? dropDownTipoRegistroValueController;
   // State field(s) for DropDownLotes widget.
   String? dropDownLotesValue;
   FormFieldController<String>? dropDownLotesValueController;
