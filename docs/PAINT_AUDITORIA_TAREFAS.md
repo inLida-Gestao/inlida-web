@@ -73,7 +73,7 @@ Fontes verificadas:
 | Subtarefa | Sistema | Manual |
 |-----------|---------|--------|
 | Embrião como sêmen (mãe e pai real) | 🟡 `cob_tipo = E`; doadora/pai em ANIMAL e receptora em cobertura/nascimento. **Sem fluxo de UI dedicado** (pendência de produto) | 🟡 Seção 19 (regra descrita) |
-| Auto → TXT (inseminador, grupo, regime, avaliador) | ✅ `autoPreencherPaint` cria e geradores exportam | ✅ Seções 7/11 |
+| Auto → TXT (inseminador, grupo, regime, avaliador) | ✅ `autoPreencherPaint` cria inseminador/grupo/regime; **avaliador é cadastro manual** por decisão do cliente (removida a importação de `users_propriedades`) | ✅ Seções 7/11 |
 
 ---
 
@@ -159,6 +159,13 @@ Fontes verificadas:
 5. 🟡 **Embrião como sêmen (pendente de produto).** A regra está documentada
    (`cob_tipo = E`, doadora/pai em ANIMAL, receptora em cobertura/nascimento),
    mas ainda não há fluxo de UI dedicado para "cadastrar embrião como sêmen".
+
+### Ajuste adicional (observação do cliente)
+
+- **Avaliadores: cadastro manual.** Removida a importação automática de
+  avaliadores a partir de `users_propriedades` em `autoPreencherPaint`. Não há
+  fonte na INLIDA para derivá-los e o cliente pediu cadastro manual. O atalho na
+  tela permanece; o "Importar tudo do sistema" não cria mais avaliadores.
 
 ### Validação automatizada
 

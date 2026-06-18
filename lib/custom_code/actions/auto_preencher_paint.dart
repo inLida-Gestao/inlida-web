@@ -15,8 +15,9 @@ import 'paint_helpers.dart';
 /// ~1.400 registros): intervalo de data de nascimento do animal e intervalo de
 /// data do evento/avaliação. Os filtros afetam apenas as avaliações derivadas
 /// por animal (composição, desmama, sobreano, RAH, diagnóstico); os cadastros
-/// de apoio (inseminadores, grupos, localidades, safras, avaliadores, regimes,
-/// biblioteca) são sempre importados integralmente.
+/// de apoio (inseminadores, grupos, localidades, safras, regimes, biblioteca)
+/// são sempre importados integralmente. Avaliadores são cadastrados manualmente
+/// (decisão do cliente) e não são derivados automaticamente.
 ///
 /// Retorna contagens por categoria (quantos itens novos foram inseridos).
 /// Chave 'erro' (>0) sinaliza falha geral, com 'mensagem' contendo o erro.
@@ -37,7 +38,6 @@ Future<Map<String, dynamic>> autoPreencherPaint(
     'sobreanos': 0,
     'rahs': 0,
     'diagnosticos': 0,
-    'avaliadores': 0,
     'regimes': 0,
     'biblioteca': 0,
     'erro': 0,
@@ -110,10 +110,6 @@ Future<Map<String, dynamic>> autoPreencherPaint(
           .select('codigo')
           .eq('id_propriedade', idPropriedade),
       client
-          .from('paint_avaliador')
-          .select('codigo, nome')
-          .eq('id_propriedade', idPropriedade),
-      client
           .from('paint_regime_alimentar')
           .select('codigo, descricao')
           .eq('id_propriedade', idPropriedade),
@@ -121,8 +117,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
     final existIns = (r1[0] as List).cast<Map<String, dynamic>>();
     final existLocs = (r1[1] as List).cast<Map<String, dynamic>>();
     final existSafras = (r1[2] as List).cast<Map<String, dynamic>>();
-    final existAvs = (r1[3] as List).cast<Map<String, dynamic>>();
-    final existRegs = (r1[4] as List).cast<Map<String, dynamic>>();
+    final existRegs = (r1[3] as List).cast<Map<String, dynamic>>();
 
     // Pré-fetch paginado das tabelas grandes (>1000 linhas possíveis).
     final existComp = await _selectAllPaged(
@@ -187,12 +182,6 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       'historico_pesagens',
       'id_propriedade,idRebanho,dataPesagem,peso,tipo',
       {'id_propriedade': idPropriedade, 'deletado': 'NAO'},
-    );
-    final userPropRows = await _selectAllPaged(
-      client,
-      'users_propriedades',
-      'idPropriedade,nome,deletado',
-      {'idPropriedade': idPropriedade},
     );
 
     // Index rebanho por idRebanho para joins manuais.
@@ -545,40 +534,10 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       }
     });
 
-    // ---------------- 10. AVALIADORES (de users_propriedades) ----------------
-    await exec('avaliadores', () async {
-      final avsExistNomes = existAvs
-          .map((e) => (e['nome'] ?? '').toString().trim().toUpperCase())
-          .toSet();
-      final avsCodigosUsados = _codigosUsados(existAvs.map((e) => e['codigo']));
-      final insertAvs = <Map<String, dynamic>>[];
-      final avsSet = <String>{};
-      for (final u in userPropRows) {
-        final del = (u['deletado'] ?? '').toString().toUpperCase();
-        if (del == 'SIM') continue;
-        final nome = (u['nome'] ?? '').toString().trim();
-        if (nome.isEmpty) continue;
-        final norm = nome.toUpperCase();
-        if (avsExistNomes.contains(norm)) continue;
-        if (avsSet.contains(norm)) continue;
-        avsSet.add(norm);
-        insertAvs.add({
-          'id_propriedade': idPropriedade,
-          'codigo': _proximoCodigoLivre(avsCodigosUsados),
-          'nome': nome.length > 25 ? nome.substring(0, 25) : nome,
-          'situacao': 'ATIVO',
-        });
-      }
-      if (insertAvs.isNotEmpty) {
-        result['avaliadores'] = await _upsertCodedRowsSafely(
-          client,
-          'paint_avaliador',
-          insertAvs,
-          'id_propriedade,codigo',
-          avsCodigosUsados,
-        );
-      }
-    });
+    // ---------------- 10. AVALIADORES (cadastro manual) ----------------
+    // Por decisão do cliente, os avaliadores são cadastrados manualmente na tela
+    // PAINT > Cadastros automáticos > Avaliadores. Não há fonte na INLIDA para
+    // derivá-los automaticamente, então esta importação não cria avaliadores.
 
     // ---------------- 11. REGIMES ALIMENTARES (placeholders) ----------------
     await exec('regimes', () async {

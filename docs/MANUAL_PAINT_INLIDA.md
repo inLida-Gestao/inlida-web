@@ -377,14 +377,18 @@ grandes a processar apenas a janela de interesse.
 | 7 | Avaliações de sobreano | `paint_avaliacao_sobreano` | pesagens "sobre"/365–550 dias e peso atual |
 | 8 | Avaliações de matrizes (RAH) | `paint_avaliacao_rah` | matrizes, peso atual e última pesagem |
 | 9 | Diagnósticos | `paint_diagnostico` | reprodução prenhe/vazia → `P`/`V`, safra atual |
-| 10 | Avaliadores | `paint_avaliador` | `users_propriedades` |
-| 11 | Regimes alimentares | `paint_regime_alimentar` | só se vazio: PASTAGEM, SEMI-INTENSIVO, CONFINAMENTO |
-| 12 | Biblioteca de touros | `paint_biblioteca_touros` | rebanho categoria "reprod"/"touro", chave `A12` |
+| 10 | Regimes alimentares | `paint_regime_alimentar` | só se vazio: PASTAGEM, SEMI-INTENSIVO, CONFINAMENTO |
+| 11 | Biblioteca de touros | `paint_biblioteca_touros` | rebanho categoria "reprod"/"touro", chave `A12` |
 
 Importante: o "Importar tudo" preenche apenas a **estrutura** (pesos, datas,
 diagnóstico P/V, vínculos). As **notas técnicas** (C/P/M/U, frame, aprumo,
 pigmentação, etc.) são lançadas depois, via planilha Excel ou pelas telas de
 avaliação.
+
+Os **avaliadores não são importados automaticamente**. Por decisão do cliente,
+o cadastro de avaliadores é **manual** (tela PAINT > Cadastros automáticos >
+Avaliadores), pois não há fonte na INLIDA para derivá-los. Cadastre os técnicos
+responsáveis antes de lançar avaliações de desmama, sobreano e RAH.
 
 Após a importação, confira a mensagem de status (registros novos por etapa e
 eventuais falhas parciais) e os contadores dos cards.
@@ -531,8 +535,12 @@ Registra o resultado reprodutivo `P` (prenhe) ou `V` (vazia), vinculado à safra
 O card `Cadastros automáticos` reúne atalhos para os cadastros derivados dos
 dados da fazenda. Use-os para revisar e editar antes da exportação:
 
-- Avaliadores, inseminadores, grupos de manejo, localidades, regimes alimentares,
-  safras, safra × animal, composição racial e estoque.
+- Inseminadores, grupos de manejo, localidades, regimes alimentares, safras,
+  safra × animal, composição racial e estoque.
+
+> Avaliadores: o atalho fica neste card, mas o cadastro é **manual**. O "Importar
+> tudo do sistema" não cria avaliadores (decisão do cliente). Adicione os técnicos
+> manualmente antes de lançar avaliações.
 
 O card `Cadastros manuais (raros)` traz o cadastro de **touro múltiplo**.
 
@@ -1020,6 +1028,8 @@ Resumo das melhorias desta rodada, para referência rápida.
   partir do nome do inseminador em `reproducao.inseminador`.
 - Novas validações de pré-exportação: brinco numérico obrigatório para todos os
   animais (erro) e aviso para animal PO sem tipo de registro definido.
+- Avaliadores deixaram de ser importados automaticamente: passam a ser cadastro
+  manual (decisão do cliente), pois não há fonte na INLIDA para derivá-los.
 
 ---
 
@@ -1042,7 +1052,7 @@ Legenda: OK = implementado e documentado; PEND = pendente de confirmação/decis
 | ANIMAL — brinco obrigatório + raça obrigatória | OK | Erros na pré-validação |
 | ANIMAL — `rac1/rac2` = grau sanguíneo | PEND | Grau sanguíneo está em `COMPOSICAO_RACIAL.cpr_indice`; extras da RACA a confirmar com o PAINT |
 | COMPOSICAO_RACIAL — `recno` | OK | Tipo N, sequencial |
-| Cadastros automáticos → TXT | OK | Inseminador, grupo, regime, avaliador |
+| Cadastros automáticos → TXT | OK | Inseminador, grupo, regime (avaliador é cadastro manual, por decisão do cliente) |
 | Embrião como sêmen (mãe/pai real) | PEND | Regra descrita; sem fluxo de UI dedicado |
 | NASCIMENTO — espaçamentos, peso, A12 do pai, data de nascimento | OK | — |
 | DESMAMA — notas, `recno`, regime e grupo de manejo | OK | — |
