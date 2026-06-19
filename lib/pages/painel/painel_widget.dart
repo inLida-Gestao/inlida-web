@@ -3904,28 +3904,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           );
                                                                                         },
                                                                                       ),
-                                                                                      FutureBuilder<List<ReproducaoRow>>(
+                                                                                      FutureBuilder<List<({String id, String nome})>>(
                                                                                         key: ValueKey('touros_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
-                                                                                        future: () {
-                                                                                          final dataInicioFiltro =
-                                                                                              _painelPeriodoDataInicio();
-                                                                                          final dataFimFiltro =
-                                                                                              _painelPeriodoDataFim();
-
-                                                                                          return ReproducaoTable().queryRows(
-                                                                                            queryFn: (q) => q
-                                                                                                .eqOrNull(
-                                                                                                  'id_propriedade',
-                                                                                                  FFAppState().propriedadeSelecionada.idPropriedade,
-                                                                                                )
-                                                                                                .eqOrNull(
-                                                                                                  'deletado',
-                                                                                                  'NAO',
-                                                                                                )
-                                                                                                .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
-                                                                                            limit: 5000,
-                                                                                          );
-                                                                                        }(),
+                                                                                        future: _carregarTourosPeriodo(),
                                                                                         builder: (context, tourosSnapshot) {
                                                                                           if (!tourosSnapshot.hasData) {
                                                                                             return const SizedBox(
@@ -3939,27 +3920,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               ),
                                                                                             );
                                                                                           }
-                                                                                          final reproRows = tourosSnapshot.data!;
+                                                                                          final touros = tourosSnapshot.data!;
 
-                                                                                          final touroMap = <String, String>{};
-                                                                                          for (final r in reproRows) {
-                                                                                            final id = r.idRebanhoReprodutor?.trim() ?? '';
-                                                                                            if (id.isEmpty) continue;
-                                                                                            if (touroMap.containsKey(id)) continue;
-                                                                                            final nome = r.nomeReprodutor?.trim() ?? '';
-                                                                                            touroMap[id] = nome.isNotEmpty ? nome : 'Touro S/N';
-                                                                                          }
-
-                                                                                          final touroEntries = touroMap.entries.toList()
-                                                                                            ..sort((a, b) {
-                                                                                              final labelA = a.value.toLowerCase();
-                                                                                              final labelB = b.value.toLowerCase();
-                                                                                              if (labelA != labelB) return labelA.compareTo(labelB);
-                                                                                              return a.key.compareTo(b.key);
-                                                                                            });
-
-                                                                                          final touroOptions = touroEntries.map((e) => e.key).toList();
-                                                                                          final touroLabels = touroEntries.map((e) => e.value).toList();
+                                                                                          final touroOptions = touros.map((e) => e.id).toList();
+                                                                                          final touroLabels = touros.map((e) => e.nome).toList();
 
                                                                                           return _buildMultiFilterChip(
                                                                                             context,
@@ -4290,28 +4254,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           );
                                                                                         },
                                                                                       ),
-                                                                                      FutureBuilder<List<ReproducaoRow>>(
+                                                                                      FutureBuilder<List<({String id, String nome})>>(
                                                                                         key: ValueKey('touros_filtro_taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
-                                                                                        future: () {
-                                                                                          final dataInicioFiltro =
-                                                                                              _painelPeriodoDataInicio();
-                                                                                          final dataFimFiltro =
-                                                                                              _painelPeriodoDataFim();
-
-                                                                                          return ReproducaoTable().queryRows(
-                                                                                            queryFn: (q) => q
-                                                                                                .eqOrNull(
-                                                                                                  'id_propriedade',
-                                                                                                  FFAppState().propriedadeSelecionada.idPropriedade,
-                                                                                                )
-                                                                                                .eqOrNull(
-                                                                                                  'deletado',
-                                                                                                  'NAO',
-                                                                                                )
-                                                                                                .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
-                                                                                            limit: 5000,
-                                                                                          );
-                                                                                        }(),
+                                                                                        future: _carregarTourosPeriodo(),
                                                                                         builder: (context, tourosSnapshot) {
                                                                                           if (!tourosSnapshot.hasData) {
                                                                                             return const SizedBox(
@@ -4325,27 +4270,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               ),
                                                                                             );
                                                                                           }
-                                                                                          final reproRows = tourosSnapshot.data!;
+                                                                                          final touros = tourosSnapshot.data!;
 
-                                                                                          final touroMap = <String, String>{};
-                                                                                          for (final r in reproRows) {
-                                                                                            final id = r.idRebanhoReprodutor?.trim() ?? '';
-                                                                                            if (id.isEmpty) continue;
-                                                                                            if (touroMap.containsKey(id)) continue;
-                                                                                            final nome = r.nomeReprodutor?.trim() ?? '';
-                                                                                            touroMap[id] = nome.isNotEmpty ? nome : 'Touro S/N';
-                                                                                          }
-
-                                                                                          final touroEntries = touroMap.entries.toList()
-                                                                                            ..sort((a, b) {
-                                                                                              final labelA = a.value.toLowerCase();
-                                                                                              final labelB = b.value.toLowerCase();
-                                                                                              if (labelA != labelB) return labelA.compareTo(labelB);
-                                                                                              return a.key.compareTo(b.key);
-                                                                                            });
-
-                                                                                          final touroOptions = touroEntries.map((e) => e.key).toList();
-                                                                                          final touroLabels = touroEntries.map((e) => e.value).toList();
+                                                                                          final touroOptions = touros.map((e) => e.id).toList();
+                                                                                          final touroLabels = touros.map((e) => e.nome).toList();
 
                                                                                           return _buildMultiFilterChip(
                                                                                             context,
@@ -5896,6 +5824,34 @@ class _PainelWidgetState extends State<PainelWidget>
     final mes = valueOrDefault<int>(_model.dDFimMesValue, 12).clamp(1, 12);
     final ultimoDia = DateTime(ano, mes + 1, 0).day;
     return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
+  }
+
+  /// Lista de touros (id + nome) com reprodução no período selecionado do painel.
+  ///
+  /// Calculada no banco via RPC `painel_touros_periodo` para evitar o limite de
+  /// linhas do PostgREST: antes a lista era montada puxando todas as linhas de
+  /// `reproducao` e deduplicando no cliente, mas a consulta era cortada em ~1000
+  /// linhas e touros além disso sumiam do filtro.
+  Future<List<({String id, String nome})>> _carregarTourosPeriodo() async {
+    final response = await SupaFlow.client.rpc(
+      'painel_touros_periodo',
+      params: {
+        'id_propriedade_param':
+            FFAppState().propriedadeSelecionada.idPropriedade,
+        'data_inicio_param': _painelPeriodoDataInicio(),
+        'data_fim_param': _painelPeriodoDataFim(),
+      },
+    );
+    final rows = (response as List?) ?? const [];
+    return rows
+        .map((row) {
+          final map = (row as Map).cast<String, dynamic>();
+          final id = (map['id_rebanho_reprodutor'] ?? '').toString().trim();
+          final nome = (map['nome'] ?? '').toString().trim();
+          return (id: id, nome: nome.isNotEmpty ? nome : 'Touro S/N');
+        })
+        .where((touro) => touro.id.isNotEmpty)
+        .toList();
   }
 
   /// Soma o campo [field] de uma lista dinâmica de itens JSON.
