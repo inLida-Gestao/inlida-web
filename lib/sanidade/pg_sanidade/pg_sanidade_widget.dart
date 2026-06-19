@@ -41,6 +41,29 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// Carrega os KPIs do topo (Total na propriedade) via RPC `count_sanidade_kpis`.
+  ///
+  /// Calcula a contagem no banco com COUNT(*) para evitar o limite de ~1000
+  /// linhas do PostgREST: antes os 4 KPIs puxavam todas as linhas de `sanidade`
+  /// e contavam com `.length` no cliente, fazendo "Vacinas aplicadas" travar em
+  /// 1000. Mantem a mesma regra dos cards (tipo, "outros" ou observacao).
+  Future<void> _carregarCountsSanidade() async {
+    final response = await SupaFlow.client.rpc(
+      'count_sanidade_kpis',
+      params: {
+        'p_id_propriedade': FFAppState().propriedadeSelecionada.idPropriedade,
+      },
+    );
+    final rows = (response as List?) ?? const [];
+    final counts =
+        rows.isNotEmpty ? (rows.first as Map).cast<String, dynamic>() : const {};
+    _model.countVacinas = (counts['vacinas'] as num?)?.toInt() ?? 0;
+    _model.countAntiparasitarios =
+        (counts['antiparasitarios'] as num?)?.toInt() ?? 0;
+    _model.countTratamentos = (counts['tratamentos'] as num?)?.toInt() ?? 0;
+    _model.countProtocolos = (counts['protocolos'] as num?)?.toInt() ?? 0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -50,49 +73,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       await action_blocks.countReproducoes(context);
 
-      // Contar vacinas aplicadas (lista, outros ou observação)
-      final vacinasCount = await SanidadeTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('id_propriedade',
-                FFAppState().propriedadeSelecionada.idPropriedade)
-            .eq('deletado', 'NAO')
-            .or(
-                'vacinacao.not.is.null,vacinacao_outros.not.is.null,vacinacao_obs.not.is.null'),
-      );
-      _model.countVacinas = vacinasCount.length;
-
-      // Antiparasitários: lista, outros ou observação (obs não duplica linha no banco)
-      final antiparasitariosRows = await SanidadeTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('id_propriedade',
-                FFAppState().propriedadeSelecionada.idPropriedade)
-            .eq('deletado', 'NAO')
-            .or(
-                'antiparasitario.not.is.null,antiparasitario_outros.not.is.null,antiparasitario_obs.not.is.null'),
-      );
-      _model.countAntiparasitarios = antiparasitariosRows.length;
-
-      // Tratamentos: lista, outros ou observação
-      final tratamentosCount = await SanidadeTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('id_propriedade',
-                FFAppState().propriedadeSelecionada.idPropriedade)
-            .eq('deletado', 'NAO')
-            .or(
-                'tratamento.not.is.null,tratamento_outros.not.is.null,tratamento_obs.not.is.null'),
-      );
-      _model.countTratamentos = tratamentosCount.length;
-
-      // Protocolos: lista, outros ou observação
-      final protocolosCount = await SanidadeTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('id_propriedade',
-                FFAppState().propriedadeSelecionada.idPropriedade)
-            .eq('deletado', 'NAO')
-            .or(
-                'protocolo_reprodutivo.not.is.null,protocolo_reprodutivo_outros.not.is.null,protocolo_reprodutivo_obs.not.is.null'),
-      );
-      _model.countProtocolos = protocolosCount.length;
+      // KPIs do topo (Total na propriedade) contados no banco para nao serem
+      // limitados a ~1000 linhas pelo PostgREST.
+      await _carregarCountsSanidade();
 
       safeSetState(() {});
 
@@ -1044,77 +1027,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     null;
                                                               });
 
-                                                              final idPropriedade =
-                                                                  FFAppState()
-                                                                      .propriedadeSelecionada
-                                                                      .idPropriedade;
+                                                              await _carregarCountsSanidade();
 
-                                                              final vacinasCount =
-                                                                  await SanidadeTable()
-                                                                      .queryRows(
-                                                                queryFn: (q) => q
-                                                                    .eqOrNull(
-                                                                        'id_propriedade',
-                                                                        idPropriedade)
-                                                                    .eq('deletado',
-                                                                        'NAO')
-                                                                    .or(
-                                                                        'vacinacao.not.is.null,vacinacao_outros.not.is.null,vacinacao_obs.not.is.null'),
-                                                              );
-
-                                                              final antiparasitariosCount =
-                                                                  await SanidadeTable()
-                                                                      .queryRows(
-                                                                queryFn: (q) => q
-                                                                    .eqOrNull(
-                                                                        'id_propriedade',
-                                                                        idPropriedade)
-                                                                    .eq('deletado',
-                                                                        'NAO')
-                                                                    .or(
-                                                                        'antiparasitario.not.is.null,antiparasitario_outros.not.is.null,antiparasitario_obs.not.is.null'),
-                                                              );
-
-                                                              final tratamentosCount =
-                                                                  await SanidadeTable()
-                                                                      .queryRows(
-                                                                queryFn: (q) => q
-                                                                    .eqOrNull(
-                                                                        'id_propriedade',
-                                                                        idPropriedade)
-                                                                    .eq('deletado',
-                                                                        'NAO')
-                                                                    .or(
-                                                                        'tratamento.not.is.null,tratamento_outros.not.is.null,tratamento_obs.not.is.null'),
-                                                              );
-
-                                                              final protocolosCount =
-                                                                  await SanidadeTable()
-                                                                      .queryRows(
-                                                                queryFn: (q) => q
-                                                                    .eqOrNull(
-                                                                        'id_propriedade',
-                                                                        idPropriedade)
-                                                                    .eq('deletado',
-                                                                        'NAO')
-                                                                    .or(
-                                                                        'protocolo_reprodutivo.not.is.null,protocolo_reprodutivo_outros.not.is.null,protocolo_reprodutivo_obs.not.is.null'),
-                                                              );
-
-                                                              safeSetState(() {
-                                                                _model.countVacinas =
-                                                                    vacinasCount
-                                                                        .length;
-                                                                _model.countAntiparasitarios =
-                                                                    antiparasitariosCount
-                                                                        .length;
-                                                                _model.countTratamentos =
-                                                                    tratamentosCount
-                                                                        .length;
-                                                                _model.countProtocolos =
-                                                                    protocolosCount
-                                                                        .length;
-                                                              });
+                                                              safeSetState(() {});
                                                             },
                                                           ),
                                                         ),
