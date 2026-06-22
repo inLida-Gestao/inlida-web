@@ -5,7 +5,6 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
-import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/pg_rebanho/categoria_rebanho_utils.dart';
 import '/pg_rebanho/pesagem_rebanho_sync.dart';
@@ -3508,6 +3507,9 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   highlightColor:
                                                       Colors.transparent,
                                                   onTap: () async {
+                                                    if (mounted) {
+                                                      return;
+                                                    }
                                                     final datePicked4Date =
                                                         await showDatePicker(
                                                       context: context,
@@ -3660,6 +3662,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                               focusNode:
                                                   _model.pesoAtualFocusNode,
                                               autofocus: false,
+                                              readOnly: true,
                                               obscureText: false,
                                               decoration: InputDecoration(
                                                 isDense: false,
@@ -4796,11 +4799,6 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                 true,
                               );
                               safeSetState(() {});
-                              // Regra de pesoAtual:
-                              // - Entre pesoAtual e pesoDesmama, usa a pesagem
-                              //   com data mais recente.
-                              // - Se só pesoNascimento informado, NÃO setar pesoAtual.
-                              // dataUltimaPesagem usa a maior data do histórico registrado.
                               final double? pesoNascimentoParsedCC =
                                   double.tryParse(_model
                                       .pesoNascimentoTextController.text
@@ -4809,43 +4807,6 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                   double.tryParse(_model
                                       .pesoDesmamaTextController.text
                                       .replaceAll(',', '.'));
-                              final double? pesoAtualDigitadoCC =
-                                  double.tryParse(_model
-                                      .pesoAtualTextController.text
-                                      .replaceAll(',', '.'));
-                              double? pesoAtualFinalCC;
-                              DateTime? dataPesoAtualFinalCC;
-                              if (pesoAtualDigitadoCC != null &&
-                                  pesoAtualDigitadoCC > 0) {
-                                pesoAtualFinalCC = pesoAtualDigitadoCC;
-                                dataPesoAtualFinalCC = _model.datePicked4;
-                              }
-                              if (pesoDesmamaParsedCC != null &&
-                                  pesoDesmamaParsedCC > 0 &&
-                                  _model.datePicked3 != null &&
-                                  (dataPesoAtualFinalCC == null ||
-                                      _model.datePicked3!
-                                          .isAfter(dataPesoAtualFinalCC))) {
-                                pesoAtualFinalCC = pesoDesmamaParsedCC;
-                                dataPesoAtualFinalCC = _model.datePicked3;
-                              }
-                              final DateTime? dataUltimaPesagemFinalCC = [
-                                if (pesoNascimentoParsedCC != null &&
-                                    pesoNascimentoParsedCC > 0)
-                                  _model.datePicked1,
-                                if (pesoDesmamaParsedCC != null &&
-                                    pesoDesmamaParsedCC > 0)
-                                  _model.datePicked3,
-                                if (pesoAtualDigitadoCC != null &&
-                                    pesoAtualDigitadoCC > 0)
-                                  _model.datePicked4,
-                              ].whereType<DateTime>().fold<DateTime?>(null,
-                                  (latest, current) {
-                                if (latest == null || current.isAfter(latest)) {
-                                  return current;
-                                }
-                                return latest;
-                              });
                               await RebanhoTable().insert({
                                 'idPropriedade': FFAppState()
                                     .propriedadeSelecionada
@@ -4872,7 +4833,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                 'dataDesmama':
                                     supaSerialize<DateTime>(_model.datePicked3),
                                 'pesoDesmama': pesoDesmamaParsedCC,
-                                'pesoAtual': pesoAtualFinalCC,
+                                'pesoAtual': null,
                                 'status': _model.dropDownStatusValue,
                                 'origem': _model.dropDownOrigemValue,
                                 'anotacoes':
@@ -4890,8 +4851,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                 'dataAcao':
                                     supaSerialize<DateTime>(_model.datePicked5),
                                 'valorCompra': FFAppState().valueDouble,
-                                'dataUltimaPesagem': supaSerialize<DateTime>(
-                                    dataUltimaPesagemFinalCC),
+                                'dataUltimaPesagem': null,
                                 'nomeConcat':
                                     '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${dateTimeFormat(
                                   "d/M/y",
@@ -4923,57 +4883,10 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                   'deletado': 'NAO',
                                 });
                               }
-                              final pesoAtualHist = pesoAtualDigitadoCC;
-                              if (pesoAtualHist != null && pesoAtualHist > 0) {
-                                await HistoricoPesagensTable().insert({
-                                  'idRebanho': _model.idRebanho,
-                                  'id_propriedade': FFAppState()
-                                      .propriedadeSelecionada
-                                      .idPropriedade,
-                                  'dataPesagem': supaSerialize<DateTime>(
-                                      _model.datePicked4),
-                                  'tipo': 'Atual',
-                                  'peso': pesoAtualHist,
-                                  'deletado': 'NAO',
-                                });
-                              }
-                              if (_model.dropDownLotesValue != null &&
-                                  _model.dropDownLotesValue != '') {
-                                _model.loteSelecionado =
-                                    await LotesTable().queryRows(
-                                  queryFn: (q) => q.eqOrNull(
-                                    'id_lote',
-                                    _model.dropDownLotesValue,
-                                  ),
-                                );
-                                _model.animaisLote =
-                                    (functions.converterJSONparaLista(_model
-                                                .loteSelecionado
-                                                ?.firstOrNull
-                                                ?.idAnimais) ??
-                                            <String>[])
-                                        .toList()
-                                        .cast<String>();
-                                safeSetState(() {});
-                                if (!_model.animaisLote
-                                    .contains(_model.idRebanho)) {
-                                  _model.addToAnimaisLote(_model.idRebanho!);
-                                }
-                                safeSetState(() {});
-                                await LotesTable().update(
-                                  data: {
-                                    'id_animais':
-                                        functions.converterListaParaJSON(
-                                            _model.animaisLote.toList()),
-                                    'updated_at': supaSerialize<DateTime>(
-                                        getCurrentTimestamp),
-                                  },
-                                  matchingRows: (rows) => rows.eqOrNull(
-                                    'id_lote',
-                                    _model.dropDownLotesValue,
-                                  ),
-                                );
-                              }
+                              await sincronizarUltimaPesagemRebanho(
+                                idRebanho: _model.idRebanho,
+                                sincronizarPesoAtual: true,
+                              );
                               safeSetState(() {
                                 _model.dropDownSexoValueController?.reset();
                                 _model.dropDownSexoValue = null;

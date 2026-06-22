@@ -1179,10 +1179,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                   'Fêmea',
                                                                   'Macho'
                                                                 ],
-                                                                onChanged:
-                                                                    (val) =>
-                                                                        safeSetState(
-                                                                            () {
+                                                                onChanged: (val) =>
+                                                                    safeSetState(
+                                                                        () {
                                                                   if (_model
                                                                           .dropDownSexoValue !=
                                                                       val) {
@@ -1304,277 +1303,180 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     ),
                                                               ),
                                                               Builder(
-                                                                builder: (context) {
-                                                                  final hasDataNascimento = _model.datePicked1 != null;
+                                                                builder:
+                                                                    (context) {
+                                                                  final hasDataNascimento =
+                                                                      _model.datePicked1 !=
+                                                                          null;
                                                                   return Row(
-                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                    crossAxisAlignment:
+                                                                        CrossAxisAlignment
+                                                                            .start,
                                                                     children: [
                                                                       Expanded(
-                                                                        child: Stack(
-                                                                children: [
-                                                                  TextFormField(
-                                                                    controller:
-                                                                        _model
-                                                                            .dataNascimentoTextController,
-                                                                    focusNode:
-                                                                        _model
-                                                                            .dataNascimentoFocusNode,
-                                                                    autofocus:
-                                                                        false,
-                                                                    readOnly:
-                                                                        true,
-                                                                    obscureText:
-                                                                        false,
-                                                                    decoration:
-                                                                        InputDecoration(
-                                                                      isDense:
-                                                                          false,
-                                                                      labelStyle: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelMedium
-                                                                          .override(
-                                                                            font:
-                                                                                GoogleFonts.poppins(
-                                                                              fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                            ),
-                                                                            fontSize:
-                                                                                16.0,
-                                                                            letterSpacing:
-                                                                                0.0,
-                                                                            fontWeight:
-                                                                                FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                          ),
-                                                                      hintText:
-                                                                          'dd/mm/aaaa',
-                                                                      hintStyle: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelMedium
-                                                                          .override(
-                                                                            font:
-                                                                                GoogleFonts.poppins(
-                                                                              fontWeight: FontWeight.w600,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                            ),
-                                                                            color:
-                                                                                const Color(0xFFBEBEBE),
-                                                                            fontSize:
-                                                                                16.0,
-                                                                            letterSpacing:
-                                                                                0.0,
-                                                                            fontWeight:
-                                                                                FontWeight.w600,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                          ),
-                                                                      enabledBorder:
-                                                                          OutlineInputBorder(
-                                                                        borderSide:
-                                                                            const BorderSide(
-                                                                          color:
-                                                                              Color(0x00000000),
-                                                                          width:
-                                                                              1.0,
-                                                                        ),
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8.0),
-                                                                      ),
-                                                                      focusedBorder:
-                                                                          OutlineInputBorder(
-                                                                        borderSide:
-                                                                            const BorderSide(
-                                                                          color:
-                                                                              Color(0x00000000),
-                                                                          width:
-                                                                              1.0,
-                                                                        ),
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8.0),
-                                                                      ),
-                                                                      errorBorder:
-                                                                          OutlineInputBorder(
-                                                                        borderSide:
-                                                                            BorderSide(
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).error,
-                                                                          width:
-                                                                              1.0,
-                                                                        ),
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8.0),
-                                                                      ),
-                                                                      focusedErrorBorder:
-                                                                          OutlineInputBorder(
-                                                                        borderSide:
-                                                                            BorderSide(
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).error,
-                                                                          width:
-                                                                              1.0,
-                                                                        ),
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8.0),
-                                                                      ),
-                                                                      filled:
-                                                                          true,
-                                                                      fillColor:
-                                                                          FlutterFlowTheme.of(context)
-                                                                              .customColor2,
-                                                                      suffixIcon:
-                                                                          Icon(
-                                                                        Icons
-                                                                            .calendar_today,
-                                                                        color: FlutterFlowTheme.of(context)
-                                                                            .secondaryText,
-                                                                      ),
-                                                                    ),
-                                                                    style: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .override(
-                                                                          font:
-                                                                              GoogleFonts.poppins(
-                                                                            fontWeight:
-                                                                                FontWeight.w600,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                          ),
-                                                                          fontSize:
-                                                                              16.0,
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                          fontWeight:
-                                                                              FontWeight.w600,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontStyle,
-                                                                        ),
-                                                                    cursorColor:
-                                                                        FlutterFlowTheme.of(context)
-                                                                            .primaryText,
-                                                                    validator: _model
-                                                                        .dataNascimentoTextControllerValidator
-                                                                        .asValidator(
-                                                                            context),
-                                                                  ),
-                                                                  InkWell(
-                                                                    splashColor:
-                                                                        Colors
-                                                                            .transparent,
-                                                                    focusColor:
-                                                                        Colors
-                                                                            .transparent,
-                                                                    hoverColor:
-                                                                        Colors
-                                                                            .transparent,
-                                                                    highlightColor:
-                                                                        Colors
-                                                                            .transparent,
-                                                                    onTap:
-                                                                        () async {
-                                                                      final datePicked1Date =
-                                                                          await showDatePicker(
-                                                                        context:
-                                                                            context,
-                                                                        initialDate:
-                                                                            getCurrentTimestamp,
-                                                                        firstDate:
-                                                                            DateTime(1900),
-                                                                        lastDate:
-                                                                            DateTime(2050),
-                                                                        builder:
-                                                                            (context,
-                                                                                child) {
-                                                                          return wrapInMaterialDatePickerTheme(
-                                                                            context,
-                                                                            child!,
-                                                                            headerBackgroundColor:
-                                                                                FlutterFlowTheme.of(context).primary,
-                                                                            headerForegroundColor:
-                                                                                FlutterFlowTheme.of(context).info,
-                                                                            headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
-                                                                                  font: GoogleFonts.poppins(
-                                                                                    fontWeight: FontWeight.w600,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                        child:
+                                                                            Stack(
+                                                                          children: [
+                                                                            TextFormField(
+                                                                              controller: _model.dataNascimentoTextController,
+                                                                              focusNode: _model.dataNascimentoFocusNode,
+                                                                              autofocus: false,
+                                                                              readOnly: true,
+                                                                              obscureText: false,
+                                                                              decoration: InputDecoration(
+                                                                                isDense: false,
+                                                                                labelStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                      font: GoogleFonts.poppins(
+                                                                                        fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                      ),
+                                                                                      fontSize: 16.0,
+                                                                                      letterSpacing: 0.0,
+                                                                                      fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                    ),
+                                                                                hintText: 'dd/mm/aaaa',
+                                                                                hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                      font: GoogleFonts.poppins(
+                                                                                        fontWeight: FontWeight.w600,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                      ),
+                                                                                      color: const Color(0xFFBEBEBE),
+                                                                                      fontSize: 16.0,
+                                                                                      letterSpacing: 0.0,
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                    ),
+                                                                                enabledBorder: OutlineInputBorder(
+                                                                                  borderSide: const BorderSide(
+                                                                                    color: Color(0x00000000),
+                                                                                    width: 1.0,
                                                                                   ),
-                                                                                  fontSize: 32.0,
-                                                                                  letterSpacing: 0.0,
-                                                                                  fontWeight: FontWeight.w600,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                  borderRadius: BorderRadius.circular(8.0),
                                                                                 ),
-                                                                            pickerBackgroundColor:
-                                                                                FlutterFlowTheme.of(context).secondaryBackground,
-                                                                            pickerForegroundColor:
-                                                                                FlutterFlowTheme.of(context).primaryText,
-                                                                            selectedDateTimeBackgroundColor:
-                                                                                FlutterFlowTheme.of(context).primary,
-                                                                            selectedDateTimeForegroundColor:
-                                                                                FlutterFlowTheme.of(context).info,
-                                                                            actionButtonForegroundColor:
-                                                                                FlutterFlowTheme.of(context).primaryText,
-                                                                            iconSize:
-                                                                                24.0,
-                                                                          );
-                                                                        },
-                                                                      );
+                                                                                focusedBorder: OutlineInputBorder(
+                                                                                  borderSide: const BorderSide(
+                                                                                    color: Color(0x00000000),
+                                                                                    width: 1.0,
+                                                                                  ),
+                                                                                  borderRadius: BorderRadius.circular(8.0),
+                                                                                ),
+                                                                                errorBorder: OutlineInputBorder(
+                                                                                  borderSide: BorderSide(
+                                                                                    color: FlutterFlowTheme.of(context).error,
+                                                                                    width: 1.0,
+                                                                                  ),
+                                                                                  borderRadius: BorderRadius.circular(8.0),
+                                                                                ),
+                                                                                focusedErrorBorder: OutlineInputBorder(
+                                                                                  borderSide: BorderSide(
+                                                                                    color: FlutterFlowTheme.of(context).error,
+                                                                                    width: 1.0,
+                                                                                  ),
+                                                                                  borderRadius: BorderRadius.circular(8.0),
+                                                                                ),
+                                                                                filled: true,
+                                                                                fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                                                suffixIcon: Icon(
+                                                                                  Icons.calendar_today,
+                                                                                  color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                ),
+                                                                              ),
+                                                                              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                    font: GoogleFonts.poppins(
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                    ),
+                                                                                    fontSize: 16.0,
+                                                                                    letterSpacing: 0.0,
+                                                                                    fontWeight: FontWeight.w600,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                  ),
+                                                                              cursorColor: FlutterFlowTheme.of(context).primaryText,
+                                                                              validator: _model.dataNascimentoTextControllerValidator.asValidator(context),
+                                                                            ),
+                                                                            InkWell(
+                                                                              splashColor: Colors.transparent,
+                                                                              focusColor: Colors.transparent,
+                                                                              hoverColor: Colors.transparent,
+                                                                              highlightColor: Colors.transparent,
+                                                                              onTap: () async {
+                                                                                final datePicked1Date = await showDatePicker(
+                                                                                  context: context,
+                                                                                  initialDate: getCurrentTimestamp,
+                                                                                  firstDate: DateTime(1900),
+                                                                                  lastDate: DateTime(2050),
+                                                                                  builder: (context, child) {
+                                                                                    return wrapInMaterialDatePickerTheme(
+                                                                                      context,
+                                                                                      child!,
+                                                                                      headerBackgroundColor: FlutterFlowTheme.of(context).primary,
+                                                                                      headerForegroundColor: FlutterFlowTheme.of(context).info,
+                                                                                      headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                            ),
+                                                                                            fontSize: 32.0,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                          ),
+                                                                                      pickerBackgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                      pickerForegroundColor: FlutterFlowTheme.of(context).primaryText,
+                                                                                      selectedDateTimeBackgroundColor: FlutterFlowTheme.of(context).primary,
+                                                                                      selectedDateTimeForegroundColor: FlutterFlowTheme.of(context).info,
+                                                                                      actionButtonForegroundColor: FlutterFlowTheme.of(context).primaryText,
+                                                                                      iconSize: 24.0,
+                                                                                    );
+                                                                                  },
+                                                                                );
 
-                                                                      if (datePicked1Date !=
-                                                                          null) {
-                                                                        safeSetState(
-                                                                            () {
-                                                                          _model.datePicked1 =
-                                                                              DateTime(
-                                                                            datePicked1Date.year,
-                                                                            datePicked1Date.month,
-                                                                            datePicked1Date.day,
-                                                                          );
-                                                                        });
-                                                                      } else if (_model
-                                                                              .datePicked1 !=
-                                                                          null) {
-                                                                        safeSetState(
-                                                                            () {
-                                                                          _model.datePicked1 =
-                                                                              getCurrentTimestamp;
-                                                                        });
-                                                                      }
-                                                                      safeSetState(
-                                                                          () {
-                                                                        _model
-                                                                            .dataNascimentoTextController
-                                                                            ?.text = dateTimeFormat(
-                                                                          "d/M/y",
-                                                                          _model
-                                                                              .datePicked1,
-                                                                          locale:
-                                                                              FFLocalizations.of(context).languageCode,
-                                                                        );
-                                                                      });
-                                                                    },
-                                                                    child:
-                                                                        Container(
-                                                                      width: double
-                                                                          .infinity,
-                                                                      height:
-                                                                       56.0,
-                                                                      decoration:
-                                                                          const BoxDecoration(),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
+                                                                                if (datePicked1Date != null) {
+                                                                                  safeSetState(() {
+                                                                                    _model.datePicked1 = DateTime(
+                                                                                      datePicked1Date.year,
+                                                                                      datePicked1Date.month,
+                                                                                      datePicked1Date.day,
+                                                                                    );
+                                                                                  });
+                                                                                } else if (_model.datePicked1 != null) {
+                                                                                  safeSetState(() {
+                                                                                    _model.datePicked1 = getCurrentTimestamp;
+                                                                                  });
+                                                                                }
+                                                                                safeSetState(() {
+                                                                                  _model.dataNascimentoTextController?.text = dateTimeFormat(
+                                                                                    "d/M/y",
+                                                                                    _model.datePicked1,
+                                                                                    locale: FFLocalizations.of(context).languageCode,
+                                                                                  );
+                                                                                });
+                                                                              },
+                                                                              child: Container(
+                                                                                width: double.infinity,
+                                                                                height: 56.0,
+                                                                                decoration: const BoxDecoration(),
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
                                                                       ),
                                                                       if (hasDataNascimento) ...[
-                                                                        const SizedBox(width: 8.0),
+                                                                        const SizedBox(
+                                                                            width:
+                                                                                8.0),
                                                                         IconButton(
-                                                                          icon: Icon(
+                                                                          icon:
+                                                                              Icon(
                                                                             Icons.close,
-                                                                            color: FlutterFlowTheme.of(context).secondaryText,
-                                                                            size: 20.0,
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).secondaryText,
+                                                                            size:
+                                                                                20.0,
                                                                           ),
-                                                                          onPressed: () async {
+                                                                          onPressed:
+                                                                              () async {
                                                                             safeSetState(() {
                                                                               _model.datePicked1 = null;
                                                                               _model.dataNascimentoTextController?.text = '';
@@ -1782,12 +1684,13 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                           .fontStyle,
                                                                     ),
                                                                 keyboardType:
-                                                                     const TextInputType
-                                                                         .numberWithOptions(
-                                                                         decimal: true),
-                                                                 inputFormatters: const [
-                                                                   PesoDecimalInputFormatter()
-                                                                 ],
+                                                                    const TextInputType
+                                                                        .numberWithOptions(
+                                                                        decimal:
+                                                                            true),
+                                                                inputFormatters: const [
+                                                                  PesoDecimalInputFormatter()
+                                                                ],
                                                                 cursorColor:
                                                                     FlutterFlowTheme.of(
                                                                             context)
@@ -3203,277 +3106,180 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     ),
                                                               ),
                                                               Builder(
-                                                                builder: (context) {
-                                                                  final hasDataDesmama = _model.datePicked3 != null;
+                                                                builder:
+                                                                    (context) {
+                                                                  final hasDataDesmama =
+                                                                      _model.datePicked3 !=
+                                                                          null;
                                                                   return Row(
-                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                    crossAxisAlignment:
+                                                                        CrossAxisAlignment
+                                                                            .start,
                                                                     children: [
                                                                       Expanded(
-                                                                        child: Stack(
-                                                                children: [
-                                                                  TextFormField(
-                                                                    controller:
-                                                                        _model
-                                                                            .dataDesmamaTextController,
-                                                                    focusNode:
-                                                                        _model
-                                                                            .dataDesmamaFocusNode,
-                                                                    autofocus:
-                                                                        false,
-                                                                    readOnly:
-                                                                        true,
-                                                                    obscureText:
-                                                                        false,
-                                                                    decoration:
-                                                                        InputDecoration(
-                                                                      isDense:
-                                                                          false,
-                                                                      labelStyle: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelMedium
-                                                                          .override(
-                                                                            font:
-                                                                                GoogleFonts.poppins(
-                                                                              fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                            ),
-                                                                            fontSize:
-                                                                                16.0,
-                                                                            letterSpacing:
-                                                                                0.0,
-                                                                            fontWeight:
-                                                                                FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                          ),
-                                                                      hintText:
-                                                                          'dd/mm/aaaa',
-                                                                      hintStyle: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelMedium
-                                                                          .override(
-                                                                            font:
-                                                                                GoogleFonts.poppins(
-                                                                              fontWeight: FontWeight.w600,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                            ),
-                                                                            color:
-                                                                                const Color(0xFFBEBEBE),
-                                                                            fontSize:
-                                                                                16.0,
-                                                                            letterSpacing:
-                                                                                0.0,
-                                                                            fontWeight:
-                                                                                FontWeight.w600,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                          ),
-                                                                      enabledBorder:
-                                                                          OutlineInputBorder(
-                                                                        borderSide:
-                                                                            const BorderSide(
-                                                                          color:
-                                                                              Color(0x00000000),
-                                                                          width:
-                                                                              1.0,
-                                                                        ),
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8.0),
-                                                                      ),
-                                                                      focusedBorder:
-                                                                          OutlineInputBorder(
-                                                                        borderSide:
-                                                                            const BorderSide(
-                                                                          color:
-                                                                              Color(0x00000000),
-                                                                          width:
-                                                                              1.0,
-                                                                        ),
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8.0),
-                                                                      ),
-                                                                      errorBorder:
-                                                                          OutlineInputBorder(
-                                                                        borderSide:
-                                                                            BorderSide(
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).error,
-                                                                          width:
-                                                                              1.0,
-                                                                        ),
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8.0),
-                                                                      ),
-                                                                      focusedErrorBorder:
-                                                                          OutlineInputBorder(
-                                                                        borderSide:
-                                                                            BorderSide(
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).error,
-                                                                          width:
-                                                                              1.0,
-                                                                        ),
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8.0),
-                                                                      ),
-                                                                      filled:
-                                                                          true,
-                                                                      fillColor:
-                                                                          FlutterFlowTheme.of(context)
-                                                                              .customColor2,
-                                                                      suffixIcon:
-                                                                          Icon(
-                                                                        Icons
-                                                                            .calendar_today,
-                                                                        color: FlutterFlowTheme.of(context)
-                                                                            .secondaryText,
-                                                                      ),
-                                                                    ),
-                                                                    style: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .override(
-                                                                          font:
-                                                                              GoogleFonts.poppins(
-                                                                            fontWeight:
-                                                                                FontWeight.w600,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                          ),
-                                                                          fontSize:
-                                                                              16.0,
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                          fontWeight:
-                                                                              FontWeight.w600,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .bodyMedium
-                                                                              .fontStyle,
-                                                                        ),
-                                                                    cursorColor:
-                                                                        FlutterFlowTheme.of(context)
-                                                                            .primaryText,
-                                                                    validator: _model
-                                                                        .dataDesmamaTextControllerValidator
-                                                                        .asValidator(
-                                                                            context),
-                                                                  ),
-                                                                  InkWell(
-                                                                    splashColor:
-                                                                        Colors
-                                                                            .transparent,
-                                                                    focusColor:
-                                                                        Colors
-                                                                            .transparent,
-                                                                    hoverColor:
-                                                                        Colors
-                                                                            .transparent,
-                                                                    highlightColor:
-                                                                        Colors
-                                                                            .transparent,
-                                                                    onTap:
-                                                                        () async {
-                                                                      final datePicked3Date =
-                                                                          await showDatePicker(
-                                                                        context:
-                                                                            context,
-                                                                        initialDate:
-                                                                            getCurrentTimestamp,
-                                                                        firstDate:
-                                                                            DateTime(1900),
-                                                                        lastDate:
-                                                                            DateTime(2050),
-                                                                        builder:
-                                                                            (context,
-                                                                                child) {
-                                                                          return wrapInMaterialDatePickerTheme(
-                                                                            context,
-                                                                            child!,
-                                                                            headerBackgroundColor:
-                                                                                FlutterFlowTheme.of(context).primary,
-                                                                            headerForegroundColor:
-                                                                                FlutterFlowTheme.of(context).info,
-                                                                            headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
-                                                                                  font: GoogleFonts.poppins(
-                                                                                    fontWeight: FontWeight.w600,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                        child:
+                                                                            Stack(
+                                                                          children: [
+                                                                            TextFormField(
+                                                                              controller: _model.dataDesmamaTextController,
+                                                                              focusNode: _model.dataDesmamaFocusNode,
+                                                                              autofocus: false,
+                                                                              readOnly: true,
+                                                                              obscureText: false,
+                                                                              decoration: InputDecoration(
+                                                                                isDense: false,
+                                                                                labelStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                      font: GoogleFonts.poppins(
+                                                                                        fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                      ),
+                                                                                      fontSize: 16.0,
+                                                                                      letterSpacing: 0.0,
+                                                                                      fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                    ),
+                                                                                hintText: 'dd/mm/aaaa',
+                                                                                hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                                      font: GoogleFonts.poppins(
+                                                                                        fontWeight: FontWeight.w600,
+                                                                                        fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                      ),
+                                                                                      color: const Color(0xFFBEBEBE),
+                                                                                      fontSize: 16.0,
+                                                                                      letterSpacing: 0.0,
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                                    ),
+                                                                                enabledBorder: OutlineInputBorder(
+                                                                                  borderSide: const BorderSide(
+                                                                                    color: Color(0x00000000),
+                                                                                    width: 1.0,
                                                                                   ),
-                                                                                  fontSize: 32.0,
-                                                                                  letterSpacing: 0.0,
-                                                                                  fontWeight: FontWeight.w600,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                  borderRadius: BorderRadius.circular(8.0),
                                                                                 ),
-                                                                            pickerBackgroundColor:
-                                                                                FlutterFlowTheme.of(context).secondaryBackground,
-                                                                            pickerForegroundColor:
-                                                                                FlutterFlowTheme.of(context).primaryText,
-                                                                            selectedDateTimeBackgroundColor:
-                                                                                FlutterFlowTheme.of(context).primary,
-                                                                            selectedDateTimeForegroundColor:
-                                                                                FlutterFlowTheme.of(context).info,
-                                                                            actionButtonForegroundColor:
-                                                                                FlutterFlowTheme.of(context).primaryText,
-                                                                            iconSize:
-                                                                                24.0,
-                                                                          );
-                                                                        },
-                                                                      );
+                                                                                focusedBorder: OutlineInputBorder(
+                                                                                  borderSide: const BorderSide(
+                                                                                    color: Color(0x00000000),
+                                                                                    width: 1.0,
+                                                                                  ),
+                                                                                  borderRadius: BorderRadius.circular(8.0),
+                                                                                ),
+                                                                                errorBorder: OutlineInputBorder(
+                                                                                  borderSide: BorderSide(
+                                                                                    color: FlutterFlowTheme.of(context).error,
+                                                                                    width: 1.0,
+                                                                                  ),
+                                                                                  borderRadius: BorderRadius.circular(8.0),
+                                                                                ),
+                                                                                focusedErrorBorder: OutlineInputBorder(
+                                                                                  borderSide: BorderSide(
+                                                                                    color: FlutterFlowTheme.of(context).error,
+                                                                                    width: 1.0,
+                                                                                  ),
+                                                                                  borderRadius: BorderRadius.circular(8.0),
+                                                                                ),
+                                                                                filled: true,
+                                                                                fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                                                suffixIcon: Icon(
+                                                                                  Icons.calendar_today,
+                                                                                  color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                ),
+                                                                              ),
+                                                                              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                    font: GoogleFonts.poppins(
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                    ),
+                                                                                    fontSize: 16.0,
+                                                                                    letterSpacing: 0.0,
+                                                                                    fontWeight: FontWeight.w600,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                  ),
+                                                                              cursorColor: FlutterFlowTheme.of(context).primaryText,
+                                                                              validator: _model.dataDesmamaTextControllerValidator.asValidator(context),
+                                                                            ),
+                                                                            InkWell(
+                                                                              splashColor: Colors.transparent,
+                                                                              focusColor: Colors.transparent,
+                                                                              hoverColor: Colors.transparent,
+                                                                              highlightColor: Colors.transparent,
+                                                                              onTap: () async {
+                                                                                final datePicked3Date = await showDatePicker(
+                                                                                  context: context,
+                                                                                  initialDate: getCurrentTimestamp,
+                                                                                  firstDate: DateTime(1900),
+                                                                                  lastDate: DateTime(2050),
+                                                                                  builder: (context, child) {
+                                                                                    return wrapInMaterialDatePickerTheme(
+                                                                                      context,
+                                                                                      child!,
+                                                                                      headerBackgroundColor: FlutterFlowTheme.of(context).primary,
+                                                                                      headerForegroundColor: FlutterFlowTheme.of(context).info,
+                                                                                      headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                            ),
+                                                                                            fontSize: 32.0,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                                          ),
+                                                                                      pickerBackgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                                      pickerForegroundColor: FlutterFlowTheme.of(context).primaryText,
+                                                                                      selectedDateTimeBackgroundColor: FlutterFlowTheme.of(context).primary,
+                                                                                      selectedDateTimeForegroundColor: FlutterFlowTheme.of(context).info,
+                                                                                      actionButtonForegroundColor: FlutterFlowTheme.of(context).primaryText,
+                                                                                      iconSize: 24.0,
+                                                                                    );
+                                                                                  },
+                                                                                );
 
-                                                                      if (datePicked3Date !=
-                                                                          null) {
-                                                                        safeSetState(
-                                                                            () {
-                                                                          _model.datePicked3 =
-                                                                              DateTime(
-                                                                            datePicked3Date.year,
-                                                                            datePicked3Date.month,
-                                                                            datePicked3Date.day,
-                                                                          );
-                                                                        });
-                                                                      } else if (_model
-                                                                              .datePicked3 !=
-                                                                          null) {
-                                                                        safeSetState(
-                                                                            () {
-                                                                          _model.datePicked3 =
-                                                                              getCurrentTimestamp;
-                                                                        });
-                                                                      }
-                                                                      safeSetState(
-                                                                          () {
-                                                                        _model
-                                                                            .dataDesmamaTextController
-                                                                            ?.text = dateTimeFormat(
-                                                                          "d/M/y",
-                                                                          _model
-                                                                              .datePicked3,
-                                                                          locale:
-                                                                              FFLocalizations.of(context).languageCode,
-                                                                        );
-                                                                      });
-                                                                    },
-                                                                    child:
-                                                                        Container(
-                                                                      width: double
-                                                                          .infinity,
-                                                                      height:
-                                                                          56.0,
-                                                                      decoration:
-                                                                          const BoxDecoration(),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
+                                                                                if (datePicked3Date != null) {
+                                                                                  safeSetState(() {
+                                                                                    _model.datePicked3 = DateTime(
+                                                                                      datePicked3Date.year,
+                                                                                      datePicked3Date.month,
+                                                                                      datePicked3Date.day,
+                                                                                    );
+                                                                                  });
+                                                                                } else if (_model.datePicked3 != null) {
+                                                                                  safeSetState(() {
+                                                                                    _model.datePicked3 = getCurrentTimestamp;
+                                                                                  });
+                                                                                }
+                                                                                safeSetState(() {
+                                                                                  _model.dataDesmamaTextController?.text = dateTimeFormat(
+                                                                                    "d/M/y",
+                                                                                    _model.datePicked3,
+                                                                                    locale: FFLocalizations.of(context).languageCode,
+                                                                                  );
+                                                                                });
+                                                                              },
+                                                                              child: Container(
+                                                                                width: double.infinity,
+                                                                                height: 56.0,
+                                                                                decoration: const BoxDecoration(),
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
                                                                       ),
                                                                       if (hasDataDesmama) ...[
-                                                                        const SizedBox(width: 8.0),
+                                                                        const SizedBox(
+                                                                            width:
+                                                                                8.0),
                                                                         IconButton(
-                                                                          icon: Icon(
+                                                                          icon:
+                                                                              Icon(
                                                                             Icons.close,
-                                                                            color: FlutterFlowTheme.of(context).secondaryText,
-                                                                            size: 20.0,
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).secondaryText,
+                                                                            size:
+                                                                                20.0,
                                                                           ),
-                                                                          onPressed: () async {
+                                                                          onPressed:
+                                                                              () async {
                                                                             safeSetState(() {
                                                                               _model.datePicked3 = null;
                                                                               _model.dataDesmamaTextController?.text = '';
@@ -3674,12 +3480,13 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                           .fontStyle,
                                                                     ),
                                                                 keyboardType:
-                                                                     const TextInputType
-                                                                         .numberWithOptions(
-                                                                         decimal: true),
-                                                                 inputFormatters: const [
-                                                                   PesoDecimalInputFormatter()
-                                                                 ],
+                                                                    const TextInputType
+                                                                        .numberWithOptions(
+                                                                        decimal:
+                                                                            true),
+                                                                inputFormatters: const [
+                                                                  PesoDecimalInputFormatter()
+                                                                ],
                                                                 cursorColor:
                                                                     FlutterFlowTheme.of(
                                                                             context)
@@ -3902,6 +3709,9 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                             .transparent,
                                                                     onTap:
                                                                         () async {
+                                                                      if (mounted) {
+                                                                        return;
+                                                                      }
                                                                       final datePicked4Date =
                                                                           await showDatePicker(
                                                                         context:
@@ -4042,6 +3852,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                     .pesoAtualFocusNode,
                                                                 autofocus:
                                                                     false,
+                                                                readOnly: true,
                                                                 obscureText:
                                                                     false,
                                                                 decoration:
@@ -6575,459 +6386,425 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                       ),
                                       FFButtonWidget(
                                         onPressed: _model.isSaving
-                                           ? null
-                                           : () async {
-                                          if (_model.isSaving) {
-                                            return;
-                                          }
-                                          if ((_model.dropDownStatusValue ?? '')
-                                              .isEmpty) {
-                                            await showDialog(
-                                              context: context,
-                                              builder: (alertDialogContext) {
-                                                return AlertDialog(
-                                                  content: const Text(
-                                                      'O campo status é obrigatório'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              alertDialogContext),
-                                                      child: const Text('Ok'),
-                                                    ),
-                                                  ],
+                                            ? null
+                                            : () async {
+                                                if (_model.isSaving) {
+                                                  return;
+                                                }
+                                                if ((_model.dropDownStatusValue ??
+                                                        '')
+                                                    .isEmpty) {
+                                                  await showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (alertDialogContext) {
+                                                      return AlertDialog(
+                                                        content: const Text(
+                                                            'O campo status é obrigatório'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                    alertDialogContext),
+                                                            child: const Text(
+                                                                'Ok'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                  return;
+                                                }
+                                                final sexoSelecionado = _model
+                                                        .dropDownSexoValueController
+                                                        ?.value ??
+                                                    _model.dropDownSexoValue;
+                                                final categoriaSelecionada =
+                                                    categoriaRebanhoSelecionada(
+                                                  sexo: sexoSelecionado,
+                                                  categoriaFemea: _model
+                                                          .dDCatRebanhoFemeaValueController
+                                                          ?.value ??
+                                                      _model
+                                                          .dDCatRebanhoFemeaValue,
+                                                  categoriaMacho: _model
+                                                          .dDCatRebanhoMachoValueController
+                                                          ?.value ??
+                                                      _model
+                                                          .dDCatRebanhoMachoValue,
                                                 );
-                                              },
-                                            );
-                                            return;
-                                          }
-                                          final sexoSelecionado =
-                                              _model.dropDownSexoValueController
-                                                      ?.value ??
-                                                  _model.dropDownSexoValue;
-                                          final categoriaSelecionada =
-                                              categoriaRebanhoSelecionada(
-                                            sexo: sexoSelecionado,
-                                            categoriaFemea: _model
-                                                    .dDCatRebanhoFemeaValueController
-                                                    ?.value ??
-                                                _model.dDCatRebanhoFemeaValue,
-                                            categoriaMacho: _model
-                                                    .dDCatRebanhoMachoValueController
-                                                    ?.value ??
-                                                _model.dDCatRebanhoMachoValue,
-                                          );
-                                          if (!categoriaRebanhoCondizComSexo(
-                                            sexo: sexoSelecionado,
-                                            categoria: categoriaSelecionada,
-                                          )) {
-                                            await showDialog(
-                                              context: context,
-                                              builder: (alertDialogContext) {
-                                                return AlertDialog(
-                                                  content: const Text(
-                                                      'Selecione uma categoria compatível com o sexo do animal antes de salvar.'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              alertDialogContext),
-                                                      child: const Text('Ok'),
-                                                    ),
-                                                  ],
+                                                if (!categoriaRebanhoCondizComSexo(
+                                                  sexo: sexoSelecionado,
+                                                  categoria:
+                                                      categoriaSelecionada,
+                                                )) {
+                                                  await showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (alertDialogContext) {
+                                                      return AlertDialog(
+                                                        content: const Text(
+                                                            'Selecione uma categoria compatível com o sexo do animal antes de salvar.'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                    alertDialogContext),
+                                                            child: const Text(
+                                                                'Ok'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                  return;
+                                                }
+                                                _model.isSaving = true;
+                                                safeSetState(() {});
+                                                _model.idRebanho = null;
+                                                safeSetState(() {});
+                                                _model.idRebanho =
+                                                    random_data.randomString(
+                                                  20,
+                                                  20,
+                                                  true,
+                                                  false,
+                                                  true,
                                                 );
+                                                safeSetState(() {});
+                                                final double?
+                                                    pesoNascimentoParsedAdd =
+                                                    double.tryParse(_model
+                                                        .pesoNascimentoTextController
+                                                        .text
+                                                        .replaceAll(',', '.'));
+                                                final double?
+                                                    pesoDesmamaParsedAdd =
+                                                    double.tryParse(_model
+                                                        .pesoDesmamaTextController
+                                                        .text
+                                                        .replaceAll(',', '.'));
+                                                await RebanhoTable().insert({
+                                                  'idPropriedade': FFAppState()
+                                                      .propriedadeSelecionada
+                                                      .idPropriedade,
+                                                  'numeroAnimal': _model
+                                                      .numAnimalTextController
+                                                      .text,
+                                                  'chip': _model
+                                                      .chipTextController.text,
+                                                  'codRegistro': _model
+                                                      .codRegistroTextController
+                                                      .text,
+                                                  'nome': _model
+                                                      .nomeAnimalTextController
+                                                      .text,
+                                                  'sexo': sexoSelecionado,
+                                                  'categoria':
+                                                      categoriaSelecionada,
+                                                  'dataNascimento':
+                                                      supaSerialize<DateTime>(
+                                                          _model.datePicked1),
+                                                  'pesoNascimento':
+                                                      double.tryParse(_model
+                                                          .pesoNascimentoTextController
+                                                          .text
+                                                          .replaceAll(
+                                                              ',', '.')),
+                                                  'porte':
+                                                      _model.dropDownPorteValue,
+                                                  'raca':
+                                                      _model.dropDownRacaValue,
+                                                  'loteID':
+                                                      _model.dropDownLotesValue,
+                                                  'dataEntradaLote':
+                                                      supaSerialize<DateTime>(
+                                                          _model.datePicked2),
+                                                  'dataDesmama':
+                                                      supaSerialize<DateTime>(
+                                                          _model.datePicked3),
+                                                  'pesoDesmama':
+                                                      pesoDesmamaParsedAdd,
+                                                  'pesoAtual': null,
+                                                  'status': _model
+                                                      .dropDownStatusValue,
+                                                  'origem': _model
+                                                      .dropDownOrigemValue,
+                                                  'anotacoes': _model
+                                                      .anotacoesTextController
+                                                      .text,
+                                                  'idRebanho': _model.idRebanho,
+                                                  'deletado': 'NAO',
+                                                  'loteNome': FFAppState()
+                                                      .rebanhoLotesSelecionar
+                                                      .where((e) =>
+                                                          _model
+                                                              .dropDownLotesValue ==
+                                                          e.idLote)
+                                                      .toList()
+                                                      .firstOrNull
+                                                      ?.nome,
+                                                  'tipo': 'animal',
+                                                  'dataAcao':
+                                                      supaSerialize<DateTime>(
+                                                          _model.datePicked8),
+                                                  'valorCompra':
+                                                      FFAppState().valueDouble,
+                                                  'dataUltimaPesagem': null,
+                                                  'nomeConcat':
+                                                      '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${dateTimeFormat(
+                                                    "d/M/y",
+                                                    _model.datePicked1,
+                                                    locale: FFLocalizations.of(
+                                                            context)
+                                                        .languageCode,
+                                                  )}',
+                                                  'dataVenda':
+                                                      supaSerialize<DateTime>(
+                                                          _model.datePicked9),
+                                                  'valorVenda':
+                                                      FFAppState().valueDouble2,
+                                                  'numeroMatriz': FFAppState()
+                                                      .matrizSelecionada
+                                                      .numAnimal,
+                                                  'nomeMatriz': FFAppState()
+                                                      .matrizSelecionada
+                                                      .nomeAnimal,
+                                                  'dataNascMatriz': supaSerialize<
+                                                          DateTime>(
+                                                      functions.converterParaData(
+                                                          FFAppState()
+                                                              .matrizSelecionada
+                                                              .dataNascAnimal)),
+                                                  'racaMatriz': FFAppState()
+                                                      .matrizSelecionada
+                                                      .racaAnimal,
+                                                  'numeroReprodutor':
+                                                      FFAppState()
+                                                          .reprodutorSelecionado
+                                                          .numAnimal,
+                                                  'nomeReprodutor': FFAppState()
+                                                      .reprodutorSelecionado
+                                                      .nomeAnimal,
+                                                  'dataNascReprodutor': supaSerialize<
+                                                          DateTime>(
+                                                      functions.converterParaData(
+                                                          FFAppState()
+                                                              .reprodutorSelecionado
+                                                              .dataNascAnimal)),
+                                                  'racaReprodutor': FFAppState()
+                                                      .reprodutorSelecionado
+                                                      .racaAnimal,
+                                                  'movimentacao_entrada':
+                                                      supaSerialize<DateTime>(
+                                                          _model.datePicked5),
+                                                  'movimentacao_saida':
+                                                      supaSerialize<DateTime>(
+                                                          _model.datePicked6),
+                                                  'data_morte':
+                                                      supaSerialize<DateTime>(
+                                                          _model.datePicked7),
+                                                  'motivo_morte': _model
+                                                      .dropDownMotivoMorteValue,
+                                                  'categoria_matriz':
+                                                      FFAppState()
+                                                          .matrizSelecionada
+                                                          .categoria,
+                                                  'rebanhoIdMatriz':
+                                                      FFAppState()
+                                                          .matrizSelecionada
+                                                          .idAnimal,
+                                                  'rebanhoIdReprodutor':
+                                                      FFAppState()
+                                                          .reprodutorSelecionado
+                                                          .idAnimal,
+                                                });
+                                                await sincronizarPesagemNascimentoRebanho(
+                                                  idRebanho: _model.idRebanho,
+                                                  idPropriedade: FFAppState()
+                                                      .propriedadeSelecionada
+                                                      .idPropriedade,
+                                                  dataNascimento:
+                                                      _model.datePicked1,
+                                                  pesoNascimento:
+                                                      pesoNascimentoParsedAdd,
+                                                );
+                                                final pesoDesmamaHistAdd =
+                                                    pesoDesmamaParsedAdd;
+                                                if (pesoDesmamaHistAdd !=
+                                                        null &&
+                                                    pesoDesmamaHistAdd > 0) {
+                                                  await HistoricoPesagensTable()
+                                                      .insert({
+                                                    'idRebanho':
+                                                        _model.idRebanho,
+                                                    'id_propriedade': FFAppState()
+                                                        .propriedadeSelecionada
+                                                        .idPropriedade,
+                                                    'dataPesagem':
+                                                        supaSerialize<DateTime>(
+                                                            _model.datePicked3),
+                                                    'tipo': 'Desmama',
+                                                    'peso': pesoDesmamaHistAdd,
+                                                    'deletado': 'NAO',
+                                                  });
+                                                }
+                                                await sincronizarUltimaPesagemRebanho(
+                                                  idRebanho: _model.idRebanho,
+                                                  sincronizarPesoAtual: true,
+                                                );
+                                                if (!context.mounted) {
+                                                  return;
+                                                }
+                                                safeSetState(() {
+                                                  _model
+                                                      .dropDownSexoValueController
+                                                      ?.reset();
+                                                  _model.dropDownSexoValue =
+                                                      null;
+                                                  _model
+                                                      .dropDownPorteValueController
+                                                      ?.reset();
+                                                  _model.dropDownPorteValue =
+                                                      null;
+                                                  _model
+                                                      .dDCatRebanhoFemeaValueController
+                                                      ?.reset();
+                                                  _model.dDCatRebanhoFemeaValue =
+                                                      null;
+                                                  _model
+                                                      .dDCatRebanhoMachoValueController
+                                                      ?.reset();
+                                                  _model.dDCatRebanhoMachoValue =
+                                                      null;
+                                                  _model
+                                                      .dropDownRacaValueController
+                                                      ?.reset();
+                                                  _model.dropDownRacaValue =
+                                                      null;
+                                                  _model
+                                                      .dropDownLotesValueController
+                                                      ?.reset();
+                                                  _model.dropDownLotesValue =
+                                                      null;
+                                                  _model
+                                                      .dropDownStatusValueController
+                                                      ?.reset();
+                                                  _model.dropDownStatusValue =
+                                                      null;
+                                                  _model
+                                                      .dropDownOrigemValueController
+                                                      ?.reset();
+                                                  _model.dropDownOrigemValue =
+                                                      null;
+                                                  _model
+                                                      .dropDownMotivoMorteValueController
+                                                      ?.reset();
+                                                  _model.dropDownMotivoMorteValue =
+                                                      null;
+                                                });
+                                                safeSetState(() {
+                                                  _model.numAnimalTextController
+                                                      ?.clear();
+                                                  _model.chipTextController
+                                                      ?.clear();
+                                                  _model
+                                                      .codRegistroTextController
+                                                      ?.clear();
+                                                  _model
+                                                      .nomeAnimalTextController
+                                                      ?.clear();
+                                                  _model
+                                                      .dataNascimentoTextController
+                                                      ?.text = dateTimeFormat(
+                                                    "d/M/y",
+                                                    _model.datePicked1,
+                                                    locale: FFLocalizations.of(
+                                                            context)
+                                                        .languageCode,
+                                                  );
+
+                                                  _model
+                                                      .pesoNascimentoTextController
+                                                      ?.clear();
+                                                  _model
+                                                      .dataEntradaLoteTextController
+                                                      ?.text = dateTimeFormat(
+                                                    "d/M/y",
+                                                    _model.datePicked2,
+                                                    locale: FFLocalizations.of(
+                                                            context)
+                                                        .languageCode,
+                                                  );
+
+                                                  _model
+                                                      .dataDesmamaTextController
+                                                      ?.text = dateTimeFormat(
+                                                    "d/M/y",
+                                                    _model.datePicked3,
+                                                    locale: FFLocalizations.of(
+                                                            context)
+                                                        .languageCode,
+                                                  );
+
+                                                  _model
+                                                      .pesoDesmamaTextController
+                                                      ?.clear();
+                                                  _model
+                                                      .dataUltimaPesagemTextController
+                                                      ?.text = dateTimeFormat(
+                                                    "d/M/y",
+                                                    _model.datePicked4,
+                                                    locale: FFLocalizations.of(
+                                                            context)
+                                                        .languageCode,
+                                                  );
+
+                                                  _model.pesoAtualTextController
+                                                      ?.clear();
+                                                  _model.dataAcaoTextController
+                                                      ?.text = dateTimeFormat(
+                                                    "d/M/y",
+                                                    _model.datePicked8,
+                                                    locale: FFLocalizations.of(
+                                                            context)
+                                                        .languageCode,
+                                                  );
+
+                                                  _model.anotacoesTextController
+                                                      ?.clear();
+                                                });
+                                                FFAppState().refreshRebanho =
+                                                    true;
+                                                safeSetState(() {});
+
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      'Animal adicionado com sucesso!',
+                                                      style: TextStyle(
+                                                        color: FlutterFlowTheme
+                                                                .of(context)
+                                                            .secondaryBackground,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                    duration: const Duration(
+                                                        milliseconds: 4000),
+                                                    backgroundColor:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .secondary,
+                                                  ),
+                                                );
+
+                                                context.goNamed(
+                                                    PgRebanhoWidget.routeName);
+
+                                                safeSetState(() {});
                                               },
-                                            );
-                                            return;
-                                          }
-                                          _model.isSaving = true;
-                                          safeSetState(() {});
-                                          _model.idRebanho = null;
-                                          safeSetState(() {});
-                                          _model.idRebanho =
-                                              random_data.randomString(
-                                            20,
-                                            20,
-                                            true,
-                                            false,
-                                            true,
-                                          );
-                                          safeSetState(() {});
-                                          // Regra de pesoAtual:
-                                          // - Se usuário informou pesoAtual, usa o valor digitado.
-                                          // - Se pesoAtual vazio e pesoDesmama informado, usa pesoDesmama.
-                                          // - Se só pesoNascimento informado, NÃO setar pesoAtual.
-                                          // dataUltimaPesagem usa a maior data do histórico registrado.
-                                          final double?
-                                              pesoNascimentoParsedAdd =
-                                              double.tryParse(_model
-                                                  .pesoNascimentoTextController
-                                                  .text
-                                                  .replaceAll(',', '.'));
-                                          final double? pesoDesmamaParsedAdd =
-                                              double.tryParse(_model
-                                                  .pesoDesmamaTextController
-                                                  .text.replaceAll(',', '.'));
-                                          final double? pesoAtualDigitadoAdd =
-                                              double.tryParse(_model
-                                                  .pesoAtualTextController
-                                                  .text.replaceAll(',', '.'));
-                                          final double? pesoAtualFinalAdd =
-                                              pesoAtualDigitadoAdd ??
-                                                  pesoDesmamaParsedAdd;
-                                          final DateTime?
-                                              dataUltimaPesagemFinalAdd =
-                                              [
-                                            if (pesoNascimentoParsedAdd !=
-                                                    null &&
-                                                pesoNascimentoParsedAdd > 0)
-                                              _model.datePicked1,
-                                            if (pesoDesmamaParsedAdd != null &&
-                                                pesoDesmamaParsedAdd > 0)
-                                              _model.datePicked3,
-                                            if (pesoAtualDigitadoAdd != null &&
-                                                pesoAtualDigitadoAdd > 0)
-                                              _model.datePicked4,
-                                          ]
-                                                  .whereType<DateTime>()
-                                                  .fold<DateTime?>(null,
-                                                      (latest, current) {
-                                            if (latest == null ||
-                                                current.isAfter(latest)) {
-                                              return current;
-                                            }
-                                            return latest;
-                                          });
-                                          await RebanhoTable().insert({
-                                            'idPropriedade': FFAppState()
-                                                .propriedadeSelecionada
-                                                .idPropriedade,
-                                            'numeroAnimal': _model
-                                                .numAnimalTextController.text,
-                                            'chip':
-                                                _model.chipTextController.text,
-                                            'codRegistro': _model
-                                                .codRegistroTextController.text,
-                                            'nome': _model
-                                                .nomeAnimalTextController.text,
-                                            'sexo': sexoSelecionado,
-                                            'categoria': categoriaSelecionada,
-                                            'dataNascimento':
-                                                supaSerialize<DateTime>(
-                                                    _model.datePicked1),
-                                            'pesoNascimento': double.tryParse(_model
-                                                    .pesoNascimentoTextController
-                                                    .text.replaceAll(',', '.')),
-                                            'porte': _model.dropDownPorteValue,
-                                            'raca': _model.dropDownRacaValue,
-                                            'loteID': _model.dropDownLotesValue,
-                                            'dataEntradaLote':
-                                                supaSerialize<DateTime>(
-                                                    _model.datePicked2),
-                                            'dataDesmama':
-                                                supaSerialize<DateTime>(
-                                                    _model.datePicked3),
-                                            'pesoDesmama': double.tryParse(_model.pesoDesmamaTextController
-                                                    .text.replaceAll(',', '.')),
-                                            'pesoAtual': pesoAtualFinalAdd,
-                                            'status':
-                                                _model.dropDownStatusValue,
-                                            'origem':
-                                                _model.dropDownOrigemValue,
-                                            'anotacoes': _model
-                                                .anotacoesTextController.text,
-                                            'idRebanho': _model.idRebanho,
-                                            'deletado': 'NAO',
-                                            'loteNome': FFAppState()
-                                                .rebanhoLotesSelecionar
-                                                .where((e) =>
-                                                    _model.dropDownLotesValue ==
-                                                    e.idLote)
-                                                .toList()
-                                                .firstOrNull
-                                                ?.nome,
-                                            'tipo': 'animal',
-                                            'dataAcao': supaSerialize<DateTime>(
-                                                _model.datePicked8),
-                                            'valorCompra':
-                                                FFAppState().valueDouble,
-                                            'dataUltimaPesagem':
-                                                supaSerialize<DateTime>(
-                                                    dataUltimaPesagemFinalAdd),
-                                            'nomeConcat':
-                                                '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${dateTimeFormat(
-                                              "d/M/y",
-                                              _model.datePicked1,
-                                              locale:
-                                                  FFLocalizations.of(context)
-                                                      .languageCode,
-                                            )}',
-                                            'dataVenda':
-                                                supaSerialize<DateTime>(
-                                                    _model.datePicked9),
-                                            'valorVenda':
-                                                FFAppState().valueDouble2,
-                                            'numeroMatriz': FFAppState()
-                                                .matrizSelecionada
-                                                .numAnimal,
-                                            'nomeMatriz': FFAppState()
-                                                .matrizSelecionada
-                                                .nomeAnimal,
-                                            'dataNascMatriz':
-                                                supaSerialize<DateTime>(
-                                                    functions.converterParaData(
-                                                        FFAppState()
-                                                            .matrizSelecionada
-                                                            .dataNascAnimal)),
-                                            'racaMatriz': FFAppState()
-                                                .matrizSelecionada
-                                                .racaAnimal,
-                                            'numeroReprodutor': FFAppState()
-                                                .reprodutorSelecionado
-                                                .numAnimal,
-                                            'nomeReprodutor': FFAppState()
-                                                .reprodutorSelecionado
-                                                .nomeAnimal,
-                                            'dataNascReprodutor': supaSerialize<
-                                                    DateTime>(
-                                                functions.converterParaData(
-                                                    FFAppState()
-                                                        .reprodutorSelecionado
-                                                        .dataNascAnimal)),
-                                            'racaReprodutor': FFAppState()
-                                                .reprodutorSelecionado
-                                                .racaAnimal,
-                                            'movimentacao_entrada':
-                                                supaSerialize<DateTime>(
-                                                    _model.datePicked5),
-                                            'movimentacao_saida':
-                                                supaSerialize<DateTime>(
-                                                    _model.datePicked6),
-                                            'data_morte':
-                                                supaSerialize<DateTime>(
-                                                    _model.datePicked7),
-                                            'motivo_morte':
-                                                _model.dropDownMotivoMorteValue,
-                                            'categoria_matriz': FFAppState()
-                                                .matrizSelecionada
-                                                .categoria,
-                                            'rebanhoIdMatriz': FFAppState()
-                                                .matrizSelecionada
-                                                .idAnimal,
-                                            'rebanhoIdReprodutor': FFAppState()
-                                                .reprodutorSelecionado
-                                                .idAnimal,
-                                          });
-                                          await sincronizarPesagemNascimentoRebanho(
-                                            idRebanho: _model.idRebanho,
-                                            idPropriedade: FFAppState()
-                                                .propriedadeSelecionada
-                                                .idPropriedade,
-                                            dataNascimento: _model.datePicked1,
-                                            pesoNascimento:
-                                                pesoNascimentoParsedAdd,
-                                          );
-                                          final _pesoPesoDesmamaHist = double.tryParse(_model.pesoDesmamaTextController.text.replaceAll(',', '.'));
-                                          if (_pesoPesoDesmamaHist != null && _pesoPesoDesmamaHist > 0) {
-                                            await HistoricoPesagensTable()
-                                                .insert({
-                                              'idRebanho': _model.idRebanho,
-                                              'id_propriedade': FFAppState()
-                                                  .propriedadeSelecionada
-                                                  .idPropriedade,
-                                              'dataPesagem':
-                                                  supaSerialize<DateTime>(
-                                                      _model.datePicked3),
-                                              'tipo': 'Desmama',
-                                              'peso': _pesoPesoDesmamaHist,
-                                              'deletado': 'NAO',
-                                            });
-                                          }
-                                          final _pesoPesoAtualHist = double.tryParse(_model.pesoAtualTextController.text.replaceAll(',', '.'));
-                                          if (_pesoPesoAtualHist != null && _pesoPesoAtualHist > 0) {
-                                            await HistoricoPesagensTable()
-                                                .insert({
-                                              'idRebanho': _model.idRebanho,
-                                              'id_propriedade': FFAppState()
-                                                  .propriedadeSelecionada
-                                                  .idPropriedade,
-                                              'dataPesagem':
-                                                  supaSerialize<DateTime>(
-                                                      _model.datePicked4),
-                                              'tipo': 'Atual',
-                                              'peso': _pesoPesoAtualHist,
-                                              'deletado': 'NAO',
-                                            });
-                                          }
-                                          if (_model.dropDownLotesValue !=
-                                                  null &&
-                                              _model.dropDownLotesValue != '') {
-                                            _model.loteSelecionado =
-                                                await LotesTable().queryRows(
-                                              queryFn: (q) => q.eqOrNull(
-                                                'id_lote',
-                                                _model.dropDownLotesValue,
-                                              ),
-                                            );
-                                            _model.animaisLote = (functions
-                                                        .converterJSONparaLista(
-                                                            _model
-                                                                .loteSelecionado
-                                                                ?.firstOrNull
-                                                                ?.idAnimais) ??
-                                                    <String>[])
-                                                .toList()
-                                                .cast<String>();
-                                            safeSetState(() {});
-                                            if (!_model.animaisLote
-                                                .contains(_model.idRebanho)) {
-                                              _model.addToAnimaisLote(
-                                                  _model.idRebanho!);
-                                            }
-                                            safeSetState(() {});
-                                            await LotesTable().update(
-                                              data: {
-                                                'id_animais': functions
-                                                    .converterListaParaJSON(
-                                                        _model.animaisLote
-                                                            .toList()),
-                                                'updated_at':
-                                                    supaSerialize<DateTime>(
-                                                        getCurrentTimestamp),
-                                              },
-                                              matchingRows: (rows) =>
-                                                  rows.eqOrNull(
-                                                'id_lote',
-                                                _model.dropDownLotesValue,
-                                              ),
-                                            );
-                                          }
-                                          safeSetState(() {
-                                            _model.dropDownSexoValueController
-                                                ?.reset();
-                                            _model.dropDownSexoValue = null;
-                                            _model.dropDownPorteValueController
-                                                ?.reset();
-                                            _model.dropDownPorteValue = null;
-                                            _model
-                                                .dDCatRebanhoFemeaValueController
-                                                ?.reset();
-                                            _model.dDCatRebanhoFemeaValue =
-                                                null;
-                                            _model
-                                                .dDCatRebanhoMachoValueController
-                                                ?.reset();
-                                            _model.dDCatRebanhoMachoValue =
-                                                null;
-                                            _model.dropDownRacaValueController
-                                                ?.reset();
-                                            _model.dropDownRacaValue = null;
-                                            _model.dropDownLotesValueController
-                                                ?.reset();
-                                            _model.dropDownLotesValue = null;
-                                            _model.dropDownStatusValueController
-                                                ?.reset();
-                                            _model.dropDownStatusValue = null;
-                                            _model.dropDownOrigemValueController
-                                                ?.reset();
-                                            _model.dropDownOrigemValue = null;
-                                            _model
-                                                .dropDownMotivoMorteValueController
-                                                ?.reset();
-                                            _model.dropDownMotivoMorteValue =
-                                                null;
-                                          });
-                                          safeSetState(() {
-                                            _model.numAnimalTextController
-                                                ?.clear();
-                                            _model.chipTextController?.clear();
-                                            _model.codRegistroTextController
-                                                ?.clear();
-                                            _model.nomeAnimalTextController
-                                                ?.clear();
-                                            _model.dataNascimentoTextController
-                                                ?.text = dateTimeFormat(
-                                              "d/M/y",
-                                              _model.datePicked1,
-                                              locale:
-                                                  FFLocalizations.of(context)
-                                                      .languageCode,
-                                            );
-
-                                            _model.pesoNascimentoTextController
-                                                ?.clear();
-                                            _model.dataEntradaLoteTextController
-                                                ?.text = dateTimeFormat(
-                                              "d/M/y",
-                                              _model.datePicked2,
-                                              locale:
-                                                  FFLocalizations.of(context)
-                                                      .languageCode,
-                                            );
-
-                                            _model.dataDesmamaTextController
-                                                ?.text = dateTimeFormat(
-                                              "d/M/y",
-                                              _model.datePicked3,
-                                              locale:
-                                                  FFLocalizations.of(context)
-                                                      .languageCode,
-                                            );
-
-                                            _model.pesoDesmamaTextController
-                                                ?.clear();
-                                            _model
-                                                .dataUltimaPesagemTextController
-                                                ?.text = dateTimeFormat(
-                                              "d/M/y",
-                                              _model.datePicked4,
-                                              locale:
-                                                  FFLocalizations.of(context)
-                                                      .languageCode,
-                                            );
-
-                                            _model.pesoAtualTextController
-                                                ?.clear();
-                                            _model.dataAcaoTextController
-                                                ?.text = dateTimeFormat(
-                                              "d/M/y",
-                                              _model.datePicked8,
-                                              locale:
-                                                  FFLocalizations.of(context)
-                                                      .languageCode,
-                                            );
-
-                                            _model.anotacoesTextController
-                                                ?.clear();
-                                          });
-                                          FFAppState().refreshRebanho = true;
-                                          safeSetState(() {});
-
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Animal adicionado com sucesso!',
-                                                style: TextStyle(
-                                                  color:
-                                                      FlutterFlowTheme.of(context)
-                                                          .secondaryBackground,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              duration: const Duration(
-                                                  milliseconds: 4000),
-                                              backgroundColor:
-                                                  FlutterFlowTheme.of(context)
-                                                      .secondary,
-                                            ),
-                                          );
-
-                                          context.goNamed(
-                                              PgRebanhoWidget.routeName);
-
-                                          safeSetState(() {});
-                                        },
                                         text: _model.isSaving
                                             ? 'Salvando...'
                                             : 'Salvar',

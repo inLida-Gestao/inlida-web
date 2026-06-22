@@ -111,6 +111,7 @@ Future<HistoricoPesagensRow?> sincronizarPesagemNascimentoRebanho({
 
   await sincronizarUltimaPesagemRebanho(
     idRebanho: idRebanhoNormalizado,
+    sincronizarPesoAtual: true,
   );
 
   return pesagem;

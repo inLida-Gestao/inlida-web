@@ -201,6 +201,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
     await sincronizarUltimaPesagemRebanho(
       rebanhoId: row.id,
       idRebanho: row.idRebanho,
+      sincronizarPesoAtual: true,
     );
 
     return RebanhoTable().querySingleRow(
@@ -3386,6 +3387,9 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                                 Colors.transparent,
                                                                             onTap:
                                                                                 () async {
+                                                                              if (mounted) {
+                                                                                return;
+                                                                              }
                                                                               final datePicked4Date = await showDatePicker(
                                                                                 context: context,
                                                                                 initialDate: getCurrentTimestamp,
@@ -3490,6 +3494,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             _model.pesoAtualFocusNode,
                                                                         autofocus:
                                                                             false,
+                                                                        readOnly:
+                                                                            true,
                                                                         obscureText:
                                                                             false,
                                                                         decoration:
@@ -6388,12 +6394,11 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         FFLocalizations.of(
                                                                 context)
                                                             .languageCode;
-                                                    final sexoSelecionado =
+                                                    final sexoSelecionado = _model
+                                                            .dropDownSexoValueController
+                                                            ?.value ??
                                                         _model
-                                                                .dropDownSexoValueController
-                                                                ?.value ??
-                                                            _model
-                                                                .dropDownSexoValue;
+                                                            .dropDownSexoValue;
                                                     final categoriaSelecionada =
                                                         categoriaRebanhoSelecionada(
                                                       sexo: sexoSelecionado,
@@ -6502,9 +6507,6 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         : (_model.datePicked1 ??
                                                             pgRebanhoEditRebanhoRow
                                                                 ?.dataNascimento);
-                                                    // Valores base para salvar a ficha; após sincronizar
-                                                    // historico_pesagens, a pesagem ativa mais recente
-                                                    // prevalece em pesoAtual/dataUltimaPesagem.
                                                     final double?
                                                         pesoNascimentoParsedEdit =
                                                         double.tryParse(_model
@@ -6519,13 +6521,6 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                             .text
                                                             .replaceAll(
                                                                 ',', '.'));
-                                                    final double?
-                                                        pesoAtualDigitadoEdit =
-                                                        double.tryParse(_model
-                                                            .pesoAtualTextController
-                                                            .text
-                                                            .replaceAll(
-                                                                ',', '.'));
                                                     final DateTime?
                                                         effectiveDataDesmamaEdit =
                                                         _model.dataDesmamaCleared
@@ -6533,24 +6528,6 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                             : (_model
                                                                     .datePicked3 ??
                                                                 effectiveDataDesmamaInicial);
-                                                    final DateTime?
-                                                        effectiveDataUltimaPesagemEdit =
-                                                        _model.datePicked4 ??
-                                                            pgRebanhoEditRebanhoRow
-                                                                ?.dataUltimaPesagem;
-                                                    final double?
-                                                        pesoAtualFinalEdit =
-                                                        pesoAtualDigitadoEdit ??
-                                                            pesoDesmamaParsedEdit;
-                                                    final DateTime?
-                                                        dataUltimaPesagemFinalEdit =
-                                                        pesoAtualDigitadoEdit !=
-                                                                null
-                                                            ? effectiveDataUltimaPesagemEdit
-                                                            : (pesoDesmamaParsedEdit !=
-                                                                    null
-                                                                ? effectiveDataDesmamaEdit
-                                                                : effectiveDataUltimaPesagemEdit);
                                                     await RebanhoTable().update(
                                                       data: {
                                                         'numeroAnimal': _model
@@ -6589,8 +6566,6 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                 effectiveDataDesmamaEdit),
                                                         'pesoDesmama':
                                                             pesoDesmamaParsedEdit,
-                                                        'pesoAtual':
-                                                            pesoAtualFinalEdit,
                                                         'status': _model
                                                             .dropDownStatusValue,
                                                         'origem': _model
@@ -6609,10 +6584,6 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         'valorCompra':
                                                             FFAppState()
                                                                 .valueDouble,
-                                                        'dataUltimaPesagem':
-                                                            supaSerialize<
-                                                                    DateTime>(
-                                                                dataUltimaPesagemFinalEdit),
                                                         'nomeConcat':
                                                             '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${effectiveDataNascimentoForSave != null ? dateTimeFormat(
                                                                 "d/M/y",
@@ -6798,31 +6769,6 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                           });
                                                         }
                                                       }
-                                                      // Quando o pesoAtual e' alterado na ficha do animal,
-                                                      // registra a alteracao em historico_pesagens com a data
-                                                      // atual (tipo 'Atual'). So insere quando o usuario digitou
-                                                      // um valor diferente do que ja estava salvo.
-                                                      if (pesoAtualDigitadoEdit !=
-                                                              null &&
-                                                          pesoAtualDigitadoEdit >
-                                                              0 &&
-                                                          pesoAtualDigitadoEdit !=
-                                                              pgRebanhoEditRebanhoRow
-                                                                  ?.pesoAtual) {
-                                                        await _registrarPesagemSeNaoExistir(
-                                                          idRebanho:
-                                                              idRebanhoSync,
-                                                          idPropriedade: FFAppState()
-                                                              .propriedadeSelecionada
-                                                              .idPropriedade,
-                                                          tipo: 'Atual',
-                                                          dataPesagem:
-                                                              dataUltimaPesagemFinalEdit ??
-                                                                  getCurrentTimestamp,
-                                                          peso:
-                                                              pesoAtualDigitadoEdit,
-                                                        );
-                                                      }
                                                       final ultimaPesagemAtiva =
                                                           await _syncPesoAtualAposPesagem(
                                                         rebanhoId:
@@ -6853,99 +6799,6 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                   languageCode,
                                                             )
                                                           : '';
-                                                    }
-                                                    // Sincronizar id_animais do(s) lote(s): remover do lote antigo e incluir no novo
-                                                    final idRebanhoAnimal =
-                                                        pgRebanhoEditRebanhoRow
-                                                            ?.idRebanho;
-                                                    final loteAntigoId =
-                                                        pgRebanhoEditRebanhoRow
-                                                            ?.loteID;
-                                                    if (loteAntigoId != null &&
-                                                        loteAntigoId
-                                                            .isNotEmpty &&
-                                                        loteAntigoId !=
-                                                            idLoteNovo) {
-                                                      final lotesAntigos =
-                                                          await LotesTable()
-                                                              .queryRows(
-                                                        queryFn: (q) =>
-                                                            q.eqOrNull(
-                                                                'id_lote',
-                                                                loteAntigoId),
-                                                      );
-                                                      final loteAntigo =
-                                                          lotesAntigos
-                                                              .firstOrNull;
-                                                      if (loteAntigo != null &&
-                                                          idRebanhoAnimal !=
-                                                              null) {
-                                                        final listaAntiga =
-                                                            functions.converterJSONparaLista(
-                                                                    loteAntigo
-                                                                        .idAnimais) ??
-                                                                [];
-                                                        listaAntiga.remove(
-                                                            idRebanhoAnimal);
-                                                        await LotesTable()
-                                                            .update(
-                                                          data: {
-                                                            'id_animais': functions
-                                                                .converterListaParaJSON(
-                                                                    listaAntiga),
-                                                            'updated_at':
-                                                                supaSerialize<
-                                                                        DateTime>(
-                                                                    getCurrentTimestamp),
-                                                          },
-                                                          matchingRows: (rows) =>
-                                                              rows.eqOrNull(
-                                                                  'id_lote',
-                                                                  loteAntigoId),
-                                                        );
-                                                      }
-                                                    }
-                                                    if (idLoteNovo != null &&
-                                                        idRebanhoAnimal !=
-                                                            null) {
-                                                      final lotesNovo =
-                                                          await LotesTable()
-                                                              .queryRows(
-                                                        queryFn: (q) =>
-                                                            q.eqOrNull(
-                                                                'id_lote',
-                                                                idLoteNovo),
-                                                      );
-                                                      final loteNovo =
-                                                          lotesNovo.firstOrNull;
-                                                      if (loteNovo != null) {
-                                                        final listaNova = functions
-                                                                .converterJSONparaLista(
-                                                                    loteNovo
-                                                                        .idAnimais) ??
-                                                            [];
-                                                        if (!listaNova.contains(
-                                                            idRebanhoAnimal)) {
-                                                          listaNova.add(
-                                                              idRebanhoAnimal);
-                                                          await LotesTable()
-                                                              .update(
-                                                            data: {
-                                                              'id_animais': functions
-                                                                  .converterListaParaJSON(
-                                                                      listaNova),
-                                                              'updated_at':
-                                                                  supaSerialize<
-                                                                          DateTime>(
-                                                                      getCurrentTimestamp),
-                                                            },
-                                                            matchingRows: (rows) =>
-                                                                rows.eqOrNull(
-                                                                    'id_lote',
-                                                                    idLoteNovo),
-                                                          );
-                                                        }
-                                                      }
                                                     }
                                                     FFAppState()
                                                         .refreshRebanho = true;
