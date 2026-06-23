@@ -6528,6 +6528,34 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                             : (_model
                                                                     .datePicked3 ??
                                                                 effectiveDataDesmamaInicial);
+                                                    if (pesoDesmamaParsedEdit !=
+                                                            null &&
+                                                        pesoDesmamaParsedEdit >
+                                                            0 &&
+                                                        effectiveDataDesmamaEdit ==
+                                                            null) {
+                                                      await showDialog(
+                                                        context: context,
+                                                        builder:
+                                                            (alertDialogContext) {
+                                                          return AlertDialog(
+                                                            content: const Text(
+                                                                'Informe a data de desmama para salvar o peso de desmama.'),
+                                                            actions: [
+                                                              TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.pop(
+                                                                        alertDialogContext),
+                                                                child:
+                                                                    const Text(
+                                                                        'Ok'),
+                                                              ),
+                                                            ],
+                                                          );
+                                                        },
+                                                      );
+                                                      return;
+                                                    }
                                                     await RebanhoTable().update(
                                                       data: {
                                                         'numeroAnimal': _model
@@ -6749,24 +6777,6 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                             peso:
                                                                 pesoDesmamaParsedEdit,
                                                           );
-                                                        } else {
-                                                          await HistoricoPesagensTable()
-                                                              .insert({
-                                                            'idRebanho':
-                                                                idRebanhoSync,
-                                                            'id_propriedade':
-                                                                FFAppState()
-                                                                    .propriedadeSelecionada
-                                                                    .idPropriedade,
-                                                            'dataPesagem':
-                                                                supaSerialize<
-                                                                        DateTime>(
-                                                                    effectiveDataDesmamaEdit),
-                                                            'tipo': 'Desmama',
-                                                            'peso':
-                                                                pesoDesmamaParsedEdit,
-                                                            'deletado': 'NAO',
-                                                          });
                                                         }
                                                       }
                                                       final ultimaPesagemAtiva =

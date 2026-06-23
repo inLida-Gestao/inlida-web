@@ -4787,6 +4787,31 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                 );
                                 return;
                               }
+                              final double? pesoDesmamaParsedCC =
+                                  double.tryParse(_model
+                                      .pesoDesmamaTextController.text
+                                      .replaceAll(',', '.'));
+                              if (pesoDesmamaParsedCC != null &&
+                                  pesoDesmamaParsedCC > 0 &&
+                                  _model.datePicked3 == null) {
+                                await showDialog(
+                                  context: context,
+                                  builder: (alertDialogContext) {
+                                    return AlertDialog(
+                                      content: const Text(
+                                          'Informe a data de desmama para salvar o peso de desmama.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(alertDialogContext),
+                                          child: const Text('Ok'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                return;
+                              }
                               _model.isSaving = true;
                               safeSetState(() {});
                               _model.idRebanho = null;
@@ -4802,10 +4827,6 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                               final double? pesoNascimentoParsedCC =
                                   double.tryParse(_model
                                       .pesoNascimentoTextController.text
-                                      .replaceAll(',', '.'));
-                              final double? pesoDesmamaParsedCC =
-                                  double.tryParse(_model
-                                      .pesoDesmamaTextController.text
                                       .replaceAll(',', '.'));
                               await RebanhoTable().insert({
                                 'idPropriedade': FFAppState()

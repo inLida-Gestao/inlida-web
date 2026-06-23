@@ -6459,6 +6459,38 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                   );
                                                   return;
                                                 }
+                                                final double?
+                                                    pesoDesmamaParsedAdd =
+                                                    double.tryParse(_model
+                                                        .pesoDesmamaTextController
+                                                        .text
+                                                        .replaceAll(',', '.'));
+                                                if (pesoDesmamaParsedAdd !=
+                                                        null &&
+                                                    pesoDesmamaParsedAdd > 0 &&
+                                                    _model.datePicked3 ==
+                                                        null) {
+                                                  await showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (alertDialogContext) {
+                                                      return AlertDialog(
+                                                        content: const Text(
+                                                            'Informe a data de desmama para salvar o peso de desmama.'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                    alertDialogContext),
+                                                            child: const Text(
+                                                                'Ok'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                  return;
+                                                }
                                                 _model.isSaving = true;
                                                 safeSetState(() {});
                                                 _model.idRebanho = null;
@@ -6476,12 +6508,6 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                     pesoNascimentoParsedAdd =
                                                     double.tryParse(_model
                                                         .pesoNascimentoTextController
-                                                        .text
-                                                        .replaceAll(',', '.'));
-                                                final double?
-                                                    pesoDesmamaParsedAdd =
-                                                    double.tryParse(_model
-                                                        .pesoDesmamaTextController
                                                         .text
                                                         .replaceAll(',', '.'));
                                                 await RebanhoTable().insert({
