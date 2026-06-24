@@ -1886,13 +1886,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       _model.tipoExcelAtivo = tipo;
     });
     final preenchido = modo == 'preenchido';
-    final temFiltro = _model.excelNascDe[tipo] != null ||
-        _model.excelNascAte[tipo] != null ||
-        (preenchido &&
-            (_model.excelAvDe[tipo] != null ||
-                _model.excelAvAte[tipo] != null));
     try {
-      final ok = await paint_actions.exportPaintAvaliacaoExcel(
+      final status = await paint_actions.exportPaintAvaliacaoExcel(
         _idPropriedade,
         tipo,
         modo,
@@ -1903,17 +1898,34 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       );
       safeSetState(() {
         _model.exportandoExcel = false;
-        _model.mensagemExcel = ok
-            ? '✓ Planilha $tipo ($modo) baixada.'
-            : (temFiltro
-                ? '⚠ Nenhum animal no intervalo de datas selecionado para a planilha $tipo.'
-                : '⚠ Nenhum animal elegível encontrado para gerar a planilha $tipo ou configuração PAINT incompleta.');
+        _model.mensagemExcel = _mensagemExportExcel(status, tipo, modo);
       });
     } catch (e) {
       safeSetState(() {
         _model.exportandoExcel = false;
         _model.mensagemExcel = '⚠ Erro: $e';
       });
+    }
+  }
+
+  String _mensagemExportExcel(
+    paint_actions.PaintExportStatus status,
+    String tipo,
+    String modo,
+  ) {
+    switch (status) {
+      case paint_actions.PaintExportStatus.ok:
+        return '✓ Planilha $tipo ($modo) baixada.';
+      case paint_actions.PaintExportStatus.configIncompleta:
+        return '⚠ Configuração PAINT incompleta para gerar a planilha $tipo.';
+      case paint_actions.PaintExportStatus.semElegiveis:
+        return '⚠ Nenhum animal elegível (status/categoria) para a planilha $tipo.';
+      case paint_actions.PaintExportStatus.semNascimento:
+        return '⚠ Nenhum animal no intervalo de data de nascimento para a planilha $tipo.';
+      case paint_actions.PaintExportStatus.semAvaliacao:
+        return '⚠ Nenhum animal no intervalo de data de avaliação para a planilha $tipo.';
+      case paint_actions.PaintExportStatus.vazio:
+        return '⚠ Nenhum animal a exportar para a planilha $tipo.';
     }
   }
 

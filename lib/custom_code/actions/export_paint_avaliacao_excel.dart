@@ -7,6 +7,17 @@ import 'paint_excel_helpers.dart';
 import 'package:download/download.dart';
 import 'package:excel/excel.dart';
 
+/// Resultado da exportação de planilha PAINT, permitindo à UI exibir mensagens
+/// específicas em vez de um genérico "nenhum animal".
+enum PaintExportStatus {
+  ok,
+  configIncompleta,
+  semElegiveis,
+  semNascimento,
+  semAvaliacao,
+  vazio,
+}
+
 /// Exporta template Excel PAINT de avaliações ou lista de touros.
 /// [tipo]: matrizes | desmama | sobreano | lista_touros
 /// [modo]: vazio | preenchido (ignorado para lista_touros)
@@ -14,7 +25,7 @@ import 'package:excel/excel.dart';
 /// Filtros opcionais (reunião 01/06 — evitar baixar grandes volumes, ex.:
 /// Cachoeira ~1.400 registros): intervalo de data de nascimento e, no modo
 /// preenchido, intervalo de data de avaliação.
-Future<bool> exportPaintAvaliacaoExcel(
+Future<PaintExportStatus> exportPaintAvaliacaoExcel(
   String idPropriedade,
   String tipo,
   String modo, {
@@ -23,7 +34,7 @@ Future<bool> exportPaintAvaliacaoExcel(
   DateTime? dataAvaliacaoDe,
   DateTime? dataAvaliacaoAte,
 }) async {
-  if (idPropriedade.isEmpty) return false;
+  if (idPropriedade.isEmpty) return PaintExportStatus.configIncompleta;
   final t = tipo.toLowerCase().trim();
   final m = modo.toLowerCase().trim();
   final preenchido = m == 'preenchido';
@@ -33,7 +44,7 @@ Future<bool> exportPaintAvaliacaoExcel(
   }
 
   final cfg = await loadPaintConfig(idPropriedade);
-  if (cfg == null) return false;
+  if (cfg == null) return PaintExportStatus.configIncompleta;
 
   List<String> headers;
   String nomeArquivo;
@@ -59,20 +70,27 @@ Future<bool> exportPaintAvaliacaoExcel(
       filtro = filtroSobreano;
       break;
     default:
-      return false;
+      return PaintExportStatus.configIncompleta;
   }
 
   final rebanho = await fetchRebanhoPaint(idPropriedade);
-  final animais = rebanho.where(filtro).where((r) {
+
+  // Animais elegíveis por status/categoria (independente de datas).
+  final elegiveis = rebanho.where(filtro).toList();
+  if (elegiveis.isEmpty) return PaintExportStatus.semElegiveis;
+
+  // Filtro por data de nascimento.
+  final comNascimento = elegiveis.where((r) {
     return dentroIntervaloData(
       parseDateIso(r['dataNascimento']),
       dataNascimentoDe,
       dataNascimentoAte,
     );
   }).toList();
-  if (animais.isEmpty) return false;
+  if (comNascimento.isEmpty) return PaintExportStatus.semNascimento;
 
-  Map<String, Map<String, dynamic>> existentes = {};
+  // Avaliações já salvas, agrupadas por A12 (pode haver mais de uma por animal).
+  final existentesPorA12 = <String, List<Map<String, dynamic>>>{};
   if (preenchido) {
     final table = t == 'matrizes'
         ? 'paint_avaliacao_rah'
@@ -84,10 +102,54 @@ Future<bool> exportPaintAvaliacaoExcel(
         .select()
         .eq('id_propriedade', idPropriedade);
     for (final e in rows) {
-      final k = '${(e['animal_a12'] ?? '').toString().trim()}|${e['data']}';
-      existentes[k] = Map<String, dynamic>.from(e);
+      final a = (e['animal_a12'] ?? '').toString().trim();
+      if (a.isEmpty) continue;
+      (existentesPorA12[a] ??= []).add(Map<String, dynamic>.from(e));
     }
   }
+
+  final temFiltroAvaliacao =
+      preenchido && (dataAvaliacaoDe != null || dataAvaliacaoAte != null);
+
+  // Seleciona (animal, avaliação) já aplicando o filtro de data de avaliação,
+  // usando a data efetiva (avaliação salva ou fallback do rebanho).
+  final selecionados = <_AnimalExport>[];
+  for (final r in comNascimento) {
+    final a12 = a12FromRebanho(r, cfg);
+    if (a12.isEmpty) continue;
+    final lista = preenchido
+        ? (existentesPorA12[a12.trim()] ?? const <Map<String, dynamic>>[])
+        : const <Map<String, dynamic>>[];
+
+    Map<String, dynamic>? exist;
+    if (temFiltroAvaliacao) {
+      // Prioriza uma avaliação salva dentro do intervalo selecionado.
+      for (final e in lista) {
+        if (dentroIntervaloData(
+            parseDateIso(e['data']), dataAvaliacaoDe, dataAvaliacaoAte)) {
+          exist = e;
+          break;
+        }
+      }
+      if (exist == null) {
+        // Sem avaliação salva no intervalo: exige que a data de fallback do
+        // rebanho (desmama/última pesagem) esteja dentro do intervalo.
+        final efetiva = dataEfetivaAvaliacao(t, r, null);
+        if (!dentroIntervaloData(
+            efetiva, dataAvaliacaoDe, dataAvaliacaoAte)) {
+          continue;
+        }
+      }
+    } else {
+      exist = lista.isNotEmpty ? lista.first : null;
+    }
+    selecionados.add(_AnimalExport(r, exist));
+  }
+
+  if (temFiltroAvaliacao && selecionados.isEmpty) {
+    return PaintExportStatus.semAvaliacao;
+  }
+  if (selecionados.isEmpty) return PaintExportStatus.vazio;
 
   final excel = Excel.createExcel();
   final sheet = excel.tables[excel.tables.keys.first]!;
@@ -97,30 +159,14 @@ Future<bool> exportPaintAvaliacaoExcel(
   }
 
   var rowIdx = 1;
-  for (final r in animais) {
-    final a12 = a12FromRebanho(r, cfg);
-    if (a12.isEmpty) continue;
+  for (final sel in selecionados) {
+    final r = sel.rebanho;
+    final exist = sel.avaliacao;
     final numAnimal = (r['numeroAnimal'] ?? '').toString();
     final nasc = parseDateIso(r['dataNascimento']) ?? '';
     final sexo = sexoMF(r['sexo']);
-    Map<String, dynamic>? exist;
-    if (preenchido) {
-      for (final e in existentes.entries) {
-        if (e.key.startsWith('${a12.trim()}|')) {
-          exist = e.value;
-          break;
-        }
-      }
-      // Filtro por data de avaliação (apenas no modo preenchido).
-      if ((dataAvaliacaoDe != null || dataAvaliacaoAte != null) &&
-          !dentroIntervaloData(
-            parseDateIso(exist?['data']),
-            dataAvaliacaoDe,
-            dataAvaliacaoAte,
-          )) {
-        continue;
-      }
-    }
+    final a12 = a12FromRebanho(r, cfg).trim();
+    final dataAv = dataEfetivaAvaliacao(t, r, exist) ?? '';
 
     List<dynamic> vals;
     if (t == 'matrizes') {
@@ -128,8 +174,8 @@ Future<bool> exportPaintAvaliacaoExcel(
         numAnimal,
         nasc,
         sexo,
-        a12.trim(),
-        exist?['data'] ?? '',
+        a12,
+        dataAv,
         exist?['racial'] ?? '',
         exist?['frame'] ?? '',
         exist?['aprumos'] ?? '',
@@ -140,8 +186,8 @@ Future<bool> exportPaintAvaliacaoExcel(
         numAnimal,
         nasc,
         sexo,
-        a12.trim(),
-        exist?['data'] ?? parseDateIso(r['dataDesmama']) ?? '',
+        a12,
+        dataAv,
         exist?['nota_c'] ?? '',
         exist?['nota_p'] ?? '',
         exist?['nota_m'] ?? '',
@@ -154,8 +200,8 @@ Future<bool> exportPaintAvaliacaoExcel(
         numAnimal,
         nasc,
         sexo,
-        a12.trim(),
-        exist?['data'] ?? parseDateIso(r['dataUltimaPesagem']) ?? '',
+        a12,
+        dataAv,
         exist?['nota_c'] ?? '',
         exist?['nota_p'] ?? '',
         exist?['nota_m'] ?? '',
@@ -188,13 +234,24 @@ Future<bool> exportPaintAvaliacaoExcel(
     rowIdx++;
   }
 
+  // Nenhuma linha de dados escrita (apenas cabeçalho): não baixa planilha vazia.
+  if (rowIdx <= 1) return PaintExportStatus.vazio;
+
   final bytes = excel.encode();
-  if (bytes == null || bytes.isEmpty) return false;
+  if (bytes == null || bytes.isEmpty) return PaintExportStatus.vazio;
   await download(Stream.fromIterable(bytes), '$nomeArquivo.xlsx');
-  return true;
+  return PaintExportStatus.ok;
 }
 
-Future<bool> _exportListaTouros(String idPropriedade, bool preenchido) async {
+/// Par animal do rebanho + avaliação salva selecionada para exportação.
+class _AnimalExport {
+  final Map<String, dynamic> rebanho;
+  final Map<String, dynamic>? avaliacao;
+  _AnimalExport(this.rebanho, this.avaliacao);
+}
+
+Future<PaintExportStatus> _exportListaTouros(
+    String idPropriedade, bool preenchido) async {
   final excel = Excel.createExcel();
   final sheet = excel.tables[excel.tables.keys.first]!;
   for (var c = 0; c < listaTourosHeaders.length; c++) {
@@ -231,9 +288,9 @@ Future<bool> _exportListaTouros(String idPropriedade, bool preenchido) async {
   }
 
   final bytes = excel.encode();
-  if (bytes == null) return false;
+  if (bytes == null) return PaintExportStatus.vazio;
   final nome =
       preenchido ? 'LISTA_TOUROS_PAINT_preenchido' : 'LISTA_TOUROS_PAINT';
   await download(Stream.fromIterable(bytes), '$nome.xlsx');
-  return true;
+  return PaintExportStatus.ok;
 }

@@ -22,7 +22,8 @@ export 'remover_animal_de_lote_anterior.dart'
 export 'registrar_paint_baixa.dart' show registrarPaintBaixa;
 export 'import_biblioteca_touros.dart' show importBibliotecaTouros;
 export 'auto_preencher_paint.dart' show autoPreencherPaint;
-export 'export_paint_avaliacao_excel.dart' show exportPaintAvaliacaoExcel;
+export 'export_paint_avaliacao_excel.dart'
+    show exportPaintAvaliacaoExcel, PaintExportStatus;
 export 'import_paint_avaliacao_excel.dart' show importPaintAvaliacaoExcel;
 export 'export_paint_resultados_excel.dart' show exportPaintResultadosExcel;
 export 'registrar_paint_excluido.dart' show registrarPaintExcluido;

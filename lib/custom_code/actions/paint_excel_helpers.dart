@@ -298,6 +298,29 @@ bool dentroIntervaloData(String? iso, DateTime? de, DateTime? ate) {
   return true;
 }
 
+/// Data efetiva de avaliação (ISO) usada para filtro e exibição na planilha.
+/// Prioriza a data da avaliação já salva em `paint_avaliacao_*` e, na ausência,
+/// usa a data de fallback do rebanho conforme o tipo — espelhando a lógica do
+/// "Importar tudo do sistema" (desmama → dataDesmama; sobreano/matrizes →
+/// dataUltimaPesagem).
+String? dataEfetivaAvaliacao(
+  String tipo,
+  Map<String, dynamic> rebanho,
+  Map<String, dynamic>? avaliacao,
+) {
+  final existente = parseDateIso(avaliacao?['data']);
+  if (existente != null) return existente;
+  switch (tipo.toLowerCase().trim()) {
+    case 'desmama':
+      return parseDateIso(rebanho['dataDesmama']);
+    case 'sobreano':
+    case 'matrizes':
+      return parseDateIso(rebanho['dataUltimaPesagem']);
+    default:
+      return null;
+  }
+}
+
 String sexoMF(dynamic sexo) {
   final s = (sexo ?? '').toString().toUpperCase();
   if (s.startsWith('F') || s == 'FÊMEA' || s == 'FEMEA') return 'F';
@@ -320,15 +343,58 @@ int? idadeDias(Map<String, dynamic> r) {
 bool filtroMatrizes(Map<String, dynamic> r) {
   final sexo = sexoMF(r['sexo']);
   if (sexo.isNotEmpty && sexo != 'F') return false;
+  // Matriz acompanha o envelhecimento (novilha -> vaca -> matriz), então a
+  // categoria atual já cobre todo o ciclo; não há coorte "perdida".
   return isAnimalNaPropriedade(r) && isCategoriaMatrizPaint(r);
 }
 
 bool filtroDesmama(Map<String, dynamic> r) {
-  return isAnimalNaPropriedade(r) && isCategoriaDesmamaPaint(r);
+  if (!isAnimalNaPropriedade(r)) return false;
+  // Bezerro/bezerra atual: sempre elegível (permite lançar nova avaliação).
+  if (isCategoriaDesmamaPaint(r)) return true;
+  // Cresceu além de bezerro (garrote/novilha) mas foi desmamado: continua
+  // elegível para registrar/continuar a avaliação de desmama daquela coorte.
+  // Adultos reprodutivos (vaca/touro) ficam de fora, pois o dado de desmama
+  // deles é da própria cria, de anos atrás.
+  return temDadosDesmama(r) && isCategoriaSobreanoPaint(r);
 }
 
 bool filtroSobreano(Map<String, dynamic> r) {
-  return isAnimalNaPropriedade(r) && isCategoriaSobreanoPaint(r);
+  if (!isAnimalNaPropriedade(r)) return false;
+  // Garrote/novilha atual: sempre elegível.
+  if (isCategoriaSobreanoPaint(r)) return true;
+  // Cresceu além (ex.: boi) mas teve pesagem na janela de sobreano: mantém a
+  // coorte. Adultos reprodutivos (vaca/touro) ficam de fora.
+  return temDadosSobreano(r) && !isCategoriaAdultoReprodutivo(r);
+}
+
+/// Animal possui dado do evento de desmama (peso e/ou data de desmama).
+bool temDadosDesmama(Map<String, dynamic> r) {
+  return r['dataDesmama'] != null || r['pesoDesmama'] != null;
+}
+
+/// Heurística de "teve evento de sobreano": a última pesagem registrada caiu na
+/// janela de 365–550 dias de idade. Usa apenas colunas já disponíveis no
+/// rebanho (dataNascimento e dataUltimaPesagem).
+bool temDadosSobreano(Map<String, dynamic> r) {
+  final nascIso = parseDateIso(r['dataNascimento']);
+  final ultIso = parseDateIso(r['dataUltimaPesagem']);
+  if (nascIso == null || ultIso == null) return false;
+  final nasc = DateTime.tryParse(nascIso);
+  final ult = DateTime.tryParse(ultIso);
+  if (nasc == null || ult == null) return false;
+  final idade = ult.difference(nasc).inDays;
+  return idade >= 365 && idade <= 550;
+}
+
+/// Categorias de adultos reprodutivos, excluídas das avaliações de jovens
+/// (desmama/sobreano) mesmo quando possuem dado antigo do evento.
+bool isCategoriaAdultoReprodutivo(Map<String, dynamic> r) {
+  final cat = normalizePaintText(r['categoria']);
+  return cat.contains('VACA') ||
+      cat.contains('MATRIZ') ||
+      cat.contains('TOURO') ||
+      cat.contains('REPROD');
 }
 
 bool isAnimalNaPropriedade(Map<String, dynamic> r) {
@@ -394,6 +460,7 @@ Future<List<Map<String, dynamic>>> fetchRebanhoPaint(
         )
         .eq('idPropriedade', idPropriedade)
         .eq('deletado', 'NAO')
+        .order('id')
         .range(offset, offset + page - 1);
     if (batch.isEmpty) break;
     all.addAll(batch.cast<Map<String, dynamic>>());

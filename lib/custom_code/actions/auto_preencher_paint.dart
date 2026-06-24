@@ -163,6 +163,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       'reproducao',
       'id_propriedade,inseminador,id_rebanho_matriz,status_reproducao,data_status,data_inseminacao',
       {'id_propriedade': idPropriedade, 'deletado': 'NAO'},
+      orderColumn: 'id',
     );
     final loteRows = await _selectAllPaged(
       client,
@@ -176,12 +177,14 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       'idRebanho,idPropriedade,numeroAnimal,dataNascimento,raca,sexo,'
           'categoria,status,dataDesmama,pesoDesmama,dataUltimaPesagem,pesoAtual',
       {'idPropriedade': idPropriedade, 'deletado': 'NAO'},
+      orderColumn: 'id',
     );
     final pesagemRows = await _selectAllPaged(
       client,
       'historico_pesagens',
       'id_propriedade,idRebanho,dataPesagem,peso,tipo',
       {'id_propriedade': idPropriedade, 'deletado': 'NAO'},
+      orderColumn: 'id',
     );
 
     // Index rebanho por idRebanho para joins manuais.
@@ -656,8 +659,9 @@ Future<List<Map<String, dynamic>>> _selectAllPaged(
   dynamic client,
   String table,
   String columns,
-  Map<String, String> filtros,
-) async {
+  Map<String, String> filtros, {
+  String? orderColumn,
+}) async {
   const pageSize = 1000;
   final all = <Map<String, dynamic>>[];
   int offset = 0;
@@ -666,6 +670,11 @@ Future<List<Map<String, dynamic>>> _selectAllPaged(
     filtros.forEach((k, v) {
       q = q.eq(k, v);
     });
+    // Ordenação estável garante paginação consistente em tabelas grandes
+    // (sem ORDER BY o PostgREST pode omitir/duplicar linhas entre páginas).
+    if (orderColumn != null) {
+      q = q.order(orderColumn);
+    }
     final rows = await q.range(offset, offset + pageSize - 1);
     final list = (rows as List).cast<Map<String, dynamic>>();
     all.addAll(list);
