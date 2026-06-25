@@ -224,7 +224,11 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
           : 'Piquetes em verde.';
     }
 
-    return 'Limite de referência em amarelo e ${widget.pointsLegendLabel.toLowerCase()} em verde.';
+    if (widget.pointsLegendLabel.toLowerCase() == 'retiro') {
+      return 'Limite da propriedade em amarelo e retiro em verde.';
+    }
+
+    return 'Limite do retiro em amarelo e piquete em verde.';
   }
 
   @override
