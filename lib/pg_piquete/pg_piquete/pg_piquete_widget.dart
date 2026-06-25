@@ -97,10 +97,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
       final selected = _store.piqueteById(selectedId);
       if (selected != null) return selected;
     }
-
-    final piquetes = _piquetesFiltrados;
-    if (piquetes.isEmpty) return null;
-    return piquetes.first;
+    return null;
   }
 
   Future<void> _selectPiqueteFromTree(PiquetePrototype piquete) async {
@@ -693,17 +690,28 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     required PiquetePrototype? selected,
   }) {
     final theme = FlutterFlowTheme.of(context);
-    final retiro = selected?.retiroId.isEmpty ?? true
+    final retiroDoPiquete = selected?.retiroId.isEmpty ?? true
         ? null
         : _store.retiroById(selected?.retiroId);
+    final retiroSelecionado =
+        selected == null && !_store.mostrandoPiquetesSemRetiro
+            ? _store.selectedRetiro
+            : null;
     final piquetesDoContexto = selected == null
         ? _piquetesFiltrados
         : (selected.retiroId.isEmpty
             ? _store.piquetesSemRetiro
             : _store.piquetesDoRetiro(selected.retiroId));
-    final referencePoints = retiro?.pontos ??
-        _store.limitePropriedade?.pontos ??
-        const <MapPoint>[];
+    final referencePoints = selected != null && retiroDoPiquete != null
+        ? retiroDoPiquete.pontos
+        : (_store.limitePropriedade?.pontos ?? const <MapPoint>[]);
+    final primaryPoints =
+        selected?.pontos ?? retiroSelecionado?.pontos ?? const <MapPoint>[];
+    final title =
+        selected?.nome ?? retiroSelecionado?.nome ?? 'Selecione um piquete';
+    final legendLabel = selected != null
+        ? 'Piquete'
+        : (retiroSelecionado != null ? 'Retiro' : 'Piquete');
     final selectedId = selected?.id;
     final overlayAreas = piquetesDoContexto
         .where(
@@ -719,11 +727,11 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
         .toList();
 
     return MapaDemarcacaoRealWidget(
-      title: selected?.nome ?? 'Selecione um piquete',
-      points: selected?.pontos ?? const [],
+      title: title,
+      points: primaryPoints,
       retiroPoints: referencePoints,
       piqueteAreas: overlayAreas,
-      pointsLegendLabel: 'Piquete',
+      pointsLegendLabel: legendLabel,
       height: 640,
       actions: [
         if (selected != null) ...[
@@ -749,6 +757,35 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                 fontWeight: FontWeight.w600,
               ),
             ),
+          ),
+        ] else if (retiroSelecionado != null) ...[
+          PrototypeSecondaryButton(
+            label: 'Editar retiro',
+            icon: Icons.edit_location_alt_outlined,
+            onPressed: () => _openRetiroDialog(initial: retiroSelecionado),
+          ),
+          OutlinedButton.icon(
+            onPressed: () => _deleteRetiro(retiroSelecionado),
+            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+            label: const Text('Excluir retiro'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.error,
+              side: BorderSide(color: theme.error),
+              minimumSize: const Size(44, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(kPiqueteRadius),
+              ),
+              textStyle: GoogleFonts.poppins(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          PrototypePrimaryButton(
+            label: 'Adicionar piquete',
+            icon: Icons.add_rounded,
+            onPressed: _openAddPiquete,
           ),
         ] else
           PrototypePrimaryButton(
