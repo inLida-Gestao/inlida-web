@@ -159,11 +159,30 @@ class PiqueteBackendStore extends ChangeNotifier {
       _upsertPiquete(detail.piquete);
       _historicoPorPiquete[detail.piquete.id] = historico;
       await ensureSelectedOptions(
-        animaisIds: detail.piquete.animaisIds,
+        animaisIds: {
+          ...detail.piquete.animaisIds,
+          ..._animalIdsFromHistorico(historico),
+        },
         lotesIds: detail.piquete.lotesIds,
       );
     });
     return loaded;
+  }
+
+  Set<String> _animalIdsFromHistorico(List<PiqueteHistoricoEvent> historico) {
+    return historico
+        .where((event) => event.tipo.contains('animal'))
+        .map(_animalIdFromHistoricoEvent)
+        .where((id) => id.isNotEmpty)
+        .toSet();
+  }
+
+  String _animalIdFromHistoricoEvent(PiqueteHistoricoEvent event) {
+    for (final key in ['id_rebanho', 'idRebanho', 'animal_id', 'id']) {
+      final value = event.metadata[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+    return event.entidadeId.trim();
   }
 
   Future<void> _loadOptionsRaw({

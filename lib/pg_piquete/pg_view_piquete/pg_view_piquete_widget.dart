@@ -81,6 +81,15 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
     final historico = piquete == null
         ? <PiqueteHistoricoEvent>[]
         : _store.historicoDoPiquete(piquete.id);
+    final historicoAnimalIds = historico
+        .where((event) => event.tipo.contains('animal'))
+        .map(_animalIdFromHistoryEvent)
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    final historicoAnimais = {
+      for (final animal in _store.animaisByIds(historicoAnimalIds))
+        animal.id: animal,
+    };
 
     return PiquetePrototypeScaffold(
       scaffoldKey: scaffoldKey,
@@ -230,12 +239,24 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
               const SizedBox(height: 20),
               _ContentSections(animais: animais, lotes: lotes),
               const SizedBox(height: 20),
-              _HistoryCard(events: historico, loading: _store.loading),
+              _HistoryCard(
+                events: historico,
+                loading: _store.loading,
+                animaisById: historicoAnimais,
+              ),
             ],
           ],
         ),
       ),
     );
+  }
+
+  String _animalIdFromHistoryEvent(PiqueteHistoricoEvent event) {
+    for (final key in ['id_rebanho', 'idRebanho', 'animal_id', 'id']) {
+      final value = event.metadata[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+    return event.entidadeId.trim();
   }
 }
 
@@ -528,10 +549,12 @@ class _HistoryCard extends StatelessWidget {
   const _HistoryCard({
     required this.events,
     required this.loading,
+    required this.animaisById,
   });
 
   final List<PiqueteHistoricoEvent> events;
   final bool loading;
+  final Map<String, AnimalPrototype> animaisById;
 
   @override
   Widget build(BuildContext context) {
@@ -583,19 +606,37 @@ class _HistoryCard extends StatelessWidget {
             ...events.map(
               (event) => Padding(
                 padding: const EdgeInsets.only(bottom: 14),
-                child: _HistoryEventRow(event: event),
+                child: _HistoryEventRow(
+                  event: event,
+                  animal: _animalForEvent(event),
+                ),
               ),
             ),
         ],
       ),
     );
   }
+
+  AnimalPrototype? _animalForEvent(PiqueteHistoricoEvent event) {
+    if (!event.tipo.contains('animal')) return null;
+    for (final key in ['id_rebanho', 'idRebanho', 'animal_id', 'id']) {
+      final value = event.metadata[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty && animaisById.containsKey(value)) {
+        return animaisById[value];
+      }
+    }
+    return animaisById[event.entidadeId.trim()];
+  }
 }
 
 class _HistoryEventRow extends StatelessWidget {
-  const _HistoryEventRow({required this.event});
+  const _HistoryEventRow({
+    required this.event,
+    required this.animal,
+  });
 
   final PiqueteHistoricoEvent event;
+  final AnimalPrototype? animal;
 
   @override
   Widget build(BuildContext context) {
@@ -633,15 +674,7 @@ class _HistoryEventRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                _eventDescription(event),
-                style: GoogleFonts.poppins(
-                  color: theme.secondaryText,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  height: 1.45,
-                ),
-              ),
+              _eventBody(context, event),
               const SizedBox(height: 4),
               Text(
                 date,
@@ -655,6 +688,50 @@ class _HistoryEventRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _eventBody(BuildContext context, PiqueteHistoricoEvent event) {
+    final theme = FlutterFlowTheme.of(context);
+    if (event.tipo.contains('animal')) {
+      final title = _animalHistoryTitle(event);
+      final subtitle = _animalHistorySubtitle(event);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              color: theme.primaryText,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              height: 1.45,
+            ),
+          ),
+          if (subtitle.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: GoogleFonts.poppins(
+                color: theme.secondaryText,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                height: 1.35,
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
+    return Text(
+      _eventDescription(event),
+      style: GoogleFonts.poppins(
+        color: theme.secondaryText,
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        height: 1.45,
+      ),
     );
   }
 
@@ -743,6 +820,78 @@ class _HistoryEventRow extends StatelessWidget {
     return descricao.isEmpty ? 'Evento registrado no piquete.' : descricao;
   }
 
+  String _animalHistoryTitle(PiqueteHistoricoEvent event) {
+    final currentAnimal = animal;
+    final numero = _metadataText(event, [
+      'numero_animal',
+      'numeroAnimal',
+      'animal_numero',
+      'numero',
+    ]);
+    final numeroLabel = _firstNonEmpty(
+      numero,
+      currentAnimal?.numero.trim() ?? '',
+    );
+    final nome = _metadataText(event, [
+      'animal_nome',
+      'nome_animal',
+      'nome',
+    ]);
+    final nomeLabel = _firstNonEmpty(
+      nome,
+      currentAnimal?.nome.trim() ?? '',
+    );
+    final dataNascimento = _formatAnimalDate(_metadataText(event, [
+      'data_nascimento',
+      'dataNascimento',
+      'animal_data_nascimento',
+    ]));
+    final dataNascimentoLabel = _firstNonEmpty(
+      dataNascimento,
+      _formatAnimalDate(currentAnimal?.dataNascimento.trim() ?? ''),
+    );
+    final sexo = _metadataText(event, [
+      'sexo',
+      'animal_sexo',
+    ]);
+    final sexoLabel = _firstNonEmpty(
+      sexo,
+      currentAnimal?.sexo.trim() ?? '',
+    );
+    final sexoSymbol = _sexoSymbol(sexoLabel);
+    final parts = [
+      if (numeroLabel.isNotEmpty) numeroLabel,
+      if (nomeLabel.isNotEmpty) nomeLabel,
+      if (dataNascimentoLabel.isNotEmpty) dataNascimentoLabel,
+    ];
+    final label = parts.isEmpty ? event.entidadeId : parts.join(' - ');
+    return sexoSymbol.isEmpty ? label : '$label $sexoSymbol';
+  }
+
+  String _animalHistorySubtitle(PiqueteHistoricoEvent event) {
+    final currentAnimal = animal;
+    final categoria = _metadataText(event, [
+      'categoria',
+      'animal_categoria',
+    ]);
+    final categoriaLabel = _firstNonEmpty(
+      categoria,
+      currentAnimal?.categoria.trim() ?? '',
+    );
+    final raca = _metadataText(event, [
+      'raca',
+      'animal_raca',
+    ]);
+    final racaLabel = _firstNonEmpty(
+      raca,
+      currentAnimal?.raca.trim() ?? '',
+    );
+    return [
+      if (categoriaLabel.isNotEmpty) categoriaLabel,
+      if (racaLabel.isNotEmpty) racaLabel,
+    ].join(' • ');
+  }
+
   String _animalLabel(PiqueteHistoricoEvent event) {
     final numero = _metadataText(event, [
       'numero_animal',
@@ -761,12 +910,39 @@ class _HistoryEventRow extends StatelessWidget {
     return event.entidadeId;
   }
 
+  String _sexoSymbol(String sexo) {
+    final normalized = sexo.trim().toLowerCase();
+    if (normalized.startsWith('m')) return '♂';
+    if (normalized.startsWith('f')) return '♀';
+    return '';
+  }
+
+  String _formatAnimalDate(String value) {
+    final raw = value.trim();
+    if (raw.isEmpty) return '';
+    final parsed = DateTime.tryParse(raw);
+    if (parsed != null) {
+      return '${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}';
+    }
+    if (RegExp(r'^\d{2}/\d{2}/\d{4}$').hasMatch(raw)) return raw;
+    if (raw.length >= 10 && RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(raw)) {
+      return '${raw.substring(8, 10)}/${raw.substring(5, 7)}/${raw.substring(0, 4)}';
+    }
+    return raw;
+  }
+
   String _metadataText(PiqueteHistoricoEvent event, List<String> keys) {
     for (final key in keys) {
       final value = event.metadata[key]?.toString().trim() ?? '';
       if (value.isNotEmpty) return value;
     }
     return '';
+  }
+
+  String _firstNonEmpty(String preferred, String fallback) {
+    final cleanPreferred = preferred.trim();
+    if (cleanPreferred.isNotEmpty) return cleanPreferred;
+    return fallback.trim();
   }
 
   Color _eventColor(FlutterFlowTheme theme, String tipo) {

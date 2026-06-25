@@ -1096,7 +1096,7 @@ bool _isAllowedImportTextRune(int rune) {
       (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
   final isDigit = rune >= 0x30 && rune <= 0x39;
   final isLatinLetter = rune >= 0x00C0 && rune <= 0x017F;
-  final isCommonPunctuation = '.,;:/_-#()+@\'"'.runes.contains(rune);
+  final isCommonPunctuation = '.,;:/_-#()+@\'"&ªº°'.runes.contains(rune);
   return isAsciiLetter || isDigit || isLatinLetter || isCommonPunctuation;
 }
 
