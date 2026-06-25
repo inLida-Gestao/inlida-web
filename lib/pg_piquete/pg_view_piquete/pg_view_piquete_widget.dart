@@ -617,7 +617,7 @@ class _HistoryEventRow extends StatelessWidget {
             color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(kPiqueteRadius),
           ),
-          child: Icon(_eventIcon(event.tipo), color: color, size: 18),
+          child: _eventIcon(event.tipo, color),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -634,9 +634,7 @@ class _HistoryEventRow extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                event.descricao.isEmpty
-                    ? 'Evento registrado no piquete.'
-                    : event.descricao,
+                _eventDescription(event),
                 style: GoogleFonts.poppins(
                   color: theme.secondaryText,
                   fontSize: 13,
@@ -691,15 +689,84 @@ class _HistoryEventRow extends StatelessWidget {
     }
   }
 
-  IconData _eventIcon(String tipo) {
-    if (tipo.contains('animal')) return Icons.pets_rounded;
-    if (tipo.contains('lote')) return Icons.bubble_chart_outlined;
-    if (tipo.contains('demarcacao')) return Icons.polyline_rounded;
-    if (tipo.contains('removeu')) return Icons.remove_circle_outline_rounded;
-    if (tipo.contains('criou') || tipo.contains('vinculou')) {
-      return Icons.add_circle_outline_rounded;
+  Widget _eventIcon(String tipo, Color color) {
+    if (tipo.contains('animal')) {
+      return Center(
+        child: Image.asset(
+          kPiqueteCowIconAsset,
+          width: piqueteAssetIconSize(kPiqueteCowIconAsset, 20),
+          height: piqueteAssetIconSize(kPiqueteCowIconAsset, 20),
+          fit: BoxFit.contain,
+        ),
+      );
     }
-    return Icons.edit_note_rounded;
+    if (tipo.contains('lote')) {
+      return Center(
+        child: SvgPicture.asset(
+          kPiqueteLoteIconAsset,
+          width: 18,
+          height: 18,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+    if (tipo.contains('demarcacao')) {
+      return Icon(Icons.polyline_rounded, color: color, size: 18);
+    }
+    if (tipo.contains('removeu')) {
+      return Icon(Icons.remove_circle_outline_rounded, color: color, size: 18);
+    }
+    if (tipo.contains('criou') || tipo.contains('vinculou')) {
+      return Icon(Icons.add_circle_outline_rounded, color: color, size: 18);
+    }
+    return Icon(Icons.edit_note_rounded, color: color, size: 18);
+  }
+
+  String _eventDescription(PiqueteHistoricoEvent event) {
+    final descricao = event.descricao.trim();
+    if (event.tipo.contains('animal')) {
+      final animal = _animalLabel(event);
+      if (animal.isNotEmpty) {
+        return event.tipo == 'removeu_animal'
+            ? 'Animal $animal removido do piquete.'
+            : 'Animal $animal vinculado ao piquete.';
+      }
+    }
+    if (event.tipo.contains('lote')) {
+      final lote = _metadataText(event, ['lote_nome', 'nome_lote', 'nome']);
+      if (lote.isNotEmpty) {
+        return event.tipo == 'removeu_lote'
+            ? 'Lote $lote removido do piquete.'
+            : 'Lote $lote vinculado ao piquete.';
+      }
+    }
+    return descricao.isEmpty ? 'Evento registrado no piquete.' : descricao;
+  }
+
+  String _animalLabel(PiqueteHistoricoEvent event) {
+    final numero = _metadataText(event, [
+      'numero_animal',
+      'numeroAnimal',
+      'animal_numero',
+      'numero',
+    ]);
+    final nome = _metadataText(event, [
+      'animal_nome',
+      'nome_animal',
+      'nome',
+    ]);
+    if (numero.isNotEmpty && nome.isNotEmpty) return '$numero - $nome';
+    if (numero.isNotEmpty) return numero;
+    if (nome.isNotEmpty) return nome;
+    return event.entidadeId;
+  }
+
+  String _metadataText(PiqueteHistoricoEvent event, List<String> keys) {
+    for (final key in keys) {
+      final value = event.metadata[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+    return '';
   }
 
   Color _eventColor(FlutterFlowTheme theme, String tipo) {
