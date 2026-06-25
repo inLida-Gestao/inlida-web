@@ -27,6 +27,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
   DateTime? dataNascimentoAte,
   DateTime? dataAvaliacaoDe,
   DateTime? dataAvaliacaoAte,
+  String? status,
 }) async {
   final result = <String, dynamic>{
     'inseminadores': 0,
@@ -354,7 +355,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
           existDes.map((e) => '${e['animal_a12']}|${e['data']}').toSet();
       final insertDes = <Map<String, dynamic>>[];
       for (final r in rebanhoRows) {
-        if (!filtroDesmama(r)) continue;
+        if (!filtroDesmama(r, status: status)) continue;
         if (!nascDentro(r)) continue;
         final peso = r['pesoDesmama'];
         final data = r['dataDesmama'];
@@ -394,7 +395,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         final idReb = p['idRebanho']?.toString() ?? '';
         final reb = rebanhoById[idReb];
         if (reb == null) continue;
-        if (!filtroSobreano(reb)) continue;
+        if (!filtroSobreano(reb, status: status)) continue;
         if (!nascDentro(reb)) continue;
         DateTime? dPes;
         if (dataP is String && dataP.isNotEmpty) {
@@ -433,7 +434,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         });
       }
       for (final reb in rebanhoRows) {
-        if (!filtroSobreano(reb)) continue;
+        if (!filtroSobreano(reb, status: status)) continue;
         if (!nascDentro(reb)) continue;
         final peso = reb['pesoAtual'];
         final data = reb['dataUltimaPesagem'];
@@ -466,7 +467,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
           existRah.map((e) => '${e['animal_a12']}|${e['data']}').toSet();
       final insertRah = <Map<String, dynamic>>[];
       for (final r in rebanhoRows) {
-        if (!filtroMatrizes(r)) continue;
+        if (!filtroMatrizes(r, status: status)) continue;
         if (!nascDentro(r)) continue;
         final peso = r['pesoAtual'];
         final data = r['dataUltimaPesagem'];

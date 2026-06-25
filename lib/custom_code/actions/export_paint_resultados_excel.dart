@@ -48,9 +48,12 @@ Future<bool> exportPaintResultadosExcel(String idPropriedade) async {
   }
 
   final rebanho = await fetchRebanhoPaint(idPropriedade);
-  final ventres = rebanho.where(filtroMatrizes).length;
-  final desm = rebanho.where(filtroDesmama).length;
-  final sob = rebanho.where(filtroSobreano).length;
+  final ventres =
+      rebanho.where((r) => filtroMatrizes(r, status: 'Na propriedade')).length;
+  final desm =
+      rebanho.where((r) => filtroDesmama(r, status: 'Na propriedade')).length;
+  final sob =
+      rebanho.where((r) => filtroSobreano(r, status: 'Na propriedade')).length;
 
   row += 1;
   resumo

@@ -33,6 +33,7 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
   DateTime? dataNascimentoAte,
   DateTime? dataAvaliacaoDe,
   DateTime? dataAvaliacaoAte,
+  String? status,
 }) async {
   if (idPropriedade.isEmpty) return PaintExportStatus.configIncompleta;
   final t = tipo.toLowerCase().trim();
@@ -55,19 +56,19 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
       headers = matrizesHeaders;
       nomeArquivo =
           preenchido ? 'PAINT_Av_Matrizes_preenchido' : 'PAINT_Av_Matrizes';
-      filtro = filtroMatrizes;
+      filtro = (r) => filtroMatrizes(r, status: status);
       break;
     case 'desmama':
       headers = desmamaHeaders;
       nomeArquivo =
           preenchido ? 'PAINT_Av_Desmama_preenchido' : 'PAINT_Av_Desmama';
-      filtro = filtroDesmama;
+      filtro = (r) => filtroDesmama(r, status: status);
       break;
     case 'sobreano':
       headers = sobreanoHeaders;
       nomeArquivo =
           preenchido ? 'PAINT_Av_Sobreano_preenchido' : 'PAINT_Av_Sobreano';
-      filtro = filtroSobreano;
+      filtro = (r) => filtroSobreano(r, status: status);
       break;
     default:
       return PaintExportStatus.configIncompleta;

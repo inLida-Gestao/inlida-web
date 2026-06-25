@@ -58,14 +58,15 @@ class PgPaintModel extends FlutterFlowModel<PgPaintWidget> {
   String? mensagemExcel;
   String? tipoExcelAtivo;
 
-  // Filtros opcionais (data nascimento / data avaliação) do card Status PAINT,
-  // aplicados em "Importar tudo do sistema".
+  // Filtros opcionais (data nascimento / data avaliação / status) do card
+  // Status PAINT, aplicados em "Importar tudo do sistema".
   DateTime? importNascDe;
   DateTime? importNascAte;
   DateTime? importAvDe;
   DateTime? importAvAte;
+  String? importStatus = 'Na propriedade';
 
-  // Filtros opcionais por tipo de planilha, aplicados em "Com dados da fazenda".
+  // Filtros opcionais por tipo de planilha, aplicados nas exportações Excel.
   final Map<String, DateTime?> excelNascDe = {
     'matrizes': null,
     'desmama': null,
@@ -85,6 +86,11 @@ class PgPaintModel extends FlutterFlowModel<PgPaintWidget> {
     'matrizes': null,
     'desmama': null,
     'sobreano': null,
+  };
+  final Map<String, String?> excelStatus = {
+    'matrizes': 'Na propriedade',
+    'desmama': 'Na propriedade',
+    'sobreano': 'Na propriedade',
   };
 
   @override

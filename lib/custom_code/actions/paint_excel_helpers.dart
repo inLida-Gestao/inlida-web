@@ -340,16 +340,22 @@ int? idadeDias(Map<String, dynamic> r) {
   return DateTime.now().difference(d).inDays;
 }
 
-bool filtroMatrizes(Map<String, dynamic> r) {
-  final sexo = sexoMF(r['sexo']);
-  if (sexo.isNotEmpty && sexo != 'F') return false;
-  // Matriz acompanha o envelhecimento (novilha -> vaca -> matriz), então a
-  // categoria atual já cobre todo o ciclo; não há coorte "perdida".
-  return isAnimalNaPropriedade(r) && isCategoriaMatrizPaint(r);
+bool matchesStatusRebanho(Map<String, dynamic> r, String? status) {
+  if (status == null || status.trim().isEmpty) return true;
+  return normalizePaintText(r['status']) == normalizePaintText(status);
 }
 
-bool filtroDesmama(Map<String, dynamic> r) {
-  if (!isAnimalNaPropriedade(r)) return false;
+bool filtroMatrizes(Map<String, dynamic> r, {String? status}) {
+  final sexo = sexoMF(r['sexo']);
+  if (sexo.isNotEmpty && sexo != 'F') return false;
+  if (!matchesStatusRebanho(r, status)) return false;
+  // Matriz acompanha o envelhecimento (novilha -> vaca -> matriz), então a
+  // categoria atual já cobre todo o ciclo; não há coorte "perdida".
+  return isCategoriaMatrizPaint(r);
+}
+
+bool filtroDesmama(Map<String, dynamic> r, {String? status}) {
+  if (!matchesStatusRebanho(r, status)) return false;
   // Bezerro/bezerra atual: sempre elegível (permite lançar nova avaliação).
   if (isCategoriaDesmamaPaint(r)) return true;
   // Cresceu além de bezerro (garrote/novilha) mas foi desmamado: continua
@@ -359,8 +365,8 @@ bool filtroDesmama(Map<String, dynamic> r) {
   return temDadosDesmama(r) && isCategoriaSobreanoPaint(r);
 }
 
-bool filtroSobreano(Map<String, dynamic> r) {
-  if (!isAnimalNaPropriedade(r)) return false;
+bool filtroSobreano(Map<String, dynamic> r, {String? status}) {
+  if (!matchesStatusRebanho(r, status)) return false;
   // Garrote/novilha atual: sempre elegível.
   if (isCategoriaSobreanoPaint(r)) return true;
   // Cresceu além (ex.: boi) mas teve pesagem na janela de sobreano: mantém a
@@ -418,11 +424,15 @@ bool isCategoriaSobreanoPaint(Map<String, dynamic> r) {
   return cat.contains('GARROTE') || cat.contains('NOVILHA');
 }
 
-bool isElegivelAvaliacaoPaint(String tipo, Map<String, dynamic> r) {
+bool isElegivelAvaliacaoPaint(
+  String tipo,
+  Map<String, dynamic> r, {
+  String? status,
+}) {
   final t = normalizePaintText(tipo);
-  if (t == 'MATRIZES' || t == 'MATRIZ') return filtroMatrizes(r);
-  if (t == 'DESMAMA') return filtroDesmama(r);
-  if (t == 'SOBREANO') return filtroSobreano(r);
+  if (t == 'MATRIZES' || t == 'MATRIZ') return filtroMatrizes(r, status: status);
+  if (t == 'DESMAMA') return filtroDesmama(r, status: status);
+  if (t == 'SOBREANO') return filtroSobreano(r, status: status);
   return false;
 }
 

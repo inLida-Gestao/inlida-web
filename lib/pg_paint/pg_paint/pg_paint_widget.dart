@@ -700,6 +700,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         dataNascimentoAte: _model.importNascAte,
         dataAvaliacaoDe: _model.importAvDe,
         dataAvaliacaoAte: _model.importAvAte,
+        status: _model.importStatus,
       );
       if (!_aindaMesmaPropriedade(propId)) {
         safeSetState(() => _model.importandoAuto = false);
@@ -774,10 +775,12 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
 
     final nasc = intervalo(_model.importNascDe, _model.importNascAte);
     final aval = intervalo(_model.importAvDe, _model.importAvAte);
-    if (nasc == null && aval == null) return '';
+    final st = _model.importStatus;
+    if (nasc == null && aval == null && (st == null || st.isEmpty)) return '';
     final partes = [
       if (nasc != null) 'nasc.: $nasc',
       if (aval != null) 'aval.: $aval',
+      if (st != null && st.isNotEmpty) 'status: $st',
     ];
     return 'Filtros aplicados (${partes.join(' / ')}).\n';
   }
@@ -1299,12 +1302,19 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     );
   }
 
-  int _contaFiltros(DateTime? a, DateTime? b, DateTime? c, DateTime? d) {
+  int _contaFiltros(
+    DateTime? a,
+    DateTime? b,
+    DateTime? c,
+    DateTime? d, [
+    String? status,
+  ]) {
     var n = 0;
     if (a != null) n++;
     if (b != null) n++;
     if (c != null) n++;
     if (d != null) n++;
+    if (status != null && status.isNotEmpty) n++;
     return n;
   }
 
@@ -1340,24 +1350,31 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     );
   }
 
-  /// Abre um modal com os filtros opcionais por data (nascimento + avaliação).
-  /// Mantém estado temporário e só aplica ao confirmar.
-  Future<void> _abrirFiltroDatas({
+  /// Abre um modal com filtros opcionais (status, datas de nascimento e
+  /// avaliação). Mantém estado temporário e só aplica ao confirmar.
+  Future<void> _abrirFiltros({
     required String titulo,
+    required String? status,
     required DateTime? nascDe,
     required DateTime? nascAte,
     required DateTime? avDe,
     required DateTime? avAte,
     required void Function(
-            DateTime? nascDe, DateTime? nascAte, DateTime? avDe, DateTime? avAte)
-        onAplicar,
+      String? status,
+      DateTime? nascDe,
+      DateTime? nascAte,
+      DateTime? avDe,
+      DateTime? avAte,
+    ) onAplicar,
     bool incluiAvaliacao = true,
   }) async {
     final theme = FlutterFlowTheme.of(context);
+    String? tStatus = status;
     DateTime? tNascDe = nascDe;
     DateTime? tNascAte = nascAte;
     DateTime? tAvDe = avDe;
     DateTime? tAvAte = avAte;
+    final opcoesStatus = FFAppState().statusRebanho;
 
     await showDialog<void>(
       context: context,
@@ -1402,6 +1419,47 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    Text(
+                      'Status',
+                      style: theme.bodySmall.override(
+                        fontFamily: 'Readex Pro',
+                        fontWeight: FontWeight.w600,
+                        useGoogleFonts:
+                            GoogleFonts.asMap().containsKey('Readex Pro'),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String?>(
+                      value: tStatus,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: theme.secondaryBackground,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: theme.alternate),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      hint: const Text('Todos os status'),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('Todos os status'),
+                        ),
+                        ...opcoesStatus.map(
+                          (s) => DropdownMenuItem<String?>(
+                            value: s,
+                            child: Text(s),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) => setLocal(() => tStatus = v),
+                    ),
+                    const SizedBox(height: 12),
                     Wrap(
                       spacing: 12,
                       runSpacing: 12,
@@ -1436,6 +1494,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                       children: [
                         TextButton.icon(
                           onPressed: () => setLocal(() {
+                            tStatus = null;
                             tNascDe = null;
                             tNascAte = null;
                             tAvDe = null;
@@ -1448,7 +1507,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                         ),
                         FFButtonWidget(
                           onPressed: () {
-                            onAplicar(tNascDe, tNascAte, tAvDe, tAvAte);
+                            onAplicar(
+                                tStatus, tNascDe, tNascAte, tAvDe, tAvAte);
                             Navigator.of(dialogContext).pop();
                           },
                           text: 'Aplicar',
@@ -1555,16 +1615,20 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                         _model.importNascAte,
                         _model.importAvDe,
                         _model.importAvAte,
+                        _model.importStatus,
                       ),
                       onPressed: !cfgOk
                           ? null
-                          : () => _abrirFiltroDatas(
+                          : () => _abrirFiltros(
                                 titulo: 'Filtros — Importar tudo do sistema',
+                                status: _model.importStatus,
                                 nascDe: _model.importNascDe,
                                 nascAte: _model.importNascAte,
                                 avDe: _model.importAvDe,
                                 avAte: _model.importAvAte,
-                                onAplicar: (nd, na, ad, aa) => safeSetState(() {
+                                onAplicar: (st, nd, na, ad, aa) =>
+                                    safeSetState(() {
+                                  _model.importStatus = st;
                                   _model.importNascDe = nd;
                                   _model.importNascAte = na;
                                   _model.importAvDe = ad;
@@ -1895,6 +1959,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         dataNascimentoAte: _model.excelNascAte[tipo],
         dataAvaliacaoDe: preenchido ? _model.excelAvDe[tipo] : null,
         dataAvaliacaoAte: preenchido ? _model.excelAvAte[tipo] : null,
+        status: _model.excelStatus[tipo],
       );
       safeSetState(() {
         _model.exportandoExcel = false;
@@ -2014,17 +2079,20 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                           _model.excelNascAte[tipo],
                           _model.excelAvDe[tipo],
                           _model.excelAvAte[tipo],
+                          _model.excelStatus[tipo],
                         ),
                         onPressed: busy
                             ? null
-                            : () => _abrirFiltroDatas(
+                            : () => _abrirFiltros(
                                   titulo: 'Filtros — $label',
+                                  status: _model.excelStatus[tipo],
                                   nascDe: _model.excelNascDe[tipo],
                                   nascAte: _model.excelNascAte[tipo],
                                   avDe: _model.excelAvDe[tipo],
                                   avAte: _model.excelAvAte[tipo],
-                                  onAplicar: (nd, na, ad, aa) =>
+                                  onAplicar: (st, nd, na, ad, aa) =>
                                       safeSetState(() {
+                                    _model.excelStatus[tipo] = st;
                                     _model.excelNascDe[tipo] = nd;
                                     _model.excelNascAte[tipo] = na;
                                     _model.excelAvDe[tipo] = ad;
