@@ -169,7 +169,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
       headerModel: _model.headerModel,
       sideBarModel: _model.sideBarModel,
       child: SingleChildScrollView(
-        padding: const EdgeInsetsDirectional.fromSTEB(32, 34, 32, 34),
+        padding: const EdgeInsetsDirectional.fromSTEB(28, 28, 28, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -198,17 +198,17 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                 ),
               ],
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 20),
             Wrap(
-              spacing: 18,
-              runSpacing: 18,
+              spacing: 12,
+              runSpacing: 12,
               children: [
                 SizedBox(
-                  width: 280,
+                  width: 232,
                   child: _buildLimiteMetricCard(context),
                 ),
                 SizedBox(
-                  width: 280,
+                  width: 232,
                   child: PrototypeMetricCard(
                     title: 'Retiros cadastrados',
                     value: _store.retiros.length.toString(),
@@ -216,7 +216,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                   ),
                 ),
                 SizedBox(
-                  width: 280,
+                  width: 232,
                   child: PrototypeMetricCard(
                     title: 'Piquetes cadastrados',
                     value: _store.totalPiquetes.toString(),
@@ -224,7 +224,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                   ),
                 ),
                 SizedBox(
-                  width: 280,
+                  width: 232,
                   child: PrototypeMetricCard(
                     title: 'Animais em piquetes',
                     value: _store.totalAnimaisEmPiquetes.toString(),
@@ -232,7 +232,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                   ),
                 ),
                 SizedBox(
-                  width: 280,
+                  width: 232,
                   child: PrototypeMetricCard(
                     title: 'Lotes em piquetes',
                     value: _store.totalLotesEmPiquetes.toString(),
@@ -241,7 +241,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                 ),
               ],
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 20),
             if (_store.loading &&
                 _store.retiros.isEmpty &&
                 _store.piquetesSemRetiro.isEmpty)
@@ -316,7 +316,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                     return Column(
                       children: [
                         retiros,
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                         workspace,
                       ],
                     );
@@ -325,7 +325,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(width: 330, child: retiros),
-                      const SizedBox(width: 24),
+                      const SizedBox(width: 16),
                       Expanded(child: workspace),
                     ],
                   );
@@ -338,30 +338,30 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
   }
 
   Widget _buildLimiteMetricCard(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     final limite = _store.limitePropriedade;
     return SizedBox(
-      height: 116,
+      height: 92,
       child: PrototypeCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
           onTap: () => _showLimiteDialog(initial: limite),
           child: Row(
             children: [
               Container(
-                width: 54,
-                height: 54,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
-                  color: theme.primary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(14),
+                  color: kPiquetePrimarySurface,
+                  shape: BoxShape.circle,
                 ),
                 child: Icon(
                   limite == null ? Icons.add_location_alt_outlined : Icons.map,
-                  color: theme.primary,
-                  size: 28,
+                  color: kPiquetePrimary,
+                  size: 23,
                 ),
               ),
-              const SizedBox(width: 18),
+              const SizedBox(width: 13),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -372,9 +372,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        color: theme.secondaryText,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        color: kPiqueteTextMuted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                         height: 1.2,
                       ),
                     ),
@@ -386,10 +386,10 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        color: theme.primaryText,
-                        fontSize: limite == null ? 18 : 24,
+                        color: kPiqueteTextStrong,
+                        fontSize: limite == null ? 17 : 21,
                         fontWeight: FontWeight.w700,
-                        height: 1.1,
+                        height: 1.15,
                       ),
                     ),
                     if (limite != null) ...[
@@ -399,7 +399,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
-                          color: theme.secondaryText,
+                          color: kPiqueteTextSoft,
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                           height: 1.1,
@@ -413,7 +413,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                 limite == null
                     ? Icons.add_rounded
                     : Icons.edit_location_alt_outlined,
-                color: theme.secondary,
+                color: kPiquetePrimaryDark,
                 size: 20,
               ),
             ],
@@ -424,44 +424,57 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
   }
 
   Widget _buildRetirosPanel(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     return PrototypeCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Retiros',
-            style: GoogleFonts.poppins(
-              color: theme.primaryText,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Retiros',
+                  style: GoogleFonts.poppins(
+                    color: kPiqueteTextStrong,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              PrototypeBadge(
+                label: '${_store.retiros.length}',
+                icon: Icons.account_tree_outlined,
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            'Selecione um retiro ou veja os piquetes sem retiro.',
-            style: GoogleFonts.poppins(
-              color: theme.secondaryText,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
+          const SizedBox(height: 12),
+          _PiqueteSegmentedTabs(
+            showingSemRetiro: _store.mostrandoPiquetesSemRetiro,
+            retiroCount: _store.retiros.length,
+            semRetiroCount: _store.piquetesSemRetiro.length,
+            onRetirosTap: () {
+              final firstRetiro =
+                  _store.retiros.isEmpty ? null : _store.retiros.first;
+              if (firstRetiro != null) _selectLimites(firstRetiro.id);
+            },
+            onSemRetiroTap: _selectPiquetesSemLimites,
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: InkWell(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(14),
               onTap: _selectPiquetesSemLimites,
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: _store.mostrandoPiquetesSemRetiro
-                      ? theme.primary.withValues(alpha: 0.10)
-                      : theme.customColor2,
-                  borderRadius: BorderRadius.circular(10),
+                      ? kPiquetePrimarySurface
+                      : kPiqueteFieldSurface,
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: _store.mostrandoPiquetesSemRetiro
-                        ? theme.primary
+                        ? kPiquetePrimary
                         : Colors.transparent,
                   ),
                 ),
@@ -475,9 +488,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                             'Sem retiro',
                             style: GoogleFonts.poppins(
                               color: _store.mostrandoPiquetesSemRetiro
-                                  ? theme.secondary
-                                  : theme.primaryText,
-                              fontSize: 16,
+                                  ? kPiquetePrimaryDark
+                                  : kPiqueteTextStrong,
+                              fontSize: 14.5,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -491,8 +504,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                     Text(
                       'Piquetes sem vínculo com retiro',
                       style: GoogleFonts.poppins(
-                        color: theme.secondaryText,
-                        fontSize: 13,
+                        color: kPiqueteTextSoft,
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -507,17 +520,17 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: InkWell(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 onTap: () => _selectLimites(retiro.id),
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: selected
-                        ? theme.primary.withValues(alpha: 0.10)
-                        : theme.customColor2,
-                    borderRadius: BorderRadius.circular(10),
+                        ? kPiquetePrimarySurface
+                        : kPiqueteFieldSurface,
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: selected ? theme.primary : Colors.transparent,
+                      color: selected ? kPiquetePrimary : Colors.transparent,
                     ),
                   ),
                   child: Column(
@@ -530,9 +543,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                               retiro.nome,
                               style: GoogleFonts.poppins(
                                 color: selected
-                                    ? theme.secondary
-                                    : theme.primaryText,
-                                fontSize: 16,
+                                    ? kPiquetePrimaryDark
+                                    : kPiqueteTextStrong,
+                                fontSize: 14.5,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -544,8 +557,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                       Text(
                         '${retiro.areaHa.toStringAsFixed(0)} ha demarcados',
                         style: GoogleFonts.poppins(
-                          color: theme.secondaryText,
-                          fontSize: 13,
+                          color: kPiqueteTextSoft,
+                          fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -587,7 +600,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
               selected: selected,
               retiro: retiro,
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 14),
             _buildPiqueteInlineDetails(
               context,
               selected,
@@ -611,7 +624,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(width: 310, child: list),
-            const SizedBox(width: 18),
+            const SizedBox(width: 16),
             Expanded(child: main),
           ],
         );
@@ -696,7 +709,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
         : '${piquetes.length} piquetes em ${retiro.nome}';
 
     return PrototypeCard(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -704,7 +717,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
             title,
             style: GoogleFonts.poppins(
               color: theme.primaryText,
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -712,7 +725,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           Text(
             subtitle,
             style: GoogleFonts.poppins(
-              color: theme.secondaryText,
+              color: kPiqueteTextSoft,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -720,7 +733,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           const SizedBox(height: 14),
           PrototypeSearchField(
             controller: _model.textController!,
-            hint: 'Pesquisar piquete',
+            hint: 'Pesquisar piquete ou retiro',
             onChanged: (_) => safeSetState(() {}),
           ),
           const SizedBox(height: 14),
@@ -1693,22 +1706,19 @@ class _PiqueteCompactTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     final totalAnimais =
         piquete.totalAnimaisIndividuais + piquete.animaisLotesCount;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: selected
-              ? theme.secondary.withValues(alpha: 0.12)
-              : theme.customColor2,
-          borderRadius: BorderRadius.circular(12),
+          color: selected ? kPiquetePrimarySurface : kPiqueteFieldSurface,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected ? theme.secondary : theme.customColor5,
+            color: selected ? kPiquetePrimary : kPiqueteBorder,
             width: selected ? 1.5 : 1,
           ),
         ),
@@ -1723,7 +1733,8 @@ class _PiqueteCompactTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      color: selected ? theme.secondary : theme.primaryText,
+                      color:
+                          selected ? kPiquetePrimaryDark : kPiqueteTextStrong,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1731,7 +1742,7 @@ class _PiqueteCompactTile extends StatelessWidget {
                 ),
                 Icon(
                   Icons.chevron_right_rounded,
-                  color: selected ? theme.secondary : theme.secondaryText,
+                  color: selected ? kPiquetePrimaryDark : kPiqueteTextMuted,
                   size: 20,
                 ),
               ],
@@ -1744,20 +1755,133 @@ class _PiqueteCompactTile extends StatelessWidget {
                 PrototypeBadge(
                   label: '${piquete.areaHa.toStringAsFixed(0)} ha',
                   icon: Icons.crop_square_rounded,
-                  color: selected ? theme.secondary : null,
+                  color: selected ? kPiquetePrimaryDark : null,
                 ),
                 PrototypeBadge(
                   label: '$totalAnimais animais',
                   iconAsset: kPiqueteCowIconAsset,
-                  color: selected ? theme.secondary : null,
+                  color: selected ? kPiquetePrimaryDark : null,
                 ),
                 if (piquete.totalLotes > 0)
                   PrototypeBadge(
                     label: '${piquete.totalLotes} lotes',
                     icon: Icons.bubble_chart_outlined,
-                    color: selected ? theme.secondary : null,
+                    color: selected ? kPiquetePrimaryDark : null,
                   ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PiqueteSegmentedTabs extends StatelessWidget {
+  const _PiqueteSegmentedTabs({
+    required this.showingSemRetiro,
+    required this.retiroCount,
+    required this.semRetiroCount,
+    required this.onRetirosTap,
+    required this.onSemRetiroTap,
+  });
+
+  final bool showingSemRetiro;
+  final int retiroCount;
+  final int semRetiroCount;
+  final VoidCallback onRetirosTap;
+  final VoidCallback onSemRetiroTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: kPiqueteFieldSurface,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: kPiqueteBorder),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _PiqueteSegmentButton(
+              label: 'Por retiro',
+              count: retiroCount,
+              selected: !showingSemRetiro,
+              onTap: onRetirosTap,
+            ),
+          ),
+          Expanded(
+            child: _PiqueteSegmentButton(
+              label: 'Sem retiro',
+              count: semRetiroCount,
+              selected: showingSemRetiro,
+              onTap: onSemRetiroTap,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PiqueteSegmentButton extends StatelessWidget {
+  const _PiqueteSegmentButton({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? kPiqueteSurface : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: selected
+              ? const [
+                  BoxShadow(
+                    blurRadius: 8,
+                    color: Color(0x0F10281C),
+                    offset: Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  color: selected ? kPiquetePrimaryDark : kPiqueteTextMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              count.toString(),
+              style: GoogleFonts.poppins(
+                color: selected ? kPiquetePrimaryDark : kPiqueteTextSoft,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
         ),
@@ -1783,14 +1907,13 @@ class _RetiroSummaryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     return Container(
-      constraints: const BoxConstraints(minHeight: 116),
-      padding: const EdgeInsets.all(18),
+      constraints: const BoxConstraints(minHeight: 104),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.customColor2,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: theme.customColor5),
+        color: kPiqueteFieldSurface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: kPiqueteBorder),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1799,11 +1922,11 @@ class _RetiroSummaryTile extends StatelessWidget {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: theme.primary.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(12),
+              color: kPiquetePrimarySurface,
+              shape: BoxShape.circle,
             ),
             child: iconAsset == null
-                ? Icon(icon, color: theme.primary, size: 24)
+                ? Icon(icon, color: kPiquetePrimary, size: 24)
                 : Center(
                     child: Image.asset(
                       iconAsset!,
@@ -1821,17 +1944,17 @@ class _RetiroSummaryTile extends StatelessWidget {
                 Text(
                   label,
                   style: GoogleFonts.poppins(
-                    color: theme.secondaryText,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+                    color: kPiqueteTextMuted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
                   style: GoogleFonts.poppins(
-                    color: theme.primaryText,
-                    fontSize: 26,
+                    color: kPiqueteTextStrong,
+                    fontSize: 22,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -1841,7 +1964,7 @@ class _RetiroSummaryTile extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
-                    color: theme.secondaryText,
+                    color: kPiqueteTextMuted,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     height: 1.35,

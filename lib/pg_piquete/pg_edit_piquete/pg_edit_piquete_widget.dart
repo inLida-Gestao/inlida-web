@@ -80,7 +80,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
       headerModel: _model.headerModel,
       sideBarModel: _model.sideBarModel,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 34),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 28),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -101,7 +101,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                 onPressed: () => context.safePop(),
               ),
             ),
-            const SizedBox(height: 26),
+            const SizedBox(height: 20),
             if (_loadingFormData || (_store.loading && piquete == null))
               const Center(
                 child: Padding(

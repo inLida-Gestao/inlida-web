@@ -70,7 +70,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
       headerModel: _model.headerModel,
       sideBarModel: _model.sideBarModel,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 34),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 28),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -88,7 +88,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
                 onPressed: () => context.safePop(),
               ),
             ),
-            const SizedBox(height: 26),
+            const SizedBox(height: 20),
             if (_store.loading && _store.retiros.isEmpty)
               const Center(
                 child: Padding(

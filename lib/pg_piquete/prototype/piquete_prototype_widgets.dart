@@ -7,6 +7,20 @@ import 'package:google_fonts/google_fonts.dart';
 
 const kPiqueteCowIconAsset = 'assets/images/Vaca_verdona.png';
 const kPiqueteCowIconScale = 0.78125;
+const kPiquetePrimary = Color(0xFF28A365);
+const kPiquetePrimaryDark = Color(0xFF1E7A4C);
+const kPiquetePrimaryDarker = Color(0xFF145232);
+const kPiqueteTextStrong = Color(0xFF26302B);
+const kPiqueteTextMuted = Color(0xFF7C857D);
+const kPiqueteTextSoft = Color(0xFF9AA39B);
+const kPiqueteSurface = Color(0xFFFFFFFF);
+const kPiqueteSurfaceMuted = Color(0xFFF4F8F5);
+const kPiqueteFieldSurface = Color(0xFFF2F4F1);
+const kPiquetePrimarySurface = Color(0xFFE9F6EF);
+const kPiqueteBorder = Color(0xFFEBEEEB);
+const kPiqueteDanger = Color(0xFFD64C44);
+const kPiqueteDangerSurface = Color(0xFFFDECEA);
+const kPiqueteLimit = Color(0xFFF4C142);
 
 double piqueteAssetIconSize(String? asset, double size) =>
     asset == kPiqueteCowIconAsset ? size * kPiqueteCowIconScale : size;
@@ -47,7 +61,7 @@ class PiquetePrototypeScaffold extends StatelessWidget {
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                  color: kPiqueteSurfaceMuted,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -85,7 +99,6 @@ class PrototypePageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -101,17 +114,20 @@ class PrototypePageHeader extends StatelessWidget {
                 Text(
                   subtitle!,
                   style: GoogleFonts.poppins(
-                    color: theme.secondaryText,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    color: kPiqueteTextMuted,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    height: 1.25,
                   ),
                 ),
               Text(
                 title,
                 style: GoogleFonts.poppins(
-                  color: theme.primaryText,
-                  fontSize: 38,
+                  color: kPiqueteTextStrong,
+                  fontSize: 29,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: -0.58,
+                  height: 1.15,
                 ),
               ),
             ],
@@ -132,11 +148,13 @@ class PrototypeCard extends StatelessWidget {
   const PrototypeCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(24),
+    this.padding = const EdgeInsets.all(20),
+    this.backgroundColor,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -144,14 +162,14 @@ class PrototypeCard extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: FlutterFlowTheme.of(context).secondaryBackground,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: FlutterFlowTheme.of(context).customColor5),
+        color: backgroundColor ?? kPiqueteSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kPiqueteBorder),
         boxShadow: const [
           BoxShadow(
-            blurRadius: 6,
-            color: Color(0x22000000),
-            offset: Offset(0, 2),
+            blurRadius: 3,
+            color: Color(0x0A10281C),
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -176,27 +194,27 @@ class PrototypeMetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     return SizedBox(
-      height: 116,
+      height: 92,
       child: PrototypeCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             Container(
-              width: 54,
-              height: 54,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: theme.primary.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(14),
+                color: kPiquetePrimarySurface,
+                shape: BoxShape.circle,
               ),
               child: _PrototypeIconGraphic(
                 icon: icon,
                 asset: iconAsset,
-                color: theme.primary,
-                size: 28,
+                color: kPiquetePrimary,
+                size: 23,
               ),
             ),
-            const SizedBox(width: 18),
+            const SizedBox(width: 13),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -207,22 +225,22 @@ class PrototypeMetricCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      color: theme.secondaryText,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      color: kPiqueteTextMuted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                       height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     value,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      color: theme.primaryText,
-                      fontSize: 26,
+                      color: kPiqueteTextStrong,
+                      fontSize: 21,
                       fontWeight: FontWeight.w700,
-                      height: 1.1,
+                      height: 1.15,
                     ),
                   ),
                 ],
@@ -253,7 +271,6 @@ class PrototypeEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     return PrototypeCard(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -261,15 +278,15 @@ class PrototypeEmptyState extends StatelessWidget {
           _PrototypeIconGraphic(
             icon: icon,
             asset: iconAsset,
-            color: theme.secondaryText,
-            size: 58,
+            color: kPiqueteTextSoft,
+            size: 52,
           ),
           const SizedBox(height: 16),
           Text(
             title,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
-              color: theme.primaryText,
+              color: kPiqueteTextStrong,
               fontSize: 20,
               fontWeight: FontWeight.w700,
             ),
@@ -279,7 +296,7 @@ class PrototypeEmptyState extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
-              color: theme.secondaryText,
+              color: kPiqueteTextMuted,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -310,13 +327,13 @@ class PrototypeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    final badgeColor = color ?? theme.primary;
+    final badgeColor = color ?? kPiquetePrimary;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
       decoration: BoxDecoration(
         color: badgeColor.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.18)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -334,8 +351,8 @@ class PrototypeBadge extends StatelessWidget {
             label,
             style: GoogleFonts.poppins(
               color: badgeColor,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -388,22 +405,38 @@ class PrototypeSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    return SizedBox(
-      width: 320,
-      child: TextFormField(
-        controller: controller,
-        onChanged: onChanged,
-        decoration: InputDecoration(
-          isDense: true,
-          hintText: hint,
-          prefixIcon: Icon(Icons.search_rounded, color: theme.secondaryText),
-          filled: true,
-          fillColor: theme.customColor2,
-          border: OutlineInputBorder(
-            borderSide: BorderSide.none,
-            borderRadius: BorderRadius.circular(8),
-          ),
+    return TextFormField(
+      controller: controller,
+      onChanged: onChanged,
+      style: GoogleFonts.poppins(
+        color: kPiqueteTextStrong,
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+      ),
+      decoration: InputDecoration(
+        isDense: true,
+        hintText: hint,
+        hintStyle: GoogleFonts.poppins(
+          color: kPiqueteTextSoft,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+        prefixIcon: const Icon(
+          Icons.search_rounded,
+          color: kPiqueteTextMuted,
+          size: 20,
+        ),
+        filled: true,
+        fillColor: kPiqueteFieldSurface,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Color(0xFFE6E9E4)),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: kPiquetePrimary, width: 1.5),
+          borderRadius: BorderRadius.circular(999),
         ),
       ),
     );
@@ -424,20 +457,22 @@ class PrototypePrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     return ElevatedButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon ?? Icons.add_rounded, size: 20),
+      icon: Icon(icon ?? Icons.add_rounded, size: 18),
       label: Text(label),
       style: ElevatedButton.styleFrom(
-        backgroundColor: theme.primary,
+        backgroundColor: kPiquetePrimary,
+        disabledBackgroundColor: kPiquetePrimary.withValues(alpha: 0.45),
         foregroundColor: Colors.white,
-        minimumSize: const Size(44, 52),
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        elevation: 0,
+        shadowColor: kPiquetePrimary.withValues(alpha: 0.28),
+        minimumSize: const Size(44, 44),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
         textStyle: GoogleFonts.poppins(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
+          fontSize: 13.5,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -458,20 +493,20 @@ class PrototypeSecondaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     return OutlinedButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon ?? Icons.arrow_back_rounded, size: 20),
+      icon: Icon(icon ?? Icons.arrow_back_rounded, size: 18),
       label: Text(label),
       style: OutlinedButton.styleFrom(
-        foregroundColor: theme.secondary,
-        minimumSize: const Size(44, 52),
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-        side: BorderSide(color: theme.secondary),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        foregroundColor: kPiquetePrimaryDark,
+        backgroundColor: kPiqueteSurface,
+        minimumSize: const Size(44, 44),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        side: const BorderSide(color: kPiquetePrimary, width: 1.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
         textStyle: GoogleFonts.poppins(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
+          fontSize: 13.5,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

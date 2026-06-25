@@ -171,12 +171,22 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PrototypeCard(
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                'Informações do piquete',
+                style: GoogleFonts.poppins(
+                  color: kPiqueteTextStrong,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 14),
               Wrap(
-                spacing: 18,
-                runSpacing: 18,
+                spacing: 14,
+                runSpacing: 14,
                 children: [
                   SizedBox(
                     width: 340,
@@ -239,7 +249,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
             ],
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 18),
         MapaDemarcacaoRealWidget(
           title: retiro == null
               ? 'Demarcação do piquete sem retiro'
@@ -253,20 +263,21 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
           onChanged: _handleMapChanged,
           onImported: _handleKmlImported,
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 18),
         PrototypeCard(
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Adicionar no piquete',
+                'Alocar no piquete',
                 style: GoogleFonts.poppins(
-                  color: FlutterFlowTheme.of(context).primaryText,
-                  fontSize: 22,
+                  color: kPiqueteTextStrong,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -286,12 +297,12 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               _mode == 'animal' ? _buildAnimalSelector() : _buildLoteSelector(),
             ],
           ),
         ),
-        const SizedBox(height: 26),
+        const SizedBox(height: 22),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -1175,7 +1186,7 @@ class _DualPanel<T> extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: left),
-            const SizedBox(width: 24),
+            const SizedBox(width: 16),
             Expanded(child: right),
           ],
         );
@@ -1225,19 +1236,18 @@ class _SelectionPanel<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     return Container(
       constraints: const BoxConstraints(minHeight: 430),
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.secondaryBackground,
-        border: Border.all(color: theme.customColor5),
-        borderRadius: BorderRadius.circular(10),
+        color: kPiqueteSurface,
+        border: Border.all(color: kPiqueteBorder),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
-            blurRadius: 5,
-            color: Color(0x1A000000),
-            offset: Offset(0, 2),
+            blurRadius: 3,
+            color: Color(0x0A10281C),
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -1247,22 +1257,22 @@ class _SelectionPanel<T> extends StatelessWidget {
           Text(
             title,
             style: GoogleFonts.poppins(
-              color: theme.primaryText,
-              fontSize: 18,
+              color: kPiqueteTextStrong,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           PrototypeSearchField(
             controller: searchController,
             hint: 'Pesquisar',
             onChanged: (_) => onSearchChanged(),
           ),
           if (filters != null) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             filters!,
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           if (loading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 58),
@@ -1290,9 +1300,9 @@ class _SelectionPanel<T> extends StatelessWidget {
             ...items.map((item) {
               return Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   border: Border(
-                    bottom: BorderSide(color: theme.customColor5),
+                    bottom: BorderSide(color: kPiqueteBorder),
                   ),
                 ),
                 child: Row(
@@ -1304,8 +1314,11 @@ class _SelectionPanel<T> extends StatelessWidget {
                       icon: Icon(actionIcon, size: 18),
                       label: Text(actionLabel),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: theme.secondary,
-                        side: BorderSide(color: theme.secondary),
+                        foregroundColor: kPiquetePrimaryDark,
+                        side: const BorderSide(color: kPiquetePrimary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
+                        ),
                       ),
                     ),
                   ],
@@ -1322,7 +1335,7 @@ class _SelectionPanel<T> extends StatelessWidget {
                   child: Text(
                     pageLabel ?? '',
                     style: GoogleFonts.poppins(
-                      color: theme.secondaryText,
+                      color: kPiqueteTextMuted,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1353,14 +1366,13 @@ class _AnimalTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '${animal.numero} • ${animal.nome} • ${animal.dataNascimento}',
           style: GoogleFonts.poppins(
-            color: theme.primaryText,
+            color: kPiqueteTextStrong,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -1368,7 +1380,7 @@ class _AnimalTile extends StatelessWidget {
         Text(
           '${animal.categoria} • ${animal.raca} • ${animal.loteNome}',
           style: GoogleFonts.poppins(
-            color: theme.secondaryText,
+            color: kPiqueteTextMuted,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -1385,10 +1397,10 @@ class _LoteTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     return Row(
       children: [
-        Icon(Icons.bubble_chart_outlined, color: theme.primary, size: 24),
+        const Icon(Icons.bubble_chart_outlined,
+            color: kPiquetePrimary, size: 24),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -1397,14 +1409,14 @@ class _LoteTile extends StatelessWidget {
               Text(
                 lote.nome,
                 style: GoogleFonts.poppins(
-                  color: theme.primaryText,
+                  color: kPiqueteTextStrong,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
                 '${lote.qtdAnimais} animais',
                 style: GoogleFonts.poppins(
-                  color: theme.secondaryText,
+                  color: kPiqueteTextMuted,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -1414,7 +1426,7 @@ class _LoteTile extends StatelessWidget {
         ),
         PrototypeBadge(
           label: lote.status,
-          color: lote.status == 'Ativo' ? theme.primary : theme.secondaryText,
+          color: lote.status == 'Ativo' ? kPiquetePrimary : kPiqueteTextMuted,
         ),
       ],
     );
@@ -1434,18 +1446,18 @@ class _ModeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
     return InkWell(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(999),
       onTap: onTap,
-      child: Container(
-        height: 74,
-        padding: const EdgeInsets.symmetric(horizontal: 22),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: theme.customColor2,
-          borderRadius: BorderRadius.circular(8),
+          color: selected ? kPiquetePrimarySurface : kPiqueteFieldSurface,
+          borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: selected ? theme.secondary : Colors.transparent,
+            color: selected ? kPiquetePrimary : kPiqueteBorder,
           ),
         ),
         child: Row(
@@ -1454,14 +1466,14 @@ class _ModeButton extends StatelessWidget {
               selected
                   ? Icons.radio_button_checked_rounded
                   : Icons.radio_button_off_rounded,
-              color: selected ? theme.secondary : theme.secondaryText,
+              color: selected ? kPiquetePrimaryDark : kPiqueteTextMuted,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Text(
               label,
               style: GoogleFonts.poppins(
-                color: theme.primaryText,
-                fontSize: 18,
+                color: selected ? kPiquetePrimaryDark : kPiqueteTextStrong,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),

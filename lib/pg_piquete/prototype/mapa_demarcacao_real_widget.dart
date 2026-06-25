@@ -75,7 +75,7 @@ class PiqueteMapArea {
   const PiqueteMapArea({
     required this.name,
     required this.points,
-    this.color = const Color(0xFF18A058),
+    this.color = const Color(0xFF28A365),
     this.legendLabel = 'Piquete',
     this.fillOpacity = 0.30,
     this.borderStrokeWidth = 3.2,
@@ -94,8 +94,12 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
       String.fromEnvironment('MAPBOX_ACCESS_TOKEN');
   static const _defaultCenter = ll.LatLng(-15.7869, -47.8930);
   static const _pointMarkerHitSize = 72.0;
-  static const _retiroColor = Color(0xFFFFB020);
-  static const _piqueteColor = Color(0xFF18A058);
+  static const _retiroColor = Color(0xFFF4C142);
+  static const _piqueteColor = Color(0xFF28A365);
+  static const _textStrong = Color(0xFF26302B);
+  static const _textMuted = Color(0xFF7C857D);
+  static const _surface = Color(0xFFFFFFFF);
+  static const _border = Color(0xFFEBEEEB);
 
   final _mapController = MapController();
   final _mapViewportKey = GlobalKey();
@@ -275,14 +279,14 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: theme.secondaryBackground,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.customColor5),
+        color: _surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _border),
         boxShadow: const [
           BoxShadow(
-            blurRadius: 8,
-            color: Color(0x1F000000),
-            offset: Offset(0, 2),
+            blurRadius: 3,
+            color: Color(0x0A10281C),
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -302,6 +306,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                         widget.title,
                         style: theme.titleMedium.override(
                           fontFamily: theme.titleMediumFamily,
+                          color: _textStrong,
                           fontWeight: FontWeight.w700,
                           useGoogleFonts: !theme.titleMediumIsCustom,
                         ),
@@ -311,7 +316,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                         _helperText,
                         style: theme.bodySmall.override(
                           fontFamily: theme.bodySmallFamily,
-                          color: theme.secondaryText,
+                          color: _textMuted,
                           useGoogleFonts: !theme.bodySmallIsCustom,
                         ),
                       ),
@@ -339,7 +344,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                         style: theme.bodySmall.override(
                           fontFamily: theme.bodySmallFamily,
                           color: _points.isNotEmpty
-                              ? theme.secondary
+                              ? const Color(0xFF1E7A4C)
                               : const Color(0xFF8A5A00),
                           fontWeight: FontWeight.w700,
                           useGoogleFonts: !theme.bodySmallIsCustom,
@@ -359,7 +364,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
               widget.editable ? 0 : 20,
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(14),
               child: SizedBox(
                 key: _mapViewportKey,
                 height: widget.height,

@@ -86,7 +86,7 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
       headerModel: _model.headerModel,
       sideBarModel: _model.sideBarModel,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 34),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 28),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -128,7 +128,7 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
                   ),
               ],
             ),
-            const SizedBox(height: 26),
+            const SizedBox(height: 20),
             if (_store.loading && piquete == null)
               const Center(
                 child: Padding(
@@ -192,13 +192,13 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
                   );
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Wrap(
-                spacing: 18,
-                runSpacing: 18,
+                spacing: 12,
+                runSpacing: 12,
                 children: [
                   SizedBox(
-                    width: 280,
+                    width: 232,
                     child: PrototypeMetricCard(
                       title: 'Animais individuais',
                       value: animais.length.toString(),
@@ -206,7 +206,7 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
                     ),
                   ),
                   SizedBox(
-                    width: 280,
+                    width: 232,
                     child: PrototypeMetricCard(
                       title: 'Lotes vinculados',
                       value: lotes.length.toString(),
@@ -214,7 +214,7 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
                     ),
                   ),
                   SizedBox(
-                    width: 280,
+                    width: 232,
                     child: PrototypeMetricCard(
                       title: 'Animais via lote',
                       value: lotes
@@ -226,9 +226,9 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               _ContentSections(animais: animais, lotes: lotes),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               _HistoryCard(events: historico, loading: _store.loading),
             ],
           ],
