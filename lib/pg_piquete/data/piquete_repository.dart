@@ -137,58 +137,27 @@ class PiqueteRepository {
     String dataNascimentoDe = '',
     String dataNascimentoAte = '',
   }) async {
-    dynamic response;
-    try {
-      response = await _rpc(
-        'buscar_animais_disponiveis_piquete',
-        {
-          'p_id_propriedade': idPropriedade,
-          'p_piquete_id': piqueteId,
-          'p_pesquisa': pesquisa,
-          'p_limite': limite,
-          'p_offset': offset,
-          'p_status': status,
-          'p_sexo': sexo,
-          'p_categoria': categoria,
-          'p_raca': raca,
-          'p_origem': origem,
-          'p_lote': lote,
-          'p_data_nascimento_de': dataNascimentoDe,
-          'p_data_nascimento_ate': dataNascimentoAte,
-        },
-      );
-    } on PiqueteRepositoryException catch (error) {
-      if (!_isMissingRpcError(
-        error.message,
-        'buscar_animais_disponiveis_piquete',
-      )) {
-        rethrow;
-      }
-      response = await _rpc(
-        'buscar_animais_disponiveis_piquete',
-        {
-          'p_id_propriedade': idPropriedade,
-          'p_piquete_id': piqueteId,
-        },
-      );
-      return _filterAnimalOptions(
-        _asList(response),
-        pesquisa: pesquisa,
-        limite: limite,
-        offset: offset,
-        status: status,
-        sexo: sexo,
-        categoria: categoria,
-        raca: raca,
-        origem: origem,
-        lote: lote,
-        dataNascimentoDe: dataNascimentoDe,
-        dataNascimentoAte: dataNascimentoAte,
-      ).map((item) => AnimalPiqueteOption.fromJson(item)).toList();
-    }
-    return _asList(response)
-        .map((item) => AnimalPiqueteOption.fromJson(item))
-        .toList();
+    final response = await _rpc(
+      'buscar_animais_disponiveis_piquete',
+      {
+        'p_id_propriedade': idPropriedade,
+        'p_piquete_id': piqueteId,
+      },
+    );
+    return _filterAnimalOptions(
+      _asList(response),
+      pesquisa: pesquisa,
+      limite: limite,
+      offset: offset,
+      status: status,
+      sexo: sexo,
+      categoria: categoria,
+      raca: raca,
+      origem: origem,
+      lote: lote,
+      dataNascimentoDe: dataNascimentoDe,
+      dataNascimentoAte: dataNascimentoAte,
+    ).map((item) => AnimalPiqueteOption.fromJson(item)).toList();
   }
 
   Future<List<LotePiqueteOption>> buscarLotesDisponiveis({
@@ -200,48 +169,22 @@ class PiqueteRepository {
     String dataCriacaoDe = '',
     String dataCriacaoAte = '',
   }) async {
-    dynamic response;
-    try {
-      response = await _rpc(
-        'buscar_lotes_disponiveis_piquete',
-        {
-          'p_id_propriedade': idPropriedade,
-          'p_piquete_id': piqueteId,
-          'p_pesquisa': pesquisa,
-          'p_limite': limite,
-          'p_offset': offset,
-          'p_status': status,
-          'p_data_criacao_de': dataCriacaoDe,
-          'p_data_criacao_ate': dataCriacaoAte,
-        },
-      );
-    } on PiqueteRepositoryException catch (error) {
-      if (!_isMissingRpcError(
-        error.message,
-        'buscar_lotes_disponiveis_piquete',
-      )) {
-        rethrow;
-      }
-      response = await _rpc(
-        'buscar_lotes_disponiveis_piquete',
-        {
-          'p_id_propriedade': idPropriedade,
-          'p_piquete_id': piqueteId,
-        },
-      );
-      return _filterLoteOptions(
-        _asList(response),
-        pesquisa: pesquisa,
-        limite: limite,
-        offset: offset,
-        status: status,
-        dataCriacaoDe: dataCriacaoDe,
-        dataCriacaoAte: dataCriacaoAte,
-      ).map((item) => LotePiqueteOption.fromJson(item)).toList();
-    }
-    return _asList(response)
-        .map((item) => LotePiqueteOption.fromJson(item))
-        .toList();
+    final response = await _rpc(
+      'buscar_lotes_disponiveis_piquete',
+      {
+        'p_id_propriedade': idPropriedade,
+        'p_piquete_id': piqueteId,
+      },
+    );
+    return _filterLoteOptions(
+      _asList(response),
+      pesquisa: pesquisa,
+      limite: limite,
+      offset: offset,
+      status: status,
+      dataCriacaoDe: dataCriacaoDe,
+      dataCriacaoAte: dataCriacaoAte,
+    ).map((item) => LotePiqueteOption.fromJson(item)).toList();
   }
 
   Future<List<AnimalPiqueteOption>> buscarAnimaisPorIds(
