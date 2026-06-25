@@ -54,7 +54,6 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   final _anotacoesController = TextEditingController();
   final _searchAvailableController = TextEditingController();
   final _searchSelectedController = TextEditingController();
-  final _animalLoteFilterController = TextEditingController();
   Timer? _selectorSearchDebounce;
 
   late String _retiroId;
@@ -81,6 +80,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   String _animalCategoriaFilter = '';
   String _animalRacaFilter = '';
   String _animalOrigemFilter = '';
+  String _animalLoteFilter = '';
   DateTime? _animalNascimentoDeFilter;
   DateTime? _animalNascimentoAteFilter;
   String _loteStatusFilter = '';
@@ -140,7 +140,6 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     _anotacoesController.dispose();
     _searchAvailableController.dispose();
     _searchSelectedController.dispose();
-    _animalLoteFilterController.dispose();
     _selectorSearchDebounce?.cancel();
     super.dispose();
   }
@@ -416,6 +415,10 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         animaisIds: _animaisIds,
         lotesIds: _lotesIds,
       );
+      await _store.buscarLotesDisponiveisPage(
+        piqueteId: widget.initial?.id ?? '',
+        limit: 200,
+      );
       if (mounted) safeSetState(() {});
     } catch (_) {
       if (!mounted) return;
@@ -477,7 +480,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         categoria: _animalCategoriaFilter,
         raca: _animalRacaFilter,
         origem: _animalOrigemFilter,
-        lote: _animalLoteFilterController.text.trim(),
+        lote: _animalLoteFilter,
         dataNascimentoDe: _dateParam(_animalNascimentoDeFilter),
         dataNascimentoAte: _dateParam(_animalNascimentoAteFilter),
       );
@@ -615,11 +618,14 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
             ),
             SizedBox(
               width: 180,
-              child: _TextField(
+              child: _FilterDropdown(
                 label: 'Lote',
-                hint: 'Nome ou ID',
-                controller: _animalLoteFilterController,
-                onChanged: (_) => _scheduleAvailableSearch(),
+                value: _animalLoteFilter,
+                options: _loteFilterOptions,
+                hint: 'Todos',
+                onChanged: (value) => _setAnimalFilter(
+                  lote: value ?? '',
+                ),
               ),
             ),
             SizedBox(
@@ -733,7 +739,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
       _animalCategoriaFilter.isNotEmpty ||
       _animalRacaFilter.isNotEmpty ||
       _animalOrigemFilter.isNotEmpty ||
-      _animalLoteFilterController.text.trim().isNotEmpty ||
+      _animalLoteFilter.isNotEmpty ||
       _animalNascimentoDeFilter != null ||
       _animalNascimentoAteFilter != null;
 
@@ -750,12 +756,23 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         .toList();
   }
 
+  List<String> get _loteFilterOptions {
+    final options = _store.lotes
+        .map((lote) => lote.nome.trim().isNotEmpty ? lote.nome.trim() : lote.id)
+        .where((value) => value.trim().isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return options;
+  }
+
   void _setAnimalFilter({
     String? status,
     String? sexo,
     String? categoria,
     String? raca,
     String? origem,
+    String? lote,
     Object? nascimentoDe = _dateFilterNotChanged,
     Object? nascimentoAte = _dateFilterNotChanged,
     bool clearCategoria = false,
@@ -766,6 +783,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
       if (categoria != null) _animalCategoriaFilter = categoria;
       if (raca != null) _animalRacaFilter = raca;
       if (origem != null) _animalOrigemFilter = origem;
+      if (lote != null) _animalLoteFilter = lote;
       if (nascimentoDe != _dateFilterNotChanged) {
         _animalNascimentoDeFilter = nascimentoDe as DateTime?;
       }
@@ -801,9 +819,9 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
       _animalCategoriaFilter = '';
       _animalRacaFilter = '';
       _animalOrigemFilter = '';
+      _animalLoteFilter = '';
       _animalNascimentoDeFilter = null;
       _animalNascimentoAteFilter = null;
-      _animalLoteFilterController.clear();
     });
     unawaited(_loadAnimalOptions(reset: true));
   }
@@ -1051,7 +1069,6 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     _anotacoesController.text = initial?.anotacoes ?? '';
     _searchAvailableController.clear();
     _searchSelectedController.clear();
-    _animalLoteFilterController.clear();
     _animalOptionsPage = const [];
     _loteOptionsPage = const [];
     _animalOffset = 0;
@@ -1067,6 +1084,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     _animalCategoriaFilter = '';
     _animalRacaFilter = '';
     _animalOrigemFilter = '';
+    _animalLoteFilter = '';
     _animalNascimentoDeFilter = null;
     _animalNascimentoAteFilter = null;
     _loteStatusFilter = '';
