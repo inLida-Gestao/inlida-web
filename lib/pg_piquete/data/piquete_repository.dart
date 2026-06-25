@@ -137,24 +137,55 @@ class PiqueteRepository {
     String dataNascimentoDe = '',
     String dataNascimentoAte = '',
   }) async {
-    final response = await _rpc(
-      'buscar_animais_disponiveis_piquete',
-      {
-        'p_id_propriedade': idPropriedade,
-        'p_piquete_id': piqueteId,
-        'p_pesquisa': pesquisa,
-        'p_limite': limite,
-        'p_offset': offset,
-        'p_status': status,
-        'p_sexo': sexo,
-        'p_categoria': categoria,
-        'p_raca': raca,
-        'p_origem': origem,
-        'p_lote': lote,
-        'p_data_nascimento_de': dataNascimentoDe,
-        'p_data_nascimento_ate': dataNascimentoAte,
-      },
-    );
+    dynamic response;
+    try {
+      response = await _rpc(
+        'buscar_animais_disponiveis_piquete',
+        {
+          'p_id_propriedade': idPropriedade,
+          'p_piquete_id': piqueteId,
+          'p_pesquisa': pesquisa,
+          'p_limite': limite,
+          'p_offset': offset,
+          'p_status': status,
+          'p_sexo': sexo,
+          'p_categoria': categoria,
+          'p_raca': raca,
+          'p_origem': origem,
+          'p_lote': lote,
+          'p_data_nascimento_de': dataNascimentoDe,
+          'p_data_nascimento_ate': dataNascimentoAte,
+        },
+      );
+    } on PiqueteRepositoryException catch (error) {
+      if (!_isMissingRpcError(
+        error.message,
+        'buscar_animais_disponiveis_piquete',
+      )) {
+        rethrow;
+      }
+      response = await _rpc(
+        'buscar_animais_disponiveis_piquete',
+        {
+          'p_id_propriedade': idPropriedade,
+          'p_piquete_id': piqueteId,
+        },
+      );
+      return _filterAnimalOptions(
+        _asList(response),
+        pesquisa: pesquisa,
+        limite: limite,
+        offset: offset,
+        status: status,
+        sexo: sexo,
+        categoria: categoria,
+        raca: raca,
+        origem: origem,
+        lote: lote,
+        dataNascimentoDe: dataNascimentoDe,
+        dataNascimentoAte: dataNascimentoAte,
+      ).map((item) => AnimalPiqueteOption.fromJson(item)).toList();
+    }
     return _asList(response)
         .map((item) => AnimalPiqueteOption.fromJson(item))
         .toList();
@@ -169,19 +200,45 @@ class PiqueteRepository {
     String dataCriacaoDe = '',
     String dataCriacaoAte = '',
   }) async {
-    final response = await _rpc(
-      'buscar_lotes_disponiveis_piquete',
-      {
-        'p_id_propriedade': idPropriedade,
-        'p_piquete_id': piqueteId,
-        'p_pesquisa': pesquisa,
-        'p_limite': limite,
-        'p_offset': offset,
-        'p_status': status,
-        'p_data_criacao_de': dataCriacaoDe,
-        'p_data_criacao_ate': dataCriacaoAte,
-      },
-    );
+    dynamic response;
+    try {
+      response = await _rpc(
+        'buscar_lotes_disponiveis_piquete',
+        {
+          'p_id_propriedade': idPropriedade,
+          'p_piquete_id': piqueteId,
+          'p_pesquisa': pesquisa,
+          'p_limite': limite,
+          'p_offset': offset,
+          'p_status': status,
+          'p_data_criacao_de': dataCriacaoDe,
+          'p_data_criacao_ate': dataCriacaoAte,
+        },
+      );
+    } on PiqueteRepositoryException catch (error) {
+      if (!_isMissingRpcError(
+        error.message,
+        'buscar_lotes_disponiveis_piquete',
+      )) {
+        rethrow;
+      }
+      response = await _rpc(
+        'buscar_lotes_disponiveis_piquete',
+        {
+          'p_id_propriedade': idPropriedade,
+          'p_piquete_id': piqueteId,
+        },
+      );
+      return _filterLoteOptions(
+        _asList(response),
+        pesquisa: pesquisa,
+        limite: limite,
+        offset: offset,
+        status: status,
+        dataCriacaoDe: dataCriacaoDe,
+        dataCriacaoAte: dataCriacaoAte,
+      ).map((item) => LotePiqueteOption.fromJson(item)).toList();
+    }
     return _asList(response)
         .map((item) => LotePiqueteOption.fromJson(item))
         .toList();
@@ -366,6 +423,153 @@ class PiqueteRepository {
     final decoded = _decode(value);
     if (decoded is Map) return decoded.cast<String, dynamic>();
     return const {};
+  }
+
+  List<Map<String, dynamic>> _filterAnimalOptions(
+    List<Map<String, dynamic>> items, {
+    required String pesquisa,
+    required int limite,
+    required int offset,
+    required String status,
+    required String sexo,
+    required String categoria,
+    required String raca,
+    required String origem,
+    required String lote,
+    required String dataNascimentoDe,
+    required String dataNascimentoAte,
+  }) {
+    final query = pesquisa.trim().toLowerCase();
+    final normalizedStatus = status.trim().toLowerCase();
+    final normalizedSexo = sexo.trim().toLowerCase();
+    final normalizedCategoria = categoria.trim().toLowerCase();
+    final normalizedRaca = raca.trim().toLowerCase();
+    final normalizedOrigem = origem.trim().toLowerCase();
+    final normalizedLote = lote.trim().toLowerCase();
+    final fromDate = _parseDateFilter(dataNascimentoDe);
+    final toDate = _parseDateFilter(dataNascimentoAte);
+    final normalizedLimit = limite.clamp(1, 200);
+    final normalizedOffset = offset < 0 ? 0 : offset;
+
+    final filtered = items.where((item) {
+      final numero = _normalizedOptionValue(item['numero']);
+      final nome = _normalizedOptionValue(item['nome']);
+      final itemStatus = _normalizedOptionValue(item['status']);
+      final itemSexo = _normalizedOptionValue(item['sexo']);
+      final itemCategoria = _normalizedOptionValue(item['categoria']);
+      final itemRaca = _normalizedOptionValue(item['raca']);
+      final itemOrigem = _normalizedOptionValue(item['origem']);
+      final loteNome = _normalizedOptionValue(item['lote_nome']);
+      final loteId = _normalizedOptionValue(item['lote_id']);
+      final nascimento = _parseDateFilter(item['data_nascimento']?.toString());
+
+      if (query.isNotEmpty &&
+          !numero.contains(query) &&
+          !nome.contains(query) &&
+          !itemCategoria.contains(query) &&
+          !loteNome.contains(query)) {
+        return false;
+      }
+      if (normalizedStatus.isNotEmpty && itemStatus != normalizedStatus) {
+        return false;
+      }
+      if (normalizedSexo.isNotEmpty && itemSexo != normalizedSexo) {
+        return false;
+      }
+      if (normalizedCategoria.isNotEmpty &&
+          itemCategoria != normalizedCategoria) {
+        return false;
+      }
+      if (normalizedRaca.isNotEmpty && itemRaca != normalizedRaca) {
+        return false;
+      }
+      if (normalizedOrigem.isNotEmpty && itemOrigem != normalizedOrigem) {
+        return false;
+      }
+      if (normalizedLote.isNotEmpty &&
+          loteId != normalizedLote &&
+          !loteNome.contains(normalizedLote)) {
+        return false;
+      }
+      if (fromDate != null &&
+          (nascimento == null || nascimento.isBefore(fromDate))) {
+        return false;
+      }
+      if (toDate != null &&
+          (nascimento == null || nascimento.isAfter(toDate))) {
+        return false;
+      }
+      return true;
+    }).toList()
+      ..sort((a, b) {
+        final numeroCompare = _normalizedOptionValue(a['numero'])
+            .compareTo(_normalizedOptionValue(b['numero']));
+        if (numeroCompare != 0) return numeroCompare;
+        final nomeCompare = _normalizedOptionValue(a['nome'])
+            .compareTo(_normalizedOptionValue(b['nome']));
+        if (nomeCompare != 0) return nomeCompare;
+        return _normalizedOptionValue(a['id'])
+            .compareTo(_normalizedOptionValue(b['id']));
+      });
+
+    return filtered.skip(normalizedOffset).take(normalizedLimit).toList();
+  }
+
+  String _normalizedOptionValue(dynamic value) =>
+      (value?.toString() ?? '').trim().toLowerCase();
+
+  DateTime? _parseDateFilter(String? value) {
+    final raw = value?.trim() ?? '';
+    if (raw.isEmpty) return null;
+    return DateTime.tryParse(raw.length > 10 ? raw.substring(0, 10) : raw);
+  }
+
+  List<Map<String, dynamic>> _filterLoteOptions(
+    List<Map<String, dynamic>> items, {
+    required String pesquisa,
+    required int limite,
+    required int offset,
+    required String status,
+    required String dataCriacaoDe,
+    required String dataCriacaoAte,
+  }) {
+    final query = pesquisa.trim().toLowerCase();
+    final normalizedStatus = status.trim().toLowerCase();
+    final fromDate = _parseDateFilter(dataCriacaoDe);
+    final toDate = _parseDateFilter(dataCriacaoAte);
+    final normalizedLimit = limite.clamp(1, 200);
+    final normalizedOffset = offset < 0 ? 0 : offset;
+
+    final filtered = items.where((item) {
+      final id = _normalizedOptionValue(item['id']);
+      final nome = _normalizedOptionValue(item['nome']);
+      final itemStatus = _normalizedOptionValue(item['status']);
+      final createdAt = _parseDateFilter(item['created_at']?.toString());
+
+      if (query.isNotEmpty && !id.contains(query) && !nome.contains(query)) {
+        return false;
+      }
+      if (normalizedStatus.isNotEmpty && itemStatus != normalizedStatus) {
+        return false;
+      }
+      if (fromDate != null &&
+          (createdAt == null || createdAt.isBefore(fromDate))) {
+        return false;
+      }
+      if (toDate != null && (createdAt == null || createdAt.isAfter(toDate))) {
+        return false;
+      }
+      return true;
+    }).toList()
+      ..sort((a, b) {
+        final nomeCompare = _normalizedOptionValue(a['nome'])
+            .compareTo(_normalizedOptionValue(b['nome']));
+        if (nomeCompare != 0) return nomeCompare;
+        return _normalizedOptionValue(a['id'])
+            .compareTo(_normalizedOptionValue(b['id']));
+      });
+
+    return filtered.skip(normalizedOffset).take(normalizedLimit).toList();
   }
 
   String _friendlyError(Object error) {
