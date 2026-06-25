@@ -3,10 +3,14 @@ import '/componentes/side_bar/side_bar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 const kPiqueteCowIconAsset = 'assets/images/Vaca_verdona.png';
 const kPiqueteCowIconScale = 0.78125;
+const kPiqueteLoteIconAsset = 'assets/images/Lotes.svg';
+const kPiqueteMenuIcon = Icons.fence_rounded;
+const kPiqueteRadius = 4.0;
 const kPiquetePrimary = Color(0xFF28A365);
 const kPiquetePrimaryDark = Color(0xFF1E7A4C);
 const kPiquetePrimaryDarker = Color(0xFF145232);
@@ -163,7 +167,7 @@ class PrototypeCard extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: backgroundColor ?? kPiqueteSurface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
         border: Border.all(color: kPiqueteBorder),
         boxShadow: const [
           BoxShadow(
@@ -203,7 +207,7 @@ class PrototypeMetricCard extends StatelessWidget {
             Container(
               width: 42,
               height: 42,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: kPiquetePrimarySurface,
                 shape: BoxShape.circle,
               ),
@@ -332,7 +336,7 @@ class PrototypeBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
       decoration: BoxDecoration(
         color: badgeColor.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
         border: Border.all(color: badgeColor.withValues(alpha: 0.18)),
       ),
       child: Row(
@@ -379,12 +383,19 @@ class _PrototypeIconGraphic extends StatelessWidget {
     if (asset != null) {
       final assetSize = piqueteAssetIconSize(asset, size);
       return Center(
-        child: Image.asset(
-          asset!,
-          width: assetSize,
-          height: assetSize,
-          fit: BoxFit.contain,
-        ),
+        child: asset!.toLowerCase().endsWith('.svg')
+            ? SvgPicture.asset(
+                asset!,
+                width: assetSize,
+                height: assetSize,
+                fit: BoxFit.contain,
+              )
+            : Image.asset(
+                asset!,
+                width: assetSize,
+                height: assetSize,
+                fit: BoxFit.contain,
+              ),
       );
     }
     return Icon(icon, color: color, size: size);
@@ -432,11 +443,11 @@ class PrototypeSearchField extends StatelessWidget {
             const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         enabledBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: Color(0xFFE6E9E4)),
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: kPiquetePrimary, width: 1.5),
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
         ),
       ),
     );
@@ -469,7 +480,9 @@ class PrototypePrimaryButton extends StatelessWidget {
         shadowColor: kPiquetePrimary.withValues(alpha: 0.28),
         minimumSize: const Size(44, 44),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
+        ),
         textStyle: GoogleFonts.poppins(
           fontSize: 13.5,
           fontWeight: FontWeight.w600,
@@ -503,7 +516,9 @@ class PrototypeSecondaryButton extends StatelessWidget {
         minimumSize: const Size(44, 44),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         side: const BorderSide(color: kPiquetePrimary, width: 1.5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
+        ),
         textStyle: GoogleFonts.poppins(
           fontSize: 13.5,
           fontWeight: FontWeight.w600,

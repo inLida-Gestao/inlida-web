@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'kml_area_parser.dart';
 import 'piquete_prototype_store.dart';
+import 'piquete_prototype_widgets.dart';
 
 double estimateMapAreaHa(List<MapPoint> points) {
   if (points.length < 3) return 0;
@@ -280,7 +281,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: _surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
         border: Border.all(color: _border),
         boxShadow: const [
           BoxShadow(
@@ -337,7 +338,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                       ),
                       decoration: BoxDecoration(
                         color: _summaryColor.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(999),
+                        borderRadius: BorderRadius.circular(kPiqueteRadius),
                       ),
                       child: Text(
                         '${_summaryPoints.length} pontos • ${_areaEstimadaHa.toStringAsFixed(1)} ha',
@@ -364,7 +365,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
               widget.editable ? 0 : 20,
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(kPiqueteRadius),
               child: SizedBox(
                 key: _mapViewportKey,
                 height: widget.height,
@@ -658,7 +659,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                 ),
                 child: Material(
                   color: FlutterFlowTheme.of(context).secondaryBackground,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(kPiqueteRadius),
                   clipBehavior: Clip.antiAlias,
                   child: Padding(
                     padding: const EdgeInsets.all(18),
@@ -1238,7 +1239,7 @@ class _MapLegend extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
         boxShadow: const [
           BoxShadow(
             blurRadius: 14,
@@ -1309,7 +1310,7 @@ class _LegendItem extends StatelessWidget {
           height: 10,
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.26),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(kPiqueteRadius),
             border: Border.all(color: color, width: 2),
           ),
         ),
@@ -1343,7 +1344,7 @@ class _LayerControls extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
         boxShadow: const [
           BoxShadow(
             blurRadius: 14,
@@ -1432,10 +1433,10 @@ class _MapFloatingButton extends StatelessWidget {
       message: tooltip,
       child: Material(
         color: Colors.white.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
         elevation: 4,
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
           onTap: onTap,
           child: SizedBox(
             width: 38,
@@ -1464,7 +1465,7 @@ class _ZoomControls extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
         boxShadow: const [
           BoxShadow(
             blurRadius: 10,
@@ -1604,7 +1605,7 @@ class _TokenNotice extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
       ),
       child: Text(
         text,
@@ -1630,7 +1631,7 @@ class _AttributionLabel extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.82),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
       ),
       child: Text(
         label,
@@ -1669,7 +1670,9 @@ class _MapActionButton extends StatelessWidget {
         foregroundColor: color,
         minimumSize: const Size(44, 44),
         side: BorderSide(color: onPressed == null ? theme.customColor5 : color),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
+        ),
       ),
     );
   }

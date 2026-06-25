@@ -52,7 +52,7 @@ class _ModalExcluirPiqueteWidgetState extends State<ModalExcluirPiqueteWidget> {
         width: 520.0,
         decoration: BoxDecoration(
           color: kPiqueteSurface,
-          borderRadius: BorderRadius.circular(18.0),
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
           border: Border.all(color: kPiqueteBorder),
           boxShadow: const [
             BoxShadow(
@@ -129,7 +129,7 @@ class _ModalExcluirPiqueteWidgetState extends State<ModalExcluirPiqueteWidget> {
                         vertical: 13,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
+                        borderRadius: BorderRadius.circular(kPiqueteRadius),
                       ),
                       textStyle: GoogleFonts.poppins(
                         fontSize: 13.5,
@@ -181,7 +181,7 @@ class _ModalExcluirPiqueteWidgetState extends State<ModalExcluirPiqueteWidget> {
                         vertical: 13,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
+                        borderRadius: BorderRadius.circular(kPiqueteRadius),
                       ),
                       textStyle: GoogleFonts.poppins(
                         fontSize: 13.5,

@@ -6,6 +6,7 @@ import 'mapa_demarcacao_real_widget.dart';
 import 'piquete_prototype_store.dart';
 import 'piquete_prototype_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class PiqueteFormResult {
@@ -1242,7 +1243,7 @@ class _SelectionPanel<T> extends StatelessWidget {
       decoration: BoxDecoration(
         color: kPiqueteSurface,
         border: Border.all(color: kPiqueteBorder),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
         boxShadow: const [
           BoxShadow(
             blurRadius: 3,
@@ -1317,7 +1318,7 @@ class _SelectionPanel<T> extends StatelessWidget {
                         foregroundColor: kPiquetePrimaryDark,
                         side: const BorderSide(color: kPiquetePrimary),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(kPiqueteRadius),
                         ),
                       ),
                     ),
@@ -1399,8 +1400,12 @@ class _LoteTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.bubble_chart_outlined,
-            color: kPiquetePrimary, size: 24),
+        SvgPicture.asset(
+          kPiqueteLoteIconAsset,
+          width: 24,
+          height: 24,
+          fit: BoxFit.contain,
+        ),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -1447,7 +1452,7 @@ class _ModeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(999),
+      borderRadius: BorderRadius.circular(kPiqueteRadius),
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
@@ -1455,7 +1460,7 @@ class _ModeButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: selected ? kPiquetePrimarySurface : kPiqueteFieldSurface,
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
           border: Border.all(
             color: selected ? kPiquetePrimary : kPiqueteBorder,
           ),
@@ -1542,7 +1547,7 @@ class _FilterDropdown extends StatelessWidget {
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             border: OutlineInputBorder(
               borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(kPiqueteRadius),
             ),
           ),
         ),
@@ -1587,14 +1592,14 @@ class _DateFilterField extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
           onTap: onPick,
           child: Container(
             height: 46,
             padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 8, 0),
             decoration: BoxDecoration(
               color: theme.customColor2,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(kPiqueteRadius),
             ),
             child: Row(
               children: [
@@ -1680,7 +1685,7 @@ class _TextField extends StatelessWidget {
             fillColor: theme.customColor2,
             border: OutlineInputBorder(
               borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(kPiqueteRadius),
             ),
           ),
         ),
@@ -1725,7 +1730,7 @@ class _DropdownField extends StatelessWidget {
             fillColor: theme.customColor2,
             border: OutlineInputBorder(
               borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(kPiqueteRadius),
             ),
           ),
         ),
@@ -1762,7 +1767,7 @@ class _MultiSelectField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
           onTap: () => _showPicker(context),
           child: Container(
             width: double.infinity,
@@ -1770,7 +1775,7 @@ class _MultiSelectField extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: theme.customColor2,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(kPiqueteRadius),
             ),
             child: Row(
               children: [

@@ -91,7 +91,7 @@ class _PgEditPiqueteWidgetState extends State<PgEditPiqueteWidget> {
                   ? 'Sem retiro > ${piquete?.nome ?? widget.piqueteNome ?? ''}'
                   : 'Retiro > ${piquete?.nome ?? widget.piqueteNome ?? ''}',
               leading: FlutterFlowIconButton(
-                borderRadius: 8,
+                borderRadius: kPiqueteRadius,
                 buttonSize: 44,
                 icon: Icon(
                   Icons.arrow_back_rounded,

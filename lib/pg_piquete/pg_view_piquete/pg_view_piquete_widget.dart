@@ -8,6 +8,7 @@ import '../prototype/mapa_demarcacao_real_widget.dart';
 import '../prototype/piquete_prototype_store.dart';
 import '../prototype/piquete_prototype_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'pg_view_piquete_model.dart';
 export 'pg_view_piquete_model.dart';
@@ -96,7 +97,7 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
                   ? 'Sem retiro > Piquete'
                   : '${retiro.nome} > Piquete',
               leading: FlutterFlowIconButton(
-                borderRadius: 8,
+                borderRadius: kPiqueteRadius,
                 buttonSize: 44,
                 icon: Icon(
                   Icons.arrow_back_rounded,
@@ -210,7 +211,7 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
                     child: PrototypeMetricCard(
                       title: 'Lotes vinculados',
                       value: lotes.length.toString(),
-                      icon: Icons.bubble_chart_outlined,
+                      iconAsset: kPiqueteLoteIconAsset,
                     ),
                   ),
                   SizedBox(
@@ -444,12 +445,13 @@ class _LotesCard extends StatelessWidget {
               message:
                   'Este piquete ainda não recebeu um lote inteiro. Você pode adicionar lotes na edição.',
               icon: Icons.bubble_chart_outlined,
+              iconAsset: kPiqueteLoteIconAsset,
             )
           else
             ...lotes.map((lote) => _SimpleRow(
                   title: lote.nome,
                   subtitle: '${lote.qtdAnimais} animais • ${lote.status}',
-                  icon: Icons.bubble_chart_outlined,
+                  iconAsset: kPiqueteLoteIconAsset,
                 )),
         ],
       ),
@@ -461,14 +463,12 @@ class _SimpleRow extends StatelessWidget {
   const _SimpleRow({
     required this.title,
     required this.subtitle,
-    this.icon,
-    this.iconAsset,
+    required this.iconAsset,
   });
 
   final String title;
   final String subtitle;
-  final IconData? icon;
-  final String? iconAsset;
+  final String iconAsset;
 
   @override
   Widget build(BuildContext context) {
@@ -480,15 +480,19 @@ class _SimpleRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          if (iconAsset == null)
-            Icon(icon, color: theme.primary, size: 24)
-          else
-            Image.asset(
-              iconAsset!,
-              width: piqueteAssetIconSize(iconAsset, 24),
-              height: piqueteAssetIconSize(iconAsset, 24),
-              fit: BoxFit.contain,
-            ),
+          iconAsset.toLowerCase().endsWith('.svg')
+              ? SvgPicture.asset(
+                  iconAsset,
+                  width: piqueteAssetIconSize(iconAsset, 24),
+                  height: piqueteAssetIconSize(iconAsset, 24),
+                  fit: BoxFit.contain,
+                )
+              : Image.asset(
+                  iconAsset,
+                  width: piqueteAssetIconSize(iconAsset, 24),
+                  height: piqueteAssetIconSize(iconAsset, 24),
+                  fit: BoxFit.contain,
+                ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -611,7 +615,7 @@ class _HistoryEventRow extends StatelessWidget {
           height: 34,
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(kPiqueteRadius),
           ),
           child: Icon(_eventIcon(event.tipo), color: color, size: 18),
         ),

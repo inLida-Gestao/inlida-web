@@ -78,7 +78,7 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
               title: 'Adicionar piquete',
               subtitle: 'Novo piquete',
               leading: FlutterFlowIconButton(
-                borderRadius: 8,
+                borderRadius: kPiqueteRadius,
                 buttonSize: 44,
                 icon: Icon(
                   Icons.arrow_back_rounded,
