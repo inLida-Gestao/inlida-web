@@ -114,20 +114,32 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
     }
   }
 
-  final existRows = await SupaFlow.client
-      .from(table)
-      .select('id,animal_a12,data')
-      .eq('id_propriedade', idPropriedade);
+  // Carrega TODAS as avaliações existentes da propriedade, paginando: o
+  // PostgREST limita o SELECT a 1000 linhas por padrão. Sem paginar, animais
+  // já avaliados além da 1000ª linha escapariam da detecção e cairiam no
+  // INSERT puro (que não tem on_conflict), reintroduzindo o erro 23505.
   final existKeys = <String, String>{};
-  for (final e in existRows) {
-    existKeys['${_a12Key(e['animal_a12']?.toString())}|${e['data']}'] =
-        e['id'].toString();
+  const pagina = 1000;
+  var offset = 0;
+  while (true) {
+    final lote = await SupaFlow.client
+        .from(table)
+        .select('id,animal_a12,data')
+        .eq('id_propriedade', idPropriedade)
+        .range(offset, offset + pagina - 1);
+    for (final e in lote) {
+      existKeys['${_a12Key(e['animal_a12']?.toString())}|${e['data']}'] =
+          e['id'].toString();
+    }
+    if (lote.length < pagina) break;
+    offset += pagina;
   }
 
   final erros = <Map<String, dynamic>>[];
   var inseridos = 0;
   var atualizados = 0;
-  final upserts = <Map<String, dynamic>>[];
+  final inserts = <Map<String, dynamic>>[];
+  final updates = <Map<String, dynamic>>[];
   final importKeys = <String>{};
 
   for (var r = 1; r < sheet.rows.length; r++) {
@@ -298,27 +310,31 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       continue;
     }
     importKeys.add(key);
+    // Inserts e updates são separados em dois lotes. O postgrest-dart 2.4.2
+    // descarta o parâmetro `on_conflict` em upsert de LISTA (bug: ao montar o
+    // `columns=` ele sobrescreve a URL e perde o on_conflict), então não dá
+    // para resolver o conflito pela unique (id_propriedade,animal_a12,data).
+    //  - Novos: insert sem `id` (o DEFAULT gen_random_uuid gera o id).
+    //  - Existentes: upsert com `id` em todas as linhas → conflito pela PRIMARY
+    //    KEY (usada pelo merge-duplicates por padrão, sem precisar de on_conflict).
     if (existKeys.containsKey(key)) {
-      // Não enviar 'id': o onConflict (id_propriedade,animal_a12,data) já
-      // localiza a linha existente. Incluir 'id' faz o PostgREST adicionar a
-      // coluna 'id' ao INSERT em lote; as linhas novas (sem 'id') iriam com
-      // id=NULL explícito, ignorando o DEFAULT e violando o not-null (23502).
+      payload['id'] = existKeys[key];
+      updates.add(payload);
       atualizados++;
     } else {
+      inserts.add(payload);
       inseridos++;
     }
-    upserts.add(payload);
   }
 
-  if (upserts.isNotEmpty) {
-    const tam = 200;
-    for (var i = 0; i < upserts.length; i += tam) {
-      final fim = (i + tam < upserts.length) ? i + tam : upserts.length;
-      await SupaFlow.client.from(table).upsert(
-            upserts.sublist(i, fim),
-            onConflict: 'id_propriedade,animal_a12,data',
-          );
-    }
+  const tam = 200;
+  for (var i = 0; i < inserts.length; i += tam) {
+    final fim = (i + tam < inserts.length) ? i + tam : inserts.length;
+    await SupaFlow.client.from(table).insert(inserts.sublist(i, fim));
+  }
+  for (var i = 0; i < updates.length; i += tam) {
+    final fim = (i + tam < updates.length) ? i + tam : updates.length;
+    await SupaFlow.client.from(table).upsert(updates.sublist(i, fim));
   }
 
   result['inseridos'] = inseridos;
