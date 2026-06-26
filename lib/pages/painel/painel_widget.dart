@@ -4095,7 +4095,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                   ),
                                                                   future: () {
                                                                     final taxaPrenhez2Key =
-                                                                        'taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}';
+                                                                        'taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoTaxaPrenhezValue}';
                                                                     if (_model
                                                                             .taxaPrenhez2FutureKey !=
                                                                         taxaPrenhez2Key) {
@@ -4120,6 +4120,12 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         pInseminador: _model
                                                                             .filtroInseminadorTaxaConcepcaoValues
                                                                             .join(','),
+                                                                        pTipoReproducao: _model
+                                                                                    .filtroTipoTaxaPrenhezValue ==
+                                                                                'Todos'
+                                                                            ? ''
+                                                                            : _model
+                                                                                .filtroTipoTaxaPrenhezValue,
                                                                       );
                                                                     }
                                                                     return _model
@@ -4414,6 +4420,31 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           );
                                                                                         },
                                                                                       ),
+                                                                                      _buildSingleFilterChip(
+                                                                                        context,
+                                                                                        label: 'Tipo de reprodução',
+                                                                                        selectedValue: _model.filtroTipoTaxaPrenhezValue == 'Todos' ? null : _model.filtroTipoTaxaPrenhezValue,
+                                                                                        options: const [
+                                                                                          'Monta Natural',
+                                                                                          'Inseminação',
+                                                                                          'Ressinc',
+                                                                                        ],
+                                                                                        optionLabels: const [
+                                                                                          'Monta natural',
+                                                                                          'Inseminação',
+                                                                                          'Ressinc',
+                                                                                        ],
+                                                                                        onChanged: (val) {
+                                                                                          safeSetState(() {
+                                                                                            _model.filtroTipoTaxaPrenhezValue = val;
+                                                                                          });
+                                                                                        },
+                                                                                        onClear: () {
+                                                                                          safeSetState(() {
+                                                                                            _model.filtroTipoTaxaPrenhezValue = 'Todos';
+                                                                                          });
+                                                                                        },
+                                                                                      ),
                                                                                     ],
                                                                                   ),
                                                                                 ),
@@ -4446,7 +4477,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               height: double.infinity,
                                                                                               child: custom_widgets.TaxaPrenhezChart(
                                                                                                 key: ValueKey(
-                                                                                                  'taxa_prenhez2_chart_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                                                  'taxa_prenhez2_chart_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoTaxaPrenhezValue}',
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
@@ -4817,6 +4848,12 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
+                                                                    tipoReproducao: _model
+                                                                                .filtroTipoReproducaoPartosValue ==
+                                                                            'Todos'
+                                                                        ? ''
+                                                                        : _model
+                                                                            .filtroTipoReproducaoPartosValue,
                                                                   ),
                                                                   builder: (context,
                                                                       snapshot) {
@@ -4905,6 +4942,30 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                         r'''$.items''',
                                                                                       ),
                                                                                     ),
+                                                                                  ),
+                                                                                  const SizedBox(width: 12.0),
+                                                                                  _buildSingleFilterChip(
+                                                                                    context,
+                                                                                    label: 'Tipo de reprodução',
+                                                                                    selectedValue: _model.filtroTipoReproducaoPartosValue == 'Todos' ? null : _model.filtroTipoReproducaoPartosValue,
+                                                                                    options: const [
+                                                                                      'Inseminação',
+                                                                                      'Monta Natural',
+                                                                                    ],
+                                                                                    optionLabels: const [
+                                                                                      'Inseminação',
+                                                                                      'Monta natural',
+                                                                                    ],
+                                                                                    onChanged: (val) {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroTipoReproducaoPartosValue = val;
+                                                                                      });
+                                                                                    },
+                                                                                    onClear: () {
+                                                                                      safeSetState(() {
+                                                                                        _model.filtroTipoReproducaoPartosValue = 'Todos';
+                                                                                      });
+                                                                                    },
                                                                                   ),
                                                                                 ],
                                                                               ),
