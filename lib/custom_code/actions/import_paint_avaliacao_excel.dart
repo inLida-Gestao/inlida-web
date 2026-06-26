@@ -299,7 +299,10 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
     }
     importKeys.add(key);
     if (existKeys.containsKey(key)) {
-      payload['id'] = existKeys[key];
+      // Não enviar 'id': o onConflict (id_propriedade,animal_a12,data) já
+      // localiza a linha existente. Incluir 'id' faz o PostgREST adicionar a
+      // coluna 'id' ao INSERT em lote; as linhas novas (sem 'id') iriam com
+      // id=NULL explícito, ignorando o DEFAULT e violando o not-null (23502).
       atualizados++;
     } else {
       inseridos++;
