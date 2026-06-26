@@ -4,7 +4,7 @@
 --   p_tipo_reproducao = 'Inseminação'  -> apenas reproduções de inseminação
 --   p_tipo_reproducao = 'Ressinc'      -> inseminação COM protocolo de ressinc.
 --                                         (ressinc = Tradicional / Precoce / Superprecoce;
---                                          'NAO' e vazio = sem protocolo, ficam de fora)
+--                                          '-', 'NAO', vazio e NULL = sem protocolo, ficam de fora)
 
 -- A assinatura muda (7º parâmetro), então removemos a versão antiga de 6 args
 -- para evitar ambiguidade de overload no PostgREST.
@@ -107,8 +107,7 @@ WITH raw AS (
         p_tipo_reproducao = 'Ressinc'
         AND rep.tipo_reproducao = 'Inseminação'
         AND rep.ressinc IS NOT NULL
-        AND btrim(rep.ressinc) <> ''
-        AND rep.ressinc <> 'NAO'
+        AND btrim(rep.ressinc) NOT IN ('', 'NAO', '-')
       )
     )
 ),
