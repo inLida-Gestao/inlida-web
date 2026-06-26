@@ -62,6 +62,9 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   List<String> filtroLoteTaxaConcepcaoValues = [];
   List<String> filtroTouroTaxaConcepcaoValues = [];
   List<String> filtroInseminadorTaxaConcepcaoValues = [];
+  // Single-select filter para Tipo de reprodução na Taxa de prenhez.
+  // 'Todos' | 'Monta Natural' | 'Inseminação' | 'Ressinc'
+  String filtroTipoTaxaPrenhezValue = 'Todos';
   // Cache: edge taxa-prenhez → calcular_taxa_prenhez.
   Future<ApiCallResponse>? taxaConcepcaoFuture;
   String? taxaConcepcaoFutureKey;
@@ -87,6 +90,8 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   List<String> filtroSexoProjDesmamaValues = [];
   // Single-select filter for Meses in Projeção de desmamas chart.
   String ddMesesValue = '6';
+  // Single-select filter for Tipo de reprodução in Projeção de partos chart.
+  String filtroTipoReproducaoPartosValue = 'Todos';
   // Model for loading component.
   late LoadingModel loadingModel;
 

@@ -71,6 +71,7 @@ async function buildProjecaoItems(
   idPropriedade: string,
   inicio: string,
   fim: string,
+  tipoReproducao: string | null,
 ): Promise<
   { mes: string; label: string; Novilha: number; Primípara: number; Multípara: number }[]
 > {
@@ -85,14 +86,22 @@ async function buildProjecaoItems(
   const reproAll: Record<string, unknown>[] = [];
 
   for (;;) {
-    const { data, error } = await supabase
+    let query = supabase
       .from("reproducao")
-      .select("previsao_parto, id_rebanho_matriz, deletado, ressinc")
+      .select(
+        "previsao_parto, id_rebanho_matriz, deletado, ressinc, tipo_reproducao",
+      )
       .eq("id_propriedade", idPropriedade)
       // Incluir o último dia inteiro (evita cortar timestamptz ao comparar só com date)
       .gte("previsao_parto", `${inicio}T00:00:00.000Z`)
-      .lte("previsao_parto", `${fim}T23:59:59.999Z`)
-      .range(from, from + PAGE - 1);
+      .lte("previsao_parto", `${fim}T23:59:59.999Z`);
+
+    // Filtro opcional por tipo de reprodução (ex.: "Monta Natural").
+    if (tipoReproducao) {
+      query = query.eq("tipo_reproducao", tipoReproducao);
+    }
+
+    const { data, error } = await query.range(from, from + PAGE - 1);
 
     if (error) throw error;
     const rows = data ?? [];
@@ -221,6 +230,10 @@ serve(async (req) => {
     const inicio = toDateStr(url.searchParams.get("inicio"));
     const fim = toDateStr(url.searchParams.get("fim"));
     const idPropriedade = url.searchParams.get("idPropriedade");
+    const tipoReproducaoRaw = url.searchParams.get("tipoReproducao");
+    const tipoReproducao = tipoReproducaoRaw && tipoReproducaoRaw.trim() !== ""
+      ? tipoReproducaoRaw.trim()
+      : null;
 
     if (!inicio || !fim || !idPropriedade) {
       return new Response(
@@ -241,6 +254,7 @@ serve(async (req) => {
       idPropriedade,
       inicio,
       fim,
+      tipoReproducao,
     );
 
     return new Response(JSON.stringify({ ok: true, items }), {
