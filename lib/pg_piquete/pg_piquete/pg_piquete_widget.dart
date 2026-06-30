@@ -67,10 +67,6 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
   Future<void> _loadPiquetes() async {
     try {
       await _store.load();
-      final selectedRetiro = _store.selectedRetiro;
-      if (selectedRetiro != null) {
-        _expandedRetiroIds.add(selectedRetiro.id);
-      }
     } catch (_) {
       // A mensagem amigável fica no store e é exibida na tela.
     }
@@ -150,7 +146,6 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
   Future<void> _selectLimites(String id) async {
     safeSetState(() {
       _selectedPiqueteId = null;
-      _expandedRetiroIds.add(id);
     });
     try {
       await _store.selectRetiro(id);
@@ -558,9 +553,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
       children: visibleRetiros
           .map((retiro) {
             final retiroSelected = _store.selectedRetiro?.id == retiro.id;
-            final expanded = _expandedRetiroIds.contains(retiro.id) ||
-                retiroSelected ||
-                query.isNotEmpty;
+            final expanded =
+                _expandedRetiroIds.contains(retiro.id) || query.isNotEmpty;
             final piquetes = _filteredPiquetes(
               _store.piquetesDoRetiro(retiro.id),
               query,
@@ -1551,6 +1545,14 @@ class _RetiroTreeCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Icon(
+                    expanded
+                        ? Icons.keyboard_arrow_down_rounded
+                        : Icons.chevron_right_rounded,
+                    color: selected ? kPiquetePrimaryDark : kPiqueteTextMuted,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
                   _AreaPreviewBox(
                     points: retiro.pontos,
                     color: kPiqueteLimit,
@@ -1561,33 +1563,17 @@ class _RetiroTreeCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              expanded
-                                  ? Icons.keyboard_arrow_down_rounded
-                                  : Icons.chevron_right_rounded,
-                              color: selected
-                                  ? kPiquetePrimaryDark
-                                  : kPiqueteTextMuted,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                retiro.nome,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.poppins(
-                                  color: selected
-                                      ? kPiquetePrimaryDark
-                                      : kPiqueteTextStrong,
-                                  fontSize: 14.5,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
+                        Text(
+                          retiro.nome,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            color: selected
+                                ? kPiquetePrimaryDark
+                                : kPiqueteTextStrong,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Wrap(
@@ -1766,11 +1752,6 @@ class _PiqueteTreeTile extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: selected ? kPiquetePrimaryDark : kPiqueteTextMuted,
-              size: 20,
             ),
           ],
         ),

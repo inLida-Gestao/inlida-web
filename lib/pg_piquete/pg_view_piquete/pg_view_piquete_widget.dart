@@ -113,7 +113,7 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
                   color: FlutterFlowTheme.of(context).primaryText,
                   size: 24,
                 ),
-                onPressed: () => context.safePop(),
+                onPressed: () => context.goNamed(PgPiqueteWidget.routeName),
               ),
               actions: [
                 if (piquete != null)
