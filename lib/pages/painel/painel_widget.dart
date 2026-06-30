@@ -5049,6 +5049,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       ],
                                                                                     ),
                                                                                   ),
+                                                                                  const SizedBox(width: 8.0),
                                                                                   _buildSingleFilterChip(
                                                                                     context,
                                                                                     label: 'Categoria',
@@ -5082,6 +5083,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                   ),
                                                                                 ],
                                                                               ),
+                                                                              const SizedBox(height: 8.0),
                                                                               Expanded(
                                                                                 child: Container(
                                                                                   width: double.infinity,

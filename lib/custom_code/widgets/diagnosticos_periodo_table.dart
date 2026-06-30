@@ -246,6 +246,7 @@ class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
 
   Widget _headerRow(BuildContext context) {
     return Container(
+      constraints: const BoxConstraints(minHeight: 48.0),
       decoration: const BoxDecoration(
         color: Color(0xFFF4F8F5),
         border: Border(
@@ -253,7 +254,7 @@ class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
         ),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _headerCell(context, 'Categoria', flex: 15, align: TextAlign.start),
           _headerCell(context, 'Matrizes'),
@@ -289,7 +290,10 @@ class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
             ),
           ),
         ),
-        child: _rowContent(context, row),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48.0),
+          child: _rowContent(context, row),
+        ),
       ),
     );
   }
@@ -302,7 +306,10 @@ class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
           top: BorderSide(color: Color(0xFFCFE2D5), width: 2),
         ),
       ),
-      child: _rowContent(context, row, isTotal: true),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 50.0),
+        child: _rowContent(context, row, isTotal: true),
+      ),
     );
   }
 
