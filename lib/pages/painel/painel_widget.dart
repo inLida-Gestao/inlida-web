@@ -5226,6 +5226,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                   ),
                                                                                 ],
                                                                               ),
+                                                                              const SizedBox(height: 8.0),
                                                                               Expanded(
                                                                                 child: Container(
                                                                                   width: double.infinity,
