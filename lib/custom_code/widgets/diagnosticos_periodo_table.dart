@@ -27,6 +27,7 @@ class DiagnosticosPeriodoTable extends StatefulWidget {
 
 class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
   final ScrollController _scrollHorizontal = ScrollController();
+  int? _hoveredRowIndex;
 
   @override
   void dispose() {
@@ -67,15 +68,13 @@ class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
       return [];
     }
 
-    return list
-        .map<_LinhaResumo>((e) {
-          if (e is Map) {
-            return _LinhaResumo.fromJson(
-                e.map((k, v) => MapEntry(k.toString(), v)));
-          }
-          return const _LinhaResumo();
-        })
-        .toList();
+    return list.map<_LinhaResumo>((e) {
+      if (e is Map) {
+        return _LinhaResumo.fromJson(
+            e.map((k, v) => MapEntry(k.toString(), v)));
+      }
+      return const _LinhaResumo();
+    }).toList();
   }
 
   String? _dataUltimoFromBody(dynamic b) {
@@ -129,7 +128,8 @@ class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
     final body = widget.jsonBody;
 
     if (_okFromBody(body) == false) {
-      final err = _erroFromBody(body) ?? 'Não foi possível carregar o relatório.';
+      final err =
+          _erroFromBody(body) ?? 'Não foi possível carregar o relatório.';
       return SizedBox(
         width: w,
         height: h,
@@ -158,97 +158,18 @@ class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
     }
 
     final dg = _dataUltimoFromBody(body);
-    final base = FlutterFlowTheme.of(context).bodyMedium;
-    final corFundo = FlutterFlowTheme.of(context).secondaryBackground;
-    final theme = Theme.of(context);
-    final linhaDiv = theme.dividerColor;
-    const pad = 6.0;
-    final headerBg = Color.alphaBlend(
-      theme.colorScheme.primary.withValues(alpha: 0.07),
-      corFundo,
-    );
-    // Soma de FixedColumnWidth (784): evita colunas a serem esmagadas.
+    final totalRow = linhas.where((row) => _isTotalRow(row)).firstOrNull;
+    final categoryRows = linhas.where((row) => !_isTotalRow(row)).toList();
     const double larguraTabela = 784.0;
 
-    final bordaFina = BorderSide(color: linhaDiv, width: 1.0);
-    final tabela = Table(
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      border: TableBorder(
-        top: bordaFina,
-        left: bordaFina,
-        right: bordaFina,
-        bottom: bordaFina,
-        horizontalInside: bordaFina,
-        verticalInside: bordaFina,
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      columnWidths: const {
-        0: FixedColumnWidth(112),
-        1: FixedColumnWidth(72),
-        2: FixedColumnWidth(72),
-        3: FixedColumnWidth(72),
-        4: FixedColumnWidth(72),
-        5: FixedColumnWidth(100),
-        6: FixedColumnWidth(100),
-        7: FixedColumnWidth(84),
-      },
-      children: [
-        TableRow(
-          decoration: BoxDecoration(color: headerBg),
-          children: [
-            _celCab(base, 'Categoria'),
-            _celCab(base, 'Matrizes'),
-            _celCab(base, 'Prenhez'),
-            _celCab(base, 'Vazio'),
-            _celCab(base, 'Outros'),
-            _celCab(base, 'Prenhas de IA'),
-            _celCab(base, 'Prenhas de touro'),
-            _celCab(base, 'Prenhez (%)'),
-          ],
-        ),
-        ...linhas.map((row) {
-          final isTotal = row.categoria == 'Total';
-          return TableRow(
-            decoration: BoxDecoration(
-              color: isTotal
-                  ? Color.alphaBlend(
-                      Colors.black.withValues(alpha: 0.04),
-                      corFundo,
-                    )
-                  : corFundo,
-            ),
-            children: [
-              _celCategoria(base, row.categoria, isTotal, pad,
-                  isTotal: isTotal),
-              _celNum(base, row.matrizes, isTotal, pad, center: true),
-              _celNum(base, row.prenhez, isTotal, pad, center: true),
-              _celNum(base, row.vazio, isTotal, pad, center: true),
-              _celNum(base, row.outros, isTotal, pad, center: true),
-              _celNum(base, row.prenhasIa, isTotal, pad, center: true),
-              _celNum(base, row.prenhasTouro, isTotal, pad, center: true),
-              Padding(
-                padding: const EdgeInsets.all(pad),
-                child: Text(
-                  '${row.prenhezPct.toStringAsFixed(2)}%',
-                  textAlign: TextAlign.center,
-                  style: _estiloCelda(base, isTotal),
-                ),
-              ),
-            ],
-          );
-        }),
-      ],
-    );
-
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: w, maxHeight: h),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Scrollbar(
+    return SizedBox(
+      width: w,
+      height: h,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Scrollbar(
               controller: _scrollHorizontal,
               thumbVisibility: true,
               thickness: 6,
@@ -256,110 +177,306 @@ class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
               child: SingleChildScrollView(
                 controller: _scrollHorizontal,
                 scrollDirection: Axis.horizontal,
-                child: Material(
-                  color: corFundo,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: SizedBox(
-                    width: larguraTabela,
-                    child: tabela,
+                child: SizedBox(
+                  width: larguraTabela,
+                  child: _tableFrame(
+                    context,
+                    categoryRows: categoryRows,
+                    totalRow: totalRow,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.only(left: 2, right: 2),
-              child: Text(
-                'Data do último DG: ${_fmtDataIso(dg)}',
-                style: base.override(
+          ),
+          const SizedBox(height: 14),
+          Text.rich(
+            TextSpan(
+              text: 'Data do último DG: ',
+              children: [
+                TextSpan(
+                  text: _fmtDataIso(dg),
+                  style: const TextStyle(
+                    color: Color(0xFF5B655D),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
                   fontFamily: 'Poppins',
-                  fontSize: 12.0,
-                  color: FlutterFlowTheme.of(context).secondaryText,
+                  fontSize: 12.5,
+                  color: const Color(0xFF9AA39B),
+                  letterSpacing: 0.0,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tableFrame(
+    BuildContext context, {
+    required List<_LinhaResumo> categoryRows,
+    required _LinhaResumo? totalRow,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFECEFEC)),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _headerRow(context),
+          ...categoryRows.asMap().entries.map(
+                (entry) => _dataRow(
+                  context,
+                  entry.value,
+                  rowIndex: entry.key,
+                  isLast:
+                      totalRow == null && entry.key == categoryRows.length - 1,
                 ),
               ),
+          if (totalRow != null) _totalRow(context, totalRow),
+        ],
+      ),
+    );
+  }
+
+  Widget _headerRow(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFF4F8F5),
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFCFE2D5), width: 2),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _headerCell(context, 'Categoria', flex: 15, align: TextAlign.start),
+          _headerCell(context, 'Matrizes'),
+          _headerCell(context, 'Prenhez'),
+          _headerCell(context, 'Vazio'),
+          _headerCell(context, 'Outros'),
+          _headerCell(context, 'Prenhas de IA'),
+          _headerCell(context, 'Prenhas de touro'),
+          _headerCell(context, 'Prenhez (%)', flex: 11, align: TextAlign.end),
+        ],
+      ),
+    );
+  }
+
+  Widget _dataRow(
+    BuildContext context,
+    _LinhaResumo row, {
+    required int rowIndex,
+    required bool isLast,
+  }) {
+    final hovered = _hoveredRowIndex == rowIndex;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hoveredRowIndex = rowIndex),
+      onExit: (_) => setState(() => _hoveredRowIndex = null),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          color: hovered ? const Color(0xFFFAFCFB) : Colors.white,
+          border: Border(
+            bottom: BorderSide(
+              color: isLast ? Colors.transparent : const Color(0xFFF1F4F1),
             ),
-          ],
+          ),
+        ),
+        child: _rowContent(context, row),
+      ),
+    );
+  }
+
+  Widget _totalRow(BuildContext context, _LinhaResumo row) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFEFF6F1),
+        border: Border(
+          top: BorderSide(color: Color(0xFFCFE2D5), width: 2),
+        ),
+      ),
+      child: _rowContent(context, row, isTotal: true),
+    );
+  }
+
+  Widget _rowContent(
+    BuildContext context,
+    _LinhaResumo row, {
+    bool isTotal = false,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _categoryCell(context, row.categoria, isTotal: isTotal),
+        _numberCell(context, row.matrizes, isTotal: isTotal),
+        _numberCell(context, row.prenhez, isTotal: isTotal),
+        _numberCell(context, row.vazio, isTotal: isTotal),
+        _numberCell(context, row.outros, isTotal: isTotal),
+        _numberCell(context, row.prenhasIa, isTotal: isTotal),
+        _numberCell(context, row.prenhasTouro, isTotal: isTotal),
+        _percentCell(context, row.prenhezPct, isTotal: isTotal),
+      ],
+    );
+  }
+
+  Widget _headerCell(
+    BuildContext context,
+    String text, {
+    int flex = 10,
+    TextAlign align = TextAlign.center,
+  }) {
+    return Expanded(
+      flex: flex,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          align == TextAlign.start ? 16 : 8,
+          12,
+          align == TextAlign.end ? 12 : 8,
+          12,
+        ),
+        child: Text(
+          text.toUpperCase(),
+          textAlign: align,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: FlutterFlowTheme.of(context)
+              .bodyMedium
+              .override(
+                fontFamily: 'Poppins',
+                color: const Color(0xFF5B7065),
+                fontSize: 11.0,
+                letterSpacing: 0.3,
+                fontWeight: FontWeight.w700,
+              )
+              .copyWith(height: 1.25),
         ),
       ),
     );
   }
 
-  static TextStyle _estiloCelda(TextStyle base, bool isTotal) {
-    return base.override(
-      fontFamily: 'Poppins',
-      fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal,
-      fontSize: 12.0,
-    );
-  }
-
-  static Widget _celCab(TextStyle base, String t) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(
-        t,
-        textAlign: TextAlign.center,
-        style: base.override(
-          fontFamily: 'Poppins',
-          fontWeight: FontWeight.w600,
-          fontSize: 12.0,
-        ),
-      ),
-    );
-  }
-
-  Widget _celCategoria(
-    TextStyle base,
-    String categoria,
-    bool isDestaque,
-    double pad, {
+  Widget _categoryCell(
+    BuildContext context,
+    String categoria, {
     required bool isTotal,
   }) {
-    final c = categoria;
-    final rot = _rotuloCategoria(c);
-    Text child;
-    if (c == 'Vaca Multipara' || rot == 'Vaca Multipara') {
-      child = Text(
-        'Vaca\nMultipara',
-        textAlign: TextAlign.center,
-        style: _estiloCelda(base, isDestaque).copyWith(height: 1.2),
-      );
-    } else if (c == 'Vaca Primipara' || rot == 'Vaca Primipara') {
-      child = Text(
-        'Vaca\nPrimipara',
-        textAlign: TextAlign.center,
-        style: _estiloCelda(base, isDestaque).copyWith(height: 1.2),
-      );
-    } else {
-      child = Text(
-        rot,
-        textAlign: TextAlign.center,
-        style: _estiloCelda(base, isDestaque),
-      );
-    }
-    return Padding(
-      padding: EdgeInsets.fromLTRB(pad, pad * 1.2, pad, pad * 1.2),
-      child: child,
+    return Expanded(
+      flex: 15,
+      child: Padding(
+        padding:
+            EdgeInsets.fromLTRB(16, isTotal ? 14 : 13, 12, isTotal ? 14 : 13),
+        child: Text(
+          isTotal ? 'Total' : _rotuloCategoria(categoria),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: FlutterFlowTheme.of(context)
+              .bodyMedium
+              .override(
+                fontFamily: 'Poppins',
+                color:
+                    isTotal ? const Color(0xFF145232) : const Color(0xFF26302B),
+                fontSize: 13.5,
+                letterSpacing: 0.0,
+                fontWeight: isTotal ? FontWeight.w700 : FontWeight.w600,
+              )
+              .copyWith(height: 1.25),
+        ),
+      ),
     );
   }
 
-  static Widget _celNum(
-    TextStyle base,
-    int n,
-    bool isTotal,
-    double pad, {
-    bool center = true,
+  Widget _numberCell(
+    BuildContext context,
+    int value, {
+    required bool isTotal,
   }) {
-    return Padding(
-      padding: EdgeInsets.all(pad),
-      child: Text(
-        '$n',
-        textAlign: center ? TextAlign.center : TextAlign.end,
-        style: _estiloCelda(base, isTotal),
+    return Expanded(
+      flex: 10,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: 8,
+          vertical: isTotal ? 14 : 13,
+        ),
+        child: Text(
+          '$value',
+          textAlign: TextAlign.center,
+          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                fontFamily: 'Poppins',
+                color: value > 0
+                    ? const Color(0xFF145232)
+                    : const Color(0xFF9AA39B),
+                fontSize: 13.5,
+                letterSpacing: 0.0,
+                fontWeight: isTotal ? FontWeight.w700 : FontWeight.w600,
+              ),
+        ),
       ),
+    );
+  }
+
+  Widget _percentCell(
+    BuildContext context,
+    double percent, {
+    required bool isTotal,
+  }) {
+    final colors = _percentColors(percent);
+    return Expanded(
+      flex: 11,
+      child: Padding(
+        padding:
+            EdgeInsets.fromLTRB(8, isTotal ? 14 : 13, 12, isTotal ? 14 : 13),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: Container(
+            constraints: const BoxConstraints(minWidth: 64),
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
+            decoration: BoxDecoration(
+              color: colors.background,
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            child: Text(
+              '${percent.toStringAsFixed(2)}%',
+              textAlign: TextAlign.center,
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'Poppins',
+                    color: colors.foreground,
+                    fontSize: 12.0,
+                    letterSpacing: 0.0,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool _isTotalRow(_LinhaResumo row) {
+    return row.categoria.trim().toLowerCase() == 'total';
+  }
+
+  _PercentColors _percentColors(double percent) {
+    if (percent > 70) {
+      return const _PercentColors(
+        background: Color(0xFFE6F6EE),
+        foreground: Color(0xFF147A45),
+      );
+    }
+    if (percent >= 40) {
+      return const _PercentColors(
+        background: Color(0xFFF7E4BE),
+        foreground: Color(0xFF8A5A0E),
+      );
+    }
+    return const _PercentColors(
+      background: Color(0xFFFCEAE8),
+      foreground: Color(0xFFC0392B),
     );
   }
 
@@ -367,6 +484,16 @@ class _DiagnosticosPeriodoTableState extends State<DiagnosticosPeriodoTable> {
     if (c == 'Novilha') return 'Novilhas';
     return c;
   }
+}
+
+class _PercentColors {
+  const _PercentColors({
+    required this.background,
+    required this.foreground,
+  });
+
+  final Color background;
+  final Color foreground;
 }
 
 class _LinhaResumo {
