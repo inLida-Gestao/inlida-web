@@ -74,7 +74,7 @@ async function buildProjecaoItems(
     let query = supabase
       .from("reproducao")
       .select(
-        "previsao_parto, data_inseminacao, data_inicial, id_rebanho_matriz, deletado, ressinc, tipo_reproducao",
+        "previsao_parto, data_inseminacao, data_inicial, id_rebanho_matriz, deletado, ressinc, tipo_reproducao, status_reproducao",
       )
       .eq("id_propriedade", idPropriedade)
       .or(
@@ -101,8 +101,10 @@ async function buildProjecaoItems(
   const filtered = reproAll.filter((r) => {
     const del = r.deletado as string | null | undefined;
     const rs = r.ressinc as string | null | undefined;
+    const status = String(r.status_reproducao ?? "").trim().toLowerCase();
     if (del === "SIM") return false;
     if (rs === "SIM") return false;
+    if (status === "vazio") return false;
     if (r.previsao_parto == null) return false;
 
     const dataReproducao = dataReproducaoFromRow(r);
