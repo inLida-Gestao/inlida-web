@@ -94,6 +94,11 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
   bool _rebanhoLoteAtivo(RebanhoRow row) =>
       row.deletado?.trim().toUpperCase() != 'SIM';
 
+  bool _loteIdAusenteOuInvalido(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    return normalized == null || normalized.isEmpty || normalized == 'null';
+  }
+
   DateTime? _parseLoteDate(String? value) {
     final trimmed = value?.trim();
     if (trimmed == null || trimmed.isEmpty) return null;
@@ -1054,8 +1059,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
         }));
   }
 
-  /// Carrega animais usando as mesmas fontes da listagem/edição:
-  /// id_animais, loteID, loteNome e compatibilidade com loteID = nome.
+  /// Carrega animais pelo vínculo atual. loteNome é fallback só para legado sem loteID.
   Future<List<RebanhoDTStruct>> _loadAnimaisDoLote() async {
     if (widget.idLote == null || widget.idLote!.isEmpty) return [];
 
@@ -1080,19 +1084,6 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
       }
     }
 
-    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
-    for (final idRebanho in idAnimais) {
-      final idAnimal = _normalizeIdRebanho(idRebanho);
-      if (idAnimal.isEmpty) continue;
-      final rows = await RebanhoTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('idRebanho', idAnimal)
-            .eqOrNull('idPropriedade', idPropriedadeLote),
-      );
-      final row = rows.firstOrNull;
-      if (row != null) addIfNew(row);
-    }
-
     final byLoteID = await RebanhoTable().queryRows(
       queryFn: (q) => q
           .eqOrNull('loteID', widget.idLote)
@@ -1112,7 +1103,9 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
         limit: 10000,
       );
       for (final row in byLoteNome) {
-        addIfNew(row);
+        if (_loteIdAusenteOuInvalido(row.loteID)) {
+          addIfNew(row);
+        }
       }
 
       final byLoteIDAsName = await RebanhoTable().queryRows(
