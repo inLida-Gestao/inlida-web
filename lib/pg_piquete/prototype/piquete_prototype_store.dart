@@ -452,7 +452,7 @@ class PiquetePrototypeStore extends ChangeNotifier {
         retiroId: 'ret-1',
         nome: 'Tradição Campeira',
         areaHa: 23,
-        forrageiras: const ['Brachiaria ruziensis', 'Tifton 85'],
+        forrageiras: const ['Braquiarão / Marandu', 'Tifton 85'],
         anotacoes: 'Piquete em descanso programado para pastejo rotacionado.',
         pontos: examplePiquetePoints(),
         animaisIds: const ['ani-1', 'ani-2'],
@@ -463,7 +463,7 @@ class PiquetePrototypeStore extends ChangeNotifier {
         retiroId: 'ret-1',
         nome: 'Capim Novo',
         areaHa: 18,
-        forrageiras: ['Massai (Panicum maximum)', 'Mombaça'],
+        forrageiras: ['Massai', 'Mombaça'],
         anotacoes: 'Area nova para recria.',
         pontos: [
           MapPoint(-15.7830, -47.8900),

@@ -105,11 +105,32 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   ];
   static const _loteStatusOptions = ['Ativo', 'Inativo'];
   static const _forrageiraOptions = [
-    'Brachiaria ruziensis',
-    'Massai (Panicum maximum)',
+    'Braquiarão / Marandu',
+    'MG-5 Vitória',
+    'Xaraés',
+    'Piatã',
+    'Paiaguás',
+    'Ipyporã',
+    'Braquiarinha',
+    'Humidícola',
+    'Ruziziensis',
+    'Basilisk',
     'Mombaça',
+    'Tanzânia',
+    'Zuri',
+    'Massai',
+    'Quênia',
+    'Tamani',
+    'Colonião',
+    'Andropogon',
+    'Buffel',
+    'Pangola',
+    'Urochloa Corrente',
+    'Coastcross',
+    'Grama Estrela',
     'Tifton 85',
-    'Capim elefante',
+    'Capim-elefante',
+    'Outras',
   ];
 
   @override

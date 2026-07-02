@@ -51,6 +51,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
     this.actions = const [],
     this.primaryMarkerCount,
     this.primaryMarkerLabel,
+    this.primaryMarkers = const [],
     this.onChanged,
     this.onImported,
   });
@@ -68,6 +69,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
   final List<Widget> actions;
   final int? primaryMarkerCount;
   final String? primaryMarkerLabel;
+  final List<PiqueteMapMarker> primaryMarkers;
   final ValueChanged<List<MapPoint>>? onChanged;
   final ValueChanged<List<MapPoint>>? onImported;
 
@@ -96,6 +98,16 @@ class PiqueteMapArea {
   final double borderStrokeWidth;
   final int? markerCount;
   final String? markerLabel;
+}
+
+class PiqueteMapMarker {
+  const PiqueteMapMarker({
+    required this.count,
+    required this.label,
+  });
+
+  final int count;
+  final String label;
 }
 
 class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
@@ -310,38 +322,35 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
         children: [
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.title,
-                        style: theme.titleMedium.override(
-                          fontFamily: theme.titleMediumFamily,
-                          color: _textStrong,
-                          fontWeight: FontWeight.w700,
-                          useGoogleFonts: !theme.titleMediumIsCustom,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _helperText,
-                        style: theme.bodySmall.override(
-                          fontFamily: theme.bodySmallFamily,
-                          color: _textMuted,
-                          useGoogleFonts: !theme.bodySmallIsCustom,
-                        ),
-                      ),
-                    ],
+                Text(
+                  widget.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.titleMedium.override(
+                    fontFamily: theme.titleMediumFamily,
+                    color: _textStrong,
+                    fontWeight: FontWeight.w700,
+                    useGoogleFonts: !theme.titleMediumIsCustom,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  _helperText,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.bodySmall.override(
+                    fontFamily: theme.bodySmallFamily,
+                    color: _textMuted,
+                    useGoogleFonts: !theme.bodySmallIsCustom,
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Wrap(
                   spacing: 10,
                   runSpacing: 10,
-                  alignment: WrapAlignment.end,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     ...widget.actions,
@@ -356,6 +365,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                       ),
                       child: Text(
                         '${_summaryPoints.length} pontos • ${_areaEstimadaHa.toStringAsFixed(1)} ha',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: theme.bodySmall.override(
                           fontFamily: theme.bodySmallFamily,
                           color: _points.isNotEmpty
@@ -368,7 +379,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                     ),
                   ],
                 ),
-              ].divide(const SizedBox(width: 16)),
+              ],
             ),
           ),
           Padding(
@@ -485,7 +496,20 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                         if (_latLngPoints.isNotEmpty && !widget.editable)
                           MarkerLayer(
                             markers: [
-                              if ((widget.primaryMarkerCount ?? 0) > 0)
+                              if (widget.primaryMarkers.isNotEmpty)
+                                for (final entry
+                                    in _distributedPrimaryMarkers().entries)
+                                  Marker(
+                                    point: entry.key,
+                                    width: 58,
+                                    height: 58,
+                                    child: _MapCountMarker(
+                                      count: entry.value.count,
+                                      label: entry.value.label,
+                                      color: _piqueteColor,
+                                    ),
+                                  )
+                              else if ((widget.primaryMarkerCount ?? 0) > 0)
                                 Marker(
                                   point: _center,
                                   width: 58,
@@ -672,9 +696,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
           builder: (context, setDialogState) {
             final viewport = MediaQuery.sizeOf(context);
             final dialogHeight =
-                (viewport.height - 72).clamp(420.0, 920.0).toDouble();
-            final mapHeight =
-                (dialogHeight - 86).clamp(340.0, 840.0).toDouble();
+                (viewport.height - 48).clamp(420.0, 920.0).toDouble();
+            final mapHeight = (dialogHeight - 220).clamp(300.0, 700.0);
 
             return Dialog(
               insetPadding: const EdgeInsets.all(24),
@@ -691,7 +714,6 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                   child: Padding(
                     padding: const EdgeInsets.all(18),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Row(
                           children: [
@@ -718,7 +740,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        Flexible(
+                        Expanded(
                           child: MapaDemarcacaoRealWidget(
                             title: widget.title,
                             points: expandedPoints,
@@ -732,6 +754,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                             allowExpand: false,
                             primaryMarkerCount: widget.primaryMarkerCount,
                             primaryMarkerLabel: widget.primaryMarkerLabel,
+                            primaryMarkers: widget.primaryMarkers,
                             onChanged: widget.editable
                                 ? (value) {
                                     setDialogState(() {
@@ -1114,6 +1137,79 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
         points.length;
     return ll.LatLng(lat, lng);
   }
+
+  Map<ll.LatLng, PiqueteMapMarker> _distributedPrimaryMarkers() {
+    final markers = widget.primaryMarkers;
+    if (markers.isEmpty) return const {};
+    final points = _latLngPoints;
+    final center = _center;
+    if (markers.length == 1 || points.length < 3) {
+      return {center: markers.first};
+    }
+
+    final bounds = _latLngBounds(points);
+    final latSpan = (bounds.north - bounds.south).abs();
+    final lngSpan = (bounds.east - bounds.west).abs();
+    final radiusLat = latSpan == 0 ? 0.00008 : latSpan * 0.20;
+    final radiusLng = lngSpan == 0 ? 0.00008 : lngSpan * 0.20;
+    final result = <ll.LatLng, PiqueteMapMarker>{};
+
+    for (var i = 0; i < markers.length; i++) {
+      final angle = (-math.pi / 2) + (2 * math.pi * i / markers.length);
+      var candidate = ll.LatLng(
+        center.latitude + math.sin(angle) * radiusLat,
+        center.longitude + math.cos(angle) * radiusLng,
+      );
+      if (!_containsLatLng(points, candidate)) {
+        candidate = ll.LatLng(
+          center.latitude + math.sin(angle) * radiusLat * 0.45,
+          center.longitude + math.cos(angle) * radiusLng * 0.45,
+        );
+      }
+      result[candidate] = markers[i];
+    }
+
+    return result;
+  }
+
+  _LatLngBounds _latLngBounds(List<ll.LatLng> points) {
+    return _LatLngBounds(
+      north: points.map((point) => point.latitude).reduce(math.max),
+      south: points.map((point) => point.latitude).reduce(math.min),
+      east: points.map((point) => point.longitude).reduce(math.max),
+      west: points.map((point) => point.longitude).reduce(math.min),
+    );
+  }
+
+  bool _containsLatLng(List<ll.LatLng> polygon, ll.LatLng point) {
+    var inside = false;
+    for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      final xi = polygon[i].longitude;
+      final yi = polygon[i].latitude;
+      final xj = polygon[j].longitude;
+      final yj = polygon[j].latitude;
+      final denominator = (yj - yi).abs() < 0.000000001 ? 0.000000001 : yj - yi;
+      final intersects = ((yi > point.latitude) != (yj > point.latitude)) &&
+          (point.longitude <
+              (xj - xi) * (point.latitude - yi) / denominator + xi);
+      if (intersects) inside = !inside;
+    }
+    return inside;
+  }
+}
+
+class _LatLngBounds {
+  const _LatLngBounds({
+    required this.north,
+    required this.south,
+    required this.east,
+    required this.west,
+  });
+
+  final double north;
+  final double south;
+  final double east;
+  final double west;
 }
 
 class _PiqueteAreaLatLng {
