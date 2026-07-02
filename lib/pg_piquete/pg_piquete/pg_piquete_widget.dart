@@ -2,6 +2,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import '/pg_piquete/data/piquete_backend_store.dart';
+import '/pg_piquete/prototype/piquete_form_mock_widget.dart';
 import '/pg_piquete/prototype/mapa_demarcacao_real_widget.dart';
 import '/pg_piquete/prototype/piquete_prototype_store.dart';
 import '/pg_piquete/prototype/piquete_prototype_widgets.dart';
@@ -31,6 +32,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
   final _store = PiqueteBackendStore.instance;
   late final VoidCallback _disposePiqueteRefresh;
   String? _selectedPiqueteId;
+  String _mapContentMode = 'animais';
   final Set<String> _expandedRetiroIds = {};
 
   @override
@@ -707,6 +709,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
         ? 'Piquete'
         : (retiroSelecionado != null ? 'Retiro' : 'Piquete');
     final selectedId = selected?.id;
+    final markerLabel =
+        _mapContentMode == 'lotes' ? 'Animais em lotes' : 'Animais sem lote';
     final overlayAreas = piquetesDoContexto
         .where(
             (piquete) => piquete.id != selectedId && piquete.pontos.length > 1)
@@ -716,9 +720,23 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
             points: piquete.pontos,
             fillOpacity: 0.18,
             borderStrokeWidth: 2.2,
+            markerCount: _piqueteMapContentCount(piquete),
+            markerLabel: '$markerLabel • ${piquete.nome}',
           ),
         )
         .toList();
+    final contentToggle = _PiqueteMapContentToggle(
+      mode: _mapContentMode,
+      lotesCount: piquetesDoContexto.fold<int>(
+        0,
+        (total, piquete) => total + _piqueteLoteAnimalCount(piquete),
+      ),
+      animaisSemLoteCount: piquetesDoContexto.fold<int>(
+        0,
+        (total, piquete) => total + piquete.totalAnimaisIndividuais,
+      ),
+      onChanged: (mode) => safeSetState(() => _mapContentMode = mode),
+    );
 
     return MapaDemarcacaoRealWidget(
       title: title,
@@ -727,8 +745,18 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
       piqueteAreas: overlayAreas,
       pointsLegendLabel: legendLabel,
       height: 640,
+      primaryMarkerCount:
+          selected == null ? null : _piqueteMapContentCount(selected),
+      primaryMarkerLabel:
+          selected == null ? null : '$markerLabel • ${selected.nome}',
       actions: [
+        contentToggle,
         if (selected != null) ...[
+          PrototypePrimaryButton(
+            label: 'Movimentar animais',
+            icon: Icons.compare_arrows_rounded,
+            onPressed: () => _showMovimentarAnimaisDialog(selected),
+          ),
           PrototypeSecondaryButton(
             label: 'Editar piquete',
             icon: Icons.edit_outlined,
@@ -788,6 +816,126 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
             onPressed: _openAddPiquete,
           ),
       ],
+    );
+  }
+
+  int _piqueteLoteAnimalCount(PiquetePrototype piquete) {
+    if (piquete.animaisLotesCount > 0) return piquete.animaisLotesCount;
+    return piquete.totalLotes;
+  }
+
+  int _piqueteMapContentCount(PiquetePrototype piquete) {
+    if (_mapContentMode == 'lotes') {
+      return _piqueteLoteAnimalCount(piquete);
+    }
+    return piquete.totalAnimaisIndividuais;
+  }
+
+  Future<void> _showMovimentarAnimaisDialog(PiquetePrototype piquete) async {
+    PiquetePrototype loaded = piquete;
+    try {
+      loaded = await _store.loadPiqueteDetail(piquete.id) ?? piquete;
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível carregar os animais do piquete.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        final viewport = MediaQuery.sizeOf(dialogContext);
+        return Dialog(
+          insetPadding: const EdgeInsets.all(28),
+          backgroundColor: Colors.transparent,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 1320,
+              maxHeight: (viewport.height - 56).clamp(520.0, 920.0),
+            ),
+            child: Material(
+              color: kPiqueteSurfaceMuted,
+              borderRadius: BorderRadius.circular(kPiqueteRadius),
+              clipBehavior: Clip.antiAlias,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    PrototypePageHeader(
+                      title: 'Movimentar animais',
+                      subtitle:
+                          'Atualize animais sem lote ou lotes vinculados ao piquete ${loaded.nome}',
+                      actions: [
+                        IconButton(
+                          tooltip: 'Fechar',
+                          onPressed: () => Navigator.pop(dialogContext),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    PiqueteFormMockWidget(
+                      initial: loaded,
+                      onCancel: () => Navigator.pop(dialogContext),
+                      onSave: (result) async {
+                        try {
+                          final updated = await _store.updatePiquete(
+                            loaded.copyWith(
+                              retiroId: result.retiroId,
+                              nome: result.nome.trim().isNotEmpty
+                                  ? result.nome
+                                  : loaded.nome,
+                              areaHa: result.areaHa > 0
+                                  ? result.areaHa
+                                  : loaded.areaHa,
+                              forrageiras: result.forrageiras.isNotEmpty
+                                  ? result.forrageiras
+                                  : loaded.forrageiras,
+                              anotacoes: result.anotacoes,
+                              pontos: result.pontos.length >= 3
+                                  ? result.pontos
+                                  : loaded.pontos,
+                              animaisIds: result.animaisIds,
+                              lotesIds: result.lotesIds,
+                            ),
+                          );
+                          loaded = updated;
+                          if (!dialogContext.mounted) return;
+                          Navigator.pop(dialogContext);
+                          if (!mounted) return;
+                          safeSetState(() => _selectedPiqueteId = updated.id);
+                        } catch (_) {
+                          if (!dialogContext.mounted) return;
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                _store.errorMessage ??
+                                    'Não foi possível movimentar os animais.',
+                              ),
+                              backgroundColor:
+                                  FlutterFlowTheme.of(dialogContext).error,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1897,11 +2045,10 @@ class _PiqueteSegmentedTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: kPiqueteFieldSurface,
+        color: const Color(0xFFF1F3F0),
         borderRadius: BorderRadius.circular(kPiqueteRadius),
-        border: Border.all(color: kPiqueteBorder),
       ),
       child: Row(
         children: [
@@ -1947,19 +2094,10 @@ class _PiqueteSegmentButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? kPiqueteSurface : Colors.transparent,
+          color: selected ? kPiquetePrimary : Colors.transparent,
           borderRadius: BorderRadius.circular(kPiqueteRadius),
-          boxShadow: selected
-              ? const [
-                  BoxShadow(
-                    blurRadius: 8,
-                    color: Color(0x0F10281C),
-                    offset: Offset(0, 2),
-                  ),
-                ]
-              : null,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1970,19 +2108,133 @@ class _PiqueteSegmentButton extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
-                  color: selected ? kPiquetePrimaryDark : kPiqueteTextMuted,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white : kPiqueteTextMuted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: selected
+                    ? Colors.white.withValues(alpha: 0.26)
+                    : const Color(0xFFDDE4DE),
+                borderRadius: BorderRadius.circular(kPiqueteRadius),
+              ),
+              child: Text(
+                count.toString(),
+                style: GoogleFonts.poppins(
+                  color: selected ? Colors.white : kPiqueteTextMuted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PiqueteMapContentToggle extends StatelessWidget {
+  const _PiqueteMapContentToggle({
+    required this.mode,
+    required this.lotesCount,
+    required this.animaisSemLoteCount,
+    required this.onChanged,
+  });
+
+  final String mode;
+  final int lotesCount;
+  final int animaisSemLoteCount;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F3F0),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _PiqueteMapToggleButton(
+            label: 'Lotes',
+            count: lotesCount,
+            selected: mode == 'lotes',
+            onTap: () => onChanged('lotes'),
+          ),
+          _PiqueteMapToggleButton(
+            label: 'Animais sem lote',
+            count: animaisSemLoteCount,
+            selected: mode == 'animais',
+            onTap: () => onChanged('animais'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PiqueteMapToggleButton extends StatelessWidget {
+  const _PiqueteMapToggleButton({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(kPiqueteRadius),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? kPiquetePrimary : Colors.transparent,
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             Text(
-              count.toString(),
+              label,
               style: GoogleFonts.poppins(
-                color: selected ? kPiquetePrimaryDark : kPiqueteTextSoft,
-                fontSize: 11,
+                color: selected ? Colors.white : kPiqueteTextMuted,
+                fontSize: 12,
                 fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(width: 7),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: BoxDecoration(
+                color: selected
+                    ? Colors.white.withValues(alpha: 0.26)
+                    : const Color(0xFFDDE4DE),
+                borderRadius: BorderRadius.circular(kPiqueteRadius),
+              ),
+              child: Text(
+                count.toString(),
+                style: GoogleFonts.poppins(
+                  color: selected ? Colors.white : kPiqueteTextMuted,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
+                ),
               ),
             ),
           ],

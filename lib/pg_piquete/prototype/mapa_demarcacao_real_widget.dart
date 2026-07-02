@@ -49,6 +49,8 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
     this.preferUserLocation = false,
     this.allowExpand = true,
     this.actions = const [],
+    this.primaryMarkerCount,
+    this.primaryMarkerLabel,
     this.onChanged,
     this.onImported,
   });
@@ -64,6 +66,8 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
   final bool preferUserLocation;
   final bool allowExpand;
   final List<Widget> actions;
+  final int? primaryMarkerCount;
+  final String? primaryMarkerLabel;
   final ValueChanged<List<MapPoint>>? onChanged;
   final ValueChanged<List<MapPoint>>? onImported;
 
@@ -80,6 +84,8 @@ class PiqueteMapArea {
     this.legendLabel = 'Piquete',
     this.fillOpacity = 0.30,
     this.borderStrokeWidth = 3.2,
+    this.markerCount,
+    this.markerLabel,
   });
 
   final String name;
@@ -88,6 +94,8 @@ class PiqueteMapArea {
   final String legendLabel;
   final double fillOpacity;
   final double borderStrokeWidth;
+  final int? markerCount;
+  final String? markerLabel;
 }
 
 class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
@@ -130,6 +138,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
           legendLabel: area.legendLabel,
           fillOpacity: area.fillOpacity,
           borderStrokeWidth: area.borderStrokeWidth,
+          markerCount: area.markerCount,
+          markerLabel: area.markerLabel,
         ),
       )
       .where((area) => area.points.length > 1)
@@ -459,33 +469,46 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                           MarkerLayer(
                             markers: [
                               for (final area in _piqueteAreaLatLngs)
-                                Marker(
-                                  point: _centerOfLatLngs(area.points),
-                                  width: 150,
-                                  height: 76,
-                                  child: _MapLabel(
-                                    title: area.name,
-                                    subtitle:
-                                        '${area.points.length} pontos demarcados',
-                                    color: area.color,
+                                if ((area.markerCount ?? 0) > 0)
+                                  Marker(
+                                    point: _centerOfLatLngs(area.points),
+                                    width: 58,
+                                    height: 58,
+                                    child: _MapCountMarker(
+                                      count: area.markerCount!,
+                                      label: area.markerLabel ?? area.name,
+                                      color: area.color,
+                                    ),
                                   ),
-                                ),
                             ],
                           ),
                         if (_latLngPoints.isNotEmpty && !widget.editable)
                           MarkerLayer(
                             markers: [
-                              Marker(
-                                point: _center,
-                                width: 170,
-                                height: 72,
-                                child: _MapLabel(
-                                  title: widget.title,
-                                  subtitle:
-                                      '${_points.length} pontos demarcados',
-                                  color: _piqueteColor,
+                              if ((widget.primaryMarkerCount ?? 0) > 0)
+                                Marker(
+                                  point: _center,
+                                  width: 58,
+                                  height: 58,
+                                  child: _MapCountMarker(
+                                    count: widget.primaryMarkerCount!,
+                                    label: widget.primaryMarkerLabel ??
+                                        widget.title,
+                                    color: _piqueteColor,
+                                  ),
+                                )
+                              else
+                                Marker(
+                                  point: _center,
+                                  width: 170,
+                                  height: 72,
+                                  child: _MapLabel(
+                                    title: widget.title,
+                                    subtitle:
+                                        '${_points.length} pontos demarcados',
+                                    color: _piqueteColor,
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         if (_latLngPoints.isEmpty &&
@@ -707,6 +730,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                             height: mapHeight,
                             preferUserLocation: widget.preferUserLocation,
                             allowExpand: false,
+                            primaryMarkerCount: widget.primaryMarkerCount,
+                            primaryMarkerLabel: widget.primaryMarkerLabel,
                             onChanged: widget.editable
                                 ? (value) {
                                     setDialogState(() {
@@ -1099,6 +1124,8 @@ class _PiqueteAreaLatLng {
     required this.legendLabel,
     required this.fillOpacity,
     required this.borderStrokeWidth,
+    required this.markerCount,
+    required this.markerLabel,
   });
 
   final String name;
@@ -1107,6 +1134,76 @@ class _PiqueteAreaLatLng {
   final String legendLabel;
   final double fillOpacity;
   final double borderStrokeWidth;
+  final int? markerCount;
+  final String? markerLabel;
+}
+
+class _MapCountMarker extends StatelessWidget {
+  const _MapCountMarker({
+    required this.count,
+    required this.label,
+    required this.color,
+  });
+
+  final int count;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: '$count • $label',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 4),
+              boxShadow: const [
+                BoxShadow(
+                  blurRadius: 8,
+                  color: Color(0x66000000),
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+          ),
+          Transform.translate(
+            offset: const Offset(0, -2),
+            child: Container(
+              constraints: const BoxConstraints(minWidth: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(kPiqueteRadius),
+                boxShadow: const [
+                  BoxShadow(
+                    blurRadius: 8,
+                    color: Color(0x55000000),
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                count.toString(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _DraggablePointMarker extends StatelessWidget {
