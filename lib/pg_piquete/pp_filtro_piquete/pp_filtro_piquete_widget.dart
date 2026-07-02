@@ -54,7 +54,7 @@ class _PpFiltroPiqueteWidgetState extends State<PpFiltroPiqueteWidget> {
         width: 496.0,
         decoration: BoxDecoration(
           color: FlutterFlowTheme.of(context).secondaryBackground,
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(6.0),
         ),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -83,7 +83,7 @@ class _PpFiltroPiqueteWidgetState extends State<PpFiltroPiqueteWidget> {
                         ),
                   ),
                   FlutterFlowIconButton(
-                    borderRadius: 8.0,
+                    borderRadius: 6.0,
                     buttonSize: 40.0,
                     icon: const Icon(
                       Icons.close_rounded,
@@ -178,7 +178,7 @@ class _PpFiltroPiqueteWidgetState extends State<PpFiltroPiqueteWidget> {
                               elevation: 2.0,
                               borderColor: Colors.transparent,
                               borderWidth: 0.0,
-                              borderRadius: 8.0,
+                              borderRadius: 6.0,
                               margin: const EdgeInsetsDirectional.fromSTEB(
                                   12.0, 0.0, 12.0, 0.0),
                               hidesUnderline: true,
@@ -310,7 +310,7 @@ class _PpFiltroPiqueteWidgetState extends State<PpFiltroPiqueteWidget> {
                       borderSide: BorderSide(
                         color: FlutterFlowTheme.of(context).primary,
                       ),
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(6.0),
                     ),
                   ),
                   FFButtonWidget(
@@ -351,7 +351,7 @@ class _PpFiltroPiqueteWidgetState extends State<PpFiltroPiqueteWidget> {
                                     .fontStyle,
                               ),
                       elevation: 0.0,
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(6.0),
                     ),
                   ),
                 ],
