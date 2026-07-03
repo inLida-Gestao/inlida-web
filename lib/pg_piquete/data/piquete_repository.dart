@@ -246,7 +246,9 @@ class PiqueteRepository {
         'p_nome': nome,
         'p_area_informada_ha': areaHa,
         'p_anotacoes': anotacoes,
-        'p_geojson': PiqueteGeoJsonMapper.polygonFromPoints(pontos),
+        'p_geojson': pontos.length >= 3
+            ? PiqueteGeoJsonMapper.polygonFromPoints(pontos)
+            : null,
       },
     );
     return RetiroBackendSummary.fromJson(_asMap(response));

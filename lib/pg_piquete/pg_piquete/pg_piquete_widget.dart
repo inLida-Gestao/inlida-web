@@ -1247,11 +1247,11 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                           title: editing ? 'Editar retiro' : 'Criar retiro',
                           subtitle: existingRetiroAreas.isEmpty
                               ? (editing
-                                  ? 'Ajuste dados e demarcação do retiro'
-                                  : 'Demarque uma área interna do limite da propriedade')
+                                  ? 'Ajuste dados e, se necessário, a demarcação do retiro'
+                                  : 'Informe os dados do retiro. A demarcação da área é opcional.')
                               : (editing
                                   ? 'Outros retiros aparecem em roxo para evitar sobreposição'
-                                  : 'Retiros já cadastrados aparecem em roxo para evitar sobreposição'),
+                                  : 'Retiros já cadastrados aparecem em roxo. A demarcação da área é opcional.'),
                           actions: [
                             IconButton(
                               onPressed: () => Navigator.pop(dialogContext),
@@ -1409,14 +1409,12 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                               .replaceAll(',', '.'),
                                         ) ??
                                         0;
-                                    if (nome.isEmpty ||
-                                        area <= 0 ||
-                                        pontos.length < 3) {
+                                    if (nome.isEmpty || area <= 0) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
                                           content: const Text(
-                                            'Informe nome, área e ao menos 3 pontos no mapa.',
+                                            'Informe nome e área do retiro. A demarcação no mapa é opcional.',
                                           ),
                                           backgroundColor:
                                               FlutterFlowTheme.of(context)
