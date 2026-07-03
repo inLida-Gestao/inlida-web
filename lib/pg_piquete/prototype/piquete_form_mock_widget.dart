@@ -48,6 +48,8 @@ class PiqueteFormMockWidget extends StatefulWidget {
 }
 
 class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
+  static const _existingRetiroColor = Color(0xFFF4C142);
+
   final _store = PiqueteBackendStore.instance;
   final _nomeController = TextEditingController();
   final _areaController = TextEditingController();
@@ -186,9 +188,10 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     }
     final creatingPiquete = widget.initial == null;
     final newPiqueteSemRetiro = creatingPiquete && retiro == null;
-    final piqueteAreas = _existingPiqueteAreas(
-      showAllAreas: creatingPiquete,
-    );
+    final piqueteAreas = [
+      ..._existingRetiroAreas(),
+      ..._existingPiqueteAreas(),
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1151,11 +1154,26 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     return area.toStringAsFixed(2);
   }
 
-  List<PiqueteMapArea> _existingPiqueteAreas({required bool showAllAreas}) {
+  List<PiqueteMapArea> _existingRetiroAreas() {
+    return _store.retiros
+        .where((retiro) => retiro.id != _retiroId)
+        .where((retiro) => retiro.pontos.length >= 3)
+        .map(
+          (retiro) => PiqueteMapArea(
+            name: retiro.nome,
+            points: retiro.pontos,
+            color: _existingRetiroColor,
+            legendLabel: retiro.nome,
+            fillOpacity: 0.10,
+            borderStrokeWidth: 3,
+          ),
+        )
+        .toList();
+  }
+
+  List<PiqueteMapArea> _existingPiqueteAreas() {
     final currentPiqueteId = widget.initial?.id;
-    final piquetes =
-        showAllAreas ? _store.piquetes : _store.piquetesDoRetiro(_retiroId);
-    return piquetes
+    return _store.piquetes
         .where((piquete) => piquete.id != currentPiqueteId)
         .where((piquete) => piquete.pontos.length >= 3)
         .map(
