@@ -1221,7 +1221,6 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     var pontos = initial?.pontos.toList() ?? <MapPoint>[];
     var areaEditedManually = editing;
     var updatingAreaFromMap = false;
-    var showMap = !editing;
 
     await showDialog<void>(
       context: context,
@@ -1300,114 +1299,42 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                     hint: 'Referências, acesso, manejo...',
                                     maxLines: 3,
                                   ),
-                                  if (!showMap) ...[
-                                    const SizedBox(height: 14),
-                                    PrototypeSecondaryButton(
-                                      label: pontos.isEmpty
-                                          ? 'Demarcar no mapa'
-                                          : 'Editar demarcação',
-                                      icon: Icons.map_outlined,
-                                      onPressed: () => setDialogState(
-                                        () => showMap = true,
-                                      ),
-                                    ),
-                                  ],
                                 ],
                               ),
                             );
-                            final map = showMap
-                                ? MapaDemarcacaoRealWidget(
-                                    title: 'Área do retiro',
-                                    points: pontos,
-                                    retiroPoints:
-                                        _store.limitePropriedade?.pontos ??
-                                            const [],
-                                    piqueteAreas: existingRetiroAreas,
-                                    pointsLegendLabel: editing
-                                        ? 'Retiro em edição'
-                                        : 'Novo retiro',
-                                    editable: true,
-                                    height: mapHeight,
-                                    preferUserLocation: !editing,
-                                    onChanged: (value) => setDialogState(() {
-                                      pontos = value;
-                                      if (!areaEditedManually) {
-                                        updatingAreaFromMap = true;
-                                        _updateAreaControllerFromMap(
-                                          areaController,
-                                          pontos,
-                                        );
-                                        updatingAreaFromMap = false;
-                                      }
-                                    }),
-                                    onImported: (value) => setDialogState(() {
-                                      pontos = value;
-                                      areaEditedManually = false;
-                                      updatingAreaFromMap = true;
-                                      _updateAreaControllerFromMap(
-                                        areaController,
-                                        pontos,
-                                      );
-                                      updatingAreaFromMap = false;
-                                    }),
-                                  )
-                                : Container(
-                                    width: double.infinity,
-                                    height: narrow ? 150 : mapHeight,
-                                    padding: const EdgeInsets.all(24),
-                                    decoration: BoxDecoration(
-                                      color: kPiqueteSurface,
-                                      borderRadius: BorderRadius.circular(
-                                        kPiqueteRadius,
-                                      ),
-                                      border: Border.all(color: kPiqueteBorder),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.map_outlined,
-                                          color: kPiqueteTextMuted,
-                                          size: 36,
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Text(
-                                          pontos.isEmpty
-                                              ? 'Este retiro ainda não tem área demarcada.'
-                                              : 'Este retiro já possui área demarcada.',
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.poppins(
-                                            color: kPiqueteTextStrong,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          pontos.isEmpty
-                                              ? 'Você pode salvar apenas os dados ou demarcar a área quando necessário.'
-                                              : 'Você pode salvar os dados sem abrir o mapa ou editar a demarcação quando necessário.',
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.poppins(
-                                            color: kPiqueteTextMuted,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 14),
-                                        PrototypePrimaryButton(
-                                          label: pontos.isEmpty
-                                              ? 'Demarcar área'
-                                              : 'Editar demarcação',
-                                          icon: Icons.add_location_alt_outlined,
-                                          onPressed: () => setDialogState(
-                                            () => showMap = true,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                            final map = MapaDemarcacaoRealWidget(
+                              title: 'Área do retiro',
+                              points: pontos,
+                              retiroPoints:
+                                  _store.limitePropriedade?.pontos ?? const [],
+                              piqueteAreas: existingRetiroAreas,
+                              pointsLegendLabel:
+                                  editing ? 'Retiro em edição' : 'Novo retiro',
+                              editable: true,
+                              height: mapHeight,
+                              preferUserLocation: !editing,
+                              onChanged: (value) => setDialogState(() {
+                                pontos = value;
+                                if (!areaEditedManually) {
+                                  updatingAreaFromMap = true;
+                                  _updateAreaControllerFromMap(
+                                    areaController,
+                                    pontos,
                                   );
+                                  updatingAreaFromMap = false;
+                                }
+                              }),
+                              onImported: (value) => setDialogState(() {
+                                pontos = value;
+                                areaEditedManually = false;
+                                updatingAreaFromMap = true;
+                                _updateAreaControllerFromMap(
+                                  areaController,
+                                  pontos,
+                                );
+                                updatingAreaFromMap = false;
+                              }),
+                            );
 
                             if (narrow) {
                               return Column(
