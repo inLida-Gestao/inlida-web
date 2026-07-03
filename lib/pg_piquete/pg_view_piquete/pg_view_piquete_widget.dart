@@ -178,9 +178,11 @@ class _PgViewPiqueteWidgetState extends State<PgViewPiqueteWidget> {
                     retiroNome: retiro?.nome ?? 'Sem retiro',
                   );
                   final map = MapaDemarcacaoRealWidget(
-                    title: 'Área demarcada',
+                    title: piquete.nome,
                     points: piquete.pontos,
                     retiroPoints: retiro?.pontos ?? const [],
+                    referenceLegendLabel: retiro?.nome ?? 'Limite',
+                    pointsLegendLabel: piquete.nome,
                     editable: false,
                   );
                   if (narrow) {

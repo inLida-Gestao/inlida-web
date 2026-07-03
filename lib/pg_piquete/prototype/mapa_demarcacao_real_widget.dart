@@ -166,6 +166,14 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
     return _piqueteOverlayLatLngPoints;
   }
 
+  String get _primaryLegendLabel {
+    final label = widget.pointsLegendLabel.trim();
+    if (label.isEmpty || label == 'Piquete' || label == 'Retiro') {
+      return widget.title.trim().isEmpty ? label : widget.title.trim();
+    }
+    return label;
+  }
+
   List<MapPoint> get _summaryPoints => _points.isNotEmpty
       ? _points
       : (widget.retiroAsPrimary ? widget.retiroPoints : const <MapPoint>[]);
@@ -571,7 +579,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                         piqueteColor: _piqueteColor,
                         hasPiquete: _latLngPoints.isNotEmpty,
                         retiroLabel: widget.referenceLegendLabel,
-                        piqueteLabel: widget.pointsLegendLabel,
+                        piqueteLabel: _primaryLegendLabel,
                         overlayItems: _overlayLegendEntries,
                       ),
                     ),
