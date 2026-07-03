@@ -916,8 +916,7 @@ class _PiqueteMovimentacaoModalWidgetState
     });
 
     try {
-      final page = await _store.buscarLotesDisponiveisPage(
-        piqueteId: _piquete.id,
+      final page = await _store.buscarTodosLotesPiquetePage(
         pesquisa: _loteSearchController.text.trim(),
         limit: 80,
       );
@@ -978,12 +977,9 @@ class _PiqueteMovimentacaoModalWidgetState
   Future<void> _addSelectedLotes() async {
     setState(() => _savingLotes = true);
     try {
-      final nextLoteIds = {
-        ..._piquete.lotesIds,
-        ..._selectedLoteIds,
-      }.toList();
-      final updated = await _store.updatePiquete(
-        _piquete.copyWith(lotesIds: nextLoteIds),
+      final updated = await _store.moverLotesParaPiquete(
+        piqueteId: _piquete.id,
+        lotesIds: _selectedLoteIds.toList(),
       );
       if (!mounted) return;
       setState(() {
@@ -1022,21 +1018,15 @@ class _PiqueteMovimentacaoModalWidgetState
 
     setState(() => _movingLoteIds.add(lote.id));
     try {
-      final destinoDetalhado =
-          await _store.loadPiqueteDetail(destino.id) ?? destino;
-      final destinoLotes = {
-        ...destinoDetalhado.lotesIds,
-        lote.id,
-      }.toList();
-      await _store.updatePiquete(
-        destinoDetalhado.copyWith(lotesIds: destinoLotes),
+      await _store.moverLotesParaPiquete(
+        piqueteId: destino.id,
+        lotesIds: [lote.id],
       );
 
-      final currentLotes =
-          _piquete.lotesIds.where((id) => id != lote.id).toList();
-      final updatedCurrent = await _store.updatePiquete(
-        _piquete.copyWith(lotesIds: currentLotes),
-      );
+      final updatedCurrent = await _store.loadPiqueteDetail(_piquete.id) ??
+          _piquete.copyWith(
+            lotesIds: _piquete.lotesIds.where((id) => id != lote.id).toList(),
+          );
       if (!mounted) return;
       setState(() {
         _piquete = updatedCurrent;

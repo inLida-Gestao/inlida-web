@@ -317,6 +317,47 @@ class PiqueteBackendStore extends ChangeNotifier {
     }
   }
 
+  Future<PiqueteOptionsPage<LotePrototype>> buscarTodosLotesPiquetePage({
+    String pesquisa = '',
+    int offset = 0,
+    int limit = optionsPageSize,
+    String status = '',
+    String dataCriacaoDe = '',
+    String dataCriacaoAte = '',
+  }) async {
+    try {
+      _syncPropertyContext();
+      final options = await _repository.buscarTodosLotesPiquete(
+        pesquisa: pesquisa,
+        limite: limit + 1,
+        offset: offset,
+        status: status,
+        dataCriacaoDe: dataCriacaoDe,
+        dataCriacaoAte: dataCriacaoAte,
+      );
+      final lotes = options.map((option) => option.lote).toList();
+      final hasNext = lotes.length > limit;
+      final pageItems = hasNext ? lotes.take(limit).toList() : lotes;
+      _upsertLotes(pageItems);
+      errorMessage = null;
+      notifyListeners();
+      return PiqueteOptionsPage(
+        items: pageItems,
+        offset: offset,
+        limit: limit,
+        hasNext: hasNext,
+      );
+    } on PiqueteRepositoryException catch (error) {
+      errorMessage = error.message;
+      notifyListeners();
+      rethrow;
+    } catch (error) {
+      errorMessage = error.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   Future<void> ensureSelectedOptions({
     Iterable<String> animaisIds = const [],
     Iterable<String> lotesIds = const [],
@@ -539,6 +580,23 @@ class PiqueteBackendStore extends ChangeNotifier {
       _upsertPiquete(updated);
       selectedRetiroId = updated.retiroId;
       await load();
+    });
+    return updated;
+  }
+
+  Future<PiquetePrototype> moverLotesParaPiquete({
+    required String piqueteId,
+    required List<String> lotesIds,
+  }) async {
+    late PiquetePrototype updated;
+    await _run(() async {
+      _syncPropertyContext();
+      final detail = await _repository.moverLotesParaPiquete(
+        piqueteId: piqueteId,
+        lotesIds: lotesIds,
+      );
+      updated = detail.piquete;
+      _upsertPiquete(updated);
     });
     return updated;
   }

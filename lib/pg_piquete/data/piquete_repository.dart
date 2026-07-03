@@ -187,6 +187,31 @@ class PiqueteRepository {
         .toList();
   }
 
+  Future<List<LotePiqueteOption>> buscarTodosLotesPiquete({
+    String pesquisa = '',
+    int limite = 50,
+    int offset = 0,
+    String status = '',
+    String dataCriacaoDe = '',
+    String dataCriacaoAte = '',
+  }) async {
+    final response = await _rpc(
+      'buscar_todos_lotes_piquete',
+      {
+        'p_id_propriedade': idPropriedade,
+        'p_pesquisa': pesquisa,
+        'p_limite': limite,
+        'p_offset': offset,
+        'p_status': status,
+        'p_data_criacao_de': dataCriacaoDe,
+        'p_data_criacao_ate': dataCriacaoAte,
+      },
+    );
+    return _asList(response)
+        .map((item) => LotePiqueteOption.fromJson(item))
+        .toList();
+  }
+
   Future<List<AnimalPiqueteOption>> buscarAnimaisPorIds(
     Iterable<String> animaisIds,
   ) async {
@@ -308,6 +333,21 @@ class PiqueteRepository {
         'p_anotacoes': anotacoes,
         'p_geojson': PiqueteGeoJsonMapper.polygonFromPoints(pontos),
         'p_animais_ids': animaisIds,
+        'p_lotes_ids': lotesIds,
+      },
+    );
+    return PiqueteBackendDetail.fromJson(_asMap(response));
+  }
+
+  Future<PiqueteBackendDetail> moverLotesParaPiquete({
+    required String piqueteId,
+    required List<String> lotesIds,
+  }) async {
+    final response = await _rpc(
+      'mover_lotes_para_piquete',
+      {
+        'p_id_propriedade': idPropriedade,
+        'p_piquete_id': piqueteId,
         'p_lotes_ids': lotesIds,
       },
     );
