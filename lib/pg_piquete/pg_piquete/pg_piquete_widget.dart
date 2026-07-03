@@ -32,6 +32,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
   final _store = PiqueteBackendStore.instance;
   late final VoidCallback _disposePiqueteRefresh;
   String? _selectedPiqueteId;
+  String? _hoveredMapAreaName;
   String _mapContentMode = 'animais';
   final Set<String> _expandedRetiroIds = {};
   final Set<String> _expandedPiqueteIds = {};
@@ -587,6 +588,12 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
               onHeaderTap: () => _toggleRetiro(retiro),
               onEdit: () => _openRetiroDialog(initial: retiro),
               onDelete: () => _deleteRetiro(retiro),
+              onPreviewHoverChanged: (hovered) => safeSetState(
+                () => _hoveredMapAreaName = hovered ? retiro.nome : null,
+              ),
+              onPiquetePreviewHoverChanged: (piquete, hovered) => safeSetState(
+                () => _hoveredMapAreaName = hovered ? piquete.nome : null,
+              ),
               onPiqueteTap: (piquete) => _selectPiqueteFromTree(piquete),
             );
           })
@@ -657,6 +664,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                     compact: false,
                     onTap: () => _selectPiqueteFromTree(piquete),
                     onLink: () => _showVincularPiqueteDialog(piquete),
+                    onPreviewHoverChanged: (hovered) => safeSetState(
+                      () => _hoveredMapAreaName = hovered ? piquete.nome : null,
+                    ),
                   ),
                 )
                 .toList()
@@ -732,6 +742,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
             name: piquete.nome,
             points: piquete.pontos,
             legendLabel: piquete.nome,
+            highlightName: retiroSelecionado?.nome ?? retiroDoPiquete?.nome,
             fillOpacity: 0.18,
             borderStrokeWidth: 2.2,
             markerCount: _piqueteMapContentCount(piquete),
@@ -777,6 +788,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
       primaryMarkerLabel:
           selected == null ? null : '$markerLabel • ${selected.nome}',
       primaryMarkers: primaryMarkers,
+      highlightedAreaName: _hoveredMapAreaName,
       actions: [
         contentToggle,
         if (selected != null) ...[
@@ -1864,6 +1876,8 @@ class _RetiroTreeCard extends StatelessWidget {
     required this.onHeaderTap,
     required this.onEdit,
     required this.onDelete,
+    required this.onPreviewHoverChanged,
+    required this.onPiquetePreviewHoverChanged,
     required this.onPiqueteTap,
   });
 
@@ -1876,6 +1890,9 @@ class _RetiroTreeCard extends StatelessWidget {
   final VoidCallback onHeaderTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final ValueChanged<bool> onPreviewHoverChanged;
+  final void Function(PiquetePrototype piquete, bool hovered)
+      onPiquetePreviewHoverChanged;
   final ValueChanged<PiquetePrototype> onPiqueteTap;
 
   @override
@@ -1912,6 +1929,8 @@ class _RetiroTreeCard extends StatelessWidget {
                         .toList(),
                     color: kPiqueteLimit,
                     size: 58,
+                    tooltip: 'Este desenho representa a área do retiro/piquete',
+                    onHoverChanged: onPreviewHoverChanged,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -1986,6 +2005,11 @@ class _RetiroTreeCard extends StatelessWidget {
                               expanded: expandedPiqueteIds.contains(piquete.id),
                               compact: true,
                               onTap: () => onPiqueteTap(piquete),
+                              onPreviewHoverChanged: (hovered) =>
+                                  onPiquetePreviewHoverChanged(
+                                piquete,
+                                hovered,
+                              ),
                             ),
                           )
                           .toList()
@@ -2033,6 +2057,7 @@ class _PiqueteTreeTile extends StatelessWidget {
     required this.compact,
     required this.onTap,
     this.onLink,
+    this.onPreviewHoverChanged,
   });
 
   final PiquetePrototype piquete;
@@ -2041,6 +2066,7 @@ class _PiqueteTreeTile extends StatelessWidget {
   final bool compact;
   final VoidCallback onTap;
   final VoidCallback? onLink;
+  final ValueChanged<bool>? onPreviewHoverChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -2070,6 +2096,8 @@ class _PiqueteTreeTile extends StatelessWidget {
                   points: piquete.pontos,
                   color: kPiquetePrimary,
                   size: compact ? 38 : 42,
+                  tooltip: 'Este desenho representa a área do retiro/piquete',
+                  onHoverChanged: onPreviewHoverChanged,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -2332,16 +2360,20 @@ class _AreaPreviewBox extends StatelessWidget {
     required this.color,
     required this.size,
     this.fallbackAreas = const [],
+    this.tooltip,
+    this.onHoverChanged,
   });
 
   final List<MapPoint> points;
   final List<List<MapPoint>> fallbackAreas;
   final Color color;
   final double size;
+  final String? tooltip;
+  final ValueChanged<bool>? onHoverChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    Widget preview = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
@@ -2360,6 +2392,16 @@ class _AreaPreviewBox extends StatelessWidget {
         ),
       ),
     );
+    if (onHoverChanged != null) {
+      preview = MouseRegion(
+        onEnter: (_) => onHoverChanged!(true),
+        onExit: (_) => onHoverChanged!(false),
+        child: preview,
+      );
+    }
+    final message = tooltip?.trim() ?? '';
+    if (message.isEmpty) return preview;
+    return Tooltip(message: message, child: preview);
   }
 }
 

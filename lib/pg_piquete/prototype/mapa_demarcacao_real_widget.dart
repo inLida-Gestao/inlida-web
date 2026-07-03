@@ -53,6 +53,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
     this.primaryMarkerCount,
     this.primaryMarkerLabel,
     this.primaryMarkers = const [],
+    this.highlightedAreaName,
     this.onChanged,
     this.onImported,
   });
@@ -72,6 +73,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
   final int? primaryMarkerCount;
   final String? primaryMarkerLabel;
   final List<PiqueteMapMarker> primaryMarkers;
+  final String? highlightedAreaName;
   final ValueChanged<List<MapPoint>>? onChanged;
   final ValueChanged<List<MapPoint>>? onImported;
 
@@ -88,6 +90,7 @@ class PiqueteMapArea {
     this.legendLabel = 'Piquete',
     this.fillOpacity = 0.30,
     this.borderStrokeWidth = 3.2,
+    this.highlightName,
     this.markerCount,
     this.markerLabel,
   });
@@ -98,6 +101,7 @@ class PiqueteMapArea {
   final String legendLabel;
   final double fillOpacity;
   final double borderStrokeWidth;
+  final String? highlightName;
   final int? markerCount;
   final String? markerLabel;
 }
@@ -152,6 +156,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
           legendLabel: area.legendLabel,
           fillOpacity: area.fillOpacity,
           borderStrokeWidth: area.borderStrokeWidth,
+          highlightName: area.highlightName,
           markerCount: area.markerCount,
           markerLabel: area.markerLabel,
         ),
@@ -445,9 +450,18 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                             polygons: [
                               Polygon(
                                 points: _retiroLatLngPoints,
-                                color: _retiroColor.withValues(alpha: 0.18),
+                                color: _retiroColor.withValues(
+                                  alpha: _isHighlighted(
+                                    widget.referenceLegendLabel,
+                                  )
+                                      ? 0.34
+                                      : 0.18,
+                                ),
                                 borderColor: _retiroColor,
-                                borderStrokeWidth: 4,
+                                borderStrokeWidth:
+                                    _isHighlighted(widget.referenceLegendLabel)
+                                        ? 6
+                                        : 4,
                               ),
                             ],
                           ),
@@ -458,10 +472,16 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                                 Polygon(
                                   points: area.points,
                                   color: area.color.withValues(
-                                    alpha: area.fillOpacity,
+                                    alpha: _isAreaHighlighted(area)
+                                        ? (area.fillOpacity + 0.18)
+                                            .clamp(0, 0.65)
+                                            .toDouble()
+                                        : area.fillOpacity,
                                   ),
                                   borderColor: area.color,
-                                  borderStrokeWidth: area.borderStrokeWidth,
+                                  borderStrokeWidth: _isAreaHighlighted(area)
+                                      ? area.borderStrokeWidth + 2
+                                      : area.borderStrokeWidth,
                                 ),
                             ],
                           ),
@@ -480,9 +500,14 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                             polygons: [
                               Polygon(
                                 points: _latLngPoints,
-                                color: _piqueteColor.withValues(alpha: 0.28),
+                                color: _piqueteColor.withValues(
+                                  alpha: _isHighlighted(_primaryLegendLabel)
+                                      ? 0.45
+                                      : 0.28,
+                                ),
                                 borderColor: _piqueteColor,
-                                borderStrokeWidth: 4,
+                                borderStrokeWidth:
+                                    _isHighlighted(_primaryLegendLabel) ? 6 : 4,
                               ),
                             ],
                           ),
@@ -738,6 +763,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                             primaryMarkerCount: widget.primaryMarkerCount,
                             primaryMarkerLabel: widget.primaryMarkerLabel,
                             primaryMarkers: widget.primaryMarkers,
+                            highlightedAreaName: widget.highlightedAreaName,
                             onChanged: widget.editable
                                 ? (value) {
                                     setDialogState(() {
@@ -1016,7 +1042,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
 
   String _areasSignature(List<PiqueteMapArea> areas) => areas
       .map((area) =>
-          '${area.name}:${area.legendLabel}:${area.color}:${_pointsSignature(area.points)}')
+          '${area.name}:${area.legendLabel}:${area.highlightName}:${area.color}:${_pointsSignature(area.points)}')
       .join('|');
 
   List<_MapLegendEntry> get _overlayLegendEntries {
@@ -1034,6 +1060,17 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
       }
     }
     return entries;
+  }
+
+  bool _isHighlighted(String name) {
+    final highlighted = widget.highlightedAreaName?.trim().toLowerCase() ?? '';
+    if (highlighted.isEmpty) return false;
+    return name.trim().toLowerCase() == highlighted;
+  }
+
+  bool _isAreaHighlighted(_PiqueteAreaLatLng area) {
+    return _isHighlighted(area.name) ||
+        (area.highlightName != null && _isHighlighted(area.highlightName!));
   }
 
   Future<void> _focusUserLocation({bool auto = false}) async {
@@ -1205,6 +1242,7 @@ class _PiqueteAreaLatLng {
     required this.legendLabel,
     required this.fillOpacity,
     required this.borderStrokeWidth,
+    required this.highlightName,
     required this.markerCount,
     required this.markerLabel,
   });
@@ -1215,6 +1253,7 @@ class _PiqueteAreaLatLng {
   final String legendLabel;
   final double fillOpacity;
   final double borderStrokeWidth;
+  final String? highlightName;
   final int? markerCount;
   final String? markerLabel;
 }
@@ -1237,24 +1276,40 @@ class _MapCountMarker extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 4),
-              boxShadow: const [
-                BoxShadow(
-                  blurRadius: 8,
-                  color: Color(0x66000000),
-                  offset: Offset(0, 2),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(
+                Icons.location_on_rounded,
+                color: color,
+                size: 34,
+                shadows: const [
+                  Shadow(
+                    blurRadius: 8,
+                    color: Color(0x66000000),
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              Positioned(
+                top: 7,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: color.withValues(alpha: 0.15),
+                      width: 1,
+                    ),
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           Transform.translate(
-            offset: const Offset(0, -2),
+            offset: const Offset(0, -7),
             child: Container(
               constraints: const BoxConstraints(minWidth: 30),
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
