@@ -1409,12 +1409,12 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                               .replaceAll(',', '.'),
                                         ) ??
                                         0;
-                                    if (nome.isEmpty || area <= 0) {
+                                    if (nome.isEmpty) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
                                           content: const Text(
-                                            'Informe nome e área do retiro. A demarcação no mapa é opcional.',
+                                            'Informe o nome do retiro. Área e demarcação no mapa são opcionais.',
                                           ),
                                           backgroundColor:
                                               FlutterFlowTheme.of(context)
