@@ -41,6 +41,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
     required this.title,
     required this.points,
     this.retiroPoints = const [],
+    this.referenceLegendLabel = 'Limite',
     this.piqueteAreas = const [],
     this.retiroAsPrimary = false,
     this.pointsLegendLabel = 'Piquete',
@@ -59,6 +60,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
   final String title;
   final List<MapPoint> points;
   final List<MapPoint> retiroPoints;
+  final String referenceLegendLabel;
   final List<PiqueteMapArea> piqueteAreas;
   final bool retiroAsPrimary;
   final String pointsLegendLabel;
@@ -568,6 +570,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                         retiroColor: _retiroColor,
                         piqueteColor: _piqueteColor,
                         hasPiquete: _latLngPoints.isNotEmpty,
+                        retiroLabel: widget.referenceLegendLabel,
                         piqueteLabel: widget.pointsLegendLabel,
                         overlayItems: _overlayLegendEntries,
                       ),
@@ -716,6 +719,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                             title: widget.title,
                             points: expandedPoints,
                             retiroPoints: widget.retiroPoints,
+                            referenceLegendLabel: widget.referenceLegendLabel,
                             piqueteAreas: widget.piqueteAreas,
                             retiroAsPrimary: widget.retiroAsPrimary,
                             pointsLegendLabel: widget.pointsLegendLabel,
@@ -1010,8 +1014,10 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
   List<_MapLegendEntry> get _overlayLegendEntries {
     final entries = <_MapLegendEntry>[];
     for (final area in _piqueteAreaLatLngs) {
-      final label =
-          area.legendLabel.trim().isEmpty ? 'Piquete' : area.legendLabel.trim();
+      final customLabel = area.legendLabel.trim();
+      final label = customLabel.isEmpty || customLabel == 'Piquete'
+          ? area.name
+          : customLabel;
       final exists = entries.any(
         (entry) => entry.label == label && entry.color == area.color,
       );
@@ -1390,6 +1396,7 @@ class _MapLegend extends StatelessWidget {
     required this.retiroColor,
     required this.piqueteColor,
     required this.hasPiquete,
+    required this.retiroLabel,
     required this.piqueteLabel,
     required this.overlayItems,
   });
@@ -1397,6 +1404,7 @@ class _MapLegend extends StatelessWidget {
   final Color retiroColor;
   final Color piqueteColor;
   final bool hasPiquete;
+  final String retiroLabel;
   final String piqueteLabel;
   final List<_MapLegendEntry> overlayItems;
 
@@ -1422,7 +1430,7 @@ class _MapLegend extends StatelessWidget {
         children: [
           _LegendItem(
             color: retiroColor,
-            label: 'Limite',
+            label: retiroLabel,
             textColor: theme.primaryText,
           ),
           if (hasPiquete) ...[

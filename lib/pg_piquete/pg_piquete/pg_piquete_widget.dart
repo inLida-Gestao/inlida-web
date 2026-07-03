@@ -570,8 +570,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           .map((retiro) {
             final expanded =
                 _expandedRetiroIds.contains(retiro.id) || query.isNotEmpty;
+            final allPiquetesDoRetiro = _store.piquetesDoRetiro(retiro.id);
             final piquetes = _filteredPiquetes(
-              _store.piquetesDoRetiro(retiro.id),
+              allPiquetesDoRetiro,
               query,
               includeAllWhenQueryMatchesGroup:
                   retiro.nome.toLowerCase().contains(query),
@@ -579,6 +580,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
             return _RetiroTreeCard(
               retiro: retiro,
               piquetes: piquetes,
+              previewPiquetes: allPiquetesDoRetiro,
               expanded: expanded,
               selectedPiqueteId: _selectedPiqueteId,
               expandedPiqueteIds: _expandedPiqueteIds,
@@ -717,9 +719,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
         selected?.pontos ?? retiroSelecionado?.pontos ?? const <MapPoint>[];
     final title =
         selected?.nome ?? retiroSelecionado?.nome ?? 'Selecione um piquete';
-    final legendLabel = selected != null
-        ? 'Piquete'
-        : (retiroSelecionado != null ? 'Retiro' : 'Piquete');
+    final legendLabel = title;
     final selectedId = selected?.id;
     final markerLabel =
         _mapContentMode == 'lotes' ? 'Animais em lotes' : 'Animais sem lote';
@@ -730,6 +730,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           (piquete) => PiqueteMapArea(
             name: piquete.nome,
             points: piquete.pontos,
+            legendLabel: piquete.nome,
             fillOpacity: 0.18,
             borderStrokeWidth: 2.2,
             markerCount: _piqueteMapContentCount(piquete),
@@ -765,6 +766,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
       title: title,
       points: primaryPoints,
       retiroPoints: referencePoints,
+      referenceLegendLabel: retiroDoPiquete?.nome ?? 'Limite',
       piqueteAreas: overlayAreas,
       pointsLegendLabel: legendLabel,
       height: 640,
@@ -1641,6 +1643,7 @@ class _RetiroTreeCard extends StatelessWidget {
   const _RetiroTreeCard({
     required this.retiro,
     required this.piquetes,
+    required this.previewPiquetes,
     required this.expanded,
     required this.selectedPiqueteId,
     required this.expandedPiqueteIds,
@@ -1652,6 +1655,7 @@ class _RetiroTreeCard extends StatelessWidget {
 
   final RetiroPrototype retiro;
   final List<PiquetePrototype> piquetes;
+  final List<PiquetePrototype> previewPiquetes;
   final bool expanded;
   final String? selectedPiqueteId;
   final Set<String> expandedPiqueteIds;
@@ -1688,6 +1692,10 @@ class _RetiroTreeCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   _AreaPreviewBox(
                     points: retiro.pontos,
+                    fallbackAreas: previewPiquetes
+                        .where((piquete) => piquete.pontos.length >= 3)
+                        .map((piquete) => piquete.pontos)
+                        .toList(),
                     color: kPiqueteLimit,
                     size: 58,
                   ),
@@ -2087,9 +2095,11 @@ class _AreaPreviewBox extends StatelessWidget {
     required this.points,
     required this.color,
     required this.size,
+    this.fallbackAreas = const [],
   });
 
   final List<MapPoint> points;
+  final List<List<MapPoint>> fallbackAreas;
   final Color color;
   final double size;
 
@@ -2106,7 +2116,11 @@ class _AreaPreviewBox extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(5),
         child: CustomPaint(
-          painter: _AreaPreviewPainter(points: points, color: color),
+          painter: _AreaPreviewPainter(
+            points: points,
+            fallbackAreas: fallbackAreas,
+            color: color,
+          ),
         ),
       ),
     );
@@ -2116,15 +2130,20 @@ class _AreaPreviewBox extends StatelessWidget {
 class _AreaPreviewPainter extends CustomPainter {
   const _AreaPreviewPainter({
     required this.points,
+    required this.fallbackAreas,
     required this.color,
   });
 
   final List<MapPoint> points;
+  final List<List<MapPoint>> fallbackAreas;
   final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (points.length < 3) {
+    final areas = points.length >= 3
+        ? [points]
+        : fallbackAreas.where((area) => area.length >= 3).toList();
+    if (areas.isEmpty) {
       final paint = Paint()
         ..color = color.withValues(alpha: 0.5)
         ..style = PaintingStyle.stroke
@@ -2136,22 +2155,26 @@ class _AreaPreviewPainter extends CustomPainter {
       return;
     }
 
-    final minLat = points.map((point) => point.latitude).reduce(math.min);
-    final maxLat = points.map((point) => point.latitude).reduce(math.max);
-    final minLng = points.map((point) => point.longitude).reduce(math.min);
-    final maxLng = points.map((point) => point.longitude).reduce(math.max);
+    final allPoints = areas.expand((area) => area).toList();
+    final minLat = allPoints.map((point) => point.latitude).reduce(math.min);
+    final maxLat = allPoints.map((point) => point.latitude).reduce(math.max);
+    final minLng = allPoints.map((point) => point.longitude).reduce(math.min);
+    final maxLng = allPoints.map((point) => point.longitude).reduce(math.max);
     final latSpan = (maxLat - minLat).abs();
     final lngSpan = (maxLng - minLng).abs();
     if (latSpan == 0 || lngSpan == 0) return;
 
-    final normalized = points.map((point) {
-      final x = ((point.longitude - minLng) / lngSpan) * size.width;
-      final y =
-          size.height - ((point.latitude - minLat) / latSpan) * size.height;
-      return Offset(x, y);
-    }).toList();
+    final normalizedAreas = areas
+        .map((area) => area.map((point) {
+              final x = ((point.longitude - minLng) / lngSpan) * size.width;
+              final y = size.height -
+                  ((point.latitude - minLat) / latSpan) * size.height;
+              return Offset(x, y);
+            }).toList())
+        .toList();
 
-    final bounds = _boundsFor(normalized);
+    final allOffsets = normalizedAreas.expand((area) => area).toList();
+    final bounds = _boundsFor(allOffsets);
     final scale = math.min(
           bounds.width == 0 ? 1.0 : size.width / bounds.width,
           bounds.height == 0 ? 1.0 : size.height / bounds.height,
@@ -2159,32 +2182,34 @@ class _AreaPreviewPainter extends CustomPainter {
         0.82;
     final dx = (size.width - bounds.width * scale) / 2 - bounds.left * scale;
     final dy = (size.height - bounds.height * scale) / 2 - bounds.top * scale;
-    final path = Path();
-    for (var i = 0; i < normalized.length; i++) {
-      final point = normalized[i];
-      final offset = Offset(point.dx * scale + dx, point.dy * scale + dy);
-      if (i == 0) {
-        path.moveTo(offset.dx, offset.dy);
-      } else {
-        path.lineTo(offset.dx, offset.dy);
+    for (final normalized in normalizedAreas) {
+      final path = Path();
+      for (var i = 0; i < normalized.length; i++) {
+        final point = normalized[i];
+        final offset = Offset(point.dx * scale + dx, point.dy * scale + dy);
+        if (i == 0) {
+          path.moveTo(offset.dx, offset.dy);
+        } else {
+          path.lineTo(offset.dx, offset.dy);
+        }
       }
-    }
-    path.close();
+      path.close();
 
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = color.withValues(alpha: 0.20)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2
-        ..strokeJoin = StrokeJoin.round,
-    );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = color.withValues(alpha: 0.20)
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.2
+          ..strokeJoin = StrokeJoin.round,
+      );
+    }
   }
 
   Rect _boundsFor(List<Offset> offsets) {
@@ -2197,7 +2222,9 @@ class _AreaPreviewPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _AreaPreviewPainter oldDelegate) {
-    return oldDelegate.points != points || oldDelegate.color != color;
+    return oldDelegate.points != points ||
+        oldDelegate.fallbackAreas != fallbackAreas ||
+        oldDelegate.color != color;
   }
 }
 
