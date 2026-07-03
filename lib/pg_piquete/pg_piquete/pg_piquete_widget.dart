@@ -531,9 +531,29 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                   ),
                 ),
               ),
-              PrototypeBadge(
-                label: '${_store.totalPiquetes} piquetes',
-                icon: kPiqueteMenuIcon,
+              OutlinedButton.icon(
+                onPressed: _clearAreaSelection,
+                icon: const Icon(Icons.map_outlined, size: 16),
+                label: const Text('Ver todos'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: kPiquetePrimaryDark,
+                  backgroundColor: kPiquetePrimarySurface,
+                  minimumSize: const Size(0, 36),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  side: BorderSide(
+                    color: kPiquetePrimary.withValues(alpha: 0.35),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(kPiqueteRadius),
+                  ),
+                  textStyle: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ],
           ),
