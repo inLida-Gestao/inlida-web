@@ -105,32 +105,32 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   ];
   static const _loteStatusOptions = ['Ativo', 'Inativo'];
   static const _forrageiraOptions = [
-    'Braquiarão / Marandu',
-    'MG-5 Vitória',
-    'Xaraés',
-    'Piatã',
-    'Paiaguás',
-    'Ipyporã',
-    'Braquiarinha',
-    'Humidícola',
-    'Ruziziensis',
-    'Basilisk',
-    'Mombaça',
-    'Tanzânia',
-    'Zuri',
-    'Massai',
-    'Quênia',
-    'Tamani',
-    'Colonião',
     'Andropogon',
+    'Basilisk',
+    'Braquiarão / Marandu',
+    'Braquiarinha',
     'Buffel',
-    'Pangola',
-    'Urochloa Corrente',
-    'Coastcross',
-    'Grama Estrela',
-    'Tifton 85',
     'Capim-elefante',
+    'Coastcross',
+    'Colonião',
+    'Grama Estrela',
+    'Humidícola',
+    'Ipyporã',
+    'Massai',
+    'MG-5 Vitória',
+    'Mombaça',
     'Outras',
+    'Paiaguás',
+    'Pangola',
+    'Piatã',
+    'Quênia',
+    'Ruziziensis',
+    'Tamani',
+    'Tanzânia',
+    'Tifton 85',
+    'Urochloa Corrente',
+    'Xaraés',
+    'Zuri',
   ];
 
   @override
@@ -679,6 +679,9 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
             onPressed: _clearAnimalFilters,
             icon: const Icon(Icons.filter_alt_off_rounded, size: 18),
             label: const Text('Limpar filtros'),
+            style: TextButton.styleFrom(
+              foregroundColor: kPiquetePrimaryDark,
+            ),
           ),
         ],
       ],
@@ -735,6 +738,9 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
             onPressed: _clearLoteFilters,
             icon: const Icon(Icons.filter_alt_off_rounded, size: 18),
             label: const Text('Limpar filtros'),
+            style: TextButton.styleFrom(
+              foregroundColor: kPiquetePrimaryDark,
+            ),
           ),
         ],
       ],
@@ -1383,11 +1389,19 @@ class _SelectionPanel<T> extends StatelessWidget {
                 ),
                 OutlinedButton(
                   onPressed: hasPrevious ? onPreviousPage : null,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: kPiquetePrimaryDark,
+                    side: const BorderSide(color: kPiquetePrimary),
+                  ),
                   child: const Text('Anterior'),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton(
                   onPressed: hasNext ? onNextPage : null,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: kPiquetePrimaryDark,
+                    side: const BorderSide(color: kPiquetePrimary),
+                  ),
                   child: const Text('Próxima'),
                 ),
               ],
@@ -1892,7 +1906,8 @@ class _MultiSelectField extends StatelessWidget {
                           value: checked,
                           dense: true,
                           contentPadding: EdgeInsets.zero,
-                          activeColor: theme.primary,
+                          activeColor: kPiquetePrimary,
+                          checkColor: Colors.white,
                           title: Text(
                             option,
                             style: GoogleFonts.poppins(
@@ -1918,6 +1933,9 @@ class _MultiSelectField extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
+                  style: TextButton.styleFrom(
+                    foregroundColor: kPiquetePrimaryDark,
+                  ),
                   child: const Text('Cancelar'),
                 ),
                 ElevatedButton(
@@ -1926,6 +1944,12 @@ class _MultiSelectField extends StatelessWidget {
                     options
                         .where((option) => selected.contains(option))
                         .toList(),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kPiquetePrimary,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor:
+                        kPiquetePrimary.withValues(alpha: 0.45),
                   ),
                   child: const Text('Aplicar'),
                 ),

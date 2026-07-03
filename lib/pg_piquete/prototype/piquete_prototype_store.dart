@@ -14,6 +14,7 @@ class RetiroPrototype {
     required this.id,
     required this.nome,
     required this.areaHa,
+    this.areaInformadaHa = 0,
     required this.anotacoes,
     required this.pontos,
     this.piquetesCount = 0,
@@ -25,6 +26,7 @@ class RetiroPrototype {
   final String id;
   final String nome;
   final double areaHa;
+  final double areaInformadaHa;
   final String anotacoes;
   final List<MapPoint> pontos;
   final int piquetesCount;
@@ -35,6 +37,7 @@ class RetiroPrototype {
   RetiroPrototype copyWith({
     String? nome,
     double? areaHa,
+    double? areaInformadaHa,
     String? anotacoes,
     List<MapPoint>? pontos,
     int? piquetesCount,
@@ -46,6 +49,7 @@ class RetiroPrototype {
         id: id,
         nome: nome ?? this.nome,
         areaHa: areaHa ?? this.areaHa,
+        areaInformadaHa: areaInformadaHa ?? this.areaInformadaHa,
         anotacoes: anotacoes ?? this.anotacoes,
         pontos: pontos ?? this.pontos,
         piquetesCount: piquetesCount ?? this.piquetesCount,

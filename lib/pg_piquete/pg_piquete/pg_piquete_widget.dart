@@ -1214,7 +1214,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     final existingRetiroAreas = _existingRetiroAreas(except: initial);
     final nomeController = TextEditingController(text: initial?.nome ?? '');
     final areaController = TextEditingController(
-      text: _formatAreaInput(initial?.areaHa ?? 0),
+      text: _formatAreaInput(initial?.areaInformadaHa ?? 0),
     );
     final anotacoesController =
         TextEditingController(text: initial?.anotacoes ?? '');

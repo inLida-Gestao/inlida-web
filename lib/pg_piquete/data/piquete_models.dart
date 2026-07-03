@@ -23,6 +23,7 @@ class RetiroBackendSummary {
         id: _stringValue(json['id']),
         nome: _stringValue(json['nome']),
         areaHa: _doubleValue(json['area_ha']),
+        areaInformadaHa: _doubleValue(json['area_informada_ha']),
         anotacoes: _stringValue(json['anotacoes']),
         pontos: PiqueteGeoJsonMapper.pointsFromGeoJson(json['geojson']),
         piquetesCount: _intValue(json['piquetes_count']),
