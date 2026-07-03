@@ -520,38 +520,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                                         widget.title,
                                     color: _piqueteColor,
                                   ),
-                                )
-                              else
-                                Marker(
-                                  point: _center,
-                                  width: 170,
-                                  height: 72,
-                                  child: _MapLabel(
-                                    title: widget.title,
-                                    subtitle:
-                                        '${_points.length} pontos demarcados',
-                                    color: _piqueteColor,
-                                  ),
                                 ),
-                            ],
-                          ),
-                        if (_latLngPoints.isEmpty &&
-                            widget.retiroAsPrimary &&
-                            _retiroLatLngPoints.isNotEmpty &&
-                            !widget.editable)
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: _centerOfLatLngs(_retiroLatLngPoints),
-                                width: 170,
-                                height: 72,
-                                child: _MapLabel(
-                                  title: widget.title,
-                                  subtitle:
-                                      '${widget.retiroPoints.length} pontos demarcados',
-                                  color: _retiroColor,
-                                ),
-                              ),
                             ],
                           ),
                         if (_userLocation != null)
@@ -569,7 +538,9 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                           ),
                       ],
                     ),
-                    if (_mapReady && _latLngPoints.isNotEmpty)
+                    if (widget.editable &&
+                        _mapReady &&
+                        _latLngPoints.isNotEmpty)
                       _buildPointMarkersOverlay(_piqueteColor),
                     Positioned(
                       left: 12,
@@ -1703,86 +1674,6 @@ class _ZoomButton extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _MapLabel extends StatelessWidget {
-  const _MapLabel({
-    required this.title,
-    required this.subtitle,
-    required this.color,
-  });
-
-  final String title;
-  final String subtitle;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 38,
-          height: 38,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 3),
-            boxShadow: const [
-              BoxShadow(
-                blurRadius: 8,
-                color: Color(0x66000000),
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Text(
-            '●',
-            style: FlutterFlowTheme.of(context).bodySmall.override(
-                  fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  useGoogleFonts:
-                      !FlutterFlowTheme.of(context).bodySmallIsCustom,
-                ),
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          title.toUpperCase(),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 11,
-            height: 1,
-            fontWeight: FontWeight.w900,
-            shadows: [
-              Shadow(blurRadius: 3, color: Colors.black, offset: Offset(0, 1)),
-            ],
-          ),
-        ),
-        Text(
-          subtitle,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 10,
-            height: 1,
-            fontWeight: FontWeight.w700,
-            shadows: [
-              Shadow(blurRadius: 3, color: Colors.black, offset: Offset(0, 1)),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
