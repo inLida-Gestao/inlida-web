@@ -1873,33 +1873,46 @@ class _MultiSelectField extends StatelessWidget {
               ),
               content: SizedBox(
                 width: 420,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: options.map((option) {
-                    final checked = selected.contains(option);
-                    return CheckboxListTile(
-                      value: checked,
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      activeColor: theme.primary,
-                      title: Text(
-                        option,
-                        style: GoogleFonts.poppins(
-                          color: theme.primaryText,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setDialogState(() {
-                          if (value ?? false) {
-                            selected.add(option);
-                          } else {
-                            selected.remove(option);
-                          }
-                        });
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: (MediaQuery.sizeOf(context).height * 0.62).clamp(
+                      280.0,
+                      520.0,
+                    ),
+                  ),
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: options.length,
+                      itemBuilder: (context, index) {
+                        final option = options[index];
+                        final checked = selected.contains(option);
+                        return CheckboxListTile(
+                          value: checked,
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          activeColor: theme.primary,
+                          title: Text(
+                            option,
+                            style: GoogleFonts.poppins(
+                              color: theme.primaryText,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          onChanged: (value) {
+                            setDialogState(() {
+                              if (value ?? false) {
+                                selected.add(option);
+                              } else {
+                                selected.remove(option);
+                              }
+                            });
+                          },
+                        );
                       },
-                    );
-                  }).toList(),
+                    ),
+                  ),
                 ),
               ),
               actions: [
