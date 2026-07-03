@@ -190,19 +190,21 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
       return;
     }
 
-    try {
-      await _store.load();
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _store.errorMessage ??
-                'Não foi possível atualizar os retiros existentes.',
+    if (initial == null) {
+      try {
+        await _store.load();
+      } catch (_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _store.errorMessage ??
+                  'Não foi possível atualizar os retiros existentes.',
+            ),
+            backgroundColor: FlutterFlowTheme.of(context).error,
           ),
-          backgroundColor: FlutterFlowTheme.of(context).error,
-        ),
-      );
+        );
+      }
     }
 
     if (!mounted) return;
@@ -1219,7 +1221,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     var pontos = initial?.pontos.toList() ?? <MapPoint>[];
     var areaEditedManually = editing;
     var updatingAreaFromMap = false;
-    var showMap = !editing || pontos.isNotEmpty;
+    var showMap = !editing;
 
     await showDialog<void>(
       context: context,
@@ -1301,7 +1303,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                   if (!showMap) ...[
                                     const SizedBox(height: 14),
                                     PrototypeSecondaryButton(
-                                      label: 'Demarcar no mapa',
+                                      label: pontos.isEmpty
+                                          ? 'Demarcar no mapa'
+                                          : 'Editar demarcação',
                                       icon: Icons.map_outlined,
                                       onPressed: () => setDialogState(
                                         () => showMap = true,
@@ -1369,7 +1373,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                         ),
                                         const SizedBox(height: 10),
                                         Text(
-                                          'Este retiro ainda não tem área demarcada.',
+                                          pontos.isEmpty
+                                              ? 'Este retiro ainda não tem área demarcada.'
+                                              : 'Este retiro já possui área demarcada.',
                                           textAlign: TextAlign.center,
                                           style: GoogleFonts.poppins(
                                             color: kPiqueteTextStrong,
@@ -1379,7 +1385,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                         ),
                                         const SizedBox(height: 6),
                                         Text(
-                                          'Você pode salvar apenas os dados ou demarcar a área quando necessário.',
+                                          pontos.isEmpty
+                                              ? 'Você pode salvar apenas os dados ou demarcar a área quando necessário.'
+                                              : 'Você pode salvar os dados sem abrir o mapa ou editar a demarcação quando necessário.',
                                           textAlign: TextAlign.center,
                                           style: GoogleFonts.poppins(
                                             color: kPiqueteTextMuted,
@@ -1389,7 +1397,9 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                                         ),
                                         const SizedBox(height: 14),
                                         PrototypePrimaryButton(
-                                          label: 'Demarcar área',
+                                          label: pontos.isEmpty
+                                              ? 'Demarcar área'
+                                              : 'Editar demarcação',
                                           icon: Icons.add_location_alt_outlined,
                                           onPressed: () => setDialogState(
                                             () => showMap = true,
