@@ -54,6 +54,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
     this.primaryMarkerLabel,
     this.primaryMarkers = const [],
     this.highlightedAreaName,
+    this.onMapTap,
     this.onChanged,
     this.onImported,
   });
@@ -74,6 +75,7 @@ class MapaDemarcacaoRealWidget extends StatefulWidget {
   final String? primaryMarkerLabel;
   final List<PiqueteMapMarker> primaryMarkers;
   final String? highlightedAreaName;
+  final VoidCallback? onMapTap;
   final ValueChanged<List<MapPoint>>? onChanged;
   final ValueChanged<List<MapPoint>>? onImported;
 
@@ -438,7 +440,9 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                         },
                         onTap: widget.editable
                             ? (_, latLng) => _addPoint(latLng)
-                            : null,
+                            : widget.onMapTap == null
+                                ? null
+                                : (_, __) => widget.onMapTap!(),
                       ),
                       children: [
                         TileLayer(
@@ -764,6 +768,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                             primaryMarkerLabel: widget.primaryMarkerLabel,
                             primaryMarkers: widget.primaryMarkers,
                             highlightedAreaName: widget.highlightedAreaName,
+                            onMapTap: widget.onMapTap,
                             onChanged: widget.editable
                                 ? (value) {
                                     setDialogState(() {

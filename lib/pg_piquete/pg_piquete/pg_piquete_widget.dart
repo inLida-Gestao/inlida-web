@@ -82,7 +82,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     final source = _store.mostrandoPiquetesSemRetiro
         ? _store.piquetesSemRetiro
         : (retiro == null
-            ? const <PiquetePrototype>[]
+            ? _store.piquetes
             : _store.piquetesDoRetiro(retiro.id));
     return source.where((piquete) {
       if (query.isEmpty) return true;
@@ -170,6 +170,27 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
         SnackBar(
           content: Text(
             _store.errorMessage ?? 'Não foi possível carregar o retiro.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _clearAreaSelection() async {
+    safeSetState(() {
+      _selectedPiqueteId = null;
+      _hoveredMapAreaName = null;
+    });
+    try {
+      await _store.selectAllPiqueteAreas();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível carregar todos os retiros e piquetes.',
           ),
           backgroundColor: FlutterFlowTheme.of(context).error,
         ),
@@ -521,11 +542,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
             showingSemRetiro: showingSemRetiro,
             retiroCount: piquetesPorRetiro,
             semRetiroCount: _store.piquetesSemRetiro.length,
-            onRetirosTap: () {
-              final selectedRetiro = _store.selectedRetiro;
-              final retiro = selectedRetiro ?? _store.retiros.firstOrNull;
-              if (retiro != null) _selectLimites(retiro.id);
-            },
+            onRetirosTap: _clearAreaSelection,
             onSemRetiroTap: _selectPiquetesSemLimites,
           ),
           const SizedBox(height: 14),
@@ -734,7 +751,27 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     final selectedId = selected?.id;
     final markerLabel =
         _mapContentMode == 'lotes' ? 'Animais em lotes' : 'Animais sem lote';
-    final overlayAreas = piquetesDoContexto
+    final showingAllAreas = selected == null &&
+        !_store.mostrandoPiquetesSemRetiro &&
+        retiroSelecionado == null;
+    final retiroOverlayAreas =
+        selected != null || _store.mostrandoPiquetesSemRetiro
+            ? const <PiqueteMapArea>[]
+            : _store.retiros
+                .where((retiro) => retiro.id != retiroSelecionado?.id)
+                .where((retiro) => retiro.pontos.length > 1)
+                .map(
+                  (retiro) => PiqueteMapArea(
+                    name: retiro.nome,
+                    points: retiro.pontos,
+                    color: _existingRetiroColor,
+                    legendLabel: retiro.nome,
+                    fillOpacity: showingAllAreas ? 0.13 : 0.08,
+                    borderStrokeWidth: showingAllAreas ? 3.2 : 2.4,
+                  ),
+                )
+                .toList();
+    final piqueteOverlayAreas = piquetesDoContexto
         .where(
             (piquete) => piquete.id != selectedId && piquete.pontos.length > 1)
         .map(
@@ -750,6 +787,10 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
           ),
         )
         .toList();
+    final overlayAreas = [
+      ...retiroOverlayAreas,
+      ...piqueteOverlayAreas,
+    ];
     final primaryMarkers = selected == null || _mapContentMode != 'lotes'
         ? const <PiqueteMapMarker>[]
         : _store
@@ -775,7 +816,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     );
 
     return MapaDemarcacaoRealWidget(
-      title: title,
+      title: showingAllAreas ? 'Todos os retiros e piquetes' : title,
       points: primaryPoints,
       retiroPoints: referencePoints,
       referenceLegendLabel: retiroDoPiquete?.nome ?? 'Limite',
@@ -788,7 +829,8 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
       primaryMarkerLabel:
           selected == null ? null : '$markerLabel • ${selected.nome}',
       primaryMarkers: primaryMarkers,
-      highlightedAreaName: _hoveredMapAreaName,
+      highlightedAreaName: _hoveredMapAreaName ?? retiroSelecionado?.nome,
+      onMapTap: _clearAreaSelection,
       actions: [
         contentToggle,
         if (selected != null) ...[

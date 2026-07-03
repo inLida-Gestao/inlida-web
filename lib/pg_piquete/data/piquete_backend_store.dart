@@ -95,14 +95,15 @@ class PiqueteBackendStore extends ChangeNotifier {
         return;
       }
 
-      selectedRetiroId ??= _retiros.first.id;
-
-      if (selectedRetiroId!.isNotEmpty &&
+      if (selectedRetiroId != null &&
+          selectedRetiroId!.isNotEmpty &&
           retiroById(selectedRetiroId) == null) {
-        selectedRetiroId = _retiros.first.id;
+        selectedRetiroId = null;
       }
 
-      if (selectedRetiroId!.isEmpty) {
+      if (selectedRetiroId == null) {
+        await _loadAllPiqueteAreasRaw();
+      } else if (selectedRetiroId!.isEmpty) {
         await _loadPiquetesSemRetiro();
       } else {
         await _loadPiquetesDoRetiro(selectedRetiroId!);
@@ -134,13 +135,18 @@ class PiqueteBackendStore extends ChangeNotifier {
     });
   }
 
+  Future<void> selectAllPiqueteAreas() async {
+    await _run(() async {
+      _syncPropertyContext();
+      selectedRetiroId = null;
+      await _loadAllPiqueteAreasRaw();
+    });
+  }
+
   Future<void> loadAllPiqueteAreas() async {
     await _run(() async {
       _syncPropertyContext();
-      await _loadPiquetesSemRetiro();
-      await Future.wait(
-        _retiros.map((retiro) => _loadPiquetesDoRetiro(retiro.id)),
-      );
+      await _loadAllPiqueteAreasRaw();
     });
   }
 
@@ -580,6 +586,13 @@ class PiqueteBackendStore extends ChangeNotifier {
     final detalhes = await _repository.listarPiquetesSemRetiro();
     _piquetes.removeWhere((piquete) => piquete.retiroId.isEmpty);
     _piquetes.addAll(detalhes.map((detail) => detail.piquete));
+  }
+
+  Future<void> _loadAllPiqueteAreasRaw() async {
+    await _loadPiquetesSemRetiro();
+    await Future.wait(
+      _retiros.map((retiro) => _loadPiquetesDoRetiro(retiro.id)),
+    );
   }
 
   void _syncPropertyContext() {
