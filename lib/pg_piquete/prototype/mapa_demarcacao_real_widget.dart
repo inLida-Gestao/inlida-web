@@ -95,6 +95,7 @@ class PiqueteMapArea {
     this.highlightName,
     this.markerCount,
     this.markerLabel,
+    this.nameMarkerLabel,
   });
 
   final String name;
@@ -106,6 +107,7 @@ class PiqueteMapArea {
   final String? highlightName;
   final int? markerCount;
   final String? markerLabel;
+  final String? nameMarkerLabel;
 }
 
 class PiqueteMapMarker {
@@ -161,6 +163,7 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
           highlightName: area.highlightName,
           markerCount: area.markerCount,
           markerLabel: area.markerLabel,
+          nameMarkerLabel: area.nameMarkerLabel,
         ),
       )
       .where((area) => area.points.length > 1)
@@ -527,6 +530,18 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                                     child: _MapCountMarker(
                                       count: area.markerCount!,
                                       label: area.markerLabel ?? area.name,
+                                      color: area.color,
+                                    ),
+                                  )
+                                else if ((area.nameMarkerLabel ?? '')
+                                    .trim()
+                                    .isNotEmpty)
+                                  Marker(
+                                    point: _centerOfLatLngs(area.points),
+                                    width: 104,
+                                    height: 56,
+                                    child: _MapNameMarker(
+                                      label: area.nameMarkerLabel!,
                                       color: area.color,
                                     ),
                                   ),
@@ -1250,6 +1265,7 @@ class _PiqueteAreaLatLng {
     required this.highlightName,
     required this.markerCount,
     required this.markerLabel,
+    required this.nameMarkerLabel,
   });
 
   final String name;
@@ -1261,6 +1277,7 @@ class _PiqueteAreaLatLng {
   final String? highlightName;
   final int? markerCount;
   final String? markerLabel;
+  final String? nameMarkerLabel;
 }
 
 class _MapCountMarker extends StatelessWidget {
@@ -1332,6 +1349,70 @@ class _MapCountMarker extends StatelessWidget {
               ),
               child: Text(
                 countText,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MapNameMarker extends StatelessWidget {
+  const _MapNameMarker({
+    required this.label,
+    required this.color,
+  });
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.location_on_rounded,
+            color: color,
+            size: 30,
+            shadows: const [
+              Shadow(
+                blurRadius: 8,
+                color: Color(0x66000000),
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          Transform.translate(
+            offset: const Offset(0, -6),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 94),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(kPiqueteRadius),
+                boxShadow: const [
+                  BoxShadow(
+                    blurRadius: 8,
+                    color: Color(0x55000000),
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,

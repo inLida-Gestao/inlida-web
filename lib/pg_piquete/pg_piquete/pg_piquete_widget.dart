@@ -802,8 +802,11 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
             highlightName: retiroSelecionado?.nome ?? retiroDoPiquete?.nome,
             fillOpacity: 0.18,
             borderStrokeWidth: 2.2,
-            markerCount: _piqueteMapContentCount(piquete),
-            markerLabel: '$markerLabel • ${piquete.nome}',
+            markerCount:
+                showingAllAreas ? null : _piqueteMapContentCount(piquete),
+            markerLabel:
+                showingAllAreas ? null : '$markerLabel • ${piquete.nome}',
+            nameMarkerLabel: showingAllAreas ? piquete.nome : null,
           ),
         )
         .toList();
