@@ -518,8 +518,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                                 if ((area.markerCount ?? 0) > 0)
                                   Marker(
                                     point: _centerOfLatLngs(area.points),
-                                    width: 58,
-                                    height: 58,
+                                    width: 104,
+                                    height: 64,
                                     child: _MapCountMarker(
                                       count: area.markerCount!,
                                       label: area.markerLabel ?? area.name,
@@ -536,8 +536,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                                     in _distributedPrimaryMarkers().entries)
                                   Marker(
                                     point: entry.key,
-                                    width: 58,
-                                    height: 58,
+                                    width: 104,
+                                    height: 64,
                                     child: _MapCountMarker(
                                       count: entry.value.count,
                                       label: entry.value.label,
@@ -547,8 +547,8 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                               else if ((widget.primaryMarkerCount ?? 0) > 0)
                                 Marker(
                                   point: _center,
-                                  width: 58,
-                                  height: 58,
+                                  width: 104,
+                                  height: 64,
                                   child: _MapCountMarker(
                                     count: widget.primaryMarkerCount!,
                                     label: widget.primaryMarkerLabel ??
@@ -1271,8 +1271,9 @@ class _MapCountMarker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final countText = '$count ${count == 1 ? 'animal' : 'animais'}';
     return Tooltip(
-      message: '$count • $label',
+      message: '$countText • $label',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1325,11 +1326,11 @@ class _MapCountMarker extends StatelessWidget {
                 ],
               ),
               child: Text(
-                count.toString(),
+                countText,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 11,
+                  fontSize: 10.5,
                   fontWeight: FontWeight.w800,
                   height: 1.1,
                 ),
