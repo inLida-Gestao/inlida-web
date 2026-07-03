@@ -29,7 +29,9 @@ class _PiqueteMovimentacaoModalWidgetState
     extends State<PiqueteMovimentacaoModalWidget> {
   final _store = PiqueteBackendStore.instance;
   final _searchController = TextEditingController();
+  final _loteSearchController = TextEditingController();
   final Set<String> _selectedAnimalIds = {};
+  final Set<String> _selectedLoteIds = {};
   final Set<String> _expandedLoteIds = {};
   final Set<String> _movingLoteIds = {};
   final Map<String, String> _loteDestinoIds = {};
@@ -38,15 +40,22 @@ class _PiqueteMovimentacaoModalWidgetState
   late PiquetePrototype _piquete;
   String _tab = 'historico';
   List<AnimalPrototype> _animalOptions = const [];
+  List<LotePrototype> _loteOptions = const [];
   bool _loadingAnimals = false;
+  bool _loadingLotes = false;
   bool _savingAnimals = false;
+  bool _savingLotes = false;
   String? _animalError;
+  String? _loteError;
 
   @override
   void initState() {
     super.initState();
     _piquete = widget.initial;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAnimals());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAnimals();
+      _loadLotes();
+    });
   }
 
   @override
@@ -55,9 +64,11 @@ class _PiqueteMovimentacaoModalWidgetState
     if (oldWidget.initial.id != widget.initial.id) {
       _piquete = widget.initial;
       _selectedAnimalIds.clear();
+      _selectedLoteIds.clear();
       _expandedLoteIds.clear();
       _loteDestinoIds.clear();
       _loadAnimals();
+      _loadLotes();
     }
   }
 
@@ -65,6 +76,7 @@ class _PiqueteMovimentacaoModalWidgetState
   void dispose() {
     _searchDebounce?.cancel();
     _searchController.dispose();
+    _loteSearchController.dispose();
     super.dispose();
   }
 
@@ -98,8 +110,9 @@ class _PiqueteMovimentacaoModalWidgetState
                   const SizedBox(height: 18),
                   if (_tab == 'historico')
                     _buildHistorico()
-                  else
+                  else if (_tab == 'adicionar')
                     _buildAdicionarAnimais(),
+                  if (_tab == 'lotes') _buildAdicionarLotes(),
                 ],
               ),
             ),
@@ -220,6 +233,11 @@ class _PiqueteMovimentacaoModalWidgetState
             label: 'Adicionar animais',
             selected: _tab == 'adicionar',
             onTap: () => setState(() => _tab = 'adicionar'),
+          ),
+          _TabPill(
+            label: 'Adicionar lotes',
+            selected: _tab == 'lotes',
+            onTap: () => setState(() => _tab = 'lotes'),
           ),
         ],
       ),
@@ -501,6 +519,146 @@ class _PiqueteMovimentacaoModalWidgetState
     );
   }
 
+  Widget _buildAdicionarLotes() {
+    return Column(
+      children: [
+        const _InfoCallout(
+          icon: Icons.playlist_add_rounded,
+          text:
+              'Selecione lotes inteiros para vincular a este piquete. Lotes já vinculados aqui ou em outro piquete ativo não aparecem na lista.',
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _loteSearchController,
+          onChanged: (_) => _scheduleLoteSearch(),
+          style: GoogleFonts.poppins(
+            color: kPiqueteTextStrong,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Buscar lote por nome',
+            prefixIcon: const Icon(
+              Icons.search_rounded,
+              color: kPiqueteTextSoft,
+              size: 20,
+            ),
+            hintStyle: GoogleFonts.poppins(
+              color: kPiqueteTextMuted,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            filled: true,
+            fillColor: kPiqueteFieldSurface,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(9),
+              borderSide: const BorderSide(color: kPiqueteBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(9),
+              borderSide: const BorderSide(color: kPiquetePrimary, width: 1.3),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (_loadingLotes)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 30),
+            child: CircularProgressIndicator(color: kPiquetePrimary),
+          )
+        else if (_loteError != null)
+          _EmptyMovementState(
+            title: 'Não foi possível carregar os lotes',
+            message: _loteError!,
+          )
+        else if (_loteOptions.isEmpty)
+          const _EmptyMovementState(
+            title: 'Nenhum lote disponível',
+            message:
+                'Ajuste a busca ou confira se há lotes disponíveis para este piquete.',
+          )
+        else
+          ..._loteOptions.map(_buildAddLoteRow),
+      ],
+    );
+  }
+
+  Widget _buildAddLoteRow(LotePrototype lote) {
+    final selected = _selectedLoteIds.contains(lote.id);
+
+    return InkWell(
+      onTap: () => setState(() {
+        selected
+            ? _selectedLoteIds.remove(lote.id)
+            : _selectedLoteIds.add(lote.id);
+      }),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        decoration: BoxDecoration(
+          color: selected ? kPiquetePrimarySurface : kPiqueteSurface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? kPiquetePrimary : kPiqueteBorder,
+            width: selected ? 1.3 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            const _SoftIcon(asset: kPiqueteLoteIconAsset),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    lote.nome,
+                    style: GoogleFonts.poppins(
+                      color: kPiqueteTextStrong,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${lote.qtdAnimais} animais · ${lote.status}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      color: kPiqueteTextMuted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 140),
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: selected ? kPiquetePrimary : kPiqueteSurface,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected ? kPiquetePrimary : const Color(0xFFD6DDD7),
+                ),
+              ),
+              child: selected
+                  ? const Icon(Icons.check_rounded,
+                      color: Colors.white, size: 17)
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAnimalRow(AnimalPrototype animal) {
     final selected = _selectedAnimalIds.contains(animal.id);
 
@@ -576,7 +734,8 @@ class _PiqueteMovimentacaoModalWidgetState
   }
 
   Widget _buildFooter() {
-    final adding = _tab == 'adicionar';
+    final addingAnimals = _tab == 'adicionar';
+    final addingLotes = _tab == 'lotes';
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 14, 24, 14),
       decoration: BoxDecoration(
@@ -592,12 +751,16 @@ class _PiqueteMovimentacaoModalWidgetState
       ),
       child: Row(
         children: [
-          if (adding)
+          if (addingAnimals || addingLotes)
             Expanded(
               child: Text(
-                _selectedAnimalIds.length == 1
-                    ? '1 animal selecionado'
-                    : '${_selectedAnimalIds.length} animais selecionados',
+                addingAnimals
+                    ? (_selectedAnimalIds.length == 1
+                        ? '1 animal selecionado'
+                        : '${_selectedAnimalIds.length} animais selecionados')
+                    : (_selectedLoteIds.length == 1
+                        ? '1 lote selecionado'
+                        : '${_selectedLoteIds.length} lotes selecionados'),
                 style: GoogleFonts.poppins(
                   color: kPiqueteTextMuted,
                   fontSize: 13,
@@ -608,16 +771,20 @@ class _PiqueteMovimentacaoModalWidgetState
           else
             const Spacer(),
           ElevatedButton(
-            onPressed: adding
+            onPressed: addingAnimals
                 ? (_selectedAnimalIds.isEmpty || _savingAnimals
                     ? null
                     : _addSelectedAnimals)
-                : widget.onClose,
+                : addingLotes
+                    ? (_selectedLoteIds.isEmpty || _savingLotes
+                        ? null
+                        : _addSelectedLotes)
+                    : widget.onClose,
             style: ElevatedButton.styleFrom(
               backgroundColor: kPiquetePrimary,
               disabledBackgroundColor: kPiquetePrimary.withValues(alpha: 0.4),
               foregroundColor: Colors.white,
-              elevation: adding ? 8 : 0,
+              elevation: addingAnimals || addingLotes ? 8 : 0,
               shadowColor: kPiquetePrimary.withValues(alpha: 0.22),
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 15),
               shape: RoundedRectangleBorder(
@@ -628,7 +795,7 @@ class _PiqueteMovimentacaoModalWidgetState
                 fontWeight: FontWeight.w800,
               ),
             ),
-            child: _savingAnimals
+            child: _savingAnimals || _savingLotes
                 ? const SizedBox(
                     width: 18,
                     height: 18,
@@ -637,7 +804,9 @@ class _PiqueteMovimentacaoModalWidgetState
                       color: Colors.white,
                     ),
                   )
-                : Text(adding ? 'Adicionar ao piquete' : 'Fechar'),
+                : Text(addingAnimals || addingLotes
+                    ? 'Adicionar ao piquete'
+                    : 'Fechar'),
           ),
         ],
       ),
@@ -700,6 +869,11 @@ class _PiqueteMovimentacaoModalWidgetState
     _searchDebounce = Timer(const Duration(milliseconds: 300), _loadAnimals);
   }
 
+  void _scheduleLoteSearch() {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 300), _loadLotes);
+  }
+
   Future<void> _loadAnimals() async {
     if (!mounted) return;
     setState(() {
@@ -734,6 +908,40 @@ class _PiqueteMovimentacaoModalWidgetState
     }
   }
 
+  Future<void> _loadLotes() async {
+    if (!mounted) return;
+    setState(() {
+      _loadingLotes = true;
+      _loteError = null;
+    });
+
+    try {
+      final page = await _store.buscarLotesDisponiveisPage(
+        piqueteId: _piquete.id,
+        pesquisa: _loteSearchController.text.trim(),
+        limit: 80,
+      );
+      if (!mounted) return;
+      final currentLoteIds = _piquete.lotesIds.toSet();
+      final availableLotes = page.items
+          .where((lote) => !currentLoteIds.contains(lote.id))
+          .toList();
+      setState(() {
+        _loteOptions = availableLotes;
+        _selectedLoteIds.removeWhere(currentLoteIds.contains);
+        _loadingLotes = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loteOptions = const [];
+        _loadingLotes = false;
+        _loteError =
+            _store.errorMessage ?? 'Não foi possível carregar os lotes.';
+      });
+    }
+  }
+
   Future<void> _addSelectedAnimals() async {
     setState(() => _savingAnimals = true);
     try {
@@ -760,6 +968,39 @@ class _PiqueteMovimentacaoModalWidgetState
           content: Text(
             _store.errorMessage ??
                 'Não foi possível adicionar os animais ao piquete.',
+          ),
+          backgroundColor: kPiqueteDanger,
+        ),
+      );
+    }
+  }
+
+  Future<void> _addSelectedLotes() async {
+    setState(() => _savingLotes = true);
+    try {
+      final nextLoteIds = {
+        ..._piquete.lotesIds,
+        ..._selectedLoteIds,
+      }.toList();
+      final updated = await _store.updatePiquete(
+        _piquete.copyWith(lotesIds: nextLoteIds),
+      );
+      if (!mounted) return;
+      setState(() {
+        _piquete = updated;
+        _selectedLoteIds.clear();
+        _savingLotes = false;
+      });
+      widget.onChanged(updated);
+      await _loadLotes();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _savingLotes = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível adicionar os lotes ao piquete.',
           ),
           backgroundColor: kPiqueteDanger,
         ),

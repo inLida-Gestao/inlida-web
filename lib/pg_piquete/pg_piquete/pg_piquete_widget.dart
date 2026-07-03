@@ -656,6 +656,7 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
                     expanded: _expandedPiqueteIds.contains(piquete.id),
                     compact: false,
                     onTap: () => _selectPiqueteFromTree(piquete),
+                    onLink: () => _showVincularPiqueteDialog(piquete),
                   ),
                 )
                 .toList()
@@ -1572,6 +1573,219 @@ class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
     }
   }
 
+  Future<void> _showVincularPiqueteDialog(PiquetePrototype piquete) async {
+    if (_store.retiros.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Crie um retiro antes de vincular piquetes.'),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+      return;
+    }
+
+    var selectedRetiroId =
+        _store.retiros.isNotEmpty ? _store.retiros.first.id : '';
+    var saving = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              insetPadding: const EdgeInsets.all(24),
+              backgroundColor: Colors.transparent,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: PrototypeCard(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Vincular piquete a um retiro',
+                        style: GoogleFonts.poppins(
+                          color: kPiqueteTextStrong,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Escolha o retiro que vai receber ${piquete.nome}.',
+                        style: GoogleFonts.poppins(
+                          color: kPiqueteTextMuted,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      ..._store.retiros.map(
+                        (retiro) {
+                          final selected = selectedRetiroId == retiro.id;
+                          return InkWell(
+                            onTap: saving
+                                ? null
+                                : () => setDialogState(
+                                      () => selectedRetiroId = retiro.id,
+                                    ),
+                            borderRadius: BorderRadius.circular(14),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? kPiquetePrimarySurface
+                                    : kPiqueteSurface,
+                                borderRadius:
+                                    BorderRadius.circular(kPiqueteRadius),
+                                border: Border.all(
+                                  color: selected
+                                      ? kPiquetePrimary
+                                      : kPiqueteBorder,
+                                  width: selected ? 1.4 : 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 34,
+                                    height: 34,
+                                    decoration: BoxDecoration(
+                                      color: kPiquetePrimarySurface,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.inventory_2_outlined,
+                                      color: kPiquetePrimaryDark,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          retiro.nome,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.poppins(
+                                            color: kPiqueteTextStrong,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          '${retiro.areaHa.toStringAsFixed(0)} ha · ${retiro.piquetesCount} piquetes',
+                                          style: GoogleFonts.poppins(
+                                            color: kPiqueteTextMuted,
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 140),
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: selected
+                                          ? kPiquetePrimary
+                                          : kPiqueteSurface,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: selected
+                                            ? kPiquetePrimary
+                                            : const Color(0xFFD6DDD7),
+                                      ),
+                                    ),
+                                    child: selected
+                                        ? const Icon(
+                                            Icons.check_rounded,
+                                            color: Colors.white,
+                                            size: 17,
+                                          )
+                                        : null,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          PrototypeSecondaryButton(
+                            label: 'Cancelar',
+                            onPressed: saving
+                                ? null
+                                : () => Navigator.pop(dialogContext),
+                          ),
+                          const SizedBox(width: 10),
+                          PrototypePrimaryButton(
+                            label: 'Vincular',
+                            icon: Icons.link_rounded,
+                            onPressed: saving || selectedRetiroId.isEmpty
+                                ? null
+                                : () async {
+                                    setDialogState(() => saving = true);
+                                    try {
+                                      final updated =
+                                          await _store.updatePiquete(
+                                        piquete.copyWith(
+                                          retiroId: selectedRetiroId,
+                                        ),
+                                      );
+                                      if (!mounted) return;
+                                      safeSetState(() {
+                                        _selectedPiqueteId = updated.id;
+                                        _expandedRetiroIds.add(
+                                          selectedRetiroId,
+                                        );
+                                      });
+                                      if (dialogContext.mounted) {
+                                        Navigator.pop(dialogContext);
+                                      }
+                                    } catch (_) {
+                                      if (!context.mounted) return;
+                                      setDialogState(() => saving = false);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            _store.errorMessage ??
+                                                'Não foi possível vincular o piquete.',
+                                          ),
+                                          backgroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .error,
+                                        ),
+                                      );
+                                    }
+                                  },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<bool> _confirmDelete({
     required String title,
     required String message,
@@ -1818,6 +2032,7 @@ class _PiqueteTreeTile extends StatelessWidget {
     required this.expanded,
     required this.compact,
     required this.onTap,
+    this.onLink,
   });
 
   final PiquetePrototype piquete;
@@ -1825,6 +2040,7 @@ class _PiqueteTreeTile extends StatelessWidget {
   final bool expanded;
   final bool compact;
   final VoidCallback onTap;
+  final VoidCallback? onLink;
 
   @override
   Widget build(BuildContext context) {
@@ -1908,14 +2124,34 @@ class _PiqueteTreeTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  '${piquete.areaHa.toStringAsFixed(0)} ha',
-                  style: GoogleFonts.poppins(
-                    color: kPiqueteTextStrong,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
+                if (onLink != null)
+                  OutlinedButton(
+                    onPressed: onLink,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: kPiquetePrimaryDark,
+                      backgroundColor: kPiquetePrimarySurface,
+                      side: const BorderSide(color: kPiquetePrimary),
+                      minimumSize: const Size(44, 34),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      textStyle: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    child: const Text('Vincular'),
+                  )
+                else
+                  Text(
+                    '${piquete.areaHa.toStringAsFixed(0)} ha',
+                    style: GoogleFonts.poppins(
+                      color: kPiqueteTextStrong,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                ),
                 const SizedBox(width: 8),
                 Icon(
                   expanded
