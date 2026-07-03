@@ -136,7 +136,7 @@ class _PiqueteMovimentacaoModalWidgetState
             height: 44,
             decoration: BoxDecoration(
               color: kPiquetePrimarySurface,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: const Icon(
               Icons.compare_arrows_rounded,
@@ -219,7 +219,7 @@ class _PiqueteMovimentacaoModalWidgetState
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: kPiqueteFieldSurface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -276,7 +276,7 @@ class _PiqueteMovimentacaoModalWidgetState
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: kPiqueteSurface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: kPiqueteBorder),
       ),
       clipBehavior: Clip.antiAlias,
@@ -376,7 +376,7 @@ class _PiqueteMovimentacaoModalWidgetState
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 color: kPiqueteSurface,
-                borderRadius: BorderRadius.circular(9),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: const Color(0xFFD5E8DC)),
               ),
               child: DropdownButtonHideUnderline(
@@ -487,11 +487,11 @@ class _PiqueteMovimentacaoModalWidgetState
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(9),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: kPiqueteBorder),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(9),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: kPiquetePrimary, width: 1.3),
             ),
           ),
@@ -525,7 +525,7 @@ class _PiqueteMovimentacaoModalWidgetState
         const _InfoCallout(
           icon: Icons.playlist_add_rounded,
           text:
-              'Selecione lotes inteiros para vincular a este piquete. Lotes já vinculados aqui ou em outro piquete ativo não aparecem na lista.',
+              'Selecione lotes inteiros para vincular a este piquete. Lotes já vinculados a outro piquete serão movimentados para cá.',
         ),
         const SizedBox(height: 12),
         TextField(
@@ -553,11 +553,11 @@ class _PiqueteMovimentacaoModalWidgetState
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(9),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: kPiqueteBorder),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(9),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: kPiquetePrimary, width: 1.3),
             ),
           ),
@@ -594,13 +594,13 @@ class _PiqueteMovimentacaoModalWidgetState
             ? _selectedLoteIds.remove(lote.id)
             : _selectedLoteIds.add(lote.id);
       }),
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(6),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
           color: selected ? kPiquetePrimarySurface : kPiqueteSurface,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(6),
           border: Border.all(
             color: selected ? kPiquetePrimary : kPiqueteBorder,
             width: selected ? 1.3 : 1,
@@ -668,13 +668,13 @@ class _PiqueteMovimentacaoModalWidgetState
             ? _selectedAnimalIds.remove(animal.id)
             : _selectedAnimalIds.add(animal.id);
       }),
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(6),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
           color: selected ? kPiquetePrimarySurface : kPiqueteSurface,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(6),
           border: Border.all(
             color: selected ? kPiquetePrimary : kPiqueteBorder,
             width: selected ? 1.3 : 1,
@@ -788,7 +788,7 @@ class _PiqueteMovimentacaoModalWidgetState
               shadowColor: kPiquetePrimary.withValues(alpha: 0.22),
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 15),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(6),
               ),
               textStyle: GoogleFonts.poppins(
                 fontSize: 13.5,
@@ -1087,7 +1087,7 @@ class _MetricPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
       decoration: BoxDecoration(
         color: kPiqueteSurfaceMuted,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: const Color(0xFFDDECE4)),
       ),
       child: Row(
@@ -1148,13 +1148,13 @@ class _TabPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(6),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 11),
         decoration: BoxDecoration(
           color: selected ? kPiquetePrimary : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           label,
@@ -1185,7 +1185,7 @@ class _InfoCallout extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
       decoration: BoxDecoration(
         color: kPiqueteSurfaceMuted,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: const Color(0xFFDDECE4)),
       ),
       child: Row(
@@ -1223,7 +1223,7 @@ class _SoftIcon extends StatelessWidget {
       height: 34,
       decoration: BoxDecoration(
         color: kPiqueteSurfaceMuted,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: asset != null
           ? Center(
@@ -1271,7 +1271,7 @@ class _MoveLoteButton extends StatelessWidget {
         foregroundColor: Colors.white,
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         textStyle: GoogleFonts.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w800,
@@ -1303,7 +1303,7 @@ class _CompactButton extends StatelessWidget {
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
             textStyle: GoogleFonts.poppins(
               fontSize: 12.5,
               fontWeight: FontWeight.w800,
@@ -1315,7 +1315,7 @@ class _CompactButton extends StatelessWidget {
             side: const BorderSide(color: Color(0xFFD8DDD8)),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
             textStyle: GoogleFonts.poppins(
               fontSize: 12.5,
               fontWeight: FontWeight.w800,
@@ -1397,7 +1397,7 @@ class _TrajectoryTable extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: kPiqueteSurface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: kPiqueteBorder),
       ),
       child: Column(
@@ -1481,7 +1481,7 @@ class _TrajectoryRow extends StatelessWidget {
                         const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
                       color: kPiquetePrimarySurface,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       'Atual',
@@ -1532,7 +1532,7 @@ class _DatePill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
         decoration: BoxDecoration(
           color: up ? kPiquetePrimarySurface : kPiqueteDangerSurface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1576,7 +1576,7 @@ class _EmptyMovementState extends StatelessWidget {
       padding: EdgeInsets.all(compact ? 12 : 18),
       decoration: BoxDecoration(
         color: kPiqueteFieldSurface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: kPiqueteBorder),
       ),
       child: Column(
