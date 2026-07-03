@@ -1104,9 +1104,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
   }
 
   void _applyInitial(PiquetePrototype? initial) {
-    _retiroId = initial?.retiroId ??
-        _store.selectedRetiro?.id ??
-        PiqueteBackendStore.semRetiroId;
+    _retiroId = initial?.retiroId ?? PiqueteBackendStore.semRetiroId;
     final initialForrageiras = initial?.forrageiras
             .where((forrageira) => forrageira.trim().isNotEmpty)
             .toList() ??
