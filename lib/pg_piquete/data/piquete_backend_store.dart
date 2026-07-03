@@ -134,6 +134,16 @@ class PiqueteBackendStore extends ChangeNotifier {
     });
   }
 
+  Future<void> loadAllPiqueteAreas() async {
+    await _run(() async {
+      _syncPropertyContext();
+      await _loadPiquetesSemRetiro();
+      await Future.wait(
+        _retiros.map((retiro) => _loadPiquetesDoRetiro(retiro.id)),
+      );
+    });
+  }
+
   Future<void> loadOptions({String piqueteId = ''}) async {
     await _run(() async {
       _syncPropertyContext();

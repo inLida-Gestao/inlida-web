@@ -138,7 +138,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     super.initState();
     _applyInitial(widget.initial);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(_loadInitialSelectorData());
+      if (mounted) unawaited(_loadInitialFormData());
     });
   }
 
@@ -149,7 +149,7 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         _initialIdentity(oldWidget.initial)) {
       _applyInitial(widget.initial);
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) unawaited(_loadInitialSelectorData());
+        if (mounted) unawaited(_loadInitialFormData());
       });
     }
   }
@@ -184,10 +184,11 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
         ),
       );
     }
-    final newPiqueteSemRetiro = widget.initial == null && retiro == null;
-    final piqueteAreas = newPiqueteSemRetiro
-        ? const <PiqueteMapArea>[]
-        : _existingPiqueteAreas();
+    final creatingPiquete = widget.initial == null;
+    final newPiqueteSemRetiro = creatingPiquete && retiro == null;
+    final piqueteAreas = _existingPiqueteAreas(
+      showAllAreas: creatingPiquete,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -455,6 +456,30 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     }
 
     await _loadCurrentModeOptions(reset: true);
+  }
+
+  Future<void> _loadInitialFormData() async {
+    await Future.wait([
+      _loadInitialSelectorData(),
+      _loadAllPiqueteAreas(),
+    ]);
+  }
+
+  Future<void> _loadAllPiqueteAreas() async {
+    try {
+      await _store.loadAllPiqueteAreas();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível carregar os piquetes existentes no mapa.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
   }
 
   void _selectMode(String mode) {
@@ -1126,16 +1151,20 @@ class _PiqueteFormMockWidgetState extends State<PiqueteFormMockWidget> {
     return area.toStringAsFixed(2);
   }
 
-  List<PiqueteMapArea> _existingPiqueteAreas() {
+  List<PiqueteMapArea> _existingPiqueteAreas({required bool showAllAreas}) {
     final currentPiqueteId = widget.initial?.id;
-    return _store
-        .piquetesDoRetiro(_retiroId)
+    final piquetes =
+        showAllAreas ? _store.piquetes : _store.piquetesDoRetiro(_retiroId);
+    return piquetes
         .where((piquete) => piquete.id != currentPiqueteId)
         .where((piquete) => piquete.pontos.length >= 3)
         .map(
           (piquete) => PiqueteMapArea(
             name: piquete.nome,
             points: piquete.pontos,
+            legendLabel: piquete.nome,
+            fillOpacity: 0.18,
+            borderStrokeWidth: 2.2,
           ),
         )
         .toList();
