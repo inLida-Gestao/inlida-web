@@ -42,6 +42,7 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
   late PgRebanhoModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  static const int _rebanhoPageLimit = 10;
 
   @override
   void initState() {
@@ -88,7 +89,7 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
   }
 
   int _rebanhoTotalPages() {
-    final pages = (_model.rebanhosTotal / FFAppConstants.limit).ceil();
+    final pages = (_model.rebanhosTotal / _rebanhoPageLimit).ceil();
     return pages < 1 ? 1 : pages;
   }
 
@@ -147,9 +148,9 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
         pSexo: FFAppState().filtroSexo,
         pStatus: FFAppState().filtroStatusRebanho,
         pPesquisa: pesquisa,
-        pLimite: FFAppConstants.limit,
+        pLimite: _rebanhoPageLimit,
         pOffset:
-            functions.calcDeslocamento(_model.pageNum, FFAppConstants.limit),
+            functions.calcDeslocamento(_model.pageNum, _rebanhoPageLimit),
       );
       final countFuture =
           FunctionsSupabaseRebanhoGroup.countRebanhoFiltrosCall.call(
@@ -1940,7 +1941,7 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
                                                 .cast<RebanhoDTStruct>();
                                             safeSetState(() {});
                                           },
-                                          paginated: true,
+                                          paginated: false,
                                           selectable: false,
                                           hidePaginator: true,
                                           showFirstLastButtons: true,
