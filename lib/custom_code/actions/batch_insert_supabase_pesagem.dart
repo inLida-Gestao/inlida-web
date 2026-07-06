@@ -6,7 +6,6 @@ import '/backend/supabase/supabase.dart';
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 import 'dart:convert';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '/pg_rebanho/pesagem_rebanho_sync.dart';
 
 class _PesagemRebanhoLookup {
@@ -241,6 +240,11 @@ double? _parseDoubleSafe(dynamic value) {
 String? _normalizeTipoPesagem(dynamic value) {
   final tipo = _fixEncoding((value ?? '').toString().trim());
   return tipo.isEmpty ? null : tipo;
+}
+
+bool _isTipoPesagemAtual(String? tipo) {
+  final tipoNorm = tipo == null ? '' : _normalize(_fixEncoding(tipo));
+  return tipoNorm == 'atual';
 }
 
 String _composePesagemDedupKey({
@@ -577,6 +581,7 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
       final List<Map<String, dynamic>> rowsParaAtualizar = [];
       final dedupKeysNoChunk = <String>{};
       final idsRebanhoParaSincronizar = <String>{};
+      final idsRebanhoParaSincronizarPesoAtual = <String>{};
 
       for (final row in chunk) {
         final idRebanho = row['_idRebanho'] as String;
@@ -680,12 +685,18 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
           peso: peso,
         );
         idsRebanhoParaSincronizar.add(idRebanho);
+        if (_isTipoPesagemAtual(tipo)) {
+          idsRebanhoParaSincronizarPesoAtual.add(idRebanho);
+        }
       }
 
       for (final idRebanho in idsRebanhoParaSincronizar) {
         await sincronizarUltimaPesagemRebanho(
           idRebanho: idRebanho,
         );
+        if (idsRebanhoParaSincronizarPesoAtual.contains(idRebanho)) {
+          await _sincronizarPesoAtualPelaUltimaPesagemAtual(idRebanho);
+        }
       }
     }
   } catch (e, stack) {
@@ -725,7 +736,7 @@ Future<void> _updateRebanhoAfterPesagem({
       data['pesoNascimento'] = peso;
     } else if (tipoNorm == 'desmama') {
       data['pesoDesmama'] = peso;
-    } else if (tipoNorm == 'atual') {
+    } else if (_isTipoPesagemAtual(tipo)) {
       data['pesoAtual'] = peso;
     }
 
@@ -738,6 +749,39 @@ Future<void> _updateRebanhoAfterPesagem({
   } catch (e) {
     print('Erro ao atualizar rebanho após pesagem: $e');
   }
+}
+
+Future<void> _sincronizarPesoAtualPelaUltimaPesagemAtual(
+  String idRebanho,
+) async {
+  final idRebanhoNormalizado = idRebanho.trim();
+  if (idRebanhoNormalizado.isEmpty) return;
+
+  final pesagens = await HistoricoPesagensTable().queryRows(
+    queryFn: (q) => q
+        .eqOrNull('idRebanho', idRebanhoNormalizado)
+        .or('deletado.is.null,deletado.neq.SIM')
+        .not('dataPesagem', 'is', null)
+        .order('dataPesagem', ascending: false)
+        .order('id', ascending: false),
+    limit: 10000,
+  );
+
+  final pesagensAtuais = pesagens
+      .where((pesagem) =>
+          pesagem.deletado?.trim().toUpperCase() != 'SIM' &&
+          _isTipoPesagemAtual(pesagem.tipo))
+      .toList();
+
+  if (pesagensAtuais.isEmpty) return;
+  final ultimaAtual = pesagensAtuais.first;
+
+  await RebanhoTable().update(
+    data: {
+      'pesoAtual': ultimaAtual.peso,
+    },
+    matchingRows: (rows) => rows.eqOrNull('idRebanho', idRebanhoNormalizado),
+  );
 }
 
 String _buildFriendlyError(Object error) {
