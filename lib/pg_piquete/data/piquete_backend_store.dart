@@ -597,6 +597,8 @@ class PiqueteBackendStore extends ChangeNotifier {
       );
       updated = detail.piquete;
       _upsertPiquete(updated);
+      await load();
+      updated = piqueteById(updated.id) ?? updated;
     });
     return updated;
   }
