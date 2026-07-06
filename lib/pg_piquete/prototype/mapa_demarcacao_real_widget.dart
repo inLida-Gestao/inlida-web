@@ -402,13 +402,52 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(
-              20,
-              0,
-              20,
-              widget.editable ? 0 : 20,
+          if (widget.editable)
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _MapActionButton(
+                      label: widget.retiroPoints.isEmpty
+                          ? 'Usar área exemplo'
+                          : 'Sugerir área',
+                      icon: Icons.auto_fix_high_rounded,
+                      onPressed: () => widget.onChanged?.call(
+                        _suggestedAreaPoints(),
+                      ),
+                    ),
+                    _MapActionButton(
+                      label: _importingKml ? 'Importando...' : 'Importar KML',
+                      icon: Icons.upload_file_rounded,
+                      onPressed: _importingKml ? null : _handleImportKml,
+                    ),
+                    _MapActionButton(
+                      label: 'Desfazer ponto',
+                      icon: Icons.undo_rounded,
+                      onPressed: _points.isEmpty
+                          ? null
+                          : () => widget.onChanged
+                              ?.call(_points.sublist(0, _points.length - 1)),
+                    ),
+                    _MapActionButton(
+                      label: 'Limpar área',
+                      icon: Icons.delete_outline_rounded,
+                      onPressed: _points.isEmpty
+                          ? null
+                          : () => widget.onChanged?.call([]),
+                      danger: true,
+                    ),
+                  ],
+                ),
+              ),
             ),
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 20),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(kPiqueteRadius),
               child: SizedBox(
@@ -661,46 +700,6 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
               ),
             ),
           ),
-          if (widget.editable)
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 20, 20),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  _MapActionButton(
-                    label: widget.retiroPoints.isEmpty
-                        ? 'Usar área exemplo'
-                        : 'Sugerir área',
-                    icon: Icons.auto_fix_high_rounded,
-                    onPressed: () => widget.onChanged?.call(
-                      _suggestedAreaPoints(),
-                    ),
-                  ),
-                  _MapActionButton(
-                    label: _importingKml ? 'Importando...' : 'Importar KML',
-                    icon: Icons.upload_file_rounded,
-                    onPressed: _importingKml ? null : _handleImportKml,
-                  ),
-                  _MapActionButton(
-                    label: 'Desfazer ponto',
-                    icon: Icons.undo_rounded,
-                    onPressed: _points.isEmpty
-                        ? null
-                        : () => widget.onChanged
-                            ?.call(_points.sublist(0, _points.length - 1)),
-                  ),
-                  _MapActionButton(
-                    label: 'Limpar área',
-                    icon: Icons.delete_outline_rounded,
-                    onPressed: _points.isEmpty
-                        ? null
-                        : () => widget.onChanged?.call([]),
-                    danger: true,
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );
@@ -767,39 +766,41 @@ class _MapaDemarcacaoRealWidgetState extends State<MapaDemarcacaoRealWidget> {
                         ),
                         const SizedBox(height: 12),
                         Expanded(
-                          child: MapaDemarcacaoRealWidget(
-                            title: widget.title,
-                            points: expandedPoints,
-                            retiroPoints: widget.retiroPoints,
-                            referenceLegendLabel: widget.referenceLegendLabel,
-                            piqueteAreas: widget.piqueteAreas,
-                            retiroAsPrimary: widget.retiroAsPrimary,
-                            pointsLegendLabel: widget.pointsLegendLabel,
-                            editable: widget.editable,
-                            height: mapHeight,
-                            preferUserLocation: widget.preferUserLocation,
-                            allowExpand: false,
-                            primaryMarkerCount: widget.primaryMarkerCount,
-                            primaryMarkerLabel: widget.primaryMarkerLabel,
-                            primaryMarkers: widget.primaryMarkers,
-                            highlightedAreaName: widget.highlightedAreaName,
-                            onMapTap: widget.onMapTap,
-                            onChanged: widget.editable
-                                ? (value) {
-                                    setDialogState(() {
-                                      expandedPoints = value;
-                                    });
-                                    widget.onChanged?.call(value);
-                                  }
-                                : null,
-                            onImported: widget.editable
-                                ? (value) {
-                                    setDialogState(() {
-                                      expandedPoints = value;
-                                    });
-                                    widget.onImported?.call(value);
-                                  }
-                                : null,
+                          child: SingleChildScrollView(
+                            child: MapaDemarcacaoRealWidget(
+                              title: widget.title,
+                              points: expandedPoints,
+                              retiroPoints: widget.retiroPoints,
+                              referenceLegendLabel: widget.referenceLegendLabel,
+                              piqueteAreas: widget.piqueteAreas,
+                              retiroAsPrimary: widget.retiroAsPrimary,
+                              pointsLegendLabel: widget.pointsLegendLabel,
+                              editable: widget.editable,
+                              height: mapHeight,
+                              preferUserLocation: widget.preferUserLocation,
+                              allowExpand: false,
+                              primaryMarkerCount: widget.primaryMarkerCount,
+                              primaryMarkerLabel: widget.primaryMarkerLabel,
+                              primaryMarkers: widget.primaryMarkers,
+                              highlightedAreaName: widget.highlightedAreaName,
+                              onMapTap: widget.onMapTap,
+                              onChanged: widget.editable
+                                  ? (value) {
+                                      setDialogState(() {
+                                        expandedPoints = value;
+                                      });
+                                      widget.onChanged?.call(value);
+                                    }
+                                  : null,
+                              onImported: widget.editable
+                                  ? (value) {
+                                      setDialogState(() {
+                                        expandedPoints = value;
+                                      });
+                                      widget.onImported?.call(value);
+                                    }
+                                  : null,
+                            ),
                           ),
                         ),
                       ],
