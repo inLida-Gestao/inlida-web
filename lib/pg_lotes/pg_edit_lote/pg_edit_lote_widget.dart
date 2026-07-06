@@ -73,8 +73,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
       _model.switchValue = isAtivo;
       safeSetState(() {});
 
-      // Mesma regra que PgViewLoteWidget._loadAnimaisDoLote (evita 0 animais na edição
-      // quando o vínculo está só em loteID/loteNome e id_animais não está sincronizado).
+      // Mesma regra que PgViewLoteWidget._loadAnimaisDoLote: o vínculo do lote
+      // vem de rebanho.loteID/loteNome.
       final animaisStructs = await _loadAnimaisDoLoteParaEdicao();
       for (final struct in animaisStructs) {
         _model.addToAnimaisSelecionados(struct);
@@ -111,8 +111,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
   }
 
   /// Alinhado a [PgViewLoteWidget._loadAnimaisDoLote].
-  /// Carrega animais do lote usando lógica inclusiva (OR).
-  /// Combina: id_animais do lote + rebanho com loteID + rebanho com loteNome.
+  /// Carrega animais do lote usando rebanho.loteID/loteNome.
+  /// `lotes.id_animais` é mantido como fallback para lotes legados.
   /// Desduplicação por idRebanho — mesma lógica de PgViewLoteWidget._loadAnimaisDoLote.
   Future<List<RebanhoDTStruct>> _loadAnimaisDoLoteParaEdicao() async {
     if (widget.idLote == null || widget.idLote!.isEmpty) return [];
@@ -132,13 +132,17 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
       }
     }
 
-    // 1. Animais no JSON id_animais
+    // 1. Animais no JSON id_animais (legado)
     final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
     for (final idRebanho in idAnimais) {
-      if (idRebanho.trim().isEmpty) continue;
+      final id = idRebanho.trim();
+      if (id.isEmpty) continue;
       final rows = await RebanhoTable().queryRows(
-        queryFn: (q) =>
-            q.eqOrNull('idRebanho', idRebanho).eqOrNull('deletado', 'NAO'),
+        queryFn: (q) => q
+            .eqOrNull('idRebanho', id)
+            .eqOrNull('idPropriedade', idPropriedadeLote)
+            .eqOrNull('deletado', 'NAO'),
+        limit: 1,
       );
       final row = rows.firstOrNull;
       if (row != null) addIfNew(row);
@@ -315,8 +319,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
             ),
           );
         }
-        final pgEditLoteBuscarRebanhoFiltrosResponse = snapshot.data!;
-
         return GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
@@ -3519,12 +3521,14 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                           await LotesTable()
                                                               .update(
                                                             data: {
-                                                              'id_animais': functions
-                                                                  .converterListaParaJSON(_model
-                                                                      .animaisDentroLote
-                                                                      .map((e) =>
-                                                                          e.idRebanho)
-                                                                      .toList()),
+                                                              'id_animais': functions.converterListaParaJSON(_model
+                                                                  .animaisDentroLote
+                                                                  .map((e) => e
+                                                                      .idRebanho)
+                                                                  .where((e) => e
+                                                                      .trim()
+                                                                      .isNotEmpty)
+                                                                  .toList()),
                                                               'nome': _model
                                                                           .nomeLoteTextController
                                                                           .text !=
@@ -3640,6 +3644,50 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                           }
                                                           // Atualiza cada animal listado no lote (inclui os vindos de outro lote),
                                                           // para que nome/status/venda fiquem consistentes ao salvar.
+                                                          final animaisRetiradosIds = _model
+                                                              .animaisRetiradosLote
+                                                              .map((e) => e
+                                                                  .idRebanho
+                                                                  .trim())
+                                                              .where((e) =>
+                                                                  e.isNotEmpty)
+                                                              .toSet();
+                                                          final animaisParaAtualizar =
+                                                              <RebanhoDTStruct>[];
+                                                          final animaisIdsSeen =
+                                                              <String>{};
+                                                          void addAnimalParaAtualizar(
+                                                              RebanhoDTStruct
+                                                                  animal) {
+                                                            final id = animal
+                                                                .idRebanho
+                                                                .trim();
+                                                            if (id.isEmpty ||
+                                                                animaisRetiradosIds
+                                                                    .contains(
+                                                                        id) ||
+                                                                !animaisIdsSeen
+                                                                    .add(id)) {
+                                                              return;
+                                                            }
+                                                            animaisParaAtualizar
+                                                                .add(animal);
+                                                          }
+
+                                                          for (final animal
+                                                              in _model
+                                                                  .animaisDentroLote) {
+                                                            addAnimalParaAtualizar(
+                                                                animal);
+                                                          }
+                                                          final animaisCarregados =
+                                                              await _loadAnimaisDoLoteParaEdicao();
+                                                          for (final animal
+                                                              in animaisCarregados) {
+                                                            addAnimalParaAtualizar(
+                                                                animal);
+                                                          }
+
                                                           final novoLoteNome = _model
                                                                   .nomeLoteTextController
                                                                   .text
@@ -3662,8 +3710,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                               loteVendido
                                                                   ? 'Vendido'
                                                                   : 'Na propriedade';
-                                                          for (final a in _model
-                                                              .animaisDentroLote) {
+                                                          for (final a
+                                                              in animaisParaAtualizar) {
                                                             if (a.idRebanho
                                                                 .isEmpty) {
                                                               continue;
