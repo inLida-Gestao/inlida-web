@@ -3518,86 +3518,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                       ),
                                                       FFButtonWidget(
                                                         onPressed: () async {
-                                                          await LotesTable()
-                                                              .update(
-                                                            data: {
-                                                              'id_animais': functions.converterListaParaJSON(_model
-                                                                  .animaisDentroLote
-                                                                  .map((e) => e
-                                                                      .idRebanho)
-                                                                  .where((e) => e
-                                                                      .trim()
-                                                                      .isNotEmpty)
-                                                                  .toList()),
-                                                              'nome': _model
-                                                                          .nomeLoteTextController
-                                                                          .text !=
-                                                                      ''
-                                                                  ? _model
-                                                                      .nomeLoteTextController
-                                                                      .text
-                                                                  : _model
-                                                                      .loteEdit
-                                                                      ?.firstOrNull
-                                                                      ?.nome,
-                                                              'anotacoes': _model
-                                                                          .anotacoesTextController
-                                                                          .text !=
-                                                                      ''
-                                                                  ? _model
-                                                                      .anotacoesTextController
-                                                                      .text
-                                                                  : _model
-                                                                      .loteEdit
-                                                                      ?.firstOrNull
-                                                                      ?.anotacoes,
-                                                              'ativo':
-                                                                  _model.switchValue ==
-                                                                          true
-                                                                      ? 'Ativo'
-                                                                      : 'Inativo',
-                                                              'updated_at':
-                                                                  supaSerialize<
-                                                                          DateTime>(
-                                                                      getCurrentTimestamp),
-                                                              'motivo': _model
-                                                                          .switchValue ==
-                                                                      true
-                                                                  ? null
-                                                                  : _model
-                                                                          .motivoCleared
-                                                                      ? null
-                                                                      : (_model
-                                                                              .dropDownLotesValue ??
-                                                                          containerLotesRow
-                                                                              ?.motivo),
-                                                              'data_motivo': _model
-                                                                          .switchValue ==
-                                                                      true
-                                                                  ? null
-                                                                  : _model
-                                                                          .dataMotivoCleared
-                                                                      ? null
-                                                                      : supaSerialize<
-                                                                          DateTime>(_model
-                                                                              .datePicked ??
-                                                                          containerLotesRow
-                                                                              ?.dataMotivo),
-                                                              'valorVenda': _model
-                                                                          .switchValue ==
-                                                                      true
-                                                                  ? null
-                                                                  : FFAppState()
-                                                                      .valueDouble2,
-                                                            },
-                                                            matchingRows:
-                                                                (rows) => rows
-                                                                    .eqOrNull(
-                                                              'id_lote',
-                                                              containerLotesRow
-                                                                  ?.idLote,
-                                                            ),
-                                                          );
                                                           _model.index = 0;
                                                           safeSetState(() {});
                                                           // Primeiro remove do lote os animais retirados (para não incluí-los na atualização em massa)
@@ -3699,61 +3619,77 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                       ?.nome ??
                                                                   widget
                                                                       .loteNome;
-                                                          final loteVendido = _model
-                                                                      .switchValue ==
-                                                                  false &&
-                                                              (_model.dropDownLotesValue ??
-                                                                      containerLotesRow
-                                                                          ?.motivo) ==
-                                                                  'Lote vendido';
-                                                          final novoStatus =
-                                                              loteVendido
-                                                                  ? 'Vendido'
-                                                                  : 'Na propriedade';
-                                                          for (final a
-                                                              in animaisParaAtualizar) {
-                                                            if (a.idRebanho
-                                                                .isEmpty) {
-                                                              continue;
-                                                            }
-                                                            await RebanhoTable()
-                                                                .update(
-                                                              data: {
-                                                                'loteID': containerLotesRow
-                                                                        ?.idLote ??
-                                                                    widget
-                                                                        .idLote,
-                                                                'loteNome':
-                                                                    novoLoteNome,
-                                                                'updated_at':
-                                                                    supaSerialize<
-                                                                            DateTime>(
-                                                                        getCurrentTimestamp),
-                                                                'dataEntradaLote':
-                                                                    supaSerialize<
-                                                                            DateTime>(
-                                                                        getCurrentTimestamp),
-                                                                'dataVenda': !loteVendido
-                                                                    ? null
-                                                                    : supaSerialize<
-                                                                        DateTime>(_model
-                                                                            .datePicked ??
-                                                                        containerLotesRow
-                                                                            ?.dataMotivo),
-                                                                'valorVenda':
-                                                                    !loteVendido
-                                                                        ? null
-                                                                        : FFAppState()
-                                                                            .valueDouble2,
-                                                                'status':
-                                                                    novoStatus,
-                                                              },
-                                                              matchingRows: (rows) =>
-                                                                  rows.eqOrNull(
-                                                                      'idRebanho',
-                                                                      a.idRebanho),
-                                                            );
-                                                          }
+                                                          await SupaFlow.client
+                                                              .rpc(
+                                                            'salvar_lote_status_e_sincronizar_animais',
+                                                            params: {
+                                                              'p_id_propriedade':
+                                                                  containerLotesRow
+                                                                          ?.idPropriedade ??
+                                                                      FFAppState()
+                                                                          .propriedadeSelecionada
+                                                                          .idPropriedade,
+                                                              'p_id_lote':
+                                                                  containerLotesRow
+                                                                          ?.idLote ??
+                                                                      widget
+                                                                          .idLote,
+                                                              'p_nome':
+                                                                  novoLoteNome,
+                                                              'p_anotacoes': _model
+                                                                          .anotacoesTextController
+                                                                          .text !=
+                                                                      ''
+                                                                  ? _model
+                                                                      .anotacoesTextController
+                                                                      .text
+                                                                  : _model
+                                                                      .loteEdit
+                                                                      ?.firstOrNull
+                                                                      ?.anotacoes,
+                                                              'p_ativo':
+                                                                  _model.switchValue ==
+                                                                          true
+                                                                      ? 'Ativo'
+                                                                      : 'Inativo',
+                                                              'p_motivo': _model
+                                                                          .switchValue ==
+                                                                      true
+                                                                  ? null
+                                                                  : _model
+                                                                          .motivoCleared
+                                                                      ? null
+                                                                      : (_model
+                                                                              .dropDownLotesValue ??
+                                                                          containerLotesRow
+                                                                              ?.motivo),
+                                                              'p_data_motivo': _model
+                                                                          .switchValue ==
+                                                                      true
+                                                                  ? null
+                                                                  : _model
+                                                                          .dataMotivoCleared
+                                                                      ? null
+                                                                      : supaSerialize<
+                                                                          DateTime>(_model
+                                                                              .datePicked ??
+                                                                          containerLotesRow
+                                                                              ?.dataMotivo),
+                                                              'p_valor_venda': _model
+                                                                          .switchValue ==
+                                                                      true
+                                                                  ? null
+                                                                  : FFAppState()
+                                                                      .valueDouble2,
+                                                              'p_id_animais': functions.converterListaParaJSON(animaisParaAtualizar
+                                                                  .map((e) => e
+                                                                      .idRebanho)
+                                                                  .where((e) => e
+                                                                      .trim()
+                                                                      .isNotEmpty)
+                                                                  .toList()),
+                                                            },
+                                                          );
                                                           _model.animaisDentroLote =
                                                               [];
                                                           _model.animaisSelecionados =
