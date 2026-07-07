@@ -7,6 +7,7 @@ import '/backend/supabase/supabase.dart';
 
 import 'dart:convert';
 import '/pg_rebanho/pesagem_rebanho_sync.dart';
+import 'package:flutter/foundation.dart';
 
 class _PesagemRebanhoLookup {
   final Map<String, _AnimalInfo> byFiveFields;
@@ -700,8 +701,8 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
       }
     }
   } catch (e, stack) {
-    print('Erro geral no batch insert pesagem: $e');
-    print(stack);
+    debugPrint('Erro geral no batch insert pesagem: $e');
+    debugPrint(stack.toString());
     return {
       'success': false,
       'total': previewRows.length,
@@ -736,8 +737,6 @@ Future<void> _updateRebanhoAfterPesagem({
       data['pesoNascimento'] = peso;
     } else if (tipoNorm == 'desmama') {
       data['pesoDesmama'] = peso;
-    } else if (_isTipoPesagemAtual(tipo)) {
-      data['pesoAtual'] = peso;
     }
 
     if (data.isNotEmpty) {
@@ -747,7 +746,7 @@ Future<void> _updateRebanhoAfterPesagem({
           .eq('idRebanho', idRebanho);
     }
   } catch (e) {
-    print('Erro ao atualizar rebanho após pesagem: $e');
+    debugPrint('Erro ao atualizar rebanho após pesagem: $e');
   }
 }
 
@@ -756,6 +755,17 @@ Future<void> _sincronizarPesoAtualPelaUltimaPesagemAtual(
 ) async {
   final idRebanhoNormalizado = idRebanho.trim();
   if (idRebanhoNormalizado.isEmpty) return;
+
+  try {
+    await Supabase.instance.client.rpc(
+      'sincronizar_peso_atual_rebanho_por_pesagem',
+      params: {'p_id_rebanho': idRebanhoNormalizado},
+    );
+    return;
+  } catch (e) {
+    debugPrint(
+        'Erro ao sincronizar pesoAtual via RPC; tentando fallback local: $e');
+  }
 
   final pesagens = await HistoricoPesagensTable().queryRows(
     queryFn: (q) => q
