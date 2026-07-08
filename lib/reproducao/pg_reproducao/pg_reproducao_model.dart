@@ -33,7 +33,7 @@ class PgReproducaoModel extends FlutterFlowModel<PgReproducaoWidget> {
 
   int pageTotal = 1;
 
-  String sortColumn = 'data';
+  String sortColumn = 'created_at';
 
   String sortDirection = 'desc';
 

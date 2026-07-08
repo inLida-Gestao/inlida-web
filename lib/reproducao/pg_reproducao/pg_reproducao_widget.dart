@@ -67,9 +67,6 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
     _model.textController ??= TextEditingController();
     _model.textFieldFocusNode ??= FocusNode();
 
-    _model.paginatedDataTableController.sortColumnIndex = 1;
-    _model.paginatedDataTableController.sortAscending = false;
-
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 

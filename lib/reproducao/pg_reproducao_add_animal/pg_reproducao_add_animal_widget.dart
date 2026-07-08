@@ -4251,26 +4251,12 @@ class _PgReproducaoAddAnimalWidgetState
                                             if (!context.mounted) {
                                               return;
                                             }
-                                            final dataReferenciaLote =
-                                                _model.tipoReproducao ==
-                                                        'Inseminação'
-                                                    ? _model.datePicked1
-                                                    : _model.datePicked3;
-                                            final loteMatrizCompativel =
-                                                loteMatrizCompativelComData(
-                                              matrizComLote,
-                                              dataReferenciaLote,
-                                            );
                                             final idLoteMatriz =
-                                                loteMatrizCompativel
-                                                    ? nonEmptyString(
-                                                        matrizComLote?.loteID)
-                                                    : null;
+                                                nonEmptyString(
+                                                    matrizComLote?.loteID);
                                             final nomeLoteMatriz =
-                                                loteMatrizCompativel
-                                                    ? nonEmptyString(
-                                                        matrizComLote?.loteNome)
-                                                    : null;
+                                                nonEmptyString(
+                                                    matrizComLote?.loteNome);
 
                                             if (_model.tipoReproducao ==
                                                 'Inseminação') {

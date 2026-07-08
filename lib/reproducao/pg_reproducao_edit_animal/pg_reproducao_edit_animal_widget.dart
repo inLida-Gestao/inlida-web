@@ -91,13 +91,6 @@ class _PgReproducaoEditAnimalWidgetState
         final loteSalvo = nonEmptyString(row.idLote);
         if (loteSalvo != null) {
           _model.dropDownLoteValue = loteSalvo;
-        } else {
-          final matrizComLote = await buscarMatrizComLote(
-            idPropriedade: nonEmptyString(row.idPropriedade) ??
-                FFAppState().propriedadeSelecionada.idPropriedade,
-            idRebanho: nonEmptyString(row.idRebanhoMatriz) ?? '',
-          );
-          _model.dropDownLoteValue = nonEmptyString(matrizComLote?.loteID);
         }
         _model.dropDownLoteValueController?.value = _model.dropDownLoteValue;
       }
@@ -1024,9 +1017,14 @@ class _PgReproducaoEditAnimalWidgetState
                                                                 'Sem nome')
                                                             .toList(),
                                                         onChanged: (val) =>
-                                                            safeSetState(() =>
-                                                                _model.dropDownLoteValue =
-                                                                    val),
+                                                            safeSetState(() {
+                                                          _model.dropDownLoteValue =
+                                                              val;
+                                                          _model.loteCleared =
+                                                              nonEmptyString(
+                                                                      val) ==
+                                                                  null;
+                                                        }),
                                                         width: double.infinity,
                                                         height: 56.0,
                                                         textStyle:
@@ -5395,44 +5393,6 @@ class _PgReproducaoEditAnimalWidgetState
                                                 ),
                                                 FFButtonWidget(
                                                   onPressed: () async {
-                                                    final matrizComLote =
-                                                        await buscarMatrizComLote(
-                                                      idPropriedade: FFAppState()
-                                                          .propriedadeSelecionada
-                                                          .idPropriedade,
-                                                      idRebanho: FFAppState()
-                                                          .matrizSelecionada
-                                                          .idAnimal,
-                                                    );
-                                                    if (!context.mounted) {
-                                                      return;
-                                                    }
-                                                    final dataReferenciaLote = _model
-                                                                .tipoReproducao ==
-                                                            'Inseminação'
-                                                        ? (_model.datePicked1 ??
-                                                            pgReproducaoEditAnimalReproducaoRow
-                                                                ?.dataInseminacao)
-                                                        : (_model.datePicked3 ??
-                                                            pgReproducaoEditAnimalReproducaoRow
-                                                                ?.dataInicial);
-                                                    final loteMatrizCompativel =
-                                                        loteMatrizCompativelComData(
-                                                      matrizComLote,
-                                                      dataReferenciaLote,
-                                                    );
-                                                    final idLoteMatriz =
-                                                        loteMatrizCompativel
-                                                            ? nonEmptyString(
-                                                                matrizComLote
-                                                                    ?.loteID)
-                                                            : null;
-                                                    final nomeLoteMatriz =
-                                                        loteMatrizCompativel
-                                                            ? nonEmptyString(
-                                                                matrizComLote
-                                                                    ?.loteNome)
-                                                            : null;
                                                     final idLoteSelecionado =
                                                         nonEmptyString(_model
                                                             .dropDownLoteValue);
@@ -5446,31 +5406,31 @@ class _PgReproducaoEditAnimalWidgetState
                                                                     idLoteSelecionado)
                                                                 .firstOrNull;
                                                     final idLoteReproducao =
-                                                        idLoteSelecionado ??
-                                                            idLoteMatriz ??
-                                                            nonEmptyString(
-                                                                pgReproducaoEditAnimalReproducaoRow
-                                                                    ?.idLote);
+                                                        _model.loteCleared
+                                                            ? null
+                                                            : (idLoteSelecionado ??
+                                                                nonEmptyString(
+                                                                    pgReproducaoEditAnimalReproducaoRow
+                                                                        ?.idLote));
                                                     var nomeLoteReproducao =
-                                                        nonEmptyString(
-                                                            loteSelecionado
-                                                                ?.nome);
-                                                    if (nomeLoteReproducao ==
-                                                            null &&
-                                                        idLoteReproducao ==
+                                                        _model.loteCleared
+                                                            ? null
+                                                            : nonEmptyString(
+                                                                loteSelecionado
+                                                                    ?.nome);
+                                                    if (!_model.loteCleared) {
+                                                      if (nomeLoteReproducao ==
+                                                              null &&
+                                                          idLoteReproducao ==
+                                                              nonEmptyString(
+                                                                  pgReproducaoEditAnimalReproducaoRow
+                                                                      ?.idLote)) {
+                                                        nomeLoteReproducao =
                                                             nonEmptyString(
                                                                 pgReproducaoEditAnimalReproducaoRow
-                                                                    ?.idLote)) {
-                                                      nomeLoteReproducao =
-                                                          nonEmptyString(
-                                                              pgReproducaoEditAnimalReproducaoRow
-                                                                  ?.loteNome);
+                                                                    ?.loteNome);
+                                                      }
                                                     }
-                                                    nomeLoteReproducao ??=
-                                                        idLoteReproducao ==
-                                                                idLoteMatriz
-                                                            ? nomeLoteMatriz
-                                                            : null;
 
                                                     if (_model.tipoReproducao ==
                                                         'Inseminação') {

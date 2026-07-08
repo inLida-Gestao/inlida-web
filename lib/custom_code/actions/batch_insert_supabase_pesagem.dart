@@ -245,7 +245,7 @@ String? _normalizeTipoPesagem(dynamic value) {
 
 bool _isTipoPesagemAtual(String? tipo) {
   final tipoNorm = tipo == null ? '' : _normalize(_fixEncoding(tipo));
-  return tipoNorm == 'atual';
+  return tipoNorm.isEmpty || tipoNorm == 'atual';
 }
 
 String _composePesagemDedupKey({
@@ -761,7 +761,13 @@ Future<void> _sincronizarPesoAtualPelaUltimaPesagemAtual(
       'sincronizar_peso_atual_rebanho_por_pesagem',
       params: {'p_id_rebanho': idRebanhoNormalizado},
     );
-    return;
+    if (await _pesoAtualSincronizadoComUltimaPesagemAtual(
+      idRebanhoNormalizado,
+    )) {
+      return;
+    }
+    debugPrint(
+        'RPC de pesoAtual não refletiu a última pesagem Atual; tentando fallback local.');
   } catch (e) {
     debugPrint(
         'Erro ao sincronizar pesoAtual via RPC; tentando fallback local: $e');
@@ -792,6 +798,36 @@ Future<void> _sincronizarPesoAtualPelaUltimaPesagemAtual(
     },
     matchingRows: (rows) => rows.eqOrNull('idRebanho', idRebanhoNormalizado),
   );
+}
+
+Future<bool> _pesoAtualSincronizadoComUltimaPesagemAtual(
+  String idRebanho,
+) async {
+  final pesagens = await HistoricoPesagensTable().queryRows(
+    queryFn: (q) => q
+        .eqOrNull('idRebanho', idRebanho)
+        .or('deletado.is.null,deletado.neq.SIM')
+        .not('dataPesagem', 'is', null)
+        .order('dataPesagem', ascending: false)
+        .order('id', ascending: false),
+    limit: 10000,
+  );
+
+  final pesagensAtuais = pesagens
+      .where((pesagem) =>
+          pesagem.deletado?.trim().toUpperCase() != 'SIM' &&
+          _isTipoPesagemAtual(pesagem.tipo))
+      .toList();
+
+  if (pesagensAtuais.isEmpty) return true;
+
+  final rebanhos = await RebanhoTable().queryRows(
+    queryFn: (q) => q.eqOrNull('idRebanho', idRebanho),
+    limit: 1,
+  );
+  if (rebanhos.isEmpty) return false;
+
+  return rebanhos.first.pesoAtual == pesagensAtuais.first.peso;
 }
 
 String _buildFriendlyError(Object error) {

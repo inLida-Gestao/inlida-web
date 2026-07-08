@@ -1365,8 +1365,33 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     _model.pesoDesmamaTextController2 = null;
   }
 
-  Future<void> _recarregarPesagens() async {
+  Future<void> _recarregarPesagens({
+    String? idRebanho,
+  }) async {
     safeSetState(_resetPesagensCache);
+    final idRebanhoNormalizado = idRebanho?.trim();
+    if (idRebanhoNormalizado != null && idRebanhoNormalizado.isNotEmpty) {
+      final rebanhoAtualizado = await RebanhoTable().querySingleRow(
+        queryFn: (q) => q.eqOrNull('idRebanho', idRebanhoNormalizado),
+      );
+      final row = rebanhoAtualizado.firstOrNull;
+      if (row != null && mounted) {
+        _model.dataDesmamaTextController2 ??= TextEditingController();
+        _model.dataDesmamaTextController2!.text = valueOrDefault<String>(
+          dateTimeFormat(
+            "d/M/y",
+            row.dataUltimaPesagem,
+            locale: FFLocalizations.of(context).languageCode,
+          ),
+          'N/A',
+        );
+        _model.pesoDesmamaTextController2 ??= TextEditingController();
+        _model.pesoDesmamaTextController2!.text = valueOrDefault<String>(
+          row.pesoAtual?.toString(),
+          'N/A',
+        );
+      }
+    }
     await _model.waitForRequestCompleted();
     if (mounted) {
       safeSetState(() {});
@@ -1752,7 +1777,19 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                           );
                                                           if (pesagemAdicionada ==
                                                               true) {
-                                                            await _recarregarPesagens();
+                                                            await _syncPesoAtualAposPesagem(
+                                                              rebanhoId:
+                                                                  pgRebanhoViewRebanhoRow
+                                                                      ?.id,
+                                                              idRebanho:
+                                                                  pgRebanhoViewRebanhoRow
+                                                                      ?.idRebanho,
+                                                            );
+                                                            await _recarregarPesagens(
+                                                              idRebanho:
+                                                                  pgRebanhoViewRebanhoRow
+                                                                      ?.idRebanho,
+                                                            );
                                                           }
                                                         },
                                                         text:
@@ -6897,7 +6934,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                               rebanhoId: pgRebanhoViewRebanhoRow?.id,
                                                                                               idRebanho: pgRebanhoViewRebanhoRow?.idRebanho,
                                                                                             );
-                                                                                            await _recarregarPesagens();
+                                                                                            await _recarregarPesagens(
+                                                                                              idRebanho: pgRebanhoViewRebanhoRow?.idRebanho,
+                                                                                            );
                                                                                           }
                                                                                         },
                                                                                       ),
