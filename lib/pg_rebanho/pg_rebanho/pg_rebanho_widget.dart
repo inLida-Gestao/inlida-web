@@ -185,7 +185,7 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
         (responses[1].jsonBody ?? ''),
         0,
       );
-      final totalPages = (countTotal / FFAppConstants.limit).ceil();
+      final totalPages = (countTotal / _rebanhoPageLimit).ceil();
       if (countTotal > 0 && _model.pageNum > totalPages) {
         _model.pageNum = totalPages;
         await _loadRebanhos(refreshCounters: refreshCounters);
