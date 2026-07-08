@@ -5532,14 +5532,10 @@ class _PgReproducaoEditAnimalWidgetState
                                                           'racaMatriz': FFAppState()
                                                               .matrizSelecionada
                                                               .racaAnimal,
-                                                          if (idLoteReproducao !=
-                                                              null)
-                                                            'id_lote':
-                                                                idLoteReproducao,
-                                                          if (nomeLoteReproducao !=
-                                                              null)
-                                                            'loteNome':
-                                                                nomeLoteReproducao,
+                                                          'id_lote':
+                                                              idLoteReproducao,
+                                                          'loteNome':
+                                                              nomeLoteReproducao,
                                                           'id_rebanho_reprodutor':
                                                               FFAppState()
                                                                   .reprodutorSelecionado
@@ -5664,14 +5660,10 @@ class _PgReproducaoEditAnimalWidgetState
                                                           'racaMatriz': FFAppState()
                                                               .matrizSelecionada
                                                               .racaAnimal,
-                                                          if (idLoteReproducao !=
-                                                              null)
-                                                            'id_lote':
-                                                                idLoteReproducao,
-                                                          if (nomeLoteReproducao !=
-                                                              null)
-                                                            'loteNome':
-                                                                nomeLoteReproducao,
+                                                          'id_lote':
+                                                              idLoteReproducao,
+                                                          'loteNome':
+                                                              nomeLoteReproducao,
                                                           'id_rebanho_reprodutor':
                                                               FFAppState()
                                                                   .reprodutorSelecionado
