@@ -8,6 +8,9 @@ import '/backend/supabase/supabase.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '/pg_rebanho/pesagem_rebanho_sync.dart';
+
+final Random _idRebanhoRandom = Random.secure();
 
 class _RebanhoParentLookup {
   final Map<String, String> byNumero;
@@ -113,13 +116,22 @@ bool _resolveExistingAnimalId(
 }
 
 void _ensureIdRebanhoForRecords(List<dynamic> records) {
+  final usedIds = <String>{};
+  for (final record in records) {
+    if (record is! Map) continue;
+    final id = _asNonEmptyString(record['idRebanho']);
+    if (id != null) usedIds.add(id);
+  }
+
   for (var i = 0; i < records.length; i++) {
     final record = records[i];
     if (record is! Map) continue;
     final map = Map<String, dynamic>.from(record);
 
     if (_isMissingValue(map['idRebanho'])) {
-      map['idRebanho'] = _generateIdReproducao();
+      map['idRebanho'] = _generateUniqueIdReproducao(usedIds);
+    } else {
+      usedIds.add(map['idRebanho'].toString());
     }
 
     records[i] = map;
@@ -187,7 +199,7 @@ Future<_RebanhoParentLookup> _fetchLookupFromDb(String idPropriedade) async {
   while (true) {
     final res = await Supabase.instance.client
         .from('rebanho')
-      .select('idRebanho,numeroAnimal,nome,dataNascimento,sexo,raca,deletado')
+        .select('idRebanho,numeroAnimal,nome,dataNascimento,sexo,raca,deletado')
         .eq('idPropriedade', idPropriedade)
         .range(from, from + pageSize - 1);
 
@@ -623,6 +635,13 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
             }
           }
 
+          final validationError = _validateCleanRebanhoRecord(cleanData);
+          if (validationError != null) {
+            throw FormatException(
+              'Dados de importação inválidos: $validationError',
+            );
+          }
+
           if (matchedExisting) {
             chunkUpdated += 1;
             chunkUpdatedRows.add({
@@ -726,7 +745,7 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
             // Reaproveitar idRebanho existente quando a identidade do animal já
             // existir no banco ou em outro registro do mesmo CSV.
             final matchedExisting =
-              _resolveExistingAnimalId(data, parentLookup);
+                _resolveExistingAnimalId(data, parentLookup);
 
             // Capturar valores de peso
             final pesoAtual = data['pesoAtual'];
@@ -759,6 +778,13 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
                 cleanData[dateField] =
                     _convertDateFormat(cleanData[dateField].toString());
               }
+            }
+
+            final validationError = _validateCleanRebanhoRecord(cleanData);
+            if (validationError != null) {
+              throw FormatException(
+                'Dados de importação inválidos: $validationError',
+              );
             }
 
             if (matchedExisting) {
@@ -917,6 +943,11 @@ String _buildFriendlyImportError(Object error) {
     return 'Referência inválida (ex.: lote, matriz ou reprodutor inexistente).';
   }
 
+  if (lower.contains('dados de importação inválidos') ||
+      lower.contains('dados de importacao invalidos')) {
+    return raw.replaceFirst('FormatException: ', '');
+  }
+
   return raw;
 }
 
@@ -967,6 +998,114 @@ String _labelRebanhoColumn(String column) {
     default:
       return column;
   }
+}
+
+String? _validateCleanRebanhoRecord(Map<String, dynamic> data) {
+  const strictIdentifierColumns = [
+    'numeroAnimal',
+    'chip',
+    'codRegistro',
+    'numeroMatriz',
+    'numeroReprodutor',
+  ];
+
+  for (final column in strictIdentifierColumns) {
+    final value = _cleanStringOrNull(data[column]);
+    if (value == null) continue;
+    if (!_isPlausibleImportIdentifier(value)) {
+      return 'campo ${_labelRebanhoColumn(column.toLowerCase())} contém caracteres incompatíveis com identificador de animal.';
+    }
+  }
+
+  for (final entry in data.entries) {
+    final value = entry.value;
+    if (value is String && _looksLikeCorruptedImportText(value)) {
+      return 'campo ${_labelRebanhoColumn(entry.key.toLowerCase())} parece estar com bytes de arquivo ou encoding corrompidos.';
+    }
+  }
+
+  const identityColumns = ['numeroAnimal', 'chip', 'codRegistro', 'nome'];
+  final hasIdentity = identityColumns.any((column) {
+    final value = _cleanStringOrNull(data[column]);
+    return value != null && !_looksLikeCorruptedImportText(value);
+  });
+
+  if (!hasIdentity) {
+    return 'registro sem identificação válida do animal.';
+  }
+
+  return null;
+}
+
+String? _cleanStringOrNull(dynamic value) {
+  if (value == null) return null;
+  final cleaned = _fixEncoding(value.toString()).trim();
+  if (cleaned.isEmpty ||
+      cleaned.toLowerCase() == 'null' ||
+      cleaned.toLowerCase() == 'undefined') {
+    return null;
+  }
+  return cleaned;
+}
+
+bool _isPlausibleImportIdentifier(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty || trimmed.length > 80) return false;
+
+  var hasLetterOrDigit = false;
+  for (final rune in trimmed.runes) {
+    if (_isWhitespaceRune(rune)) continue;
+    if (!_isAllowedImportTextRune(rune)) return false;
+    if (_isImportIdentifierLetterOrDigit(rune)) {
+      hasLetterOrDigit = true;
+    }
+  }
+
+  return hasLetterOrDigit;
+}
+
+bool _looksLikeCorruptedImportText(String value) {
+  final text = value.trim();
+  if (text.isEmpty) return false;
+  if (text.contains('\uFFFD')) return true;
+
+  final artifactMatches = RegExp(
+    r'[¢£¤¥¦¨©ª«¬®¯±²³µ¶·¸¹»¼½¾¿ÆÐ×ØÞßæ÷øþ]',
+  ).allMatches(text).length;
+  if (artifactMatches >= 2) return true;
+
+  var nonSpace = 0;
+  var unusualSymbols = 0;
+  for (final rune in text.runes) {
+    if (_isWhitespaceRune(rune)) continue;
+    nonSpace++;
+    if (_isAllowedImportTextRune(rune)) continue;
+    unusualSymbols++;
+  }
+
+  return nonSpace > 0 &&
+      unusualSymbols >= 3 &&
+      unusualSymbols / nonSpace > 0.25;
+}
+
+bool _isWhitespaceRune(int rune) =>
+    rune == 0x20 || rune == 0x09 || rune == 0x0A || rune == 0x0D;
+
+bool _isAllowedImportTextRune(int rune) {
+  final isAsciiLetter =
+      (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
+  final isDigit = rune >= 0x30 && rune <= 0x39;
+  final isLatinLetter = rune >= 0x00C0 && rune <= 0x017F;
+  final isCommonPunctuation = '.,;:/_-#()+@\'"&ªº°'.runes.contains(rune);
+  return isAsciiLetter || isDigit || isLatinLetter || isCommonPunctuation;
+}
+
+bool _isImportIdentifierLetterOrDigit(int rune) {
+  final isAsciiLetter =
+      (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
+  final isDigit = rune >= 0x30 && rune <= 0x39;
+  final isLatinLetter = rune >= 0x00C0 && rune <= 0x017F;
+  return isAsciiLetter || isDigit || isLatinLetter;
 }
 
 // Função auxiliar para preparar registros de pesagem
@@ -1086,6 +1225,11 @@ Future<bool> _pesagemAtivaJaExiste(Map<String, dynamic> pesagem) async {
 Future<void> _insertPesagens(List<Map<String, dynamic>> pesagens) async {
   final dedupKeys = <String>{};
   final pesagensNovas = <Map<String, dynamic>>[];
+  final idsRebanhoParaSincronizar = pesagens
+      .map((pesagem) => pesagem['idRebanho']?.toString().trim())
+      .whereType<String>()
+      .where((idRebanho) => idRebanho.isNotEmpty)
+      .toSet();
 
   for (final pesagem in pesagens) {
     if (!dedupKeys.add(_composePesagemRecordKey(pesagem))) {
@@ -1097,7 +1241,10 @@ Future<void> _insertPesagens(List<Map<String, dynamic>> pesagens) async {
     pesagensNovas.add(pesagem);
   }
 
-  if (pesagensNovas.isEmpty) return;
+  if (pesagensNovas.isEmpty) {
+    await _syncDataUltimaPesagem(idsRebanhoParaSincronizar);
+    return;
+  }
 
   try {
     await Supabase.instance.client
@@ -1119,6 +1266,16 @@ Future<void> _insertPesagens(List<Map<String, dynamic>> pesagens) async {
       }
     }
   }
+
+  await _syncDataUltimaPesagem(idsRebanhoParaSincronizar);
+}
+
+Future<void> _syncDataUltimaPesagem(Set<String> idsRebanho) async {
+  for (final idRebanho in idsRebanho) {
+    await sincronizarUltimaPesagemRebanho(
+      idRebanho: idRebanho,
+    );
+  }
 }
 
 // Função auxiliar para validar se o peso é válido
@@ -1137,9 +1294,8 @@ bool _isValidPeso(dynamic peso) {
 
 bool _isValidDate(String? dateValue) {
   if (dateValue == null) return false;
-  final trimmed = dateValue.trim()
-      .replaceAll('null', '')
-      .replaceAll('undefined', '');
+  final trimmed =
+      dateValue.trim().replaceAll('null', '').replaceAll('undefined', '');
   if (trimmed.isEmpty) return false;
   return DateTime.tryParse(trimmed) != null;
 }
@@ -1218,10 +1374,21 @@ int _mojibakeScore(String value) {
 // Função auxiliar para gerar id_reproducao único
 String _generateIdReproducao() {
   const String chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  final Random random = Random();
 
-  return List.generate(20, (index) => chars[random.nextInt(chars.length)])
-      .join();
+  return List.generate(
+      20, (index) => chars[_idRebanhoRandom.nextInt(chars.length)]).join();
+}
+
+String _generateUniqueIdReproducao(Set<String> usedIds) {
+  for (var attempt = 0; attempt < 10; attempt++) {
+    final id = _generateIdReproducao();
+    if (usedIds.add(id)) return id;
+  }
+
+  final fallback =
+      '${DateTime.now().microsecondsSinceEpoch}${_generateIdReproducao()}';
+  usedIds.add(fallback);
+  return fallback;
 }
 
 // Função auxiliar para converter data de DD/MM/YYYY para YYYY-MM-DD

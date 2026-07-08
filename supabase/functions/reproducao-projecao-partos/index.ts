@@ -17,31 +17,22 @@ function toDateStr(x: string | null): string | null {
   return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
 }
 
-function enumerateMonths(inicio: string, fim: string): string[] {
-  const y0 = parseInt(inicio.slice(0, 4), 10);
-  const mo0 = parseInt(inicio.slice(5, 7), 10) - 1;
-  const y1 = parseInt(fim.slice(0, 4), 10);
-  const mo1 = parseInt(fim.slice(5, 7), 10) - 1;
-  const out: string[] = [];
-  let y = y0;
-  let m = mo0;
-  while (y < y1 || (y === y1 && m <= mo1)) {
-    out.push(`${y}-${String(m + 1).padStart(2, "0")}-01`);
-    m++;
-    if (m > 11) {
-      m = 0;
-      y++;
-    }
-  }
-  return out;
-}
-
 function bucketMonthFromPrevisao(s: unknown): string | null {
   if (s == null) return null;
   const d = String(s).slice(0, 10);
   const m = d.match(/^(\d{4})-(\d{2})/);
   if (!m) return null;
   return `${m[1]}-${m[2]}-01`;
+}
+
+function dateStrFromValue(s: unknown): string | null {
+  if (s == null) return null;
+  const d = String(s).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null;
+}
+
+function dataReproducaoFromRow(r: Record<string, unknown>): string | null {
+  return dateStrFromValue(r.data_inseminacao) ?? dateStrFromValue(r.data_inicial);
 }
 
 function classify(
@@ -75,12 +66,6 @@ async function buildProjecaoItems(
 ): Promise<
   { mes: string; label: string; Novilha: number; Primípara: number; Multípara: number }[]
 > {
-  const monthKeys = enumerateMonths(inicio, fim);
-  const agg = new Map<string, Agg>();
-  for (const mk of monthKeys) {
-    agg.set(mk, { Novilha: 0, "Primípara": 0, "Multípara": 0 });
-  }
-
   const PAGE = 1000;
   let from = 0;
   const reproAll: Record<string, unknown>[] = [];
@@ -89,12 +74,15 @@ async function buildProjecaoItems(
     let query = supabase
       .from("reproducao")
       .select(
-        "previsao_parto, id_rebanho_matriz, deletado, ressinc, tipo_reproducao",
+        "previsao_parto, data_inseminacao, data_inicial, id_rebanho_matriz, deletado, ressinc, tipo_reproducao, status_reproducao",
       )
       .eq("id_propriedade", idPropriedade)
-      // Incluir o último dia inteiro (evita cortar timestamptz ao comparar só com date)
-      .gte("previsao_parto", `${inicio}T00:00:00.000Z`)
-      .lte("previsao_parto", `${fim}T23:59:59.999Z`);
+      .or(
+        [
+          `and(data_inseminacao.gte.${inicio}T00:00:00.000Z,data_inseminacao.lte.${fim}T23:59:59.999Z)`,
+          `and(data_inseminacao.is.null,data_inicial.gte.${inicio}T00:00:00.000Z,data_inicial.lte.${fim}T23:59:59.999Z)`,
+        ].join(","),
+      );
 
     // Filtro opcional por tipo de reprodução (ex.: "Monta Natural").
     if (tipoReproducao) {
@@ -113,10 +101,28 @@ async function buildProjecaoItems(
   const filtered = reproAll.filter((r) => {
     const del = r.deletado as string | null | undefined;
     const rs = r.ressinc as string | null | undefined;
+    const status = String(r.status_reproducao ?? "").trim().toLowerCase();
     if (del === "SIM") return false;
     if (rs === "SIM") return false;
-    return r.previsao_parto != null;
+    if (status === "vazio") return false;
+    if (r.previsao_parto == null) return false;
+
+    const dataReproducao = dataReproducaoFromRow(r);
+    return dataReproducao != null && dataReproducao >= inicio && dataReproducao <= fim;
   });
+
+  const monthKeys = [
+    ...new Set(
+      filtered
+        .map((r) => bucketMonthFromPrevisao(r.previsao_parto))
+        .filter((x): x is string => x != null),
+    ),
+  ].sort();
+
+  const agg = new Map<string, Agg>();
+  for (const mk of monthKeys) {
+    agg.set(mk, { Novilha: 0, "Primípara": 0, "Multípara": 0 });
+  }
 
   const rawIds = filtered
     .map((r) => r.id_rebanho_matriz as string | null | undefined)

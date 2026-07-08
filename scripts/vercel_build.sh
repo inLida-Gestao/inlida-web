@@ -37,7 +37,15 @@ flutter --version
 flutter config --no-analytics
 
 flutter pub get
-flutter build web --release --pwa-strategy=none --base-href /
+
+DART_DEFINES=()
+if [[ -n "${MAPBOX_ACCESS_TOKEN:-}" ]]; then
+  DART_DEFINES+=(--dart-define="MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN}")
+else
+  echo "MAPBOX_ACCESS_TOKEN is not set; map will use fallback tile provider."
+fi
+
+flutter build web --release --pwa-strategy=none --base-href / "${DART_DEFINES[@]}"
 
 # Criar AssetManifest.json para compatibilidade com google_fonts
 # O Flutter agora gera AssetManifest.bin.json, mas alguns pacotes ainda procuram AssetManifest.json

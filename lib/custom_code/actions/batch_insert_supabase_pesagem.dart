@@ -6,7 +6,8 @@ import '/backend/supabase/supabase.dart';
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 import 'dart:convert';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '/pg_rebanho/pesagem_rebanho_sync.dart';
+import 'package:flutter/foundation.dart';
 
 class _PesagemRebanhoLookup {
   final Map<String, _AnimalInfo> byFiveFields;
@@ -66,24 +67,62 @@ String _normalize(String value) {
 
 String _stripDiacritics(String ch) {
   switch (ch) {
-    case 'á': case 'à': case 'â': case 'ã': case 'ä': case 'å':
-    case 'Á': case 'À': case 'Â': case 'Ã': case 'Ä': case 'Å':
+    case 'á':
+    case 'à':
+    case 'â':
+    case 'ã':
+    case 'ä':
+    case 'å':
+    case 'Á':
+    case 'À':
+    case 'Â':
+    case 'Ã':
+    case 'Ä':
+    case 'Å':
       return 'a';
-    case 'é': case 'è': case 'ê': case 'ë':
-    case 'É': case 'È': case 'Ê': case 'Ë':
+    case 'é':
+    case 'è':
+    case 'ê':
+    case 'ë':
+    case 'É':
+    case 'È':
+    case 'Ê':
+    case 'Ë':
       return 'e';
-    case 'í': case 'ì': case 'î': case 'ï':
-    case 'Í': case 'Ì': case 'Î': case 'Ï':
+    case 'í':
+    case 'ì':
+    case 'î':
+    case 'ï':
+    case 'Í':
+    case 'Ì':
+    case 'Î':
+    case 'Ï':
       return 'i';
-    case 'ó': case 'ò': case 'ô': case 'õ': case 'ö':
-    case 'Ó': case 'Ò': case 'Ô': case 'Õ': case 'Ö':
+    case 'ó':
+    case 'ò':
+    case 'ô':
+    case 'õ':
+    case 'ö':
+    case 'Ó':
+    case 'Ò':
+    case 'Ô':
+    case 'Õ':
+    case 'Ö':
       return 'o';
-    case 'ú': case 'ù': case 'û': case 'ü':
-    case 'Ú': case 'Ù': case 'Û': case 'Ü':
+    case 'ú':
+    case 'ù':
+    case 'û':
+    case 'ü':
+    case 'Ú':
+    case 'Ù':
+    case 'Û':
+    case 'Ü':
       return 'u';
-    case 'ç': case 'Ç':
+    case 'ç':
+    case 'Ç':
       return 'c';
-    case 'ñ': case 'Ñ':
+    case 'ñ':
+    case 'Ñ':
       return 'n';
     default:
       return ch;
@@ -117,7 +156,21 @@ String _fixEncoding(String text) {
 
 int _mojibakeScore(String s) {
   var score = 0;
-  const patterns = ['Ã', 'Â ', 'Ã¡', 'Ã¢', 'Ã£', 'Ã©', 'Ãª', 'Ã­', 'Ã³', 'Ã´', 'Ãµ', 'Ãº', 'Ã§'];
+  const patterns = [
+    'Ã',
+    'Â ',
+    'Ã¡',
+    'Ã¢',
+    'Ã£',
+    'Ã©',
+    'Ãª',
+    'Ã­',
+    'Ã³',
+    'Ã´',
+    'Ãµ',
+    'Ãº',
+    'Ã§'
+  ];
   for (final p in patterns) {
     if (s.contains(p)) score += 3;
   }
@@ -185,18 +238,23 @@ double? _parseDoubleSafe(dynamic value) {
   return double.tryParse(normalized);
 }
 
-String _normalizeTipoPesagem(dynamic value) {
-  final tipo = _fixEncoding((value ?? 'Atual').toString().trim());
-  return tipo.isEmpty ? 'Atual' : tipo;
+String? _normalizeTipoPesagem(dynamic value) {
+  final tipo = _fixEncoding((value ?? '').toString().trim());
+  return tipo.isEmpty ? null : tipo;
+}
+
+bool _isTipoPesagemAtual(String? tipo) {
+  final tipoNorm = tipo == null ? '' : _normalize(_fixEncoding(tipo));
+  return tipoNorm == 'atual';
 }
 
 String _composePesagemDedupKey({
   required String idRebanho,
-  required String tipo,
+  required String? tipo,
   required String? dataPesagem,
   required double? peso,
 }) =>
-    '$idRebanho|$tipo|${dataPesagem ?? ''}|${peso?.toStringAsFixed(6) ?? ''}';
+    '$idRebanho|${tipo ?? '<null>'}|${dataPesagem ?? ''}|${peso?.toStringAsFixed(6) ?? ''}';
 
 String _nextIsoDate(String isoDate) {
   final parsed = DateTime.parse(isoDate);
@@ -205,7 +263,7 @@ String _nextIsoDate(String isoDate) {
 
 Future<bool> _pesagemAtivaJaExiste({
   required String idRebanho,
-  required String tipo,
+  required String? tipo,
   required String? dataPesagem,
   required double? peso,
 }) async {
@@ -213,15 +271,17 @@ Future<bool> _pesagemAtivaJaExiste({
     return false;
   }
 
-  final rows = await Supabase.instance.client
+  var query = Supabase.instance.client
       .from('historico_pesagens')
       .select('id,deletado')
       .eq('idRebanho', idRebanho)
-      .eq('tipo', tipo)
       .eq('peso', peso)
       .gte('dataPesagem', dataPesagem)
-      .lt('dataPesagem', _nextIsoDate(dataPesagem))
-      .limit(20);
+      .lt('dataPesagem', _nextIsoDate(dataPesagem));
+
+  query = tipo == null ? query.isFilter('tipo', null) : query.eq('tipo', tipo);
+
+  final rows = await query.limit(20);
 
   return (rows as List).any((row) {
     final map = Map<String, dynamic>.from(row as Map);
@@ -472,8 +532,7 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
   List<Map<String, dynamic>> previewRows,
   String idPropriedade,
 ) async {
-  final foundRows =
-      previewRows.where((r) => r['_status'] == 'found').toList();
+  final foundRows = previewRows.where((r) => r['_status'] == 'found').toList();
   final notFoundRows =
       previewRows.where((r) => r['_status'] != 'found').toList();
 
@@ -514,20 +573,21 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
 
   try {
     for (int i = 0; i < foundRows.length; i += chunkSize) {
-      final end = (i + chunkSize < foundRows.length)
-          ? i + chunkSize
-          : foundRows.length;
+      final end =
+          (i + chunkSize < foundRows.length) ? i + chunkSize : foundRows.length;
       final chunk = foundRows.sublist(i, end);
 
       final List<Map<String, dynamic>> pesagemRecords = [];
       final List<Map<String, dynamic>> rowsParaInserir = [];
       final List<Map<String, dynamic>> rowsParaAtualizar = [];
       final dedupKeysNoChunk = <String>{};
+      final idsRebanhoParaSincronizar = <String>{};
+      final idsRebanhoParaSincronizarPesoAtual = <String>{};
 
       for (final row in chunk) {
         final idRebanho = row['_idRebanho'] as String;
-        final dataPesagem = _convertDateFormat(
-            (row['dataPesagem'] ?? '').toString());
+        final dataPesagem =
+            _convertDateFormat((row['dataPesagem'] ?? '').toString());
         final tipo = _normalizeTipoPesagem(row['tipo']);
         final peso = _parseDoubleSafe(row['peso']);
         final dedupKey = _composePesagemDedupKey(
@@ -576,8 +636,8 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
           final row = rowsParaInserir[ci];
           try {
             final idRebanho = row['_idRebanho'] as String;
-            final dataPesagem = _convertDateFormat(
-                (row['dataPesagem'] ?? '').toString());
+            final dataPesagem =
+                _convertDateFormat((row['dataPesagem'] ?? '').toString());
             final tipo = _normalizeTipoPesagem(row['tipo']);
             final peso = _parseDoubleSafe(row['peso']);
 
@@ -619,20 +679,30 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
         final idRebanho = row['_idRebanho'] as String;
         final tipo = _normalizeTipoPesagem(row['tipo']);
         final peso = _parseDoubleSafe(row['peso']);
-        final dataPesagem =
-            _convertDateFormat((row['dataPesagem'] ?? '').toString());
 
         await _updateRebanhoAfterPesagem(
           idRebanho: idRebanho,
           tipo: tipo,
           peso: peso,
-          dataPesagem: dataPesagem,
         );
+        idsRebanhoParaSincronizar.add(idRebanho);
+        if (_isTipoPesagemAtual(tipo)) {
+          idsRebanhoParaSincronizarPesoAtual.add(idRebanho);
+        }
+      }
+
+      for (final idRebanho in idsRebanhoParaSincronizar) {
+        await sincronizarUltimaPesagemRebanho(
+          idRebanho: idRebanho,
+        );
+        if (idsRebanhoParaSincronizarPesoAtual.contains(idRebanho)) {
+          await _sincronizarPesoAtualPelaUltimaPesagemAtual(idRebanho);
+        }
       }
     }
   } catch (e, stack) {
-    print('Erro geral no batch insert pesagem: $e');
-    print(stack);
+    debugPrint('Erro geral no batch insert pesagem: $e');
+    debugPrint(stack.toString());
     return {
       'success': false,
       'total': previewRows.length,
@@ -654,25 +724,19 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
 
 Future<void> _updateRebanhoAfterPesagem({
   required String idRebanho,
-  required String tipo,
+  required String? tipo,
   double? peso,
-  String? dataPesagem,
 }) async {
   if (peso == null) return;
 
   try {
-    final tipoNorm = tipo.trim().toLowerCase();
+    final tipoNorm = tipo == null ? '' : _normalize(_fixEncoding(tipo));
     final data = <String, dynamic>{};
 
     if (tipoNorm == 'nascimento') {
       data['pesoNascimento'] = peso;
     } else if (tipoNorm == 'desmama') {
       data['pesoDesmama'] = peso;
-    } else {
-      data['pesoAtual'] = peso;
-      if (dataPesagem != null) {
-        data['dataUltimaPesagem'] = dataPesagem;
-      }
     }
 
     if (data.isNotEmpty) {
@@ -682,8 +746,52 @@ Future<void> _updateRebanhoAfterPesagem({
           .eq('idRebanho', idRebanho);
     }
   } catch (e) {
-    print('Erro ao atualizar rebanho após pesagem: $e');
+    debugPrint('Erro ao atualizar rebanho após pesagem: $e');
   }
+}
+
+Future<void> _sincronizarPesoAtualPelaUltimaPesagemAtual(
+  String idRebanho,
+) async {
+  final idRebanhoNormalizado = idRebanho.trim();
+  if (idRebanhoNormalizado.isEmpty) return;
+
+  try {
+    await Supabase.instance.client.rpc(
+      'sincronizar_peso_atual_rebanho_por_pesagem',
+      params: {'p_id_rebanho': idRebanhoNormalizado},
+    );
+    return;
+  } catch (e) {
+    debugPrint(
+        'Erro ao sincronizar pesoAtual via RPC; tentando fallback local: $e');
+  }
+
+  final pesagens = await HistoricoPesagensTable().queryRows(
+    queryFn: (q) => q
+        .eqOrNull('idRebanho', idRebanhoNormalizado)
+        .or('deletado.is.null,deletado.neq.SIM')
+        .not('dataPesagem', 'is', null)
+        .order('dataPesagem', ascending: false)
+        .order('id', ascending: false),
+    limit: 10000,
+  );
+
+  final pesagensAtuais = pesagens
+      .where((pesagem) =>
+          pesagem.deletado?.trim().toUpperCase() != 'SIM' &&
+          _isTipoPesagemAtual(pesagem.tipo))
+      .toList();
+
+  if (pesagensAtuais.isEmpty) return;
+  final ultimaAtual = pesagensAtuais.first;
+
+  await RebanhoTable().update(
+    data: {
+      'pesoAtual': ultimaAtual.peso,
+    },
+    matchingRows: (rows) => rows.eqOrNull('idRebanho', idRebanhoNormalizado),
+  );
 }
 
 String _buildFriendlyError(Object error) {

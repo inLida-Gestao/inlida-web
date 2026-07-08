@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "vercel-build": "bash scripts/vercel_build.sh",
-    "build:web": "flutter build web --release --pwa-strategy=none --base-href / --web-renderer html"
+    "build:web": "flutter build web --release --pwa-strategy=none --base-href / --web-renderer html --dart-define=MAPBOX_ACCESS_TOKEN=$MAPBOX_ACCESS_TOKEN"
   },
   "devDependencies": {
     "supabase": "^2.103.0"

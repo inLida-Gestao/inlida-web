@@ -6,8 +6,9 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/custom_code/actions/paint_tipo_registro_options.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
-import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
+import '/pg_rebanho/categoria_rebanho_utils.dart';
+import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -1060,9 +1061,23 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   FormFieldController<String>(
                                                       null),
                                               options: const ['Fêmea', 'Macho'],
-                                              onChanged: (val) => safeSetState(
-                                                  () => _model
-                                                      .dropDownSexoValue = val),
+                                              onChanged: (val) =>
+                                                  safeSetState(() {
+                                                if (_model.dropDownSexoValue !=
+                                                    val) {
+                                                  _model.dDCatRebanhoFemeaValueController =
+                                                      FormFieldController<
+                                                          String>(null);
+                                                  _model.dDCatRebanhoFemeaValue =
+                                                      null;
+                                                  _model.dDCatRebanhoMachoValueController =
+                                                      FormFieldController<
+                                                          String>(null);
+                                                  _model.dDCatRebanhoMachoValue =
+                                                      null;
+                                                }
+                                                _model.dropDownSexoValue = val;
+                                              }),
                                               height: 56.0,
                                               textStyle: FlutterFlowTheme.of(
                                                       context)
@@ -1603,8 +1618,12 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                             .bodyMedium
                                                             .fontStyle,
                                                   ),
-                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                              inputFormatters: const [PesoDecimalInputFormatter()],
+                                              keyboardType: const TextInputType
+                                                  .numberWithOptions(
+                                                  decimal: true),
+                                              inputFormatters: const [
+                                                PesoDecimalInputFormatter()
+                                              ],
                                               cursorColor:
                                                   FlutterFlowTheme.of(context)
                                                       .primaryText,
@@ -1750,12 +1769,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .dDCatRebanhoFemeaValueController ??=
                                                     FormFieldController<String>(
                                                         null),
-                                                options: const [
-                                                  'Bezerra',
-                                                  'Novilha',
-                                                  'Vaca Multipara',
-                                                  'Vaca Primipara'
-                                                ],
+                                                options: categoriasRebanhoFemea,
                                                 onChanged: (val) =>
                                                     safeSetState(() => _model
                                                             .dDCatRebanhoFemeaValue =
@@ -1821,14 +1835,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                         .dDCatRebanhoMachoValueController ??=
                                                     FormFieldController<String>(
                                                         null),
-                                                options: const [
-                                                  'Boi Gordo',
-                                                  'Boi Magro',
-                                                  'Garrote',
-                                                  'Rufião',
-                                                  'Touro',
-                                                  'Bezerro'
-                                                ],
+                                                options: categoriasRebanhoMacho,
                                                 onChanged: (val) =>
                                                     safeSetState(() => _model
                                                             .dDCatRebanhoMachoValue =
@@ -3312,8 +3319,12 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                             .bodyMedium
                                                             .fontStyle,
                                                   ),
-                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                              inputFormatters: const [PesoDecimalInputFormatter()],
+                                              keyboardType: const TextInputType
+                                                  .numberWithOptions(
+                                                  decimal: true),
+                                              inputFormatters: const [
+                                                PesoDecimalInputFormatter()
+                                              ],
                                               cursorColor:
                                                   FlutterFlowTheme.of(context)
                                                       .primaryText,
@@ -3534,6 +3545,9 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   highlightColor:
                                                       Colors.transparent,
                                                   onTap: () async {
+                                                    if (mounted) {
+                                                      return;
+                                                    }
                                                     final datePicked4Date =
                                                         await showDatePicker(
                                                       context: context,
@@ -3686,6 +3700,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                               focusNode:
                                                   _model.pesoAtualFocusNode,
                                               autofocus: false,
+                                              readOnly: true,
                                               obscureText: false,
                                               decoration: InputDecoration(
                                                 isDense: false,
@@ -3814,8 +3829,12 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                             .bodyMedium
                                                             .fontStyle,
                                                   ),
-                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                              inputFormatters: const [PesoDecimalInputFormatter()],
+                                              keyboardType: const TextInputType
+                                                  .numberWithOptions(
+                                                  decimal: true),
+                                              inputFormatters: const [
+                                                PesoDecimalInputFormatter()
+                                              ],
                                               cursorColor:
                                                   FlutterFlowTheme.of(context)
                                                       .primaryText,
@@ -4743,251 +4762,277 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                       ),
                     ),
                     FFButtonWidget(
-                      onPressed: () async {
-                        if ((_model.dropDownStatusValue == null) ||
-                            (_model.dropDownStatusValue!.trim().isEmpty)) {
-                          await showDialog(
-                            context: context,
-                            builder: (alertDialogContext) {
-                              return AlertDialog(
-                                content:
-                                    const Text('O campo status é obrigatório'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(alertDialogContext),
-                                    child: const Text('Ok'),
-                                  ),
-                                ],
+                      onPressed: _model.isSaving
+                          ? null
+                          : () async {
+                              if (_model.isSaving) {
+                                return;
+                              }
+                              if ((_model.dropDownStatusValue == null) ||
+                                  (_model.dropDownStatusValue!
+                                      .trim()
+                                      .isEmpty)) {
+                                await showDialog(
+                                  context: context,
+                                  builder: (alertDialogContext) {
+                                    return AlertDialog(
+                                      content: const Text(
+                                          'O campo status é obrigatório'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(alertDialogContext),
+                                          child: const Text('Ok'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                return;
+                              }
+                              final sexoSelecionado =
+                                  _model.dropDownSexoValueController?.value ??
+                                      _model.dropDownSexoValue;
+                              final categoriaSelecionada =
+                                  categoriaRebanhoSelecionada(
+                                sexo: sexoSelecionado,
+                                categoriaFemea: _model
+                                        .dDCatRebanhoFemeaValueController
+                                        ?.value ??
+                                    _model.dDCatRebanhoFemeaValue,
+                                categoriaMacho: _model
+                                        .dDCatRebanhoMachoValueController
+                                        ?.value ??
+                                    _model.dDCatRebanhoMachoValue,
                               );
+                              if (!categoriaRebanhoCondizComSexo(
+                                sexo: sexoSelecionado,
+                                categoria: categoriaSelecionada,
+                              )) {
+                                await showDialog(
+                                  context: context,
+                                  builder: (alertDialogContext) {
+                                    return AlertDialog(
+                                      content: const Text(
+                                          'Selecione uma categoria compatível com o sexo do animal antes de salvar.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(alertDialogContext),
+                                          child: const Text('Ok'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                return;
+                              }
+                              final double? pesoDesmamaParsedCC =
+                                  double.tryParse(_model
+                                      .pesoDesmamaTextController.text
+                                      .replaceAll(',', '.'));
+                              if (pesoDesmamaParsedCC != null &&
+                                  pesoDesmamaParsedCC > 0 &&
+                                  _model.datePicked3 == null) {
+                                await showDialog(
+                                  context: context,
+                                  builder: (alertDialogContext) {
+                                    return AlertDialog(
+                                      content: const Text(
+                                          'Informe a data de desmama para salvar o peso de desmama.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(alertDialogContext),
+                                          child: const Text('Ok'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                return;
+                              }
+                              _model.isSaving = true;
+                              safeSetState(() {});
+                              _model.idRebanho = null;
+                              safeSetState(() {});
+                              _model.idRebanho = random_data.randomString(
+                                20,
+                                20,
+                                true,
+                                false,
+                                true,
+                              );
+                              safeSetState(() {});
+                              final double? pesoNascimentoParsedCC =
+                                  double.tryParse(_model
+                                      .pesoNascimentoTextController.text
+                                      .replaceAll(',', '.'));
+                              await RebanhoTable().insert({
+                                'idPropriedade': FFAppState()
+                                    .propriedadeSelecionada
+                                    .idPropriedade,
+                                'numeroAnimal':
+                                    _model.numAnimalTextController.text,
+                                'chip': _model.chipTextController.text,
+                                'codRegistro':
+                                    _model.codRegistroTextController.text,
+                                'nome': _model.nomeAnimalTextController.text,
+                                'sexo': sexoSelecionado,
+                                'categoria': categoriaSelecionada,
+                                'dataNascimento':
+                                    supaSerialize<DateTime>(_model.datePicked1),
+                                'pesoNascimento': pesoNascimentoParsedCC,
+                                'porte': _model.dropDownPorteValue,
+                                'raca': _model.dropDownRacaValue,
+                                'tipo_registro': paintTipoRegistroParaSalvar(
+                                    _model.dropDownTipoRegistroValue),
+                                'loteID': _model.dropDownLotesValue,
+                                'dataEntradaLote':
+                                    supaSerialize<DateTime>(_model.datePicked2),
+                                'rebanhoIdMatriz': _model.dropDownMatrizValue,
+                                'rebanhoIdReprodutor':
+                                    _model.dropDownReprodutorValue,
+                                'dataDesmama':
+                                    supaSerialize<DateTime>(_model.datePicked3),
+                                'pesoDesmama': pesoDesmamaParsedCC,
+                                'pesoAtual': null,
+                                'status': _model.dropDownStatusValue,
+                                'origem': _model.dropDownOrigemValue,
+                                'anotacoes':
+                                    _model.anotacoesTextController.text,
+                                'idRebanho': _model.idRebanho,
+                                'deletado': 'NAO',
+                                'loteNome': FFAppState()
+                                    .rebanhoLotesSelecionar
+                                    .where((e) =>
+                                        _model.dropDownLotesValue == e.idLote)
+                                    .toList()
+                                    .firstOrNull
+                                    ?.nome,
+                                'tipo': 'animal',
+                                'dataAcao':
+                                    supaSerialize<DateTime>(_model.datePicked5),
+                                'valorCompra': FFAppState().valueDouble,
+                                'dataUltimaPesagem': null,
+                                'nomeConcat':
+                                    '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${dateTimeFormat(
+                                  "d/M/y",
+                                  _model.datePicked1,
+                                  locale:
+                                      FFLocalizations.of(context).languageCode,
+                                )}',
+                              });
+                              await sincronizarPesagemNascimentoRebanho(
+                                idRebanho: _model.idRebanho,
+                                idPropriedade: FFAppState()
+                                    .propriedadeSelecionada
+                                    .idPropriedade,
+                                dataNascimento: _model.datePicked1,
+                                pesoNascimento: pesoNascimentoParsedCC,
+                              );
+                              final pesoDesmamaHist = pesoDesmamaParsedCC;
+                              if (pesoDesmamaHist != null &&
+                                  pesoDesmamaHist > 0) {
+                                await HistoricoPesagensTable().insert({
+                                  'idRebanho': _model.idRebanho,
+                                  'id_propriedade': FFAppState()
+                                      .propriedadeSelecionada
+                                      .idPropriedade,
+                                  'dataPesagem': supaSerialize<DateTime>(
+                                      _model.datePicked3),
+                                  'tipo': 'Desmama',
+                                  'peso': pesoDesmamaHist,
+                                  'deletado': 'NAO',
+                                });
+                              }
+                              await sincronizarUltimaPesagemRebanho(
+                                idRebanho: _model.idRebanho,
+                                sincronizarPesoAtual: true,
+                              );
+                              safeSetState(() {
+                                _model.dropDownSexoValueController?.reset();
+                                _model.dropDownSexoValue = null;
+                                _model.dropDownPorteValueController?.reset();
+                                _model.dropDownPorteValue = null;
+                                _model.dDCatRebanhoFemeaValueController
+                                    ?.reset();
+                                _model.dDCatRebanhoFemeaValue = null;
+                                _model.dDCatRebanhoMachoValueController
+                                    ?.reset();
+                                _model.dDCatRebanhoMachoValue = null;
+                                _model.dropDownRacaValueController?.reset();
+                                _model.dropDownRacaValue = null;
+                                _model.dropDownLotesValueController?.reset();
+                                _model.dropDownLotesValue = null;
+                                _model.dropDownMatrizValueController?.reset();
+                                _model.dropDownMatrizValue = null;
+                                _model.dropDownReprodutorValueController
+                                    ?.reset();
+                                _model.dropDownReprodutorValue = null;
+                                _model.dropDownStatusValueController?.reset();
+                                _model.dropDownStatusValue = null;
+                                _model.dropDownOrigemValueController?.reset();
+                                _model.dropDownOrigemValue = null;
+                              });
+                              safeSetState(() {
+                                _model.numAnimalTextController?.clear();
+                                _model.chipTextController?.clear();
+                                _model.codRegistroTextController?.clear();
+                                _model.nomeAnimalTextController?.clear();
+                                _model.dataNascimentoTextController?.text =
+                                    dateTimeFormat(
+                                  "d/M/y",
+                                  _model.datePicked1,
+                                  locale:
+                                      FFLocalizations.of(context).languageCode,
+                                );
+
+                                _model.pesoNascimentoTextController?.clear();
+                                _model.dataEntradaLoteTextController?.text =
+                                    dateTimeFormat(
+                                  "d/M/y",
+                                  _model.datePicked2,
+                                  locale:
+                                      FFLocalizations.of(context).languageCode,
+                                );
+
+                                _model.dataDesmamaTextController?.text =
+                                    dateTimeFormat(
+                                  "d/M/y",
+                                  _model.datePicked3,
+                                  locale:
+                                      FFLocalizations.of(context).languageCode,
+                                );
+
+                                _model.pesoDesmamaTextController?.clear();
+                                _model.dataUltimaPesagemTextController?.text =
+                                    dateTimeFormat(
+                                  "d/M/y",
+                                  _model.datePicked4,
+                                  locale:
+                                      FFLocalizations.of(context).languageCode,
+                                );
+
+                                _model.pesoAtualTextController?.clear();
+                                _model.dataAcaoTextController?.text =
+                                    dateTimeFormat(
+                                  "d/M/y",
+                                  _model.datePicked5,
+                                  locale:
+                                      FFLocalizations.of(context).languageCode,
+                                );
+
+                                _model.anotacoesTextController?.clear();
+                              });
+                              FFAppState().refreshRebanho = true;
+                              safeSetState(() {});
+                              FFAppState().pageRebanho = 'rebanho';
+                              _model.updatePage(() {});
+
+                              safeSetState(() {});
                             },
-                          );
-                          return;
-                        }
-                        _model.idRebanho = null;
-                        safeSetState(() {});
-                        _model.idRebanho = random_data.randomString(
-                          20,
-                          20,
-                          true,
-                          false,
-                          true,
-                        );
-                        safeSetState(() {});
-                        // Regra de pesoAtual:
-                        // - Se usuário informou pesoAtual, usa o valor digitado.
-                        // - Se pesoAtual vazio e pesoDesmama informado, usa pesoDesmama
-                        //   (e dataUltimaPesagem = dataDesmama).
-                        // - Se só pesoNascimento informado, NÃO setar pesoAtual.
-                        final double? pesoDesmamaParsedCC = double.tryParse(_model.pesoDesmamaTextController.text.replaceAll(',', '.'));
-                        final double? pesoAtualDigitadoCC = double.tryParse(_model.pesoAtualTextController.text.replaceAll(',', '.'));
-                        final double? pesoAtualFinalCC =
-                            pesoAtualDigitadoCC ?? pesoDesmamaParsedCC;
-                        final DateTime? dataUltimaPesagemFinalCC =
-                            pesoAtualDigitadoCC != null
-                                ? _model.datePicked4
-                                : (pesoDesmamaParsedCC != null
-                                    ? _model.datePicked3
-                                    : null);
-                        await RebanhoTable().insert({
-                          'idPropriedade':
-                              FFAppState().propriedadeSelecionada.idPropriedade,
-                          'numeroAnimal': _model.numAnimalTextController.text,
-                          'chip': _model.chipTextController.text,
-                          'codRegistro': _model.codRegistroTextController.text,
-                          'nome': _model.nomeAnimalTextController.text,
-                          'sexo': _model.dropDownSexoValue,
-                          'categoria': _model.dropDownSexoValue == 'Macho'
-                              ? _model.dDCatRebanhoMachoValue
-                              : _model.dDCatRebanhoFemeaValue,
-                          'dataNascimento':
-                              supaSerialize<DateTime>(_model.datePicked1),
-                          'pesoNascimento': double.tryParse(_model.pesoNascimentoTextController.text.replaceAll(',', '.')),
-                          'porte': _model.dropDownPorteValue,
-                          'raca': _model.dropDownRacaValue,
-                          'tipo_registro': paintTipoRegistroParaSalvar(
-                              _model.dropDownTipoRegistroValue),
-                          'loteID': _model.dropDownLotesValue,
-                          'dataEntradaLote':
-                              supaSerialize<DateTime>(_model.datePicked2),
-                          'rebanhoIdMatriz': _model.dropDownMatrizValue,
-                          'rebanhoIdReprodutor': _model.dropDownReprodutorValue,
-                          'dataDesmama':
-                              supaSerialize<DateTime>(_model.datePicked3),
-                          'pesoDesmama': double.tryParse(_model.pesoDesmamaTextController.text.replaceAll(',', '.')),
-                          'pesoAtual': pesoAtualFinalCC,
-                          'status': _model.dropDownStatusValue,
-                          'origem': _model.dropDownOrigemValue,
-                          'anotacoes': _model.anotacoesTextController.text,
-                          'idRebanho': _model.idRebanho,
-                          'deletado': 'NAO',
-                          'loteNome': FFAppState()
-                              .rebanhoLotesSelecionar
-                              .where(
-                                  (e) => _model.dropDownLotesValue == e.idLote)
-                              .toList()
-                              .firstOrNull
-                              ?.nome,
-                          'tipo': 'animal',
-                          'dataAcao':
-                              supaSerialize<DateTime>(_model.datePicked5),
-                          'valorCompra': FFAppState().valueDouble,
-                          'dataUltimaPesagem':
-                              supaSerialize<DateTime>(dataUltimaPesagemFinalCC),
-                          'nomeConcat':
-                              '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${dateTimeFormat(
-                            "d/M/y",
-                            _model.datePicked1,
-                            locale: FFLocalizations.of(context).languageCode,
-                          )}',
-                        });
-                        final _pesoPesoNascimentoHist = double.tryParse(_model.pesoNascimentoTextController.text.replaceAll(',', '.'));
-                        if (_pesoPesoNascimentoHist != null && _pesoPesoNascimentoHist > 0) {
-                          await HistoricoPesagensTable().insert({
-                            'idRebanho': _model.idRebanho,
-                            'id_propriedade': FFAppState()
-                                .propriedadeSelecionada
-                                .idPropriedade,
-                            'dataPesagem':
-                                supaSerialize<DateTime>(_model.datePicked1),
-                            'tipo': 'Nascimento',
-                            'peso': _pesoPesoNascimentoHist,
-                            'deletado': 'NAO',
-                          });
-                        }
-                        final _pesoPesoDesmamaHist = double.tryParse(_model.pesoDesmamaTextController.text.replaceAll(',', '.'));
-                        if (_pesoPesoDesmamaHist != null && _pesoPesoDesmamaHist > 0) {
-                          await HistoricoPesagensTable().insert({
-                            'idRebanho': _model.idRebanho,
-                            'id_propriedade': FFAppState()
-                                .propriedadeSelecionada
-                                .idPropriedade,
-                            'dataPesagem':
-                                supaSerialize<DateTime>(_model.datePicked3),
-                            'tipo': 'Desmama',
-                            'peso': _pesoPesoDesmamaHist,
-                            'deletado': 'NAO',
-                          });
-                        }
-                        final _pesoPesoAtualHist = double.tryParse(_model.pesoAtualTextController.text.replaceAll(',', '.'));
-                        if (_pesoPesoAtualHist != null && _pesoPesoAtualHist > 0) {
-                          await HistoricoPesagensTable().insert({
-                            'idRebanho': _model.idRebanho,
-                            'id_propriedade': FFAppState()
-                                .propriedadeSelecionada
-                                .idPropriedade,
-                            'dataPesagem':
-                                supaSerialize<DateTime>(_model.datePicked4),
-                            'tipo': 'Atual',
-                            'peso': _pesoPesoAtualHist,
-                            'deletado': 'NAO',
-                          });
-                        }
-                        if (_model.dropDownLotesValue != null &&
-                            _model.dropDownLotesValue != '') {
-                          _model.loteSelecionado = await LotesTable().queryRows(
-                            queryFn: (q) => q.eqOrNull(
-                              'id_lote',
-                              _model.dropDownLotesValue,
-                            ),
-                          );
-                          _model.animaisLote = functions
-                              .converterJSONparaLista(_model
-                                  .loteSelecionado?.firstOrNull?.idAnimais)!
-                              .toList()
-                              .cast<String>();
-                          safeSetState(() {});
-                          _model.addToAnimaisLote(_model.idRebanho!);
-                          safeSetState(() {});
-                          await LotesTable().update(
-                            data: {
-                              'id_animais': functions.converterListaParaJSON(
-                                  _model.animaisLote.toList()),
-                              'updated_at':
-                                  supaSerialize<DateTime>(getCurrentTimestamp),
-                            },
-                            matchingRows: (rows) => rows.eqOrNull(
-                              'id_lote',
-                              _model.dropDownLotesValue,
-                            ),
-                          );
-                        }
-                        safeSetState(() {
-                          _model.dropDownSexoValueController?.reset();
-                          _model.dropDownSexoValue = null;
-                          _model.dropDownPorteValueController?.reset();
-                          _model.dropDownPorteValue = null;
-                          _model.dDCatRebanhoFemeaValueController?.reset();
-                          _model.dDCatRebanhoFemeaValue = null;
-                          _model.dDCatRebanhoMachoValueController?.reset();
-                          _model.dDCatRebanhoMachoValue = null;
-                          _model.dropDownRacaValueController?.reset();
-                          _model.dropDownRacaValue = null;
-                          _model.dropDownTipoRegistroValueController?.reset();
-                          _model.dropDownTipoRegistroValue = null;
-                          _model.dropDownLotesValueController?.reset();
-                          _model.dropDownLotesValue = null;
-                          _model.dropDownMatrizValueController?.reset();
-                          _model.dropDownMatrizValue = null;
-                          _model.dropDownReprodutorValueController?.reset();
-                          _model.dropDownReprodutorValue = null;
-                          _model.dropDownStatusValueController?.reset();
-                          _model.dropDownStatusValue = null;
-                          _model.dropDownOrigemValueController?.reset();
-                          _model.dropDownOrigemValue = null;
-                        });
-                        safeSetState(() {
-                          _model.numAnimalTextController?.clear();
-                          _model.chipTextController?.clear();
-                          _model.codRegistroTextController?.clear();
-                          _model.nomeAnimalTextController?.clear();
-                          _model.dataNascimentoTextController?.text =
-                              dateTimeFormat(
-                            "d/M/y",
-                            _model.datePicked1,
-                            locale: FFLocalizations.of(context).languageCode,
-                          );
-
-                          _model.pesoNascimentoTextController?.clear();
-                          _model.dataEntradaLoteTextController?.text =
-                              dateTimeFormat(
-                            "d/M/y",
-                            _model.datePicked2,
-                            locale: FFLocalizations.of(context).languageCode,
-                          );
-
-                          _model.dataDesmamaTextController?.text =
-                              dateTimeFormat(
-                            "d/M/y",
-                            _model.datePicked3,
-                            locale: FFLocalizations.of(context).languageCode,
-                          );
-
-                          _model.pesoDesmamaTextController?.clear();
-                          _model.dataUltimaPesagemTextController?.text =
-                              dateTimeFormat(
-                            "d/M/y",
-                            _model.datePicked4,
-                            locale: FFLocalizations.of(context).languageCode,
-                          );
-
-                          _model.pesoAtualTextController?.clear();
-                          _model.dataAcaoTextController?.text = dateTimeFormat(
-                            "d/M/y",
-                            _model.datePicked5,
-                            locale: FFLocalizations.of(context).languageCode,
-                          );
-
-                          _model.anotacoesTextController?.clear();
-                        });
-                        FFAppState().refreshRebanho = true;
-                        safeSetState(() {});
-                        FFAppState().pageRebanho = 'rebanho';
-                        _model.updatePage(() {});
-
-                        safeSetState(() {});
-                      },
-                      text: 'Salvar',
+                      text: _model.isSaving ? 'Salvando...' : 'Salvar',
                       options: FFButtonOptions(
                         width: 160.0,
                         height: 56.0,

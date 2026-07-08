@@ -7,7 +7,6 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'pp_filtro_rebanho_model.dart';
 export 'pp_filtro_rebanho_model.dart';
 
@@ -32,6 +31,37 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
     super.initState();
     _model = createModel(context, () => PpFiltroRebanhoModel());
 
+    _model.pendingSexo = FFAppState().filtroSexo;
+    _model.pendingStatus = FFAppState().filtroStatusRebanho;
+    _model.pendingCategoria = FFAppState().filtroCategoria;
+    _model.pendingLoteId = FFAppState().filtroLoteId;
+    _model.pendingLoteNome = FFAppState().filtroLoteNome;
+    _model.pendingRaca = FFAppState().filtroRaca;
+    _model.pendingOrigem = FFAppState().filtroOrigem;
+    _model.pendingDataNascimentoDe = FFAppState().filtroDataNacimentoDe;
+    _model.pendingDataNascimentoAte = FFAppState().filtroDataNacimentoAte;
+    _model.dropDownSexoValue = _model.pendingSexo;
+    _model.dropDownStatusValue = _model.pendingStatus;
+    _model.dropDownLoteValues =
+        _model.pendingLoteId.isEmpty ? [] : _model.pendingLoteId.split(',');
+    _model.dDCatRebanhoFemeaValue = _model.pendingCategoria;
+    _model.dDCatRebanhoMachoValue = _model.pendingCategoria;
+    _model.dropDownRacaValue = _model.pendingRaca;
+    _model.dropDownOrigemValue = _model.pendingOrigem;
+    _model.datePickedDe = _model.pendingDataNascimentoDe;
+    _model.datePickedAte = _model.pendingDataNascimentoAte;
+    _model.lotesFuture = LotesTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull(
+            'id_propriedade',
+            FFAppState().propriedadeSelecionada.idPropriedade,
+          )
+          .eqOrNull(
+            'deletado',
+            'NAO',
+          ),
+    );
+
     _model.dataNascimentoDeTextController ??= TextEditingController();
     _model.dataNascimentoDeFocusNode ??= FocusNode();
     _model.dataNascimentoAteTextController ??= TextEditingController();
@@ -41,7 +71,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
           _model.dataNascimentoDeTextController?.text = valueOrDefault<String>(
             dateTimeFormat(
               "d/M/y",
-              FFAppState().filtroDataNacimentoDe,
+              _model.pendingDataNascimentoDe,
               locale: FFLocalizations.of(context).languageCode,
             ),
             'dd/mm/aaaa',
@@ -49,7 +79,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
           _model.dataNascimentoAteTextController?.text = valueOrDefault<String>(
             dateTimeFormat(
               "d/M/y",
-              FFAppState().filtroDataNacimentoAte,
+              _model.pendingDataNascimentoAte,
               locale: FFLocalizations.of(context).languageCode,
             ),
             'dd/mm/aaaa',
@@ -66,22 +96,10 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     return Align(
       alignment: const AlignmentDirectional(0.0, 0.0),
       child: FutureBuilder<List<LotesRow>>(
-        future: LotesTable().queryRows(
-          queryFn: (q) => q
-              .eqOrNull(
-                'id_propriedade',
-                FFAppState().propriedadeSelecionada.idPropriedade,
-              )
-              .eqOrNull(
-                'deletado',
-                'NAO',
-              ),
-        ),
+        future: _model.lotesFuture,
         builder: (context, snapshot) {
           // Customize what your widget looks like when it's loading.
           if (!snapshot.hasData) {
@@ -177,16 +195,21 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                             FlutterFlowDropDown<String>(
                               controller: _model.dropDownSexoValueController ??=
                                   FormFieldController<String>(
-                                _model.dropDownSexoValue ??=
-                                    FFAppState().filtroSexo,
+                                _model.dropDownSexoValue ??= _model.pendingSexo,
                               ),
                               options: const ['Fêmea', 'Macho'],
                               onChanged: (val) async {
-                                safeSetState(
-                                    () => _model.dropDownSexoValue = val);
-                                FFAppState().filtroSexo =
-                                    _model.dropDownSexoValue!;
-                                safeSetState(() {});
+                                safeSetState(() {
+                                  _model.dropDownSexoValue = val;
+                                  _model.pendingSexo = val ?? '';
+                                  _model.pendingCategoria = '';
+                                  _model.dDCatRebanhoFemeaValueController
+                                      ?.reset();
+                                  _model.dDCatRebanhoFemeaValue = null;
+                                  _model.dDCatRebanhoMachoValueController
+                                      ?.reset();
+                                  _model.dDCatRebanhoMachoValue = null;
+                                });
                               },
                               height: 56.0,
                               textStyle: FlutterFlowTheme.of(context)
@@ -256,15 +279,14 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                   _model.dropDownStatusValueController ??=
                                       FormFieldController<String>(
                                 _model.dropDownStatusValue ??=
-                                    FFAppState().filtroStatusRebanho,
+                                    _model.pendingStatus,
                               ),
                               options: FFAppState().statusRebanho,
                               onChanged: (val) async {
-                                safeSetState(
-                                    () => _model.dropDownStatusValue = val);
-                                FFAppState().filtroStatusRebanho =
-                                    _model.dropDownStatusValue!;
-                                safeSetState(() {});
+                                safeSetState(() {
+                                  _model.dropDownStatusValue = val;
+                                  _model.pendingStatus = val ?? '';
+                                });
                               },
                               height: 56.0,
                               textStyle: FlutterFlowTheme.of(context)
@@ -339,7 +361,8 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                 Expanded(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'De',
@@ -348,69 +371,83 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                             .override(
                                               font: GoogleFonts.poppins(
                                                 fontWeight: FontWeight.w500,
-                                                fontStyle: FlutterFlowTheme.of(context)
-                                                    .bodySmall
-                                                    .fontStyle,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodySmall
+                                                        .fontStyle,
                                               ),
                                               letterSpacing: 0.0,
                                               fontWeight: FontWeight.w500,
-                                              fontStyle: FlutterFlowTheme.of(context)
-                                                  .bodySmall
-                                                  .fontStyle,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodySmall
+                                                      .fontStyle,
                                             ),
                                       ),
                                       Stack(
                                         children: [
                                           TextFormField(
-                                            controller:
-                                                _model.dataNascimentoDeTextController,
-                                            focusNode: _model.dataNascimentoDeFocusNode,
+                                            controller: _model
+                                                .dataNascimentoDeTextController,
+                                            focusNode: _model
+                                                .dataNascimentoDeFocusNode,
                                             autofocus: false,
                                             readOnly: true,
                                             obscureText: false,
                                             decoration: InputDecoration(
                                               isDense: false,
-                                              labelStyle: FlutterFlowTheme.of(context)
+                                              labelStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .labelMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .labelMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .labelMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        fontSize: 16.0,
+                                                        letterSpacing: 0.0,
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontStyle,
+                                                      ),
+                                              hintText: 'dd/mm/aaaa',
+                                              hintStyle: FlutterFlowTheme.of(
+                                                      context)
                                                   .labelMedium
                                                   .override(
                                                     font: GoogleFonts.poppins(
                                                       fontWeight:
-                                                          FlutterFlowTheme.of(context)
-                                                              .labelMedium
-                                                              .fontWeight,
+                                                          FontWeight.w600,
                                                       fontStyle:
-                                                          FlutterFlowTheme.of(context)
+                                                          FlutterFlowTheme.of(
+                                                                  context)
                                                               .labelMedium
                                                               .fontStyle,
                                                     ),
-                                                    fontSize: 16.0,
-                                                    letterSpacing: 0.0,
-                                                    fontWeight:
-                                                        FlutterFlowTheme.of(context)
-                                                            .labelMedium
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(context)
-                                                            .labelMedium
-                                                            .fontStyle,
-                                                  ),
-                                              hintText: 'dd/mm/aaaa',
-                                              hintStyle: FlutterFlowTheme.of(context)
-                                                  .labelMedium
-                                                  .override(
-                                                    font: GoogleFonts.poppins(
-                                                      fontWeight: FontWeight.w600,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(context)
-                                                              .labelMedium
-                                                              .fontStyle,
-                                                    ),
-                                                    color: const Color(0xFFBEBEBE),
+                                                    color:
+                                                        const Color(0xFFBEBEBE),
                                                     fontSize: 16.0,
                                                     letterSpacing: 0.0,
                                                     fontWeight: FontWeight.w600,
                                                     fontStyle:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .labelMedium
                                                             .fontStyle,
                                                   ),
@@ -419,38 +456,47 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                                   color: Color(0x00000000),
                                                   width: 1.0,
                                                 ),
-                                                borderRadius: BorderRadius.circular(8.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
                                               ),
                                               focusedBorder: OutlineInputBorder(
                                                 borderSide: const BorderSide(
                                                   color: Color(0x00000000),
                                                   width: 1.0,
                                                 ),
-                                                borderRadius: BorderRadius.circular(8.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
                                               ),
                                               errorBorder: OutlineInputBorder(
                                                 borderSide: BorderSide(
-                                                  color:
-                                                      FlutterFlowTheme.of(context).error,
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .error,
                                                   width: 1.0,
                                                 ),
-                                                borderRadius: BorderRadius.circular(8.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
                                               ),
-                                              focusedErrorBorder: OutlineInputBorder(
+                                              focusedErrorBorder:
+                                                  OutlineInputBorder(
                                                 borderSide: BorderSide(
-                                                  color:
-                                                      FlutterFlowTheme.of(context).error,
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .error,
                                                   width: 1.0,
                                                 ),
-                                                borderRadius: BorderRadius.circular(8.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
                                               ),
                                               filled: true,
-                                              fillColor: FlutterFlowTheme.of(context)
-                                                  .customColor2,
+                                              fillColor:
+                                                  FlutterFlowTheme.of(context)
+                                                      .customColor2,
                                               suffixIcon: Icon(
                                                 Icons.calendar_today,
-                                                color: FlutterFlowTheme.of(context)
-                                                    .secondaryText,
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryText,
                                               ),
                                             ),
                                             style: FlutterFlowTheme.of(context)
@@ -459,19 +505,23 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                                   font: GoogleFonts.poppins(
                                                     fontWeight: FontWeight.w600,
                                                     fontStyle:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .bodyMedium
                                                             .fontStyle,
                                                   ),
                                                   fontSize: 16.0,
                                                   letterSpacing: 0.0,
                                                   fontWeight: FontWeight.w600,
-                                                  fontStyle: FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontStyle,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMedium
+                                                          .fontStyle,
                                                 ),
                                             cursorColor:
-                                                FlutterFlowTheme.of(context).primaryText,
+                                                FlutterFlowTheme.of(context)
+                                                    .primaryText,
                                             validator: _model
                                                 .dataNascimentoDeTextControllerValidator
                                                 .asValidator(context),
@@ -485,7 +535,8 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                               final datePickedDeDate =
                                                   await showDatePicker(
                                                 context: context,
-                                                initialDate: getCurrentTimestamp,
+                                                initialDate:
+                                                    getCurrentTimestamp,
                                                 firstDate: DateTime(1900),
                                                 lastDate: DateTime(2050),
                                                 builder: (context, child) {
@@ -493,43 +544,58 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                                     context,
                                                     child!,
                                                     headerBackgroundColor:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .primary,
                                                     headerForegroundColor:
-                                                        FlutterFlowTheme.of(context).info,
-                                                    headerTextStyle: FlutterFlowTheme.of(
-                                                            context)
-                                                        .headlineLarge
-                                                        .override(
-                                                          font: GoogleFonts.poppins(
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .info,
+                                                    headerTextStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .headlineLarge
+                                                            .override(
+                                                              font: GoogleFonts
+                                                                  .poppins(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
                                                                         context)
                                                                     .headlineLarge
                                                                     .fontStyle,
-                                                          ),
-                                                          fontSize: 32.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight: FontWeight.w600,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(context)
+                                                              ),
+                                                              fontSize: 32.0,
+                                                              letterSpacing:
+                                                                  0.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              fontStyle: FlutterFlowTheme
+                                                                      .of(context)
                                                                   .headlineLarge
                                                                   .fontStyle,
-                                                        ),
+                                                            ),
                                                     pickerBackgroundColor:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .secondaryBackground,
                                                     pickerForegroundColor:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .primaryText,
                                                     selectedDateTimeBackgroundColor:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .primary,
                                                     selectedDateTimeForegroundColor:
-                                                        FlutterFlowTheme.of(context).info,
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .info,
                                                     actionButtonForegroundColor:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .primaryText,
                                                     iconSize: 24.0,
                                                   );
@@ -538,29 +604,33 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
 
                                               if (datePickedDeDate != null) {
                                                 safeSetState(() {
-                                                  _model.datePickedDe = DateTime(
+                                                  _model.datePickedDe =
+                                                      DateTime(
                                                     datePickedDeDate.year,
                                                     datePickedDeDate.month,
                                                     datePickedDeDate.day,
                                                   );
                                                 });
-                                              } else if (_model.datePickedDe != null) {
+                                              } else if (_model.datePickedDe !=
+                                                  null) {
                                                 safeSetState(() {
-                                                  _model.datePickedDe = getCurrentTimestamp;
+                                                  _model.datePickedDe =
+                                                      getCurrentTimestamp;
                                                 });
                                               }
                                               safeSetState(() {
-                                                _model.dataNascimentoDeTextController
+                                                _model
+                                                    .dataNascimentoDeTextController
                                                     ?.text = dateTimeFormat(
                                                   "d/M/y",
                                                   _model.datePickedDe,
-                                                  locale: FFLocalizations.of(context)
+                                                  locale: FFLocalizations.of(
+                                                          context)
                                                       .languageCode,
                                                 );
+                                                _model.pendingDataNascimentoDe =
+                                                    _model.datePickedDe;
                                               });
-                                              FFAppState().filtroDataNacimentoDe =
-                                                  _model.datePickedDe;
-                                              safeSetState(() {});
                                             },
                                             child: Container(
                                               width: double.infinity,
@@ -577,7 +647,8 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                 Expanded(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Até',
@@ -586,69 +657,83 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                             .override(
                                               font: GoogleFonts.poppins(
                                                 fontWeight: FontWeight.w500,
-                                                fontStyle: FlutterFlowTheme.of(context)
-                                                    .bodySmall
-                                                    .fontStyle,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodySmall
+                                                        .fontStyle,
                                               ),
                                               letterSpacing: 0.0,
                                               fontWeight: FontWeight.w500,
-                                              fontStyle: FlutterFlowTheme.of(context)
-                                                  .bodySmall
-                                                  .fontStyle,
+                                              fontStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodySmall
+                                                      .fontStyle,
                                             ),
                                       ),
                                       Stack(
                                         children: [
                                           TextFormField(
-                                            controller:
-                                                _model.dataNascimentoAteTextController,
-                                            focusNode: _model.dataNascimentoAteFocusNode,
+                                            controller: _model
+                                                .dataNascimentoAteTextController,
+                                            focusNode: _model
+                                                .dataNascimentoAteFocusNode,
                                             autofocus: false,
                                             readOnly: true,
                                             obscureText: false,
                                             decoration: InputDecoration(
                                               isDense: false,
-                                              labelStyle: FlutterFlowTheme.of(context)
+                                              labelStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .labelMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .labelMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .labelMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        fontSize: 16.0,
+                                                        letterSpacing: 0.0,
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .labelMedium
+                                                                .fontStyle,
+                                                      ),
+                                              hintText: 'dd/mm/aaaa',
+                                              hintStyle: FlutterFlowTheme.of(
+                                                      context)
                                                   .labelMedium
                                                   .override(
                                                     font: GoogleFonts.poppins(
                                                       fontWeight:
-                                                          FlutterFlowTheme.of(context)
-                                                              .labelMedium
-                                                              .fontWeight,
+                                                          FontWeight.w600,
                                                       fontStyle:
-                                                          FlutterFlowTheme.of(context)
+                                                          FlutterFlowTheme.of(
+                                                                  context)
                                                               .labelMedium
                                                               .fontStyle,
                                                     ),
-                                                    fontSize: 16.0,
-                                                    letterSpacing: 0.0,
-                                                    fontWeight:
-                                                        FlutterFlowTheme.of(context)
-                                                            .labelMedium
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(context)
-                                                            .labelMedium
-                                                            .fontStyle,
-                                                  ),
-                                              hintText: 'dd/mm/aaaa',
-                                              hintStyle: FlutterFlowTheme.of(context)
-                                                  .labelMedium
-                                                  .override(
-                                                    font: GoogleFonts.poppins(
-                                                      fontWeight: FontWeight.w600,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(context)
-                                                              .labelMedium
-                                                              .fontStyle,
-                                                    ),
-                                                    color: const Color(0xFFBEBEBE),
+                                                    color:
+                                                        const Color(0xFFBEBEBE),
                                                     fontSize: 16.0,
                                                     letterSpacing: 0.0,
                                                     fontWeight: FontWeight.w600,
                                                     fontStyle:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .labelMedium
                                                             .fontStyle,
                                                   ),
@@ -657,38 +742,47 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                                   color: Color(0x00000000),
                                                   width: 1.0,
                                                 ),
-                                                borderRadius: BorderRadius.circular(8.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
                                               ),
                                               focusedBorder: OutlineInputBorder(
                                                 borderSide: const BorderSide(
                                                   color: Color(0x00000000),
                                                   width: 1.0,
                                                 ),
-                                                borderRadius: BorderRadius.circular(8.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
                                               ),
                                               errorBorder: OutlineInputBorder(
                                                 borderSide: BorderSide(
-                                                  color:
-                                                      FlutterFlowTheme.of(context).error,
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .error,
                                                   width: 1.0,
                                                 ),
-                                                borderRadius: BorderRadius.circular(8.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
                                               ),
-                                              focusedErrorBorder: OutlineInputBorder(
+                                              focusedErrorBorder:
+                                                  OutlineInputBorder(
                                                 borderSide: BorderSide(
-                                                  color:
-                                                      FlutterFlowTheme.of(context).error,
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .error,
                                                   width: 1.0,
                                                 ),
-                                                borderRadius: BorderRadius.circular(8.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
                                               ),
                                               filled: true,
-                                              fillColor: FlutterFlowTheme.of(context)
-                                                  .customColor2,
+                                              fillColor:
+                                                  FlutterFlowTheme.of(context)
+                                                      .customColor2,
                                               suffixIcon: Icon(
                                                 Icons.calendar_today,
-                                                color: FlutterFlowTheme.of(context)
-                                                    .secondaryText,
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryText,
                                               ),
                                             ),
                                             style: FlutterFlowTheme.of(context)
@@ -697,19 +791,23 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                                   font: GoogleFonts.poppins(
                                                     fontWeight: FontWeight.w600,
                                                     fontStyle:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .bodyMedium
                                                             .fontStyle,
                                                   ),
                                                   fontSize: 16.0,
                                                   letterSpacing: 0.0,
                                                   fontWeight: FontWeight.w600,
-                                                  fontStyle: FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .fontStyle,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMedium
+                                                          .fontStyle,
                                                 ),
                                             cursorColor:
-                                                FlutterFlowTheme.of(context).primaryText,
+                                                FlutterFlowTheme.of(context)
+                                                    .primaryText,
                                             validator: _model
                                                 .dataNascimentoAteTextControllerValidator
                                                 .asValidator(context),
@@ -723,7 +821,8 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                               final datePickedAteDate =
                                                   await showDatePicker(
                                                 context: context,
-                                                initialDate: getCurrentTimestamp,
+                                                initialDate:
+                                                    getCurrentTimestamp,
                                                 firstDate: DateTime(1900),
                                                 lastDate: DateTime(2050),
                                                 builder: (context, child) {
@@ -731,43 +830,58 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                                     context,
                                                     child!,
                                                     headerBackgroundColor:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .primary,
                                                     headerForegroundColor:
-                                                        FlutterFlowTheme.of(context).info,
-                                                    headerTextStyle: FlutterFlowTheme.of(
-                                                            context)
-                                                        .headlineLarge
-                                                        .override(
-                                                          font: GoogleFonts.poppins(
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .info,
+                                                    headerTextStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .headlineLarge
+                                                            .override(
+                                                              font: GoogleFonts
+                                                                  .poppins(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
                                                                         context)
                                                                     .headlineLarge
                                                                     .fontStyle,
-                                                          ),
-                                                          fontSize: 32.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight: FontWeight.w600,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(context)
+                                                              ),
+                                                              fontSize: 32.0,
+                                                              letterSpacing:
+                                                                  0.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              fontStyle: FlutterFlowTheme
+                                                                      .of(context)
                                                                   .headlineLarge
                                                                   .fontStyle,
-                                                        ),
+                                                            ),
                                                     pickerBackgroundColor:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .secondaryBackground,
                                                     pickerForegroundColor:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .primaryText,
                                                     selectedDateTimeBackgroundColor:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .primary,
                                                     selectedDateTimeForegroundColor:
-                                                        FlutterFlowTheme.of(context).info,
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .info,
                                                     actionButtonForegroundColor:
-                                                        FlutterFlowTheme.of(context)
+                                                        FlutterFlowTheme.of(
+                                                                context)
                                                             .primaryText,
                                                     iconSize: 24.0,
                                                   );
@@ -776,29 +890,33 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
 
                                               if (datePickedAteDate != null) {
                                                 safeSetState(() {
-                                                  _model.datePickedAte = DateTime(
+                                                  _model.datePickedAte =
+                                                      DateTime(
                                                     datePickedAteDate.year,
                                                     datePickedAteDate.month,
                                                     datePickedAteDate.day,
                                                   );
                                                 });
-                                              } else if (_model.datePickedAte != null) {
+                                              } else if (_model.datePickedAte !=
+                                                  null) {
                                                 safeSetState(() {
-                                                  _model.datePickedAte = getCurrentTimestamp;
+                                                  _model.datePickedAte =
+                                                      getCurrentTimestamp;
                                                 });
                                               }
                                               safeSetState(() {
-                                                _model.dataNascimentoAteTextController
+                                                _model
+                                                    .dataNascimentoAteTextController
                                                     ?.text = dateTimeFormat(
                                                   "d/M/y",
                                                   _model.datePickedAte,
-                                                  locale: FFLocalizations.of(context)
+                                                  locale: FFLocalizations.of(
+                                                          context)
                                                       .languageCode,
                                                 );
+                                                _model.pendingDataNascimentoAte =
+                                                    _model.datePickedAte;
                                               });
-                                              FFAppState().filtroDataNacimentoAte =
-                                                  _model.datePickedAte;
-                                              safeSetState(() {});
                                             },
                                             child: Container(
                                               width: double.infinity,
@@ -841,37 +959,28 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                   ),
                             ),
                             FlutterFlowDropDown<String>(
-                              multiSelectController: _model
-                                      .dropDownLoteValueController ??=
-                                  FormFieldController<List<String>?>(
-                                _model.dropDownLoteValues ??= FFAppState()
-                                        .filtroLoteId
-                                        .isEmpty
-                                    ? []
-                                    : FFAppState()
-                                        .filtroLoteId
-                                        .split(','),
+                              multiSelectController:
+                                  _model.dropDownLoteValueController ??=
+                                      FormFieldController<List<String>?>(
+                                _model.dropDownLoteValues ??=
+                                    _model.pendingLoteId.isEmpty
+                                        ? []
+                                        : _model.pendingLoteId.split(','),
                               ),
                               options: [
                                 'SEM_LOTE',
                                 ...containerLotesRowList
                                     .map((e) => e.idLote)
-                                    .withoutNulls
-                                    .toList(),
+                                    .withoutNulls,
                               ],
                               optionLabels: [
                                 'Sem lote',
                                 ...containerLotesRowList
                                     .map((e) => e.nome)
-                                    .withoutNulls
-                                    .toList(),
+                                    .withoutNulls,
                               ],
                               onMultiSelectChanged: (vals) async {
-                                safeSetState(
-                                    () => _model.dropDownLoteValues = vals);
                                 final selectedIds = vals ?? [];
-                                FFAppState().filtroLoteId =
-                                    selectedIds.join(',');
                                 final names = selectedIds.map((id) {
                                   if (id == 'SEM_LOTE') return 'SEM_LOTE';
                                   return containerLotesRowList
@@ -880,9 +989,11 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                           .firstOrNull ??
                                       '';
                                 }).toList();
-                                FFAppState().filtroLoteNome =
-                                    names.join(',');
-                                safeSetState(() {});
+                                safeSetState(() {
+                                  _model.dropDownLoteValues = vals;
+                                  _model.pendingLoteId = selectedIds.join(',');
+                                  _model.pendingLoteNome = names.join(',');
+                                });
                               },
                               height: 56.0,
                               textStyle: FlutterFlowTheme.of(context)
@@ -958,7 +1069,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                     _model.dDCatRebanhoFemeaValueController ??=
                                         FormFieldController<String>(
                                   _model.dDCatRebanhoFemeaValue ??=
-                                      FFAppState().filtroCategoria,
+                                      _model.pendingCategoria,
                                 ),
                                 options: const [
                                   'Bezerra',
@@ -969,9 +1080,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                 onChanged: (val) async {
                                   safeSetState(() =>
                                       _model.dDCatRebanhoFemeaValue = val);
-                                  FFAppState().filtroCategoria =
-                                      _model.dDCatRebanhoFemeaValue!;
-                                  safeSetState(() {});
+                                  _model.pendingCategoria = val ?? '';
                                 },
                                 height: 56.0,
                                 textStyle: FlutterFlowTheme.of(context)
@@ -1015,7 +1124,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                     _model.dDCatRebanhoMachoValueController ??=
                                         FormFieldController<String>(
                                   _model.dDCatRebanhoMachoValue ??=
-                                      FFAppState().filtroCategoria,
+                                      _model.pendingCategoria,
                                 ),
                                 options: const [
                                   'Boi Gordo',
@@ -1028,9 +1137,7 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                 onChanged: (val) async {
                                   safeSetState(() =>
                                       _model.dDCatRebanhoMachoValue = val);
-                                  FFAppState().filtroCategoria =
-                                      _model.dDCatRebanhoMachoValue!;
-                                  safeSetState(() {});
+                                  _model.pendingCategoria = val ?? '';
                                 },
                                 height: 56.0,
                                 textStyle: FlutterFlowTheme.of(context)
@@ -1129,16 +1236,14 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                             FlutterFlowDropDown<String>(
                               controller: _model.dropDownRacaValueController ??=
                                   FormFieldController<String>(
-                                _model.dropDownRacaValue ??=
-                                    FFAppState().filtroRaca,
+                                _model.dropDownRacaValue ??= _model.pendingRaca,
                               ),
                               options: FFAppState().raca,
                               onChanged: (val) async {
-                                safeSetState(
-                                    () => _model.dropDownRacaValue = val);
-                                FFAppState().filtroRaca =
-                                    _model.dropDownRacaValue!;
-                                safeSetState(() {});
+                                safeSetState(() {
+                                  _model.dropDownRacaValue = val;
+                                  _model.pendingRaca = val ?? '';
+                                });
                               },
                               height: 56.0,
                               textStyle: FlutterFlowTheme.of(context)
@@ -1213,15 +1318,14 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                   _model.dropDownOrigemValueController ??=
                                       FormFieldController<String>(
                                 _model.dropDownOrigemValue ??=
-                                    FFAppState().filtroOrigem,
+                                    _model.pendingOrigem,
                               ),
                               options: FFAppState().origemRebanho,
                               onChanged: (val) async {
-                                safeSetState(
-                                    () => _model.dropDownOrigemValue = val);
-                                FFAppState().filtroOrigem =
-                                    _model.dropDownOrigemValue!;
-                                safeSetState(() {});
+                                safeSetState(() {
+                                  _model.dropDownOrigemValue = val;
+                                  _model.pendingOrigem = val ?? '';
+                                });
                               },
                               height: 56.0,
                               textStyle: FlutterFlowTheme.of(context)
@@ -1270,17 +1374,28 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                     children: [
                       FFButtonWidget(
                         onPressed: () async {
-                          FFAppState().filtroSexo = '';
-                          FFAppState().filtroStatusRebanho = '';
-                          FFAppState().filtroCategoria = '';
-                          FFAppState().filtroDataNacimentoDe = null;
-                          FFAppState().filtroDataNacimentoAte = null;
-                          FFAppState().filtroLoteId = '';
-                          FFAppState().filtroLoteNome = '';
-                          FFAppState().filtroRaca = '';
-                          FFAppState().filtroOrigem = '';
-                          safeSetState(() {});
+                          final appState = FFAppState();
+                          appState.filtroSexo = '';
+                          appState.filtroStatusRebanho = '';
+                          appState.filtroCategoria = '';
+                          appState.filtroDataNacimentoDe = null;
+                          appState.filtroDataNacimentoAte = null;
+                          appState.filtroLoteId = '';
+                          appState.filtroLoteNome = '';
+                          appState.filtroRaca = '';
+                          appState.filtroOrigem = '';
                           safeSetState(() {
+                            _model.pendingSexo = '';
+                            _model.pendingStatus = '';
+                            _model.pendingCategoria = '';
+                            _model.pendingDataNascimentoDe = null;
+                            _model.pendingDataNascimentoAte = null;
+                            _model.pendingLoteId = '';
+                            _model.pendingLoteNome = '';
+                            _model.pendingRaca = '';
+                            _model.pendingOrigem = '';
+                            _model.datePickedDe = null;
+                            _model.datePickedAte = null;
                             _model.dropDownSexoValueController?.reset();
                             _model.dropDownSexoValue = null;
                             _model.dropDownStatusValueController?.reset();
@@ -1295,13 +1410,11 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                             _model.dropDownRacaValue = null;
                             _model.dropDownOrigemValueController?.reset();
                             _model.dropDownOrigemValue = null;
-                          });
-                          safeSetState(() {
                             _model.dataNascimentoDeTextController?.text =
                                 valueOrDefault<String>(
                               dateTimeFormat(
                                 "d/M/y",
-                                FFAppState().filtroDataNacimentoDe,
+                                _model.pendingDataNascimentoDe,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),
@@ -1311,15 +1424,14 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                                 valueOrDefault<String>(
                               dateTimeFormat(
                                 "d/M/y",
-                                FFAppState().filtroDataNacimentoAte,
+                                _model.pendingDataNascimentoAte,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),
                               'dd/mm/aaaa',
                             );
                           });
-                          FFAppState().refreshRebanho = true;
-                          safeSetState(() {});
+                          appState.refreshRebanho = true;
                           Navigator.pop(context);
                         },
                         text: 'Limpar',
@@ -1359,8 +1471,19 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                       ),
                       FFButtonWidget(
                         onPressed: () async {
-                          FFAppState().refreshRebanho = true;
-                          safeSetState(() {});
+                          final appState = FFAppState();
+                          appState.filtroSexo = _model.pendingSexo;
+                          appState.filtroStatusRebanho = _model.pendingStatus;
+                          appState.filtroCategoria = _model.pendingCategoria;
+                          appState.filtroDataNacimentoDe =
+                              _model.pendingDataNascimentoDe;
+                          appState.filtroDataNacimentoAte =
+                              _model.pendingDataNascimentoAte;
+                          appState.filtroLoteId = _model.pendingLoteId;
+                          appState.filtroLoteNome = _model.pendingLoteNome;
+                          appState.filtroRaca = _model.pendingRaca;
+                          appState.filtroOrigem = _model.pendingOrigem;
+                          appState.refreshRebanho = true;
                           Navigator.pop(context);
                         },
                         text: 'Aplicar filtro',

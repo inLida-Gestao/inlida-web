@@ -21,8 +21,23 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
             : (csvFile.name ?? ''))
         .toLowerCase();
 
+    if (_isLegacyXlsBinary(bytes, fileName)) {
+      print(
+        'Arquivo .xls binário não suportado na importação. Exporte como .xlsx ou CSV.',
+      );
+      return [];
+    }
+
+    final isXlsx = _isXlsxFile(bytes, fileName);
+    if (!isXlsx && _looksLikeBinaryContent(bytes)) {
+      print(
+        'Arquivo parece binário e não será importado como CSV para evitar caracteres corrompidos.',
+      );
+      return [];
+    }
+
     final List<List<dynamic>> rows =
-        _isXlsxFile(bytes, fileName) ? _parseXlsx(bytes) : _parseCsv(bytes);
+        isXlsx ? _parseXlsx(bytes) : _parseCsv(bytes);
 
     if (rows.isEmpty) return [];
 
@@ -206,6 +221,11 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
         map.putIfAbsent('idPropriedade', () => null);
 
         if (_isAllValuesMissing(map.values)) continue;
+        final validationError = _validateParsedRecord(map);
+        if (validationError != null) {
+          print('Linha ignorada na importação de rebanho: $validationError');
+          continue;
+        }
         out.add(map);
       }
 
@@ -240,6 +260,11 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
       }
 
       if (_isAllValuesMissing(map.values)) continue;
+      final validationError = _validateParsedRecord(map);
+      if (validationError != null) {
+        print('Linha ignorada na importação de rebanho: $validationError');
+        continue;
+      }
       out.add(map);
     }
 
@@ -252,13 +277,66 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
 }
 
 bool _isXlsxFile(List<int> bytes, String fileName) {
-  if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) return true;
+  if (fileName.endsWith('.xlsx')) return true;
+  if (fileName.endsWith('.xls') && _hasZipSignature(bytes)) return true;
   // XLSX é um ZIP; a assinatura evita decodificar bytes binários como CSV.
+  return _hasZipSignature(bytes);
+}
+
+bool _hasZipSignature(List<int> bytes) {
   return bytes.length >= 4 &&
       bytes[0] == 0x50 &&
       bytes[1] == 0x4B &&
       bytes[2] == 0x03 &&
       bytes[3] == 0x04;
+}
+
+bool _isLegacyXlsBinary(List<int> bytes, String fileName) {
+  final hasOleSignature = bytes.length >= 8 &&
+      bytes[0] == 0xD0 &&
+      bytes[1] == 0xCF &&
+      bytes[2] == 0x11 &&
+      bytes[3] == 0xE0 &&
+      bytes[4] == 0xA1 &&
+      bytes[5] == 0xB1 &&
+      bytes[6] == 0x1A &&
+      bytes[7] == 0xE1;
+
+  if (hasOleSignature) return true;
+
+  return fileName.endsWith('.xls') && !_hasZipSignature(bytes);
+}
+
+bool _hasUtf16Bom(List<int> bytes) {
+  return bytes.length >= 2 &&
+      ((bytes[0] == 0xFF && bytes[1] == 0xFE) ||
+          (bytes[0] == 0xFE && bytes[1] == 0xFF));
+}
+
+bool _looksLikeBinaryContent(List<int> bytes) {
+  if (bytes.isEmpty || _hasUtf16Bom(bytes) || _hasZipSignature(bytes)) {
+    return false;
+  }
+
+  final sampleLength = bytes.length < 4096 ? bytes.length : 4096;
+  var binaryControlBytes = 0;
+  var nullBytes = 0;
+
+  for (var i = 0; i < sampleLength; i++) {
+    final byte = bytes[i];
+    if (byte == 0) {
+      nullBytes++;
+      continue;
+    }
+
+    final isAllowedTextControl = byte == 0x09 || byte == 0x0A || byte == 0x0D;
+    if (byte < 0x20 && !isAllowedTextControl) {
+      binaryControlBytes++;
+    }
+  }
+
+  final binaryRatio = (binaryControlBytes + nullBytes) / sampleLength;
+  return nullBytes > 0 || binaryRatio > 0.04;
 }
 
 List<List<dynamic>> _parseXlsx(List<int> bytes) {
@@ -298,9 +376,11 @@ List<List<dynamic>> _parseXlsx(List<int> bytes) {
 
 List<List<dynamic>> _parseCsv(List<int> bytes) {
   List<int> cleanBytes = bytes;
+  String? csvString = _decodeUtf16Bom(cleanBytes);
 
   // 1. Detectar e remover BOM (Byte Order Mark)
-  if (cleanBytes.length >= 3 &&
+  if (csvString == null &&
+      cleanBytes.length >= 3 &&
       cleanBytes[0] == 0xEF &&
       cleanBytes[1] == 0xBB &&
       cleanBytes[2] == 0xBF) {
@@ -309,7 +389,7 @@ List<List<dynamic>> _parseCsv(List<int> bytes) {
   }
 
   // 2. Melhor detecção de encoding
-  String csvString = _decodeWithBestEncoding(cleanBytes);
+  csvString ??= _decodeWithBestEncoding(cleanBytes);
 
   // 3. Normalizar quebras de linha
   csvString = csvString.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
@@ -353,6 +433,114 @@ bool _isAllValuesMissing(Iterable<dynamic> values) {
     }
   }
   return true;
+}
+
+String? _validateParsedRecord(Map<String, dynamic> map) {
+  const strictIdentifierColumns = [
+    'numeroAnimal',
+    'chip',
+    'codRegistro',
+    'numeroMatriz',
+    'numeroReprodutor',
+  ];
+
+  for (final column in strictIdentifierColumns) {
+    final value = _cleanStringOrNull(map[column]);
+    if (value == null) continue;
+    if (!_isPlausibleImportIdentifier(value)) {
+      return 'campo $column contém caracteres incompatíveis com identificador de animal.';
+    }
+  }
+
+  for (final entry in map.entries) {
+    final value = entry.value;
+    if (value is String && _looksLikeCorruptedImportText(value)) {
+      return 'campo ${entry.key} parece estar com bytes de arquivo/encoding corrompidos.';
+    }
+  }
+
+  const identityColumns = ['numeroAnimal', 'chip', 'codRegistro', 'nome'];
+  final hasIdentity = identityColumns.any((column) {
+    final value = _cleanStringOrNull(map[column]);
+    return value != null && !_looksLikeCorruptedImportText(value);
+  });
+
+  if (!hasIdentity) {
+    return 'registro sem identificação válida do animal.';
+  }
+
+  return null;
+}
+
+String? _cleanStringOrNull(dynamic value) {
+  if (value == null) return null;
+  final cleaned = _cleanText(value.toString());
+  if (cleaned.isEmpty ||
+      cleaned.toLowerCase() == 'null' ||
+      cleaned.toLowerCase() == 'undefined') {
+    return null;
+  }
+  return cleaned;
+}
+
+bool _isPlausibleImportIdentifier(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty || trimmed.length > 80) return false;
+
+  var hasLetterOrDigit = false;
+  for (final rune in trimmed.runes) {
+    if (_isWhitespaceRune(rune)) continue;
+    if (!_isAllowedImportTextRune(rune)) return false;
+    if (_isImportIdentifierLetterOrDigit(rune)) {
+      hasLetterOrDigit = true;
+    }
+  }
+
+  return hasLetterOrDigit;
+}
+
+bool _looksLikeCorruptedImportText(String value) {
+  final text = value.trim();
+  if (text.isEmpty) return false;
+  if (text.contains('\uFFFD')) return true;
+
+  final artifactMatches = RegExp(
+    r'[¢£¤¥¦¨©ª«¬®¯±²³µ¶·¸¹»¼½¾¿ÆÐ×ØÞßæ÷øþ]',
+  ).allMatches(text).length;
+  if (artifactMatches >= 2) return true;
+
+  var nonSpace = 0;
+  var unusualSymbols = 0;
+  for (final rune in text.runes) {
+    if (_isWhitespaceRune(rune)) continue;
+    nonSpace++;
+    if (_isAllowedImportTextRune(rune)) continue;
+    unusualSymbols++;
+  }
+
+  return nonSpace > 0 &&
+      unusualSymbols >= 3 &&
+      unusualSymbols / nonSpace > 0.25;
+}
+
+bool _isWhitespaceRune(int rune) =>
+    rune == 0x20 || rune == 0x09 || rune == 0x0A || rune == 0x0D;
+
+bool _isAllowedImportTextRune(int rune) {
+  final isAsciiLetter =
+      (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
+  final isDigit = rune >= 0x30 && rune <= 0x39;
+  final isLatinLetter = (rune >= 0x00C0 && rune <= 0x017F);
+  final isCommonPunctuation = '.,;:/_-#()+@\'"&ªº°'.runes.contains(rune);
+  return isAsciiLetter || isDigit || isLatinLetter || isCommonPunctuation;
+}
+
+bool _isImportIdentifierLetterOrDigit(int rune) {
+  final isAsciiLetter =
+      (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
+  final isDigit = rune >= 0x30 && rune <= 0x39;
+  final isLatinLetter = (rune >= 0x00C0 && rune <= 0x017F);
+  return isAsciiLetter || isDigit || isLatinLetter;
 }
 
 // Função auxiliar para decodificação customizada (fallback)
@@ -414,6 +602,22 @@ String _decodeWithBestEncoding(List<int> bytes) {
   }
 
   return result;
+}
+
+String? _decodeUtf16Bom(List<int> bytes) {
+  if (!_hasUtf16Bom(bytes)) return null;
+
+  final littleEndian = bytes[0] == 0xFF && bytes[1] == 0xFE;
+  final buffer = StringBuffer();
+
+  for (var i = 2; i + 1 < bytes.length; i += 2) {
+    final codeUnit = littleEndian
+        ? bytes[i] | (bytes[i + 1] << 8)
+        : (bytes[i] << 8) | bytes[i + 1];
+    buffer.writeCharCode(codeUnit);
+  }
+
+  return buffer.toString();
 }
 
 bool _looksMojibake(String value) {
@@ -535,7 +739,9 @@ Map<String, int> _buildHeaderToDbMapping(
     'raca': 'raca',
     'lote': 'loteNome',
     'data_desmama': 'dataDesmama',
+    'data_de_desmama': 'dataDesmama',
     'peso_desmama': 'pesoDesmama',
+    'peso_de_desmama': 'pesoDesmama',
     'data_ultima_pesagem': 'dataUltimaPesagem',
     'peso_atual': 'pesoAtual',
     'status': 'status',

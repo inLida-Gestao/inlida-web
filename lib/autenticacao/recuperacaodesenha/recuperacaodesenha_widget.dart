@@ -254,6 +254,8 @@ class _RecuperacaodesenhaWidgetState extends State<RecuperacaodesenhaWidget> {
                       await authManager.resetPassword(
                         email: _model.emailTextController.text,
                         context: context,
+                        redirectTo:
+                            '${Uri.base.origin}${RedefinicaosenhaWidget.routePath}',
                       );
 
                       context.goNamed(LoginWidget.routeName);

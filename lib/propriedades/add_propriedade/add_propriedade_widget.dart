@@ -14,6 +14,7 @@ import 'dart:async';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -38,6 +39,23 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
     _model.onUpdate();
   }
 
+  int _parseAreaInteira(String? value) {
+    final normalized = value?.trim().replaceAll(',', '.');
+    if (normalized == null || normalized.isEmpty) {
+      return 0;
+    }
+    return double.tryParse(normalized)?.round() ?? 0;
+  }
+
+  int _areaInteira(TextEditingController? controller) =>
+      _parseAreaInteira(controller?.text);
+
+  int _areaTotalInteira() =>
+      _areaInteira(_model.areaPastagemTextController) +
+      _areaInteira(_model.areaBenfeitoriaTextController) +
+      _areaInteira(_model.areaReservaTextController) +
+      _areaInteira(_model.areaAgriculturaTextController);
+
   @override
   void initState() {
     super.initState();
@@ -45,10 +63,7 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
 
     // On component load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.areaTotal = int.parse(_model.areaPastagemTextController.text) +
-          int.parse(_model.areaBenfeitoriaTextController.text) +
-          int.parse(_model.areaReservaTextController.text) +
-          int.parse(_model.areaAgriculturaTextController.text);
+      _model.areaTotal = _areaTotalInteira();
       safeSetState(() {});
     });
 
@@ -330,8 +345,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
@@ -346,7 +361,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -356,7 +372,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -545,9 +562,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                             borderColor: Colors.transparent,
                                             borderWidth: 0.0,
                                             borderRadius: 8.0,
-                                            margin:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    12.0, 0.0, 12.0, 0.0),
+                                            margin: const EdgeInsetsDirectional
+                                                .fromSTEB(12.0, 0.0, 12.0, 0.0),
                                             hidesUnderline: true,
                                             isOverButton: false,
                                             isSearchable: false,
@@ -739,13 +755,15 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                       .secondaryText,
                                                   size: 24.0,
                                                 ),
-                                                fillColor: const Color(0xFFF1F1F1),
+                                                fillColor:
+                                                    const Color(0xFFF1F1F1),
                                                 elevation: 2.0,
                                                 borderColor: Colors.transparent,
                                                 borderWidth: 0.0,
                                                 borderRadius: 8.0,
-                                                margin: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                margin:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 12.0, 0.0),
                                                 hidesUnderline: true,
                                                 isOverButton: false,
@@ -807,7 +825,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                 onChanged: (_) =>
                                                     EasyDebounce.debounce(
                                                   '_model.areaPastagemTextController',
-                                                  const Duration(milliseconds: 2000),
+                                                  const Duration(
+                                                      milliseconds: 2000),
                                                   () async {
                                                     safeSetState(() {});
                                                     safeSetState(() {});
@@ -864,8 +883,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
@@ -880,7 +899,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -890,7 +910,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -957,6 +978,10 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                     ),
                                                 keyboardType:
                                                     TextInputType.number,
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter
+                                                      .digitsOnly
+                                                ],
                                                 cursorColor:
                                                     FlutterFlowTheme.of(context)
                                                         .primaryText,
@@ -1014,7 +1039,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                 onChanged: (_) =>
                                                     EasyDebounce.debounce(
                                                   '_model.areaBenfeitoriaTextController',
-                                                  const Duration(milliseconds: 2000),
+                                                  const Duration(
+                                                      milliseconds: 2000),
                                                   () async {
                                                     safeSetState(() {});
                                                     safeSetState(() {});
@@ -1072,8 +1098,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
@@ -1088,7 +1114,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1098,7 +1125,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1165,6 +1193,10 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                     ),
                                                 keyboardType:
                                                     TextInputType.number,
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter
+                                                      .digitsOnly
+                                                ],
                                                 cursorColor:
                                                     FlutterFlowTheme.of(context)
                                                         .primaryText,
@@ -1227,7 +1259,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                 onChanged: (_) =>
                                                     EasyDebounce.debounce(
                                                   '_model.areaReservaTextController',
-                                                  const Duration(milliseconds: 2000),
+                                                  const Duration(
+                                                      milliseconds: 2000),
                                                   () async {
                                                     safeSetState(() {});
                                                     safeSetState(() {});
@@ -1284,8 +1317,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
@@ -1300,7 +1333,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1310,7 +1344,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1377,6 +1412,10 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                     ),
                                                 keyboardType:
                                                     TextInputType.number,
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter
+                                                      .digitsOnly
+                                                ],
                                                 cursorColor:
                                                     FlutterFlowTheme.of(context)
                                                         .primaryText,
@@ -1434,7 +1473,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                 onChanged: (_) =>
                                                     EasyDebounce.debounce(
                                                   '_model.areaAgriculturaTextController',
-                                                  const Duration(milliseconds: 2000),
+                                                  const Duration(
+                                                      milliseconds: 2000),
                                                   () async {
                                                     safeSetState(() {});
                                                     safeSetState(() {});
@@ -1492,8 +1532,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
@@ -1508,7 +1548,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1518,7 +1559,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1585,6 +1627,10 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                     ),
                                                 keyboardType:
                                                     TextInputType.number,
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter
+                                                      .digitsOnly
+                                                ],
                                                 cursorColor:
                                                     FlutterFlowTheme.of(context)
                                                         .primaryText,
@@ -1641,44 +1687,17 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                     BorderRadius.circular(8.0),
                                               ),
                                               child: Align(
-                                                alignment: const AlignmentDirectional(
-                                                    -1.0, 0.0),
+                                                alignment:
+                                                    const AlignmentDirectional(
+                                                        -1.0, 0.0),
                                                 child: Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           12.0, 8.0, 0.0, 8.0),
                                                   child: Text(
-                                                    valueOrDefault<String>(
-                                                      (valueOrDefault<int>(
-                                                                    int.tryParse(_model
-                                                                        .areaPastagemTextController
-                                                                        .text),
-                                                                    0,
-                                                                  ) +
-                                                                  valueOrDefault<
-                                                                      int>(
-                                                                    int.tryParse(_model
-                                                                        .areaBenfeitoriaTextController
-                                                                        .text),
-                                                                    0,
-                                                                  ) +
-                                                                  valueOrDefault<
-                                                                      int>(
-                                                                    int.tryParse(_model
-                                                                        .areaReservaTextController
-                                                                        .text),
-                                                                    0,
-                                                                  ) +
-                                                                  valueOrDefault<
-                                                                      int>(
-                                                                    int.tryParse(_model
-                                                                        .areaAgriculturaTextController
-                                                                        .text),
-                                                                    0,
-                                                                  ))
-                                                          .toString(),
-                                                      '0',
-                                                    ),
+                                                    _areaTotalInteira()
+                                                        .toString(),
                                                     style: FlutterFlowTheme.of(
                                                             context)
                                                         .bodyMedium
@@ -1802,13 +1821,15 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                         .secondaryText,
                                                 size: 24.0,
                                               ),
-                                              fillColor: const Color(0xFFF1F1F1),
+                                              fillColor:
+                                                  const Color(0xFFF1F1F1),
                                               elevation: 2.0,
                                               borderColor: Colors.transparent,
                                               borderWidth: 0.0,
                                               borderRadius: 8.0,
-                                              margin: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              margin:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       12.0, 0.0, 12.0, 0.0),
                                               hidesUnderline: true,
                                               isOverButton: false,
@@ -1918,8 +1939,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FlutterFlowTheme.of(
@@ -1934,7 +1955,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1944,7 +1966,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -2084,35 +2107,36 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                               .fontStyle,
                                                     ),
                                             hintText: 'Pesquisar usuário',
-                                            hintStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .labelMedium
-                                                    .override(
-                                                      font: GoogleFonts.poppins(
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontStyle,
-                                                      ),
-                                                      color: const Color(0xFFBEBEBE),
-                                                      letterSpacing: 0.0,
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .labelMedium
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .labelMedium
-                                                              .fontStyle,
-                                                    ),
+                                            hintStyle: FlutterFlowTheme.of(
+                                                    context)
+                                                .labelMedium
+                                                .override(
+                                                  font: GoogleFonts.poppins(
+                                                    fontWeight:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .labelMedium
+                                                            .fontWeight,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .labelMedium
+                                                            .fontStyle,
+                                                  ),
+                                                  color:
+                                                      const Color(0xFFBEBEBE),
+                                                  letterSpacing: 0.0,
+                                                  fontWeight:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .labelMedium
+                                                          .fontWeight,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .labelMedium
+                                                          .fontStyle,
+                                                ),
                                             enabledBorder: OutlineInputBorder(
                                               borderSide: const BorderSide(
                                                 color: Color(0x00000000),
@@ -2192,8 +2216,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                     ),
                                     Builder(
                                       builder: (context) => Padding(
-                                        padding: const EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 0.0, 4.0, 0.0),
+                                        padding: const EdgeInsetsDirectional
+                                            .fromSTEB(0.0, 0.0, 4.0, 0.0),
                                         child: FFButtonWidget(
                                           onPressed: () async {
                                             await showDialog(
@@ -2224,42 +2248,43 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                           ),
                                           options: FFButtonOptions(
                                             height: 56.0,
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    16.0, 0.0, 16.0, 0.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(16.0, 0.0, 16.0, 0.0),
                                             iconPadding:
-                                                const EdgeInsetsDirectional.fromSTEB(
+                                                const EdgeInsetsDirectional
+                                                    .fromSTEB(
                                                     0.0, 0.0, 0.0, 0.0),
                                             color: Colors.white,
-                                            textStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .titleSmall
-                                                    .override(
-                                                      font: GoogleFonts.poppins(
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .titleSmall
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .titleSmall
-                                                                .fontStyle,
-                                                      ),
-                                                      color: const Color(0xFF28A365),
-                                                      letterSpacing: 0.0,
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontStyle,
-                                                    ),
+                                            textStyle: FlutterFlowTheme.of(
+                                                    context)
+                                                .titleSmall
+                                                .override(
+                                                  font: GoogleFonts.poppins(
+                                                    fontWeight:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .titleSmall
+                                                            .fontWeight,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .titleSmall
+                                                            .fontStyle,
+                                                  ),
+                                                  color:
+                                                      const Color(0xFF28A365),
+                                                  letterSpacing: 0.0,
+                                                  fontWeight:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .titleSmall
+                                                          .fontWeight,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .titleSmall
+                                                          .fontStyle,
+                                                ),
                                             elevation: 0.0,
                                             borderSide: BorderSide(
                                               color:
@@ -2281,8 +2306,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                           .usersPropriedade
                                           .where((e) =>
                                               (_model.buscarUsuarioTextController
-                                                          .text ==
-                                                      '') ||
+                                                      .text ==
+                                                  '') ||
                                               (e.nome.toLowerCase().contains(_model
                                                       .buscarUsuarioTextController
                                                       .text
@@ -2306,7 +2331,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                           return Container(
                                             decoration: const BoxDecoration(),
                                             child: Padding(
-                                              padding: const EdgeInsets.all(16.0),
+                                              padding:
+                                                  const EdgeInsets.all(16.0),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.max,
                                                 mainAxisAlignment:
@@ -2412,8 +2438,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                           ),
                                                         ],
                                                       ),
-                                                    ].divide(
-                                                        const SizedBox(width: 10.0)),
+                                                    ].divide(const SizedBox(
+                                                        width: 10.0)),
                                                   ),
                                                   Row(
                                                     mainAxisSize:
@@ -2505,8 +2531,8 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                           size: 24.0,
                                                         ),
                                                       ),
-                                                    ].divide(
-                                                        const SizedBox(width: 16.0)),
+                                                    ].divide(const SizedBox(
+                                                        width: 16.0)),
                                                   ),
                                                 ],
                                               ),
@@ -2519,8 +2545,9 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                 if (!(FFAppState().usersPropriedade.isNotEmpty))
                                   Builder(
                                     builder: (context) => Padding(
-                                      padding: const EdgeInsetsDirectional.fromSTEB(
-                                          0.0, 24.0, 0.0, 0.0),
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              0.0, 24.0, 0.0, 0.0),
                                       child: InkWell(
                                         splashColor: Colors.transparent,
                                         focusColor: Colors.transparent,
@@ -2535,10 +2562,12 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                 insetPadding: EdgeInsets.zero,
                                                 backgroundColor:
                                                     Colors.transparent,
-                                                alignment: const AlignmentDirectional(
-                                                        0.0, 0.0)
-                                                    .resolve(Directionality.of(
-                                                        context)),
+                                                alignment:
+                                                    const AlignmentDirectional(
+                                                            0.0, 0.0)
+                                                        .resolve(
+                                                            Directionality.of(
+                                                                context)),
                                                 child: const AddUserWidget(),
                                               );
                                             },
@@ -2573,8 +2602,9 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                                                   ),
                                             ),
                                             Padding(
-                                              padding: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              padding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       0.0, 24.0, 0.0, 24.0),
                                               child: ClipRRect(
                                                 borderRadius:
@@ -2694,10 +2724,10 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                     options: FFButtonOptions(
                       width: 112.0,
                       height: 56.0,
-                      padding:
-                          const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                      iconPadding:
-                          const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 16.0, 0.0),
+                      iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                          0.0, 0.0, 0.0, 0.0),
                       color: Colors.white,
                       textStyle:
                           FlutterFlowTheme.of(context).titleSmall.override(
@@ -2817,25 +2847,25 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                               ),
                               actions: [
                                 TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(dialogContext),
+                                  onPressed: () => Navigator.pop(dialogContext),
                                   child: Text(
                                     'OK',
                                     style: FlutterFlowTheme.of(dialogContext)
                                         .bodyMedium
                                         .override(
                                           font: GoogleFonts.poppins(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(dialogContext)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(dialogContext)
-                                                    .bodyMedium
-                                                    .fontStyle,
+                                            fontWeight: FlutterFlowTheme.of(
+                                                    dialogContext)
+                                                .bodyMedium
+                                                .fontWeight,
+                                            fontStyle: FlutterFlowTheme.of(
+                                                    dialogContext)
+                                                .bodyMedium
+                                                .fontStyle,
                                           ),
-                                          color: FlutterFlowTheme.of(dialogContext)
-                                              .primary,
+                                          color:
+                                              FlutterFlowTheme.of(dialogContext)
+                                                  .primary,
                                           letterSpacing: 0.0,
                                           fontWeight:
                                               FlutterFlowTheme.of(dialogContext)
@@ -2854,6 +2884,19 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                         );
                         return;
                       }
+                      final areaAgricultura =
+                          _areaInteira(_model.areaAgriculturaTextController);
+                      final areaBenfeitoria =
+                          _areaInteira(_model.areaBenfeitoriaTextController);
+                      final areaPastagem =
+                          _areaInteira(_model.areaPastagemTextController);
+                      final areaReserva =
+                          _areaInteira(_model.areaReservaTextController);
+                      final areaTotal = areaPastagem +
+                          areaBenfeitoria +
+                          areaReserva +
+                          areaAgricultura;
+
                       _model.propriedade = await PropriedadesTable().insert({
                         'userID': currentUserUid,
                         'usersID': functions.converterListaParaJSON(FFAppState()
@@ -2861,47 +2904,11 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                             .map((e) => e.userID)
                             .toList()),
                         'anotacoes': _model.anotacoesTextController.text,
-                        'areaAgricultura': valueOrDefault<int>(
-                          int.tryParse(
-                              _model.areaAgriculturaTextController.text),
-                          0,
-                        ),
-                        'areaBenfeitoria': valueOrDefault<int>(
-                          int.tryParse(
-                              _model.areaBenfeitoriaTextController.text),
-                          0,
-                        ),
-                        'areaPastagem': valueOrDefault<int>(
-                          int.tryParse(_model.areaPastagemTextController.text),
-                          0,
-                        ),
-                        'areaReserva': valueOrDefault<int>(
-                          int.tryParse(_model.areaReservaTextController.text),
-                          0,
-                        ),
-                        'areaTotal': valueOrDefault<int>(
-                          valueOrDefault<int>(
-                                    int.tryParse(
-                                        _model.areaPastagemTextController.text),
-                                    0,
-                                  ) +
-                                  valueOrDefault<int>(
-                                    int.tryParse(_model
-                                        .areaBenfeitoriaTextController.text),
-                                    0,
-                                  ) +
-                                  valueOrDefault<int>(
-                                    int.tryParse(
-                                        _model.areaReservaTextController.text),
-                                    0,
-                                  ) +
-                                  valueOrDefault<int>(
-                                    int.tryParse(_model
-                                        .areaAgriculturaTextController.text),
-                                    0,
-                                  ),
-                          0,
-                        ),
+                        'areaAgricultura': areaAgricultura,
+                        'areaBenfeitoria': areaBenfeitoria,
+                        'areaPastagem': areaPastagem,
+                        'areaReserva': areaReserva,
+                        'areaTotal': areaTotal,
                         'cidade': _model.dropDownCidadeValue,
                         'estado': _model.dropDownUFValue,
                         'idPropriedade': random_data.randomString(
@@ -2975,10 +2982,10 @@ class _AddPropriedadeWidgetState extends State<AddPropriedadeWidget>
                     options: FFButtonOptions(
                       width: 160.0,
                       height: 56.0,
-                      padding:
-                          const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                      iconPadding:
-                          const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 16.0, 0.0),
+                      iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                          0.0, 0.0, 0.0, 0.0),
                       color: FlutterFlowTheme.of(context).primary,
                       textStyle:
                           FlutterFlowTheme.of(context).titleSmall.override(

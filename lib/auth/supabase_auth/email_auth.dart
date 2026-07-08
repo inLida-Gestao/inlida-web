@@ -11,14 +11,14 @@ Future<User?> emailSignInFunc(
 
 Future<User?> emailCreateAccountFunc(
   String email,
-  String password,
-) async {
-  final AuthResponse res =
-      await SupaFlow.client.auth.signUp(email: email, password: password);
+  String password, {
+  Map<String, dynamic>? data,
+}) async {
+  final AuthResponse res = await SupaFlow.client.auth.signUp(
+    email: email,
+    password: password,
+    data: data,
+  );
 
-  // If the Supabase project is configured to not let users sign in until the
-  // email has been confirmed, the user returned in the AuthResponse still has
-  // all the user info. But since the user shouldn't be able to sign in without
-  // their email verified, return a null User.
-  return res.user?.lastSignInAt == null ? null : res.user;
+  return res.user;
 }

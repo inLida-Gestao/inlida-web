@@ -13,6 +13,11 @@ node_modules/
 # Flutter iOS – artefatos efêmeros gerados pelo build
 **/ios/Flutter/ephemeral/
 
+# Variáveis locais e tokens
+.env
+.env.local
+.env.*.local
+
 # Miscellaneous
 *.class
 *.log

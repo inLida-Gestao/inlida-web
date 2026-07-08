@@ -14,6 +14,7 @@ import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/index.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
+import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -2727,22 +2728,24 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                             .transparent,
                                                                     onTap:
                                                                         () async {
-                                                                      await showDialog(
+                                                                      await showAlignedDialog(
                                                                         barrierColor:
                                                                             Colors.transparent,
                                                                         context:
                                                                             context,
+                                                                        isGlobal:
+                                                                            false,
+                                                                        avoidOverflow:
+                                                                            true,
+                                                                        targetAnchor:
+                                                                            const AlignmentDirectional(-1.0, 1.0).resolve(Directionality.of(context)),
+                                                                        followerAnchor:
+                                                                            const AlignmentDirectional(-1.0, -1.0).resolve(Directionality.of(context)),
                                                                         builder:
                                                                             (dialogContext) {
-                                                                          return Dialog(
-                                                                            elevation:
-                                                                                0,
-                                                                            insetPadding:
-                                                                                EdgeInsets.zero,
-                                                                            backgroundColor:
+                                                                          return Material(
+                                                                            color:
                                                                                 Colors.transparent,
-                                                                            alignment:
-                                                                                const AlignmentDirectional(0.0, -1.0).resolve(Directionality.of(context)),
                                                                             child:
                                                                                 GestureDetector(
                                                                               onTap: () {
@@ -2754,6 +2757,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                                 width: 370.0,
                                                                                 child: PopupRebanhosWidget(
                                                                                   sexo: 'Fêmea',
+                                                                                  mostrarTodasMatrizes: true,
                                                                                 ),
                                                                               ),
                                                                             ),
@@ -2932,22 +2936,24 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                             .transparent,
                                                                     onTap:
                                                                         () async {
-                                                                      await showDialog(
+                                                                      await showAlignedDialog(
                                                                         barrierColor:
                                                                             Colors.transparent,
                                                                         context:
                                                                             context,
+                                                                        isGlobal:
+                                                                            false,
+                                                                        avoidOverflow:
+                                                                            true,
+                                                                        targetAnchor:
+                                                                            const AlignmentDirectional(-1.0, 1.0).resolve(Directionality.of(context)),
+                                                                        followerAnchor:
+                                                                            const AlignmentDirectional(-1.0, -1.0).resolve(Directionality.of(context)),
                                                                         builder:
                                                                             (dialogContext) {
-                                                                          return Dialog(
-                                                                            elevation:
-                                                                                0,
-                                                                            insetPadding:
-                                                                                EdgeInsets.zero,
-                                                                            backgroundColor:
+                                                                          return Material(
+                                                                            color:
                                                                                 Colors.transparent,
-                                                                            alignment:
-                                                                                const AlignmentDirectional(0.0, -1.0).resolve(Directionality.of(context)),
                                                                             child:
                                                                                 GestureDetector(
                                                                               onTap: () {
@@ -4404,7 +4410,12 @@ class _PgRebanhoAddNascimentoWidgetState
                                         ),
                                       ),
                                       FFButtonWidget(
-                                        onPressed: () async {
+                                        onPressed: _model.isSaving
+                                           ? null
+                                           : () async {
+                                          if (_model.isSaving) {
+                                            return;
+                                          }
                                           if ((_model.dropDownStatusValue ?? '')
                                               .isEmpty) {
                                             await showDialog(
@@ -4426,6 +4437,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                             );
                                             return;
                                           }
+                                          _model.isSaving = true;
+                                          safeSetState(() {});
                                           _model.idRebanho = null;
                                           safeSetState(() {});
                                           _model.idRebanho =
@@ -4571,16 +4584,21 @@ class _PgRebanhoAddNascimentoWidgetState
                                                 _model.dropDownLotesValue,
                                               ),
                                             );
-                                            _model.animaisLote = functions
-                                                .converterJSONparaLista(_model
-                                                    .loteSelecionado
-                                                    ?.firstOrNull
-                                                    ?.idAnimais)!
+                                            _model.animaisLote = (functions
+                                                        .converterJSONparaLista(
+                                                            _model
+                                                                .loteSelecionado
+                                                                ?.firstOrNull
+                                                                ?.idAnimais) ??
+                                                    <String>[])
                                                 .toList()
                                                 .cast<String>();
                                             safeSetState(() {});
-                                            _model.addToAnimaisLote(
-                                                _model.idRebanho!);
+                                            if (!_model.animaisLote
+                                                .contains(_model.idRebanho)) {
+                                              _model.addToAnimaisLote(
+                                                  _model.idRebanho!);
+                                            }
                                             safeSetState(() {});
                                             await LotesTable().update(
                                               data: {
@@ -4665,12 +4683,14 @@ class _PgRebanhoAddNascimentoWidgetState
                                           FFAppState().refreshRebanho = true;
                                           safeSetState(() {});
 
-                                          context.pushNamed(
+                                          context.goNamed(
                                               PgRebanhoWidget.routeName);
 
                                           safeSetState(() {});
                                         },
-                                        text: 'Salvar',
+                                        text: _model.isSaving
+                                            ? 'Salvando...'
+                                            : 'Salvar',
                                         options: FFButtonOptions(
                                           width: 160.0,
                                           height: 56.0,

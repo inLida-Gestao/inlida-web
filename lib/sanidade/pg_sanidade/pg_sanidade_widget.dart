@@ -41,6 +41,30 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// Carrega os KPIs do topo (Total na propriedade) via RPC `count_sanidade_kpis`.
+  ///
+  /// Calcula a contagem no banco com COUNT(*) para evitar o limite de ~1000
+  /// linhas do PostgREST: antes os 4 KPIs puxavam todas as linhas de `sanidade`
+  /// e contavam com `.length` no cliente, fazendo "Vacinas aplicadas" travar em
+  /// 1000. Mantem a mesma regra dos cards (tipo, "outros" ou observacao).
+  Future<void> _carregarCountsSanidade() async {
+    final response = await SupaFlow.client.rpc(
+      'count_sanidade_kpis',
+      params: {
+        'p_id_propriedade': FFAppState().propriedadeSelecionada.idPropriedade,
+      },
+    );
+    final rows = (response as List?) ?? const [];
+    final counts = rows.isNotEmpty
+        ? (rows.first as Map).cast<String, dynamic>()
+        : const {};
+    _model.countVacinas = (counts['vacinas'] as num?)?.toInt() ?? 0;
+    _model.countAntiparasitarios =
+        (counts['antiparasitarios'] as num?)?.toInt() ?? 0;
+    _model.countTratamentos = (counts['tratamentos'] as num?)?.toInt() ?? 0;
+    _model.countProtocolos = (counts['protocolos'] as num?)?.toInt() ?? 0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -50,60 +74,22 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       await action_blocks.countReproducoes(context);
 
-      // Contar vacinas aplicadas (lista, outros ou observação)
-      final vacinasCount = await SanidadeTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('id_propriedade',
-                FFAppState().propriedadeSelecionada.idPropriedade)
-            .eq('deletado', 'NAO')
-            .or(
-                'vacinacao.not.is.null,vacinacao_outros.not.is.null,vacinacao_obs.not.is.null'),
-      );
-      _model.countVacinas = vacinasCount.length;
-
-      // Antiparasitários: lista, outros ou observação (obs não duplica linha no banco)
-      final antiparasitariosRows = await SanidadeTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('id_propriedade',
-                FFAppState().propriedadeSelecionada.idPropriedade)
-            .eq('deletado', 'NAO')
-            .or(
-                'antiparasitario.not.is.null,antiparasitario_outros.not.is.null,antiparasitario_obs.not.is.null'),
-      );
-      _model.countAntiparasitarios = antiparasitariosRows.length;
-
-      // Tratamentos: lista, outros ou observação
-      final tratamentosCount = await SanidadeTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('id_propriedade',
-                FFAppState().propriedadeSelecionada.idPropriedade)
-            .eq('deletado', 'NAO')
-            .or(
-                'tratamento.not.is.null,tratamento_outros.not.is.null,tratamento_obs.not.is.null'),
-      );
-      _model.countTratamentos = tratamentosCount.length;
-
-      // Protocolos: lista, outros ou observação
-      final protocolosCount = await SanidadeTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('id_propriedade',
-                FFAppState().propriedadeSelecionada.idPropriedade)
-            .eq('deletado', 'NAO')
-            .or(
-                'protocolo_reprodutivo.not.is.null,protocolo_reprodutivo_outros.not.is.null,protocolo_reprodutivo_obs.not.is.null'),
-      );
-      _model.countProtocolos = protocolosCount.length;
+      // KPIs do topo (Total na propriedade) contados no banco para nao serem
+      // limitados a ~1000 linhas pelo PostgREST.
+      await _carregarCountsSanidade();
 
       safeSetState(() {});
 
-      _model.disposeRefreshListener = FFAppState().onRefresh('refreshSanidade', () {
+      _model.disposeRefreshListener =
+          FFAppState().onRefresh('refreshSanidade', () {
         FFAppState().refreshSanidade = false;
         safeSetState(() {
           _model.apiRequestCompleter2 = null;
           _model.apiRequestCompleter1 = null;
         });
       });
-      _model.disposeRefreshListener2 = FFAppState().onRefresh('refreshReproducao', () {
+      _model.disposeRefreshListener2 =
+          FFAppState().onRefresh('refreshReproducao', () {
         FFAppState().refreshReproducao = false;
         safeSetState(() {
           _model.apiRequestCompleter2 = null;
@@ -404,7 +390,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
   /// Evita listagem duplicada quando a API/view devolve o mesmo registro mais de uma vez
   /// (ex.: múltiplas linhas com o mesmo `id` por causa de JOIN na view).
   List<SanidadeStruct> _sanidadeRowsFromResponseJson(dynamic jsonBody) {
-    final parsed = (jsonBody.toList()
+    final parsed = (jsonBody
+            .toList()
             .map<SanidadeStruct?>(SanidadeStruct.maybeFromMap)
             .toList() as Iterable<SanidadeStruct?>)
         .withoutNulls
@@ -907,7 +894,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                   ),
                   const SizedBox(height: 16.0),
                   ElevatedButton.icon(
-                    onPressed: () => safeSetState(() => _model.apiRequestCompleter2 = null),
+                    onPressed: () =>
+                        safeSetState(() => _model.apiRequestCompleter2 = null),
                     icon: const Icon(Icons.refresh_rounded, size: 18.0),
                     label: const Text('Tentar novamente'),
                   ),
@@ -1044,77 +1032,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     null;
                                                               });
 
-                                                              final idPropriedade =
-                                                                  FFAppState()
-                                                                      .propriedadeSelecionada
-                                                                      .idPropriedade;
+                                                              await _carregarCountsSanidade();
 
-                                                              final vacinasCount =
-                                                                  await SanidadeTable()
-                                                                      .queryRows(
-                                                                queryFn: (q) => q
-                                                                    .eqOrNull(
-                                                                        'id_propriedade',
-                                                                        idPropriedade)
-                                                                    .eq('deletado',
-                                                                        'NAO')
-                                                                    .or(
-                                                                        'vacinacao.not.is.null,vacinacao_outros.not.is.null,vacinacao_obs.not.is.null'),
-                                                              );
-
-                                                              final antiparasitariosCount =
-                                                                  await SanidadeTable()
-                                                                      .queryRows(
-                                                                queryFn: (q) => q
-                                                                    .eqOrNull(
-                                                                        'id_propriedade',
-                                                                        idPropriedade)
-                                                                    .eq('deletado',
-                                                                        'NAO')
-                                                                    .or(
-                                                                        'antiparasitario.not.is.null,antiparasitario_outros.not.is.null,antiparasitario_obs.not.is.null'),
-                                                              );
-
-                                                              final tratamentosCount =
-                                                                  await SanidadeTable()
-                                                                      .queryRows(
-                                                                queryFn: (q) => q
-                                                                    .eqOrNull(
-                                                                        'id_propriedade',
-                                                                        idPropriedade)
-                                                                    .eq('deletado',
-                                                                        'NAO')
-                                                                    .or(
-                                                                        'tratamento.not.is.null,tratamento_outros.not.is.null,tratamento_obs.not.is.null'),
-                                                              );
-
-                                                              final protocolosCount =
-                                                                  await SanidadeTable()
-                                                                      .queryRows(
-                                                                queryFn: (q) => q
-                                                                    .eqOrNull(
-                                                                        'id_propriedade',
-                                                                        idPropriedade)
-                                                                    .eq('deletado',
-                                                                        'NAO')
-                                                                    .or(
-                                                                        'protocolo_reprodutivo.not.is.null,protocolo_reprodutivo_outros.not.is.null,protocolo_reprodutivo_obs.not.is.null'),
-                                                              );
-
-                                                              safeSetState(() {
-                                                                _model.countVacinas =
-                                                                    vacinasCount
-                                                                        .length;
-                                                                _model.countAntiparasitarios =
-                                                                    antiparasitariosCount
-                                                                        .length;
-                                                                _model.countTratamentos =
-                                                                    tratamentosCount
-                                                                        .length;
-                                                                _model.countProtocolos =
-                                                                    protocolosCount
-                                                                        .length;
-                                                              });
+                                                              safeSetState(
+                                                                  () {});
                                                             },
                                                           ),
                                                         ),
@@ -1519,25 +1440,36 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                     ),
                                     if (_hasSanidadeFilters())
                                       Padding(
-                                        padding: const EdgeInsets.only(top: 8.0),
+                                        padding:
+                                            const EdgeInsets.only(top: 8.0),
                                         child: Row(
                                           children: [
                                             Icon(
                                               Icons.filter_list,
                                               size: 16.0,
-                                              color: FlutterFlowTheme.of(context).secondary,
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .secondary,
                                             ),
                                             const SizedBox(width: 6.0),
                                             Text(
                                               'Filtros ativos',
-                                              style: FlutterFlowTheme.of(context)
+                                              style: FlutterFlowTheme.of(
+                                                      context)
                                                   .bodySmall
                                                   .override(
                                                     font: GoogleFonts.poppins(
-                                                      fontWeight: FontWeight.w600,
-                                                      fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodySmall
+                                                              .fontStyle,
                                                     ),
-                                                    color: FlutterFlowTheme.of(context).secondary,
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .secondary,
                                                     fontSize: 13.0,
                                                     letterSpacing: 0.0,
                                                   ),
@@ -1557,24 +1489,36 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                 s.filtroProtocolo = '';
                                                 s.filtroAntiparasitario = '';
                                                 s.filtroVacinacao = '';
-                                                s.filtroNascimentoSanidadeDe = null;
-                                                s.filtroNascimentoSanidadeAte = null;
+                                                s.filtroNascimentoSanidadeDe =
+                                                    null;
+                                                s.filtroNascimentoSanidadeAte =
+                                                    null;
                                                 s.refreshSanidade = true;
                                                 safeSetState(() {});
                                               },
                                               child: Text(
                                                 'Limpar',
-                                                style: FlutterFlowTheme.of(context)
+                                                style: FlutterFlowTheme.of(
+                                                        context)
                                                     .bodySmall
                                                     .override(
                                                       font: GoogleFonts.poppins(
-                                                        fontWeight: FontWeight.w500,
-                                                        fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodySmall
+                                                                .fontStyle,
                                                       ),
-                                                      color: FlutterFlowTheme.of(context).error,
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .error,
                                                       fontSize: 13.0,
                                                       letterSpacing: 0.0,
-                                                      decoration: TextDecoration.underline,
+                                                      decoration: TextDecoration
+                                                          .underline,
                                                     ),
                                               ),
                                             ),
@@ -1640,20 +1584,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       context)
                                                                   .bodyMedium
                                                                   .fontStyle,
-                                                        ),
-                                                  ),
-                                                  Text(
-                                                    'Total na propriedade',
-                                                    style: FlutterFlowTheme.of(context)
-                                                        .bodySmall
-                                                        .override(
-                                                          font: GoogleFonts.poppins(
-                                                            fontWeight: FontWeight.w500,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
-                                                          ),
-                                                          color: FlutterFlowTheme.of(context).accent3,
-                                                          fontSize: 12.0,
-                                                          letterSpacing: 0.0,
                                                         ),
                                                   ),
                                                   Row(
@@ -1767,34 +1697,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       context)
                                                                   .bodyMedium
                                                                   .fontStyle,
-                                                        ),
-                                                  ),
-                                                  Text(
-                                                    'Total na propriedade',
-                                                    style: FlutterFlowTheme.of(context)
-                                                        .bodySmall
-                                                        .override(
-                                                          font: GoogleFonts.poppins(
-                                                            fontWeight: FontWeight.w500,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
-                                                          ),
-                                                          color: FlutterFlowTheme.of(context).accent3,
-                                                          fontSize: 12.0,
-                                                          letterSpacing: 0.0,
-                                                        ),
-                                                  ),
-                                                  Text(
-                                                    'Conta registros com antiparasitário, outros ou observação. Pode coincidir com Tratamentos no mesmo lançamento.',
-                                                    style: FlutterFlowTheme.of(context)
-                                                        .bodySmall
-                                                        .override(
-                                                          font: GoogleFonts.poppins(
-                                                            fontWeight: FontWeight.w400,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
-                                                          ),
-                                                          color: FlutterFlowTheme.of(context).accent3,
-                                                          fontSize: isCompact ? 9.0 : 10.0,
-                                                          letterSpacing: 0.0,
                                                         ),
                                                   ),
                                                   Row(
@@ -1911,34 +1813,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                   .fontStyle,
                                                         ),
                                                   ),
-                                                  Text(
-                                                    'Total na propriedade',
-                                                    style: FlutterFlowTheme.of(context)
-                                                        .bodySmall
-                                                        .override(
-                                                          font: GoogleFonts.poppins(
-                                                            fontWeight: FontWeight.w500,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
-                                                          ),
-                                                          color: FlutterFlowTheme.of(context).accent3,
-                                                          fontSize: 12.0,
-                                                          letterSpacing: 0.0,
-                                                        ),
-                                                  ),
-                                                  Text(
-                                                    'Conta registros com tratamento, outros ou observação. Pode coincidir com Antiparasitários no mesmo lançamento.',
-                                                    style: FlutterFlowTheme.of(context)
-                                                        .bodySmall
-                                                        .override(
-                                                          font: GoogleFonts.poppins(
-                                                            fontWeight: FontWeight.w400,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
-                                                          ),
-                                                          color: FlutterFlowTheme.of(context).accent3,
-                                                          fontSize: isCompact ? 9.0 : 10.0,
-                                                          letterSpacing: 0.0,
-                                                        ),
-                                                  ),
                                                   Row(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
@@ -2050,20 +1924,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       context)
                                                                   .bodyMedium
                                                                   .fontStyle,
-                                                        ),
-                                                  ),
-                                                  Text(
-                                                    'Total na propriedade',
-                                                    style: FlutterFlowTheme.of(context)
-                                                        .bodySmall
-                                                        .override(
-                                                          font: GoogleFonts.poppins(
-                                                            fontWeight: FontWeight.w500,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
-                                                          ),
-                                                          color: FlutterFlowTheme.of(context).accent3,
-                                                          fontSize: 12.0,
-                                                          letterSpacing: 0.0,
                                                         ),
                                                   ),
                                                   Row(
@@ -2248,27 +2108,25 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade =
-                                                                _sanidadeRowsFromResponseJson(
-                                                                        pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                            .jsonBody)
-                                                                    .where(
-                                                                        _passesMultiSelectFilters)
-                                                                    .sortedList(
-                                                                        keyOf: (e) =>
-                                                                            e.createdAt,
-                                                                        desc:
-                                                                            true)
-                                                                    .toList();
+                                                            final sanidade = _sanidadeRowsFromResponseJson(
+                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                        .jsonBody)
+                                                                .where(
+                                                                    _passesMultiSelectFilters)
+                                                                .sortedList(
+                                                                    keyOf: (e) =>
+                                                                        e.createdAt,
+                                                                    desc: true)
+                                                                .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
                                                                 child:
                                                                     EmptyRebanhoWidget(
-                                                                      message: _hasSanidadeFilters()
-                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
-                                                                          : null,
-                                                                    ),
+                                                                  message: _hasSanidadeFilters()
+                                                                      ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                      : null,
+                                                                ),
                                                               );
                                                             }
 
@@ -2349,7 +2207,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     softWrap:
                                                                         true,
                                                                     child: Text(
-                                                                    'Animal',
+                                                                      'Animal',
                                                                       style: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelLarge
@@ -2504,8 +2362,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       children: _buildTudoSanidadeChips(
                                                                               context,
                                                                               sanidadeItem)
-                                                                          .divide(const SizedBox(
-                                                                              width: 4.0)),
+                                                                          .divide(
+                                                                              const SizedBox(width: 4.0)),
                                                                     ),
                                                                   ),
                                                                   Column(
@@ -2547,11 +2405,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                           dateTimeFormat(
                                                                             "d/M/y",
                                                                             functions.converterParaData(
-                                                                              sanidadeItem
-                                                                                  .dataNascimento,
+                                                                              sanidadeItem.dataNascimento,
                                                                             ),
-                                                                            locale: FFLocalizations.of(context)
-                                                                                .languageCode,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
                                                                           ),
                                                                           'S/D',
                                                                         )}',
@@ -2562,8 +2419,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              color: FlutterFlowTheme.of(context)
-                                                                                  .icon,
+                                                                              color: FlutterFlowTheme.of(context).icon,
                                                                               fontSize: 12.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
@@ -2646,14 +2502,14 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                             c))
                                                                     .toList(),
                                                               ),
-                                                              emptyBuilder: () =>
-                                                                  Center(
+                                                              emptyBuilder:
+                                                                  () => Center(
                                                                 child:
                                                                     EmptyRebanhoWidget(
-                                                                      message: _hasSanidadeFilters()
-                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
-                                                                          : null,
-                                                                    ),
+                                                                  message: _hasSanidadeFilters()
+                                                                      ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                      : null,
+                                                                ),
                                                               ),
                                                               paginated: false,
                                                               selectable: false,
@@ -3148,30 +3004,28 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade =
-                                                                _sanidadeRowsFromResponseJson(
-                                                                        pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                            .jsonBody)
-                                                                    .where(
-                                                                        _passesMultiSelectFilters)
-                                                                    .where(
-                                                                        _rowQualifiesVacinaTab)
-                                                                    .toList()
-                                                                    .sortedList(
-                                                                        keyOf: (e) =>
-                                                                            e.createdAt,
-                                                                        desc:
-                                                                            true)
-                                                                    .toList();
+                                                            final sanidade = _sanidadeRowsFromResponseJson(
+                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                        .jsonBody)
+                                                                .where(
+                                                                    _passesMultiSelectFilters)
+                                                                .where(
+                                                                    _rowQualifiesVacinaTab)
+                                                                .toList()
+                                                                .sortedList(
+                                                                    keyOf: (e) =>
+                                                                        e.createdAt,
+                                                                    desc: true)
+                                                                .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
                                                                 child:
                                                                     EmptyRebanhoWidget(
-                                                                      message: _hasSanidadeFilters()
-                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
-                                                                          : null,
-                                                                    ),
+                                                                  message: _hasSanidadeFilters()
+                                                                      ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                      : null,
+                                                                ),
                                                               );
                                                             }
 
@@ -3252,7 +3106,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     softWrap:
                                                                         true,
                                                                     child: Text(
-                                                                    'Animal',
+                                                                      'Animal',
                                                                       style: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelLarge
@@ -3402,10 +3256,14 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         (context) {
                                                                       final vacinas =
                                                                           _sanidadeCategoryRowLabels(
-                                                                        primary: sanidadeItem.vacinacao,
-                                                                        outros: sanidadeItem.vacinacaoOutros,
-                                                                        obs: sanidadeItem.vacinacaoObs,
-                                                                        genericWhenEmptyParse: 'Vacina',
+                                                                        primary:
+                                                                            sanidadeItem.vacinacao,
+                                                                        outros:
+                                                                            sanidadeItem.vacinacaoOutros,
+                                                                        obs: sanidadeItem
+                                                                            .vacinacaoObs,
+                                                                        genericWhenEmptyParse:
+                                                                            'Vacina',
                                                                       );
 
                                                                       return SingleChildScrollView(
@@ -3488,11 +3346,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                           dateTimeFormat(
                                                                             "d/M/y",
                                                                             functions.converterParaData(
-                                                                              sanidadeItem
-                                                                                  .dataNascimento,
+                                                                              sanidadeItem.dataNascimento,
                                                                             ),
-                                                                            locale: FFLocalizations.of(context)
-                                                                                .languageCode,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
                                                                           ),
                                                                           'S/D',
                                                                         )}',
@@ -3503,8 +3360,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              color: FlutterFlowTheme.of(context)
-                                                                                  .icon,
+                                                                              color: FlutterFlowTheme.of(context).icon,
                                                                               fontSize: 12.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
@@ -3587,14 +3443,14 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                             c))
                                                                     .toList(),
                                                               ),
-                                                              emptyBuilder: () =>
-                                                                  Center(
+                                                              emptyBuilder:
+                                                                  () => Center(
                                                                 child:
                                                                     EmptyRebanhoWidget(
-                                                                      message: _hasSanidadeFilters()
-                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
-                                                                          : null,
-                                                                    ),
+                                                                  message: _hasSanidadeFilters()
+                                                                      ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                      : null,
+                                                                ),
                                                               ),
                                                               paginated: true,
                                                               selectable: false,
@@ -4094,30 +3950,28 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade =
-                                                                _sanidadeRowsFromResponseJson(
-                                                                        pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                            .jsonBody)
-                                                                    .where(
-                                                                        _passesMultiSelectFilters)
-                                                                    .where(
-                                                                        _rowQualifiesAntiparasitarioTab)
-                                                                    .toList()
-                                                                    .sortedList(
-                                                                        keyOf: (e) =>
-                                                                            e.createdAt,
-                                                                        desc:
-                                                                            true)
-                                                                    .toList();
+                                                            final sanidade = _sanidadeRowsFromResponseJson(
+                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                        .jsonBody)
+                                                                .where(
+                                                                    _passesMultiSelectFilters)
+                                                                .where(
+                                                                    _rowQualifiesAntiparasitarioTab)
+                                                                .toList()
+                                                                .sortedList(
+                                                                    keyOf: (e) =>
+                                                                        e.createdAt,
+                                                                    desc: true)
+                                                                .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
                                                                 child:
                                                                     EmptyRebanhoWidget(
-                                                                      message: _hasSanidadeFilters()
-                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
-                                                                          : null,
-                                                                    ),
+                                                                  message: _hasSanidadeFilters()
+                                                                      ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                      : null,
+                                                                ),
                                                               );
                                                             }
 
@@ -4198,7 +4052,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     softWrap:
                                                                         true,
                                                                     child: Text(
-                                                                    'Animal',
+                                                                      'Animal',
                                                                       style: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelLarge
@@ -4348,10 +4202,14 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         (context) {
                                                                       final antiparasitarios =
                                                                           _sanidadeCategoryRowLabels(
-                                                                        primary: sanidadeItem.antiparasitario,
-                                                                        outros: sanidadeItem.antiparasitarioOutros,
-                                                                        obs: sanidadeItem.antiparasitarioObs,
-                                                                        genericWhenEmptyParse: 'Antiparasitário',
+                                                                        primary:
+                                                                            sanidadeItem.antiparasitario,
+                                                                        outros:
+                                                                            sanidadeItem.antiparasitarioOutros,
+                                                                        obs: sanidadeItem
+                                                                            .antiparasitarioObs,
+                                                                        genericWhenEmptyParse:
+                                                                            'Antiparasitário',
                                                                       );
 
                                                                       return SingleChildScrollView(
@@ -4434,11 +4292,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                           dateTimeFormat(
                                                                             "d/M/y",
                                                                             functions.converterParaData(
-                                                                              sanidadeItem
-                                                                                  .dataNascimento,
+                                                                              sanidadeItem.dataNascimento,
                                                                             ),
-                                                                            locale: FFLocalizations.of(context)
-                                                                                .languageCode,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
                                                                           ),
                                                                           'S/D',
                                                                         )}',
@@ -4449,8 +4306,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              color: FlutterFlowTheme.of(context)
-                                                                                  .icon,
+                                                                              color: FlutterFlowTheme.of(context).icon,
                                                                               fontSize: 12.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
@@ -4533,14 +4389,14 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                             c))
                                                                     .toList(),
                                                               ),
-                                                              emptyBuilder: () =>
-                                                                  Center(
+                                                              emptyBuilder:
+                                                                  () => Center(
                                                                 child:
                                                                     EmptyRebanhoWidget(
-                                                                      message: _hasSanidadeFilters()
-                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
-                                                                          : null,
-                                                                    ),
+                                                                  message: _hasSanidadeFilters()
+                                                                      ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                      : null,
+                                                                ),
                                                               ),
                                                               paginated: true,
                                                               selectable: false,
@@ -5040,30 +4896,28 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade =
-                                                                _sanidadeRowsFromResponseJson(
-                                                                        pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                            .jsonBody)
-                                                                    .where(
-                                                                        _passesMultiSelectFilters)
-                                                                    .where(
-                                                                        _rowQualifiesTratamentoTab)
-                                                                    .toList()
-                                                                    .sortedList(
-                                                                        keyOf: (e) =>
-                                                                            e.createdAt,
-                                                                        desc:
-                                                                            true)
-                                                                    .toList();
+                                                            final sanidade = _sanidadeRowsFromResponseJson(
+                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                        .jsonBody)
+                                                                .where(
+                                                                    _passesMultiSelectFilters)
+                                                                .where(
+                                                                    _rowQualifiesTratamentoTab)
+                                                                .toList()
+                                                                .sortedList(
+                                                                    keyOf: (e) =>
+                                                                        e.createdAt,
+                                                                    desc: true)
+                                                                .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
                                                                 child:
                                                                     EmptyRebanhoWidget(
-                                                                      message: _hasSanidadeFilters()
-                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
-                                                                          : null,
-                                                                    ),
+                                                                  message: _hasSanidadeFilters()
+                                                                      ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                      : null,
+                                                                ),
                                                               );
                                                             }
 
@@ -5144,7 +4998,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     softWrap:
                                                                         true,
                                                                     child: Text(
-                                                                    'Animal',
+                                                                      'Animal',
                                                                       style: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelLarge
@@ -5294,10 +5148,14 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         (context) {
                                                                       final tratamentos =
                                                                           _sanidadeCategoryRowLabels(
-                                                                        primary: sanidadeItem.tratamento,
-                                                                        outros: sanidadeItem.tratamentoOutros,
-                                                                        obs: sanidadeItem.tratamentoObs,
-                                                                        genericWhenEmptyParse: 'Tratamento',
+                                                                        primary:
+                                                                            sanidadeItem.tratamento,
+                                                                        outros:
+                                                                            sanidadeItem.tratamentoOutros,
+                                                                        obs: sanidadeItem
+                                                                            .tratamentoObs,
+                                                                        genericWhenEmptyParse:
+                                                                            'Tratamento',
                                                                       );
 
                                                                       return SingleChildScrollView(
@@ -5380,11 +5238,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                           dateTimeFormat(
                                                                             "d/M/y",
                                                                             functions.converterParaData(
-                                                                              sanidadeItem
-                                                                                  .dataNascimento,
+                                                                              sanidadeItem.dataNascimento,
                                                                             ),
-                                                                            locale: FFLocalizations.of(context)
-                                                                                .languageCode,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
                                                                           ),
                                                                           'S/D',
                                                                         )}',
@@ -5395,8 +5252,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              color: FlutterFlowTheme.of(context)
-                                                                                  .icon,
+                                                                              color: FlutterFlowTheme.of(context).icon,
                                                                               fontSize: 12.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
@@ -5479,14 +5335,14 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                             c))
                                                                     .toList(),
                                                               ),
-                                                              emptyBuilder: () =>
-                                                                  Center(
+                                                              emptyBuilder:
+                                                                  () => Center(
                                                                 child:
                                                                     EmptyRebanhoWidget(
-                                                                      message: _hasSanidadeFilters()
-                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
-                                                                          : null,
-                                                                    ),
+                                                                  message: _hasSanidadeFilters()
+                                                                      ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                      : null,
+                                                                ),
                                                               ),
                                                               paginated: true,
                                                               selectable: false,
@@ -5986,30 +5842,28 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade =
-                                                                _sanidadeRowsFromResponseJson(
-                                                                        pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                            .jsonBody)
-                                                                    .where(
-                                                                        _passesMultiSelectFilters)
-                                                                    .where(
-                                                                        _rowQualifiesProtocoloTab)
-                                                                    .toList()
-                                                                    .sortedList(
-                                                                        keyOf: (e) =>
-                                                                            e.createdAt,
-                                                                        desc:
-                                                                            true)
-                                                                    .toList();
+                                                            final sanidade = _sanidadeRowsFromResponseJson(
+                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                        .jsonBody)
+                                                                .where(
+                                                                    _passesMultiSelectFilters)
+                                                                .where(
+                                                                    _rowQualifiesProtocoloTab)
+                                                                .toList()
+                                                                .sortedList(
+                                                                    keyOf: (e) =>
+                                                                        e.createdAt,
+                                                                    desc: true)
+                                                                .toList();
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
                                                                 child:
                                                                     EmptyRebanhoWidget(
-                                                                      message: _hasSanidadeFilters()
-                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
-                                                                          : null,
-                                                                    ),
+                                                                  message: _hasSanidadeFilters()
+                                                                      ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                      : null,
+                                                                ),
                                                               );
                                                             }
 
@@ -6085,96 +5939,34 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                 ),
                                                                 DataColumn2(
                                                                   label:
-                                                                    DefaultTextStyle
-                                                                      .merge(
-                                                                  softWrap:
-                                                                    true,
-                                                                  child: Text(
-                                                                    'Protocolo D0',
-                                                                    style: FlutterFlowTheme.of(
-                                                                        context)
-                                                                      .labelLarge
-                                                                      .override(
-                                                                      font:
-                                                                        GoogleFonts.poppins(
-                                                                        fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                        fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                      ),
-                                                                      fontSize:
-                                                                        12.0,
-                                                                      letterSpacing:
-                                                                        0.0,
-                                                                      fontWeight:
-                                                                        FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                      fontStyle:
-                                                                        FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                      ),
-                                                                  ),
-                                                                  ),
-                                                                  onSort:
-                                                                    onSortChanged,
-                                                                ),
-                                                                DataColumn2(
-                                                                  label:
-                                                                    DefaultTextStyle
-                                                                      .merge(
-                                                                  softWrap:
-                                                                    true,
-                                                                  child: Text(
-                                                                    'Protocolo retirada',
-                                                                    style: FlutterFlowTheme.of(
-                                                                        context)
-                                                                      .labelLarge
-                                                                      .override(
-                                                                      font:
-                                                                        GoogleFonts.poppins(
-                                                                        fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                        fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                      ),
-                                                                      fontSize:
-                                                                        12.0,
-                                                                      letterSpacing:
-                                                                        0.0,
-                                                                      fontWeight:
-                                                                        FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                      fontStyle:
-                                                                        FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                      ),
-                                                                  ),
+                                                                      DefaultTextStyle
+                                                                          .merge(
+                                                                    softWrap:
+                                                                        true,
+                                                                    child: Text(
+                                                                      'Protocolo D0',
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .labelLarge
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                            ),
+                                                                            fontSize:
+                                                                                12.0,
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                            fontWeight:
+                                                                                FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                          ),
+                                                                    ),
                                                                   ),
                                                                   onSort:
-                                                                    onSortChanged,
-                                                                ),
-                                                                DataColumn2(
-                                                                  label:
-                                                                    DefaultTextStyle
-                                                                      .merge(
-                                                                  softWrap:
-                                                                    true,
-                                                                  child: Text(
-                                                                    'Protocolo IATF',
-                                                                    style: FlutterFlowTheme.of(
-                                                                        context)
-                                                                      .labelLarge
-                                                                      .override(
-                                                                      font:
-                                                                        GoogleFonts.poppins(
-                                                                        fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                        fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                      ),
-                                                                      fontSize:
-                                                                        12.0,
-                                                                      letterSpacing:
-                                                                        0.0,
-                                                                      fontWeight:
-                                                                        FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                                                                      fontStyle:
-                                                                        FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                                                                      ),
-                                                                  ),
-                                                                  ),
-                                                                  onSort:
-                                                                    onSortChanged,
+                                                                      onSortChanged,
                                                                 ),
                                                                 DataColumn2(
                                                                   label:
@@ -6183,7 +5975,69 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     softWrap:
                                                                         true,
                                                                     child: Text(
-                                                                    'Animal',
+                                                                      'Protocolo retirada',
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .labelLarge
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                            ),
+                                                                            fontSize:
+                                                                                12.0,
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                            fontWeight:
+                                                                                FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                          ),
+                                                                    ),
+                                                                  ),
+                                                                  onSort:
+                                                                      onSortChanged,
+                                                                ),
+                                                                DataColumn2(
+                                                                  label:
+                                                                      DefaultTextStyle
+                                                                          .merge(
+                                                                    softWrap:
+                                                                        true,
+                                                                    child: Text(
+                                                                      'Protocolo IATF',
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .labelLarge
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
+                                                                              fontWeight: FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                              fontStyle: FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                            ),
+                                                                            fontSize:
+                                                                                12.0,
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                            fontWeight:
+                                                                                FlutterFlowTheme.of(context).labelLarge.fontWeight,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                                                                          ),
+                                                                    ),
+                                                                  ),
+                                                                  onSort:
+                                                                      onSortChanged,
+                                                                ),
+                                                                DataColumn2(
+                                                                  label:
+                                                                      DefaultTextStyle
+                                                                          .merge(
+                                                                    softWrap:
+                                                                        true,
+                                                                    child: Text(
+                                                                      'Animal',
                                                                       style: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelLarge
@@ -6333,10 +6187,14 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                         (context) {
                                                                       final protocolos =
                                                                           _sanidadeCategoryRowLabels(
-                                                                        primary: sanidadeItem.protocoloReprodutivo,
-                                                                        outros: sanidadeItem.protocoloReprodutivoOutros,
-                                                                        obs: sanidadeItem.protocoloReprodutivoObs,
-                                                                        genericWhenEmptyParse: 'Protocolo reprodutivo',
+                                                                        primary:
+                                                                            sanidadeItem.protocoloReprodutivo,
+                                                                        outros:
+                                                                            sanidadeItem.protocoloReprodutivoOutros,
+                                                                        obs: sanidadeItem
+                                                                            .protocoloReprodutivoObs,
+                                                                        genericWhenEmptyParse:
+                                                                            'Protocolo reprodutivo',
                                                                       );
 
                                                                       return SingleChildScrollView(
@@ -6381,54 +6239,90 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                     },
                                                                   ),
                                                                   Text(
-                                                                    _hasValue(sanidadeItem.protocoloD0)
-                                                                        ? sanidadeItem.protocoloD0.trim()
+                                                                    _hasValue(sanidadeItem
+                                                                            .protocoloD0)
+                                                                        ? sanidadeItem
+                                                                            .protocoloD0
+                                                                            .trim()
                                                                         : '—',
-                                                                    style: FlutterFlowTheme.of(context)
+                                                                    style: FlutterFlowTheme.of(
+                                                                            context)
                                                                         .bodyMedium
                                                                         .override(
-                                                                          font: GoogleFonts.poppins(
-                                                                            fontWeight: FontWeight.w500,
-                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          font:
+                                                                              GoogleFonts.poppins(
+                                                                            fontWeight:
+                                                                                FontWeight.w500,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
-                                                                          fontSize: 14.0,
-                                                                          letterSpacing: 0.0,
-                                                                          fontWeight: FontWeight.w500,
-                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          fontSize:
+                                                                              14.0,
+                                                                          letterSpacing:
+                                                                              0.0,
+                                                                          fontWeight:
+                                                                              FontWeight.w500,
+                                                                          fontStyle: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .fontStyle,
                                                                         ),
                                                                   ),
                                                                   Text(
-                                                                    _hasValue(sanidadeItem.protocoloRetirada)
-                                                                        ? sanidadeItem.protocoloRetirada.trim()
+                                                                    _hasValue(sanidadeItem
+                                                                            .protocoloRetirada)
+                                                                        ? sanidadeItem
+                                                                            .protocoloRetirada
+                                                                            .trim()
                                                                         : '—',
-                                                                    style: FlutterFlowTheme.of(context)
+                                                                    style: FlutterFlowTheme.of(
+                                                                            context)
                                                                         .bodyMedium
                                                                         .override(
-                                                                          font: GoogleFonts.poppins(
-                                                                            fontWeight: FontWeight.w500,
-                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          font:
+                                                                              GoogleFonts.poppins(
+                                                                            fontWeight:
+                                                                                FontWeight.w500,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
-                                                                          fontSize: 14.0,
-                                                                          letterSpacing: 0.0,
-                                                                          fontWeight: FontWeight.w500,
-                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          fontSize:
+                                                                              14.0,
+                                                                          letterSpacing:
+                                                                              0.0,
+                                                                          fontWeight:
+                                                                              FontWeight.w500,
+                                                                          fontStyle: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .fontStyle,
                                                                         ),
                                                                   ),
                                                                   Text(
-                                                                    _hasValue(sanidadeItem.protocoloIatf)
-                                                                        ? sanidadeItem.protocoloIatf.trim()
+                                                                    _hasValue(sanidadeItem
+                                                                            .protocoloIatf)
+                                                                        ? sanidadeItem
+                                                                            .protocoloIatf
+                                                                            .trim()
                                                                         : '—',
-                                                                    style: FlutterFlowTheme.of(context)
+                                                                    style: FlutterFlowTheme.of(
+                                                                            context)
                                                                         .bodyMedium
                                                                         .override(
-                                                                          font: GoogleFonts.poppins(
-                                                                            fontWeight: FontWeight.w500,
-                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          font:
+                                                                              GoogleFonts.poppins(
+                                                                            fontWeight:
+                                                                                FontWeight.w500,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
-                                                                          fontSize: 14.0,
-                                                                          letterSpacing: 0.0,
-                                                                          fontWeight: FontWeight.w500,
-                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          fontSize:
+                                                                              14.0,
+                                                                          letterSpacing:
+                                                                              0.0,
+                                                                          fontWeight:
+                                                                              FontWeight.w500,
+                                                                          fontStyle: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .fontStyle,
                                                                         ),
                                                                   ),
                                                                   Column(
@@ -6470,11 +6364,10 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                           dateTimeFormat(
                                                                             "d/M/y",
                                                                             functions.converterParaData(
-                                                                              sanidadeItem
-                                                                                  .dataNascimento,
+                                                                              sanidadeItem.dataNascimento,
                                                                             ),
-                                                                            locale: FFLocalizations.of(context)
-                                                                                .languageCode,
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
                                                                           ),
                                                                           'S/D',
                                                                         )}',
@@ -6485,8 +6378,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                                 fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
                                                                                 fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                               ),
-                                                                              color: FlutterFlowTheme.of(context)
-                                                                                  .icon,
+                                                                              color: FlutterFlowTheme.of(context).icon,
                                                                               fontSize: 12.0,
                                                                               letterSpacing: 0.0,
                                                                               fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
@@ -6569,14 +6461,14 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                             c))
                                                                     .toList(),
                                                               ),
-                                                              emptyBuilder: () =>
-                                                                  Center(
+                                                              emptyBuilder:
+                                                                  () => Center(
                                                                 child:
                                                                     EmptyRebanhoWidget(
-                                                                      message: _hasSanidadeFilters()
-                                                                          ? 'Nenhum registro encontrado para os filtros aplicados'
-                                                                          : null,
-                                                                    ),
+                                                                  message: _hasSanidadeFilters()
+                                                                      ? 'Nenhum registro encontrado para os filtros aplicados'
+                                                                      : null,
+                                                                ),
                                                               ),
                                                               paginated: true,
                                                               selectable: false,

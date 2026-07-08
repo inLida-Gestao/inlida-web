@@ -1,6 +1,5 @@
 // Automatic FlutterFlow imports
 import '/backend/supabase/supabase.dart';
-import '/flutter_flow/flutter_flow_util.dart';
 // Imports other custom actions
 // Imports custom functions
 // Begin custom action code
@@ -9,7 +8,66 @@ import '/flutter_flow/flutter_flow_util.dart';
 import 'package:excel/excel.dart';
 import 'package:download/download.dart';
 
-Future<bool> exportReproducaoExcel(String nameExcel, String idPropriedade) async {
+String? _nonEmptyExportText(dynamic value) {
+  final text = value?.toString().trim();
+  if (text == null || text.isEmpty || text.toLowerCase() == 'null') {
+    return null;
+  }
+  return text;
+}
+
+Future<Map<String, String>> _buscarNomesLotesPorIdReproducaoExport(
+  String idPropriedade,
+) async {
+  const batchSize = 1000;
+  var offset = 0;
+  final nomesPorId = <String, String>{};
+
+  while (true) {
+    final rows = await SupaFlow.client
+        .from('lotes')
+        .select('id_lote,nome')
+        .eq('id_propriedade', idPropriedade)
+        .range(offset, offset + batchSize - 1);
+
+    for (final item in rows) {
+      final row = Map<String, dynamic>.from(item);
+      final id = _nonEmptyExportText(row['id_lote']);
+      final nome = _nonEmptyExportText(row['nome']);
+      if (id != null && nome != null) {
+        nomesPorId[id] = nome;
+      }
+    }
+
+    if (rows.length < batchSize) break;
+    offset += batchSize;
+  }
+
+  return nomesPorId;
+}
+
+Future<void> _preencherLotesAusentesReproducaoExport(
+  List<Map<String, dynamic>> rows,
+  String idPropriedade,
+) async {
+  final nomesLotesPorId =
+      await _buscarNomesLotesPorIdReproducaoExport(idPropriedade);
+
+  for (final row in rows) {
+    if (_nonEmptyExportText(row['loteNome']) != null) {
+      continue;
+    }
+
+    final idLote = _nonEmptyExportText(row['id_lote']);
+    final nomeLote = idLote == null ? null : nomesLotesPorId[idLote];
+    if (nomeLote != null) {
+      row['loteNome'] = nomeLote;
+    }
+  }
+}
+
+Future<bool> exportReproducaoExcel(
+    String nameExcel, String idPropriedade) async {
   try {
     print('=== INÍCIO DA EXPORTAÇÃO - REPRODUÇÃO ===');
     print('Nome arquivo: $nameExcel');
@@ -64,6 +122,8 @@ Future<bool> exportReproducaoExcel(String nameExcel, String idPropriedade) async
       print('AVISO: Nenhum registro encontrado para exportar');
       return false;
     }
+
+    await _preencherLotesAusentesReproducaoExport(allData, idPropriedade);
 
     print('Criando Excel...');
     var excel = Excel.createExcel();

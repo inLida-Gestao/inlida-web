@@ -34,6 +34,8 @@ class PgRebanhoAddNascimentoModel
 
   String? idRebanho;
 
+  bool isSaving = false;
+
   ///  State fields for stateful widgets in this page.
 
   // Model for header component.

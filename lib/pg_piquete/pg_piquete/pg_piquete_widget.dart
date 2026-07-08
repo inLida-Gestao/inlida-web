@@ -1,26 +1,15 @@
-import '/backend/api_requests/api_calls.dart';
-import '/backend/schema/structs/index.dart';
-import '/componentes/header/header_widget.dart';
-import '/componentes/side_bar/side_bar_widget.dart';
-import '/components/empty_rebanho_widget.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import '/flutter_flow/flutter_flow_data_table.dart';
-import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import '/pg_piquete/pp_filtro_piquete/pp_filtro_piquete_widget.dart';
-import '/pg_piquete/sub_menu_piquete/sub_menu_piquete_widget.dart';
-import '/actions/actions.dart' as action_blocks;
-import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
-import 'dart:async';
-import 'package:aligned_dialog/aligned_dialog.dart';
-import 'package:easy_debounce/easy_debounce.dart';
+import '/pg_piquete/data/piquete_backend_store.dart';
+import '/pg_piquete/prototype/mapa_demarcacao_real_widget.dart';
+import '/pg_piquete/prototype/piquete_movimentacao_modal_widget.dart';
+import '/pg_piquete/prototype/piquete_prototype_store.dart';
+import '/pg_piquete/prototype/piquete_prototype_widgets.dart';
+import '../modal_excluir_piquete/modal_excluir_piquete_widget.dart';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'pg_piquete_model.dart';
 export 'pg_piquete_model.dart';
 
@@ -35,1652 +24,2817 @@ class PgPiqueteWidget extends StatefulWidget {
 }
 
 class _PgPiqueteWidgetState extends State<PgPiqueteWidget> {
+  static const _existingRetiroColor = Color(0xFF7C3AED);
+
   late PgPiqueteModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  final _store = PiqueteBackendStore.instance;
+  late final VoidCallback _disposePiqueteRefresh;
+  String? _selectedPiqueteId;
+  String? _hoveredMapAreaName;
+  String _mapContentMode = 'animais';
+  final Set<String> _expandedRetiroIds = {};
+  final Set<String> _expandedPiqueteIds = {};
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => PgPiqueteModel());
-
-    // On page load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      await action_blocks.countPiquetes(context);
-      _model.disposeRefreshListener =
-          FFAppState().onRefresh('refreshPiquete', () async {
-        FFAppState().refreshPiquete = false;
-        await action_blocks.countPiquetes(context);
-        safeSetState(() => _model.apiRequestCompleter = null);
-      });
-    });
-
+    FFAppState().navegacao = 'piquetes';
     _model.textController ??= TextEditingController();
     _model.textFieldFocusNode ??= FocusNode();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+    _store.addListener(_onStoreChanged);
+    _disposePiqueteRefresh = FFAppState().onRefresh(
+      'refreshPiquete',
+      _handlePiqueteRefresh,
+    );
+    _loadPiquetes();
   }
 
   @override
   void dispose() {
+    _disposePiqueteRefresh();
+    _store.removeListener(_onStoreChanged);
     _model.dispose();
-
     super.dispose();
+  }
+
+  void _onStoreChanged() => safeSetState(() {});
+
+  void _handlePiqueteRefresh() {
+    _model.textController?.clear();
+    _selectedPiqueteId = null;
+    _loadPiquetes();
+  }
+
+  Future<void> _loadPiquetes() async {
+    try {
+      await _store.load();
+    } catch (_) {
+      // A mensagem amigável fica no store e é exibida na tela.
+    }
+  }
+
+  List<PiquetePrototype> get _piquetesFiltrados {
+    final retiro = _store.selectedRetiro;
+    final query = (_model.textController?.text ?? '').trim().toLowerCase();
+    final source = _store.mostrandoPiquetesSemRetiro
+        ? _store.piquetesSemRetiro
+        : (retiro == null
+            ? _store.piquetes
+            : _store.piquetesDoRetiro(retiro.id));
+    return source.where((piquete) {
+      if (query.isEmpty) return true;
+      return piquete.nome.toLowerCase().contains(query) ||
+          piquete.forrageira.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  PiquetePrototype? get _selectedPiquete {
+    final selectedId = _selectedPiqueteId;
+    if (selectedId != null && selectedId.isNotEmpty) {
+      final selected = _store.piqueteById(selectedId);
+      if (selected != null) return selected;
+    }
+    return null;
+  }
+
+  Future<void> _selectPiqueteFromTree(PiquetePrototype piquete) async {
+    final wasSelected = _selectedPiqueteId == piquete.id;
+    safeSetState(() {
+      _selectedPiqueteId = piquete.id;
+      if (wasSelected) {
+        if (_expandedPiqueteIds.contains(piquete.id)) {
+          _expandedPiqueteIds.remove(piquete.id);
+        } else {
+          _expandedPiqueteIds.add(piquete.id);
+        }
+      } else {
+        _expandedPiqueteIds.add(piquete.id);
+      }
+      if (piquete.retiroId.isNotEmpty) {
+        _expandedRetiroIds.add(piquete.retiroId);
+      }
+    });
+
+    try {
+      if (piquete.retiroId.isEmpty) {
+        if (!_store.mostrandoPiquetesSemRetiro) {
+          await _store.selectPiquetesSemRetiro();
+        }
+      } else if (_store.selectedRetiro?.id != piquete.retiroId) {
+        await _store.selectRetiro(piquete.retiroId);
+      }
+      await _store.loadPiqueteDetail(piquete.id);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ?? 'Não foi possível carregar o piquete.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _selectPiquetesSemLimites() async {
+    safeSetState(() => _selectedPiqueteId = null);
+    try {
+      await _store.selectPiquetesSemRetiro();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível carregar os piquetes sem retiro.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _selectLimites(String id) async {
+    safeSetState(() {
+      _selectedPiqueteId = null;
+    });
+    try {
+      await _store.selectRetiro(id);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ?? 'Não foi possível carregar o retiro.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _clearAreaSelection() async {
+    safeSetState(() {
+      _selectedPiqueteId = null;
+      _hoveredMapAreaName = null;
+    });
+    try {
+      await _store.selectAllPiqueteAreas();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível carregar todos os retiros e piquetes.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
+  }
+
+  void _openAddPiquete() {
+    if (!_store.temLimitePropriedade) {
+      _showLimiteRequiredSnack();
+      return;
+    }
+    context.pushNamed(PgAddPiqueteWidget.routeName);
+  }
+
+  Future<void> _openRetiroDialog({RetiroPrototype? initial}) async {
+    if (!_store.temLimitePropriedade) {
+      _showLimiteRequiredSnack();
+      return;
+    }
+
+    if (initial == null) {
+      try {
+        await _store.load();
+      } catch (_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _store.errorMessage ??
+                  'Não foi possível atualizar os retiros existentes.',
+            ),
+            backgroundColor: FlutterFlowTheme.of(context).error,
+          ),
+        );
+      }
+    }
+
+    if (!mounted) return;
+    final refreshedInitial =
+        initial == null ? null : (_store.retiroById(initial.id) ?? initial);
+    await _showRetiroDialog(initial: refreshedInitial);
+  }
+
+  void _showLimiteRequiredSnack() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Cadastre o limite da propriedade antes de criar retiros ou piquetes.',
+        ),
+        backgroundColor: FlutterFlowTheme.of(context).error,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
+    return PiquetePrototypeScaffold(
+      scaffoldKey: scaffoldKey,
+      headerModel: _model.headerModel,
+      sideBarModel: _model.sideBarModel,
+      child: SingleChildScrollView(
+        padding: const EdgeInsetsDirectional.fromSTEB(28, 28, 28, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            PrototypePageHeader(
+              title: 'Piquetes',
+              subtitle: 'Limite da propriedade, retiros e áreas de pastejo',
+              actions: [
+                PrototypeSecondaryButton(
+                  label: _store.temLimitePropriedade
+                      ? 'Editar limite'
+                      : 'Criar limite',
+                  icon: Icons.map_outlined,
+                  onPressed: () => _showLimiteDialog(
+                    initial: _store.limitePropriedade,
+                  ),
+                ),
+                PrototypeSecondaryButton(
+                  label: 'Adicionar retiro',
+                  icon: Icons.add_location_alt_outlined,
+                  onPressed: _openRetiroDialog,
+                ),
+                PrototypePrimaryButton(
+                  label: 'Adicionar piquete',
+                  icon: Icons.add_rounded,
+                  onPressed: _openAddPiquete,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                SizedBox(
+                  width: 232,
+                  child: _buildLimiteMetricCard(context),
+                ),
+                SizedBox(
+                  width: 232,
+                  child: PrototypeMetricCard(
+                    title: 'Retiros cadastrados',
+                    value: _store.retiros.length.toString(),
+                    icon: Icons.account_tree_outlined,
+                  ),
+                ),
+                SizedBox(
+                  width: 232,
+                  child: PrototypeMetricCard(
+                    title: 'Piquetes cadastrados',
+                    value: _store.totalPiquetes.toString(),
+                    icon: kPiqueteMenuIcon,
+                  ),
+                ),
+                SizedBox(
+                  width: 232,
+                  child: PrototypeMetricCard(
+                    title: 'Animais em piquetes',
+                    value: _store.totalAnimaisEmPiquetes.toString(),
+                    iconAsset: kPiqueteCowIconAsset,
+                  ),
+                ),
+                SizedBox(
+                  width: 232,
+                  child: PrototypeMetricCard(
+                    title: 'Lotes em piquetes',
+                    value: _store.totalLotesEmPiquetes.toString(),
+                    iconAsset: kPiqueteLoteIconAsset,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            if (_store.loading &&
+                _store.retiros.isEmpty &&
+                _store.piquetesSemRetiro.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(48),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (_store.errorMessage != null &&
+                _store.retiros.isEmpty &&
+                _store.piquetesSemRetiro.isEmpty)
+              Center(
+                child: SizedBox(
+                  width: 640,
+                  child: PrototypeEmptyState(
+                    title: 'Não foi possível carregar os piquetes',
+                    message: _store.errorMessage!,
+                    icon: Icons.warning_amber_rounded,
+                    action: PrototypePrimaryButton(
+                      label: 'Tentar novamente',
+                      icon: Icons.refresh_rounded,
+                      onPressed: _loadPiquetes,
+                    ),
+                  ),
+                ),
+              )
+            else if (_store.retiros.isEmpty && _store.piquetesSemRetiro.isEmpty)
+              Center(
+                child: SizedBox(
+                  width: 640,
+                  child: PrototypeEmptyState(
+                    title: 'Nenhum piquete cadastrado',
+                    message:
+                        'Cadastre o limite da propriedade e depois organize áreas em retiros e piquetes.',
+                    icon: Icons.crop_square_rounded,
+                    action: Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        PrototypePrimaryButton(
+                          label: 'Adicionar piquete',
+                          icon: Icons.add_rounded,
+                          onPressed: _openAddPiquete,
+                        ),
+                        PrototypeSecondaryButton(
+                          label: _store.temLimitePropriedade
+                              ? 'Criar retiro'
+                              : 'Criar limite',
+                          icon: Icons.add_location_alt_outlined,
+                          onPressed: _store.temLimitePropriedade
+                              ? _openRetiroDialog
+                              : () => _showLimiteDialog(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else
+              _buildPiqueteWorkspace(context),
+          ],
+        ),
+      ),
+    );
+  }
 
-    return FutureBuilder<ApiCallResponse>(
-      future: (_model.apiRequestCompleter ??= Completer<ApiCallResponse>()
-            ..complete(
-                FunctionsSupabaseRebanhoGroup.buscarPiquetesFiltrosCall.call(
-              pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
-              pPesquisa: _model.textController.text,
-              pForrageira: FFAppState().filtroPiqueteForrageira,
-              pAreaMin: FFAppState().filtroAreaMin,
-              pAreaMax: FFAppState().filtroAreaMax,
-              pLimite: FFAppConstants.limit,
-              pOffset: functions.calcDeslocamento(
-                  _model.pageNum, FFAppConstants.limit),
-            )))
-          .future,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-            body: Center(
-              child: SizedBox(
-                width: 50.0,
-                height: 50.0,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    FlutterFlowTheme.of(context).primary,
+  Widget _buildLimiteMetricCard(BuildContext context) {
+    final limite = _store.limitePropriedade;
+    return SizedBox(
+      height: 92,
+      child: PrototypeCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
+          onTap: () => _showLimiteDialog(initial: limite),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: const BoxDecoration(
+                  color: kPiquetePrimarySurface,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  limite == null ? Icons.add_location_alt_outlined : Icons.map,
+                  color: kPiquetePrimary,
+                  size: 23,
+                ),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Limite cadastrado',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        color: kPiqueteTextMuted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      limite == null
+                          ? 'Criar limite'
+                          : '${limite.areaHa.toStringAsFixed(0)} ha',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        color: kPiqueteTextStrong,
+                        fontSize: limite == null ? 17 : 21,
+                        fontWeight: FontWeight.w700,
+                        height: 1.15,
+                      ),
+                    ),
+                    if (limite != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '${limite.areaDisponivelHa.toStringAsFixed(1)} ha disponíveis',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          color: kPiqueteTextSoft,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(
+                limite == null
+                    ? Icons.add_rounded
+                    : Icons.edit_location_alt_outlined,
+                color: kPiquetePrimaryDark,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPiqueteWorkspace(BuildContext context) {
+    final selected = _selectedPiquete;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 1040;
+        final explorer = _buildPiqueteTreePanel(context);
+        final map = _buildPiqueteMap(context, selected: selected);
+
+        if (narrow) {
+          return Column(
+            children: [
+              explorer,
+              const SizedBox(height: 16),
+              map,
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(width: 378, child: explorer),
+            const SizedBox(width: 16),
+            Expanded(child: map),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPiqueteTreePanel(BuildContext context) {
+    final showingSemRetiro = _store.mostrandoPiquetesSemRetiro;
+    final piquetesPorRetiro = _store.retiros
+        .fold<int>(0, (total, retiro) => total + retiro.piquetesCount);
+    return PrototypeCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Áreas de pastejo',
+                  style: GoogleFonts.poppins(
+                    color: kPiqueteTextStrong,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-            ),
-          );
-        }
-        if (snapshot.hasError) {
-          return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-            body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.error_outline_rounded,
-                    color: FlutterFlowTheme.of(context).error,
-                    size: 48.0,
+              OutlinedButton.icon(
+                onPressed: _clearAreaSelection,
+                icon: const Icon(Icons.map_outlined, size: 16),
+                label: const Text('Ver todos'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: kPiquetePrimaryDark,
+                  backgroundColor: kPiquetePrimarySurface,
+                  minimumSize: const Size(0, 36),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
                   ),
-                  const SizedBox(height: 16.0),
-                  Text(
-                    'Erro ao carregar dados',
-                    style: FlutterFlowTheme.of(context).titleMedium,
+                  side: BorderSide(
+                    color: kPiquetePrimary.withValues(alpha: 0.35),
                   ),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    'Verifique sua conexão e tente novamente.',
-                    style: FlutterFlowTheme.of(context).bodySmall,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(kPiqueteRadius),
                   ),
-                  const SizedBox(height: 16.0),
-                  ElevatedButton.icon(
-                    onPressed: () =>
-                        safeSetState(() => _model.apiRequestCompleter = null),
-                    icon: const Icon(Icons.refresh_rounded, size: 18.0),
-                    label: const Text('Tentar novamente'),
+                  textStyle: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
                   ),
-                ],
+                ),
               ),
-            ),
-          );
-        }
-        final pgPiqueteBuscarPiquetesFiltrosResponse = snapshot.data!;
+            ],
+          ),
+          const SizedBox(height: 12),
+          _PiqueteSegmentedTabs(
+            showingSemRetiro: showingSemRetiro,
+            retiroCount: piquetesPorRetiro,
+            semRetiroCount: _store.piquetesSemRetiro.length,
+            onRetirosTap: _clearAreaSelection,
+            onSemRetiroTap: _selectPiquetesSemLimites,
+          ),
+          const SizedBox(height: 14),
+          PrototypeSearchField(
+            controller: _model.textController!,
+            hint: 'Pesquisar piquete ou retiro',
+            onChanged: (_) => safeSetState(() {}),
+          ),
+          const SizedBox(height: 14),
+          if (showingSemRetiro)
+            _buildSemRetiroTree(context)
+          else
+            _buildRetirosTree(context),
+        ],
+      ),
+    );
+  }
 
-        return GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-            FocusManager.instance.primaryFocus?.unfocus();
-          },
-          child: Scaffold(
-            key: scaffoldKey,
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-            body: SafeArea(
-              top: true,
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  wrapWithModel(
-                    model: _model.headerModel,
-                    updateCallback: () => safeSetState(() {}),
-                    child: const HeaderWidget(),
+  Widget _buildRetirosTree(BuildContext context) {
+    final query = (_model.textController?.text ?? '').trim().toLowerCase();
+    final visibleRetiros = _store.retiros.where((retiro) {
+      if (query.isEmpty) return true;
+      final piquetes = _store.piquetesDoRetiro(retiro.id);
+      return retiro.nome.toLowerCase().contains(query) ||
+          piquetes.any((piquete) => _piqueteMatchesQuery(piquete, query));
+    }).toList();
+
+    if (visibleRetiros.isEmpty) {
+      return PrototypeEmptyState(
+        title: 'Nenhum retiro encontrado',
+        message: 'Ajuste a busca ou cadastre um novo retiro.',
+        icon: Icons.search_off_rounded,
+        action: PrototypeSecondaryButton(
+          label: 'Adicionar retiro',
+          icon: Icons.add_location_alt_outlined,
+          onPressed: _openRetiroDialog,
+        ),
+      );
+    }
+
+    return Column(
+      children: visibleRetiros
+          .map((retiro) {
+            final expanded =
+                _expandedRetiroIds.contains(retiro.id) || query.isNotEmpty;
+            final allPiquetesDoRetiro = _store.piquetesDoRetiro(retiro.id);
+            final piquetes = _filteredPiquetes(
+              allPiquetesDoRetiro,
+              query,
+              includeAllWhenQueryMatchesGroup:
+                  retiro.nome.toLowerCase().contains(query),
+            );
+            return _RetiroTreeCard(
+              retiro: retiro,
+              piquetes: piquetes,
+              previewPiquetes: allPiquetesDoRetiro,
+              expanded: expanded,
+              selectedPiqueteId: _selectedPiqueteId,
+              expandedPiqueteIds: _expandedPiqueteIds,
+              onHeaderTap: () => _toggleRetiro(retiro),
+              onEdit: () => _openRetiroDialog(initial: retiro),
+              onDelete: () => _deleteRetiro(retiro),
+              onPreviewHoverChanged: (hovered) => safeSetState(
+                () => _hoveredMapAreaName = hovered ? retiro.nome : null,
+              ),
+              onPiquetePreviewHoverChanged: (piquete, hovered) => safeSetState(
+                () => _hoveredMapAreaName = hovered ? piquete.nome : null,
+              ),
+              onPiqueteTap: (piquete) => _selectPiqueteFromTree(piquete),
+            );
+          })
+          .toList()
+          .divide(const SizedBox(height: 10)),
+    );
+  }
+
+  Widget _buildSemRetiroTree(BuildContext context) {
+    final piquetes = _filteredPiquetes(
+      _store.piquetesSemRetiro,
+      (_model.textController?.text ?? '').trim().toLowerCase(),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: kPiqueteLimit.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(kPiqueteRadius),
+            border: Border.all(color: kPiqueteLimit.withValues(alpha: 0.35)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.info_outline_rounded,
+                color: Color(0xFF8A5A00),
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Piquetes cadastrados diretamente no limite da propriedade.',
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF8A5A00),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    height: 1.35,
                   ),
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      height: 100.0,
-                      decoration: BoxDecoration(
-                        color: FlutterFlowTheme.of(context).secondaryBackground,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          wrapWithModel(
-                            model: _model.sideBarModel,
-                            updateCallback: () => safeSetState(() {}),
-                            child: const SideBarWidget(),
-                          ),
-                          Flexible(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: FlutterFlowTheme.of(context)
-                                    .secondaryBackground,
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsetsDirectional.fromSTEB(
-                                    32.0, 34.0, 32.0, 34.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  children: [
-                                    // Title + actions row
-                                    Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'Piquetes',
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.poppins(
-                                                  fontWeight: FontWeight.w600,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryText,
-                                                fontSize: 40.0,
-                                                letterSpacing: 0.0,
-                                                fontWeight: FontWeight.w600,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
-                                              ),
-                                        ),
-                                        Flexible(
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.max,
-                                            children: [
-                                              FFButtonWidget(
-                                                onPressed: () async {
-                                                  context.pushNamed(
-                                                      PgAddPiqueteWidget
-                                                          .routeName);
-                                                },
-                                                text: 'Adicionar',
-                                                icon: const Icon(
-                                                  Icons.add,
-                                                  size: 24.0,
-                                                ),
-                                                options: FFButtonOptions(
-                                                  height: 56.0,
-                                                  padding:
-                                                      const EdgeInsetsDirectional
-                                                          .fromSTEB(
-                                                          24.0, 0.0, 24.0, 0.0),
-                                                  iconPadding:
-                                                      const EdgeInsetsDirectional
-                                                          .fromSTEB(
-                                                          0.0, 0.0, 0.0, 0.0),
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primary,
-                                                  textStyle: FlutterFlowTheme
-                                                          .of(context)
-                                                      .titleSmall
-                                                      .override(
-                                                        font:
-                                                            GoogleFonts.poppins(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .titleSmall
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .titleSmall
-                                                                  .fontStyle,
-                                                        ),
-                                                        color: Colors.white,
-                                                        fontSize: 18.0,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .titleSmall
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .titleSmall
-                                                                .fontStyle,
-                                                      ),
-                                                  elevation: 0.0,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          6.0),
-                                                  hoverColor:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .secondary,
-                                                ),
-                                              ),
-                                              Flexible(
-                                                child: Container(
-                                                  height: 56.0,
-                                                  decoration: BoxDecoration(
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .customColor2,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            6.0),
-                                                  ),
-                                                  child: Align(
-                                                    alignment:
-                                                        const AlignmentDirectional(
-                                                            0.0, 0.0),
-                                                    child: TextFormField(
-                                                      controller:
-                                                          _model.textController,
-                                                      focusNode: _model
-                                                          .textFieldFocusNode,
-                                                      onChanged: (_) =>
-                                                          EasyDebounce.debounce(
-                                                        '_model.textController',
-                                                        const Duration(
-                                                            milliseconds: 250),
-                                                        () async {
-                                                          safeSetState(() =>
-                                                              _model.apiRequestCompleter =
-                                                                  null);
-                                                        },
-                                                      ),
-                                                      autofocus: false,
-                                                      obscureText: false,
-                                                      decoration:
-                                                          InputDecoration(
-                                                        isDense: true,
-                                                        labelStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .override(
-                                                                  font: GoogleFonts
-                                                                      .poppins(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .labelMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                                  color: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .accent3,
-                                                                  fontSize:
-                                                                      16.0,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                        hintText: 'Pesquisar',
-                                                        hintStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .override(
-                                                                  font: GoogleFonts
-                                                                      .poppins(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .labelMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                                  color: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .accent3,
-                                                                  fontSize:
-                                                                      16.0,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                        enabledBorder:
-                                                            OutlineInputBorder(
-                                                          borderSide:
-                                                              const BorderSide(
-                                                            color: Color(
-                                                                0x00000000),
-                                                            width: 1.0,
-                                                          ),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      6.0),
-                                                        ),
-                                                        focusedBorder:
-                                                            OutlineInputBorder(
-                                                          borderSide:
-                                                              const BorderSide(
-                                                            color: Color(
-                                                                0x00000000),
-                                                            width: 1.0,
-                                                          ),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      6.0),
-                                                        ),
-                                                        errorBorder:
-                                                            OutlineInputBorder(
-                                                          borderSide:
-                                                              BorderSide(
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .error,
-                                                            width: 1.0,
-                                                          ),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      6.0),
-                                                        ),
-                                                        focusedErrorBorder:
-                                                            OutlineInputBorder(
-                                                          borderSide:
-                                                              BorderSide(
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .error,
-                                                            width: 1.0,
-                                                          ),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      6.0),
-                                                        ),
-                                                        filled: true,
-                                                        fillColor:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .customColor2,
-                                                        prefixIcon: Icon(
-                                                          Icons.search_sharp,
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .accent3,
-                                                          size: 24.0,
-                                                        ),
-                                                      ),
-                                                      style: FlutterFlowTheme
-                                                              .of(context)
-                                                          .bodyMedium
-                                                          .override(
-                                                            font: GoogleFonts
-                                                                .poppins(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                      cursorColor:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primaryText,
-                                                      validator: _model
-                                                          .textControllerValidator
-                                                          .asValidator(context),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              Builder(
-                                                builder: (context) =>
-                                                    FFButtonWidget(
-                                                  onPressed: () async {
-                                                    await showDialog(
-                                                      context: context,
-                                                      builder: (dialogContext) {
-                                                        return Dialog(
-                                                          elevation: 0,
-                                                          insetPadding:
-                                                              EdgeInsets.zero,
-                                                          backgroundColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          alignment: const AlignmentDirectional(
-                                                                  0.0, 0.0)
-                                                              .resolve(
-                                                                  Directionality.of(
-                                                                      context)),
-                                                          child:
-                                                              GestureDetector(
-                                                            onTap: () {
-                                                              FocusScope.of(
-                                                                      dialogContext)
-                                                                  .unfocus();
-                                                              FocusManager
-                                                                  .instance
-                                                                  .primaryFocus
-                                                                  ?.unfocus();
-                                                            },
-                                                            child:
-                                                                const PpFiltroPiqueteWidget(),
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
-                                                    safeSetState(() => _model
-                                                            .apiRequestCompleter =
-                                                        null);
-                                                  },
-                                                  text: 'Filtrar',
-                                                  icon: const Icon(
-                                                    Icons.filter_list,
-                                                    size: 24.0,
-                                                  ),
-                                                  options: FFButtonOptions(
-                                                    height: 56.0,
-                                                    padding:
-                                                        const EdgeInsetsDirectional
-                                                            .fromSTEB(16.0, 0.0,
-                                                            16.0, 0.0),
-                                                    iconPadding:
-                                                        const EdgeInsetsDirectional
-                                                            .fromSTEB(
-                                                            0.0, 0.0, 0.0, 0.0),
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .secondaryBackground,
-                                                    textStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .titleSmall
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmall
-                                                                    .fontWeight,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmall
-                                                                    .fontStyle,
-                                                              ),
-                                                              color: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .secondary,
-                                                              fontSize: 18.0,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .titleSmall
-                                                                      .fontWeight,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .titleSmall
-                                                                      .fontStyle,
-                                                            ),
-                                                    elevation: 0.0,
-                                                    borderSide: BorderSide(
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .secondary,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            6.0),
-                                                  ),
-                                                ),
-                                              ),
-                                            ].divide(
-                                                const SizedBox(width: 24.0)),
-                                          ),
-                                        ),
-                                      ].divide(const SizedBox(width: 24.0)),
-                                    ),
-                                    // Stats card
-                                    Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      children: [
-                                        Expanded(
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .secondaryBackground,
-                                              boxShadow: const [
-                                                BoxShadow(
-                                                  blurRadius: 4.0,
-                                                  color: Color(0x40000000),
-                                                  offset: Offset(2.0, 2.0),
-                                                )
-                                              ],
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                              border: Border.all(
-                                                color: const Color(0xFFEDEDED),
-                                              ),
-                                            ),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(24.0),
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.max,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'Piquetes cadastrados',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          fontSize: 18.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                  Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.max,
-                                                    children: [
-                                                      SvgPicture.asset(
-                                                        'assets/images/Piquete.svg',
-                                                        width: 40.0,
-                                                        height: 40.0,
-                                                        colorFilter:
-                                                            ColorFilter.mode(
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primary,
-                                                          BlendMode.srcIn,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '${valueOrDefault<String>(
-                                                          FFAppState()
-                                                              .qtdPiquetes
-                                                              .toString(),
-                                                          '0',
-                                                        )} piquetes',
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                              fontSize: 24.0,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                            ),
-                                                      ),
-                                                    ].divide(const SizedBox(
-                                                        width: 12.0)),
-                                                  ),
-                                                ].divide(const SizedBox(
-                                                    height: 16.0)),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    // Data table
-                                    Expanded(
-                                      child: Builder(
-                                        builder: (context) {
-                                          final piquete =
-                                              ((pgPiqueteBuscarPiquetesFiltrosResponse
-                                                                  .jsonBody is List
-                                                              ? pgPiqueteBuscarPiquetesFiltrosResponse
-                                                                  .jsonBody as List
-                                                              : [])
-                                                          .map<PiqueteDTStruct?>(
-                                                              PiqueteDTStruct
-                                                                  .maybeFromMap)
-                                                          .toList()
-                                                      as Iterable<
-                                                          PiqueteDTStruct?>)
-                                                  .withoutNulls
-                                                  .toList();
-                                          if (piquete.isEmpty) {
-                                            return const Center(
-                                              child: EmptyRebanhoWidget(
-                                                message:
-                                                    'Nenhum piquete encontrado',
-                                              ),
-                                            );
-                                          }
-
-                                          return FlutterFlowDataTable<
-                                              PiqueteDTStruct>(
-                                            controller: _model
-                                                .paginatedDataTableController,
-                                            data: piquete,
-                                            columnsBuilder: (onSortChanged) => [
-                                              DataColumn2(
-                                                label: DefaultTextStyle.merge(
-                                                  softWrap: true,
-                                                  child: Text(
-                                                    'Nome',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .labelLarge
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelLarge
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelLarge
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelLarge
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelLarge
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                ),
-                                                onSort: onSortChanged,
-                                              ),
-                                              DataColumn2(
-                                                label: DefaultTextStyle.merge(
-                                                  softWrap: true,
-                                                  child: Text(
-                                                    'Área (ha)',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .labelLarge
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelLarge
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelLarge
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelLarge
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelLarge
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                ),
-                                                onSort: onSortChanged,
-                                              ),
-                                              DataColumn2(
-                                                label: DefaultTextStyle.merge(
-                                                  softWrap: true,
-                                                  child: Text(
-                                                    'Forrageira',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .labelLarge
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelLarge
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelLarge
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelLarge
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelLarge
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                ),
-                                                onSort: onSortChanged,
-                                              ),
-                                              DataColumn2(
-                                                label: DefaultTextStyle.merge(
-                                                  softWrap: true,
-                                                  child: Text(
-                                                    ' ',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .labelLarge
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelLarge
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelLarge
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelLarge
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelLarge
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                            dataRowBuilder: (piqueteItem,
-                                                piqueteIndex,
-                                                selected,
-                                                onSelectChanged) {
-                                              return DataRow(
-                                                color: WidgetStateProperty.all(
-                                                  piqueteIndex % 2 == 0
-                                                      ? FlutterFlowTheme.of(
-                                                              context)
-                                                          .secondaryBackground
-                                                      : FlutterFlowTheme.of(
-                                                              context)
-                                                          .customColor11,
-                                                ),
-                                                cells: [
-                                                  Text(
-                                                    valueOrDefault<String>(
-                                                      piqueteItem.nome,
-                                                      '-',
-                                                    ),
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                  Text(
-                                                    valueOrDefault<String>(
-                                                      piqueteItem.area
-                                                          .toStringAsFixed(2),
-                                                      '-',
-                                                    ),
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                  Text(
-                                                    valueOrDefault<String>(
-                                                      piqueteItem.forrageria
-                                                              .isNotEmpty
-                                                          ? piqueteItem
-                                                              .forrageria
-                                                              .join(', ')
-                                                          : '-',
-                                                      '-',
-                                                    ),
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                  Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.max,
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.end,
-                                                    children: [
-                                                      Builder(
-                                                        builder: (context) =>
-                                                            FlutterFlowIconButton(
-                                                          borderRadius: 8.0,
-                                                          buttonSize: 40.0,
-                                                          fillColor:
-                                                              const Color(
-                                                                  0x0028A365),
-                                                          icon: Icon(
-                                                            Icons
-                                                                .keyboard_control,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .accent3,
-                                                            size: 24.0,
-                                                          ),
-                                                          onPressed: () async {
-                                                            await showAlignedDialog(
-                                                              barrierColor: Colors
-                                                                  .transparent,
-                                                              context: context,
-                                                              isGlobal: false,
-                                                              avoidOverflow:
-                                                                  true,
-                                                              targetAnchor:
-                                                                  const AlignmentDirectional(
-                                                                          1.0,
-                                                                          1.0)
-                                                                      .resolve(
-                                                                          Directionality.of(
-                                                                              context)),
-                                                              followerAnchor:
-                                                                  const AlignmentDirectional(
-                                                                          1.0,
-                                                                          -1.0)
-                                                                      .resolve(
-                                                                          Directionality.of(
-                                                                              context)),
-                                                              builder:
-                                                                  (dialogContext) {
-                                                                return Material(
-                                                                  color: Colors
-                                                                      .transparent,
-                                                                  child:
-                                                                      GestureDetector(
-                                                                    onTap: () {
-                                                                      FocusScope.of(
-                                                                              dialogContext)
-                                                                          .unfocus();
-                                                                      FocusManager
-                                                                          .instance
-                                                                          .primaryFocus
-                                                                          ?.unfocus();
-                                                                    },
-                                                                    child:
-                                                                        SubMenuPiqueteWidget(
-                                                                      idPiquete:
-                                                                          piqueteItem
-                                                                              .idPiquete,
-                                                                      piqueteNome:
-                                                                          piqueteItem
-                                                                              .nome,
-                                                                    ),
-                                                                  ),
-                                                                );
-                                                              },
-                                                            );
-                                                          },
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ]
-                                                    .map((c) => DataCell(c))
-                                                    .toList(),
-                                              );
-                                            },
-                                            emptyBuilder: () => const Center(
-                                              child: EmptyRebanhoWidget(
-                                                message:
-                                                    'Nenhum piquete encontrado',
-                                              ),
-                                            ),
-                                            paginated: false,
-                                            selectable: false,
-                                            headingRowHeight: 56.0,
-                                            dataRowHeight: 48.0,
-                                            columnSpacing: 20.0,
-                                            headingRowColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .customColor11,
-                                            sortIconColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .primaryText,
-                                            borderRadius:
-                                                BorderRadius.circular(8.0),
-                                            addHorizontalDivider: true,
-                                            addTopAndBottomDivider: false,
-                                            hideDefaultHorizontalDivider: true,
-                                            horizontalDividerColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .secondaryBackground,
-                                            horizontalDividerThickness: 1.0,
-                                            addVerticalDivider: false,
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    // Pagination row
-                                    Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        FutureBuilder<ApiCallResponse>(
-                                          future: FunctionsSupabaseRebanhoGroup
-                                              .contarPiquetesFiltrosCall
-                                              .call(
-                                            pIdPropriedade: FFAppState()
-                                                .propriedadeSelecionada
-                                                .idPropriedade,
-                                            pPesquisa:
-                                                _model.textController.text,
-                                            pForrageira: FFAppState()
-                                                .filtroPiqueteForrageira,
-                                            pAreaMin:
-                                                FFAppState().filtroAreaMin,
-                                            pAreaMax:
-                                                FFAppState().filtroAreaMax,
-                                          ),
-                                          builder: (context, snapshot) {
-                                            if (!snapshot.hasData) {
-                                              return Center(
-                                                child: SizedBox(
-                                                  width: 50.0,
-                                                  height: 50.0,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    valueColor:
-                                                        AlwaysStoppedAnimation<
-                                                            Color>(
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .primary,
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                            if (snapshot.hasError) {
-                                              return Center(
-                                                child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Icon(
-                                                      Icons
-                                                          .error_outline_rounded,
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .error,
-                                                      size: 36.0,
-                                                    ),
-                                                    const SizedBox(height: 8.0),
-                                                    Text(
-                                                      'Erro ao carregar',
-                                                      style:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodySmall,
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            }
-                                            final containerCountPiquetesFiltrosResponse =
-                                                snapshot.data!;
-
-                                            return Container(
-                                              height: 56.0,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(6.0),
-                                                border: Border.all(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .customColor5,
-                                                ),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.max,
-                                                children: [
-                                                  // First page
-                                                  InkWell(
-                                                    splashColor:
-                                                        Colors.transparent,
-                                                    focusColor:
-                                                        Colors.transparent,
-                                                    hoverColor:
-                                                        Colors.transparent,
-                                                    highlightColor:
-                                                        Colors.transparent,
-                                                    onTap: () async {
-                                                      _model.pageNum = 1;
-                                                      safeSetState(() {});
-                                                      safeSetState(() => _model
-                                                              .apiRequestCompleter =
-                                                          null);
-                                                    },
-                                                    child: Container(
-                                                      height: double.infinity,
-                                                      decoration: BoxDecoration(
-                                                        color: FlutterFlowTheme
-                                                                .of(context)
-                                                            .secondaryBackground,
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .only(
-                                                          bottomLeft:
-                                                              Radius.circular(
-                                                                  6.0),
-                                                          bottomRight:
-                                                              Radius.circular(
-                                                                  0.0),
-                                                          topLeft:
-                                                              Radius.circular(
-                                                                  6.0),
-                                                          topRight:
-                                                              Radius.circular(
-                                                                  0.0),
-                                                        ),
-                                                        border: Border.all(
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .customColor5,
-                                                        ),
-                                                      ),
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                24.0,
-                                                                12.0,
-                                                                24.0,
-                                                                12.0),
-                                                        child: Icon(
-                                                          Icons
-                                                              .keyboard_double_arrow_left,
-                                                          color: valueOrDefault<
-                                                              Color>(
-                                                            _model.pageNum > 1
-                                                                ? FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .primaryText
-                                                                : FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .accent3,
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                          ),
-                                                          size: 24.0,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  // Previous page
-                                                  InkWell(
-                                                    splashColor:
-                                                        Colors.transparent,
-                                                    focusColor:
-                                                        Colors.transparent,
-                                                    hoverColor:
-                                                        Colors.transparent,
-                                                    highlightColor:
-                                                        Colors.transparent,
-                                                    onTap: () async {
-                                                      if (_model.pageNum > 1) {
-                                                        _model.pageNum =
-                                                            _model.pageNum + -1;
-                                                        safeSetState(() {});
-                                                        safeSetState(() => _model
-                                                                .apiRequestCompleter =
-                                                            null);
-                                                      }
-                                                    },
-                                                    child: Container(
-                                                      height: double.infinity,
-                                                      decoration: BoxDecoration(
-                                                        color: FlutterFlowTheme
-                                                                .of(context)
-                                                            .secondaryBackground,
-                                                        border: Border.all(
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .customColor5,
-                                                        ),
-                                                      ),
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                24.0,
-                                                                12.0,
-                                                                24.0,
-                                                                12.0),
-                                                        child: Icon(
-                                                          Icons
-                                                              .keyboard_arrow_left_sharp,
-                                                          color: valueOrDefault<
-                                                              Color>(
-                                                            _model.pageNum > 1
-                                                                ? FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .primaryText
-                                                                : FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .accent3,
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                          ),
-                                                          size: 24.0,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  // Page indicator
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsetsDirectional
-                                                            .fromSTEB(24.0, 0.0,
-                                                            24.0, 0.0),
-                                                    child: RichText(
-                                                      textScaler:
-                                                          MediaQuery.of(context)
-                                                              .textScaler,
-                                                      text: TextSpan(
-                                                        children: [
-                                                          TextSpan(
-                                                            text:
-                                                                valueOrDefault<
-                                                                    String>(
-                                                              _model.pageNum
-                                                                  .toString(),
-                                                              '1',
-                                                            ),
-                                                            style: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  font: GoogleFonts
-                                                                      .poppins(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                                  fontSize:
-                                                                      16.0,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                          ),
-                                                          const TextSpan(
-                                                            text: ' de ',
-                                                            style: TextStyle(
-                                                              fontSize: 16.0,
-                                                            ),
-                                                          ),
-                                                          TextSpan(
-                                                            text:
-                                                                valueOrDefault<
-                                                                    String>(
-                                                              (((containerCountPiquetesFiltrosResponse.jsonBody is num
-                                                                              ? containerCountPiquetesFiltrosResponse.jsonBody
-                                                                                  as num
-                                                                              : 0) /
-                                                                          FFAppConstants
-                                                                              .limit)
-                                                                      .ceil())
-                                                                  .toString(),
-                                                              '1',
-                                                            ),
-                                                            style: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  font: GoogleFonts
-                                                                      .poppins(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w500,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                                  color: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .accent3,
-                                                                  fontSize:
-                                                                      16.0,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                          ),
-                                                        ],
-                                                        style:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  font: GoogleFonts
-                                                                      .poppins(
-                                                                    fontWeight: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontWeight,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontWeight,
-                                                                  fontStyle: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                                ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  // Next page
-                                                  InkWell(
-                                                    splashColor:
-                                                        Colors.transparent,
-                                                    focusColor:
-                                                        Colors.transparent,
-                                                    hoverColor:
-                                                        Colors.transparent,
-                                                    highlightColor:
-                                                        Colors.transparent,
-                                                    onTap: () async {
-                                                      if (_model.pageNum <
-                                                          valueOrDefault<int>(
-                                                            ((containerCountPiquetesFiltrosResponse.jsonBody
-                                                                            is num
-                                                                        ? containerCountPiquetesFiltrosResponse.jsonBody
-                                                                            as num
-                                                                        : 0) /
-                                                                    FFAppConstants
-                                                                        .limit)
-                                                                .ceil(),
-                                                            1,
-                                                          )) {
-                                                        _model.pageNum =
-                                                            _model.pageNum + 1;
-                                                        safeSetState(() {});
-                                                        safeSetState(() => _model
-                                                                .apiRequestCompleter =
-                                                            null);
-                                                      }
-                                                    },
-                                                    child: Container(
-                                                      height: double.infinity,
-                                                      decoration: BoxDecoration(
-                                                        color: FlutterFlowTheme
-                                                                .of(context)
-                                                            .secondaryBackground,
-                                                        border: Border.all(
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .customColor5,
-                                                        ),
-                                                      ),
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                24.0,
-                                                                12.0,
-                                                                24.0,
-                                                                12.0),
-                                                        child: Icon(
-                                                          Icons
-                                                              .keyboard_arrow_right_sharp,
-                                                          color: valueOrDefault<
-                                                              Color>(
-                                                            _model.pageNum <
-                                                                    valueOrDefault<
-                                                                        int>(
-                                                                      ((containerCountPiquetesFiltrosResponse.jsonBody is num ? containerCountPiquetesFiltrosResponse.jsonBody as num : 0) /
-                                                                              FFAppConstants.limit)
-                                                                          .ceil(),
-                                                                      1,
-                                                                    )
-                                                                ? FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .primaryText
-                                                                : FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .accent3,
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                          ),
-                                                          size: 24.0,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  // Last page
-                                                  InkWell(
-                                                    splashColor:
-                                                        Colors.transparent,
-                                                    focusColor:
-                                                        Colors.transparent,
-                                                    hoverColor:
-                                                        Colors.transparent,
-                                                    highlightColor:
-                                                        Colors.transparent,
-                                                    onTap: () async {
-                                                      _model.pageNum =
-                                                          valueOrDefault<int>(
-                                                        ((containerCountPiquetesFiltrosResponse
-                                                                            .jsonBody
-                                                                        is num
-                                                                    ? containerCountPiquetesFiltrosResponse
-                                                                            .jsonBody
-                                                                        as num
-                                                                    : 0) /
-                                                                FFAppConstants
-                                                                    .limit)
-                                                            .ceil(),
-                                                        1,
-                                                      );
-                                                      safeSetState(() {});
-                                                      safeSetState(() => _model
-                                                              .apiRequestCompleter =
-                                                          null);
-                                                    },
-                                                    child: Container(
-                                                      height: double.infinity,
-                                                      decoration: BoxDecoration(
-                                                        color: FlutterFlowTheme
-                                                                .of(context)
-                                                            .secondaryBackground,
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .only(
-                                                          bottomLeft:
-                                                              Radius.circular(
-                                                                  0.0),
-                                                          bottomRight:
-                                                              Radius.circular(
-                                                                  6.0),
-                                                          topLeft:
-                                                              Radius.circular(
-                                                                  0.0),
-                                                          topRight:
-                                                              Radius.circular(
-                                                                  6.0),
-                                                        ),
-                                                        border: Border.all(
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .customColor5,
-                                                        ),
-                                                      ),
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                24.0,
-                                                                12.0,
-                                                                24.0,
-                                                                12.0),
-                                                        child: Icon(
-                                                          Icons
-                                                              .keyboard_double_arrow_right_outlined,
-                                                          color: valueOrDefault<
-                                                              Color>(
-                                                            _model.pageNum ==
-                                                                    valueOrDefault<
-                                                                        int>(
-                                                                      ((containerCountPiquetesFiltrosResponse.jsonBody is num ? containerCountPiquetesFiltrosResponse.jsonBody as num : 0) /
-                                                                              FFAppConstants.limit)
-                                                                          .ceil(),
-                                                                      1,
-                                                                    )
-                                                                ? FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .accent3
-                                                                : FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .primaryText,
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                          ),
-                                                          size: 24.0,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ].divide(const SizedBox(height: 24.0)),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (piquetes.isEmpty)
+          PrototypeEmptyState(
+            title: 'Nenhum piquete sem retiro',
+            message: 'Adicione um piquete direto no limite da propriedade.',
+            icon: Icons.crop_square_rounded,
+            action: PrototypePrimaryButton(
+              label: 'Adicionar piquete',
+              onPressed: () => context.pushNamed(PgAddPiqueteWidget.routeName),
+            ),
+          )
+        else
+          Column(
+            children: piquetes
+                .map(
+                  (piquete) => _PiqueteTreeTile(
+                    piquete: piquete,
+                    selected: _selectedPiqueteId == piquete.id,
+                    expanded: _expandedPiqueteIds.contains(piquete.id),
+                    compact: false,
+                    onTap: () => _selectPiqueteFromTree(piquete),
+                    onLink: () => _showVincularPiqueteDialog(piquete),
+                    onPreviewHoverChanged: (hovered) => safeSetState(
+                      () => _hoveredMapAreaName = hovered ? piquete.nome : null,
                     ),
                   ),
-                ],
+                )
+                .toList()
+                .divide(const SizedBox(height: 10)),
+          ),
+      ],
+    );
+  }
+
+  List<PiquetePrototype> _filteredPiquetes(
+    List<PiquetePrototype> piquetes,
+    String query, {
+    bool includeAllWhenQueryMatchesGroup = false,
+  }) {
+    if (query.isEmpty || includeAllWhenQueryMatchesGroup) return piquetes;
+    return piquetes
+        .where((piquete) => _piqueteMatchesQuery(piquete, query))
+        .toList();
+  }
+
+  bool _piqueteMatchesQuery(PiquetePrototype piquete, String query) {
+    if (query.isEmpty) return true;
+    return piquete.nome.toLowerCase().contains(query) ||
+        piquete.forrageira.toLowerCase().contains(query);
+  }
+
+  Future<void> _toggleRetiro(RetiroPrototype retiro) async {
+    final expanded = _expandedRetiroIds.contains(retiro.id);
+    safeSetState(() {
+      if (expanded) {
+        _expandedRetiroIds.remove(retiro.id);
+      } else {
+        _expandedRetiroIds.add(retiro.id);
+      }
+      _selectedPiqueteId = null;
+    });
+    await _selectLimites(retiro.id);
+  }
+
+  Widget _buildPiqueteMap(
+    BuildContext context, {
+    required PiquetePrototype? selected,
+  }) {
+    final theme = FlutterFlowTheme.of(context);
+    final retiroDoPiquete = selected?.retiroId.isEmpty ?? true
+        ? null
+        : _store.retiroById(selected?.retiroId);
+    final retiroSelecionado =
+        selected == null && !_store.mostrandoPiquetesSemRetiro
+            ? _store.selectedRetiro
+            : null;
+    final piquetesDoContexto = selected == null
+        ? _piquetesFiltrados
+        : (selected.retiroId.isEmpty
+            ? _store.piquetesSemRetiro
+            : _store.piquetesDoRetiro(selected.retiroId));
+    final referencePoints = selected != null && retiroDoPiquete != null
+        ? retiroDoPiquete.pontos
+        : (_store.limitePropriedade?.pontos ?? const <MapPoint>[]);
+    final primaryPoints =
+        selected?.pontos ?? retiroSelecionado?.pontos ?? const <MapPoint>[];
+    final title =
+        selected?.nome ?? retiroSelecionado?.nome ?? 'Selecione um piquete';
+    final legendLabel = title;
+    final selectedId = selected?.id;
+    final markerLabel =
+        _mapContentMode == 'lotes' ? 'Animais em lotes' : 'Animais sem lote';
+    final showingAllAreas = selected == null &&
+        !_store.mostrandoPiquetesSemRetiro &&
+        retiroSelecionado == null;
+    final retiroOverlayAreas =
+        selected != null || _store.mostrandoPiquetesSemRetiro
+            ? const <PiqueteMapArea>[]
+            : _store.retiros
+                .where((retiro) => retiro.id != retiroSelecionado?.id)
+                .where((retiro) => retiro.pontos.length > 1)
+                .map(
+                  (retiro) => PiqueteMapArea(
+                    name: retiro.nome,
+                    points: retiro.pontos,
+                    color: _existingRetiroColor,
+                    legendLabel: retiro.nome,
+                    fillOpacity: showingAllAreas ? 0.13 : 0.08,
+                    borderStrokeWidth: showingAllAreas ? 3.2 : 2.4,
+                  ),
+                )
+                .toList();
+    final piqueteOverlayAreas = piquetesDoContexto
+        .where(
+            (piquete) => piquete.id != selectedId && piquete.pontos.length > 1)
+        .map(
+          (piquete) => PiqueteMapArea(
+            name: piquete.nome,
+            points: piquete.pontos,
+            legendLabel: piquete.nome,
+            highlightName: retiroSelecionado?.nome ?? retiroDoPiquete?.nome,
+            fillOpacity: 0.18,
+            borderStrokeWidth: 2.2,
+            markerCount:
+                showingAllAreas ? null : _piqueteMapContentCount(piquete),
+            markerLabel:
+                showingAllAreas ? null : '$markerLabel • ${piquete.nome}',
+            nameMarkerLabel: showingAllAreas ? piquete.nome : null,
+          ),
+        )
+        .toList();
+    final overlayAreas = [
+      ...retiroOverlayAreas,
+      ...piqueteOverlayAreas,
+    ];
+    final primaryMarkers = selected == null || _mapContentMode != 'lotes'
+        ? const <PiqueteMapMarker>[]
+        : _store
+            .lotesByIds(selected.lotesIds)
+            .map(
+              (lote) => PiqueteMapMarker(
+                count: lote.qtdAnimais,
+                label: lote.nome,
+              ),
+            )
+            .toList();
+    final contentToggle = _PiqueteMapContentToggle(
+      mode: _mapContentMode,
+      lotesCount: piquetesDoContexto.fold<int>(
+        0,
+        (total, piquete) => total + _piqueteLoteAnimalCount(piquete),
+      ),
+      animaisSemLoteCount: piquetesDoContexto.fold<int>(
+        0,
+        (total, piquete) => total + piquete.totalAnimaisIndividuais,
+      ),
+      onChanged: (mode) => safeSetState(() => _mapContentMode = mode),
+    );
+
+    return MapaDemarcacaoRealWidget(
+      title: showingAllAreas ? 'Todos os retiros e piquetes' : title,
+      points: primaryPoints,
+      retiroPoints: referencePoints,
+      referenceLegendLabel: retiroDoPiquete?.nome ?? 'Limite',
+      piqueteAreas: overlayAreas,
+      pointsLegendLabel: legendLabel,
+      height: 640,
+      primaryMarkerCount: primaryMarkers.isNotEmpty || selected == null
+          ? null
+          : _piqueteMapContentCount(selected),
+      primaryMarkerLabel:
+          selected == null ? null : '$markerLabel • ${selected.nome}',
+      primaryMarkers: primaryMarkers,
+      highlightedAreaName: _hoveredMapAreaName ?? retiroSelecionado?.nome,
+      onMapTap: _clearAreaSelection,
+      actions: [
+        contentToggle,
+        if (selected != null) ...[
+          PrototypePrimaryButton(
+            label: 'Movimentar animais',
+            icon: Icons.compare_arrows_rounded,
+            onPressed: () => _showMovimentarAnimaisDialog(selected),
+          ),
+          PrototypeSecondaryButton(
+            label: 'Ver histórico',
+            icon: Icons.history_rounded,
+            onPressed: () => _openPiqueteView(selected),
+          ),
+          PrototypeSecondaryButton(
+            label: 'Editar piquete',
+            icon: Icons.edit_outlined,
+            onPressed: () => _openPiqueteEdit(selected),
+          ),
+          OutlinedButton.icon(
+            onPressed: () => _showDeleteDialog(selected),
+            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+            label: const Text('Excluir piquete'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.error,
+              side: BorderSide(color: theme.error),
+              minimumSize: const Size(44, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(kPiqueteRadius),
+              ),
+              textStyle: GoogleFonts.poppins(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ] else if (retiroSelecionado != null) ...[
+          PrototypeSecondaryButton(
+            label: 'Editar retiro',
+            icon: Icons.edit_location_alt_outlined,
+            onPressed: () => _openRetiroDialog(initial: retiroSelecionado),
+          ),
+          OutlinedButton.icon(
+            onPressed: () => _deleteRetiro(retiroSelecionado),
+            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+            label: const Text('Excluir retiro'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.error,
+              side: BorderSide(color: theme.error),
+              minimumSize: const Size(44, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(kPiqueteRadius),
+              ),
+              textStyle: GoogleFonts.poppins(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          PrototypePrimaryButton(
+            label: 'Adicionar piquete',
+            icon: Icons.add_rounded,
+            onPressed: _openAddPiquete,
+          ),
+        ] else
+          PrototypePrimaryButton(
+            label: 'Adicionar piquete',
+            icon: Icons.add_rounded,
+            onPressed: _openAddPiquete,
+          ),
+      ],
+    );
+  }
+
+  int _piqueteLoteAnimalCount(PiquetePrototype piquete) {
+    if (piquete.animaisLotesCount > 0) return piquete.animaisLotesCount;
+    return piquete.totalLotes;
+  }
+
+  int _piqueteMapContentCount(PiquetePrototype piquete) {
+    if (_mapContentMode == 'lotes') {
+      return _piqueteLoteAnimalCount(piquete);
+    }
+    return piquete.totalAnimaisIndividuais;
+  }
+
+  Future<void> _showMovimentarAnimaisDialog(PiquetePrototype piquete) async {
+    PiquetePrototype loaded = piquete;
+    try {
+      loaded = await _store.loadPiqueteDetail(piquete.id) ?? piquete;
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível carregar os animais do piquete.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        final viewport = MediaQuery.sizeOf(dialogContext);
+        return Dialog(
+          insetPadding: const EdgeInsets.all(14),
+          backgroundColor: Colors.transparent,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 820,
+              maxHeight: (viewport.height - 28).clamp(560.0, 880.0),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(18),
+              clipBehavior: Clip.antiAlias,
+              child: PiqueteMovimentacaoModalWidget(
+                initial: loaded,
+                onClose: () => Navigator.pop(dialogContext),
+                onChanged: (updated) {
+                  loaded = updated;
+                  if (!mounted) return;
+                  safeSetState(() => _selectedPiqueteId = updated.id);
+                },
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  void _openPiqueteEdit(PiquetePrototype piquete) {
+    context.pushNamed(
+      PgEditPiqueteWidget.routeName,
+      queryParameters: {
+        'idPiquete': serializeParam(
+          piquete.id,
+          ParamType.String,
+        ),
+        'piqueteNome': serializeParam(
+          piquete.nome,
+          ParamType.String,
+        ),
+      }.withoutNulls,
+    );
+  }
+
+  void _openPiqueteView(PiquetePrototype piquete) {
+    context.pushNamed(
+      PgViewPiqueteWidget.routeName,
+      queryParameters: {
+        'idPiquete': serializeParam(
+          piquete.id,
+          ParamType.String,
+        ),
+        'piqueteNome': serializeParam(
+          piquete.nome,
+          ParamType.String,
+        ),
+      }.withoutNulls,
+    );
+  }
+
+  Future<void> _showLimiteDialog({
+    LimitePropriedadePrototype? initial,
+  }) async {
+    final editing = initial != null;
+    final nomeController = TextEditingController(
+      text: initial?.nome ?? '',
+    );
+    final areaController = TextEditingController(
+      text: _formatAreaInput(initial?.areaHa ?? 0),
+    );
+    final anotacoesController =
+        TextEditingController(text: initial?.anotacoes ?? '');
+    var pontos = initial?.pontos.toList() ?? <MapPoint>[];
+    var areaEditedManually = editing;
+    var updatingAreaFromMap = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final viewport = MediaQuery.sizeOf(context);
+            final maxDialogHeight = viewport.height > 520
+                ? viewport.height - 48
+                : viewport.height - 24;
+            return Dialog(
+              insetPadding: const EdgeInsets.all(32),
+              backgroundColor: Colors.transparent,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 1380,
+                  maxHeight: maxDialogHeight,
+                ),
+                child: SingleChildScrollView(
+                  child: PrototypeCard(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        PrototypePageHeader(
+                          title: editing
+                              ? 'Editar limite da propriedade'
+                              : 'Criar limite da propriedade',
+                          subtitle:
+                              'Demarque a área total onde retiros e piquetes podem existir',
+                          actions: [
+                            IconButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              icon: const Icon(Icons.close_rounded),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final narrow = constraints.maxWidth < 980;
+                            final mapHeight =
+                                (viewport.height - (narrow ? 300 : 250))
+                                    .clamp(narrow ? 420.0 : 500.0,
+                                        narrow ? 540.0 : 620.0)
+                                    .toDouble();
+                            final inputs = SizedBox(
+                              width: narrow ? double.infinity : 290,
+                              child: Column(
+                                children: [
+                                  _PrototypeTextField(
+                                    controller: nomeController,
+                                    label: 'Nome do limite',
+                                    hint: 'Ex.: Fazenda Santa Maria',
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _PrototypeTextField(
+                                    controller: areaController,
+                                    label: 'Área total (ha)',
+                                    hint: 'Ex.: 120',
+                                    keyboardType: TextInputType.number,
+                                    onChanged: (_) {
+                                      if (!updatingAreaFromMap) {
+                                        areaEditedManually = true;
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _PrototypeTextField(
+                                    controller: anotacoesController,
+                                    label: 'Observações',
+                                    hint: 'Referências, matrícula, divisas...',
+                                    maxLines: 3,
+                                  ),
+                                ],
+                              ),
+                            );
+                            final map = MapaDemarcacaoRealWidget(
+                              title: 'Limite da propriedade',
+                              points: pontos,
+                              editable: true,
+                              height: mapHeight,
+                              pointsLegendLabel:
+                                  editing ? 'Limite em edição' : 'Novo limite',
+                              preferUserLocation: !editing,
+                              onChanged: (value) => setDialogState(() {
+                                pontos = value;
+                                if (!areaEditedManually) {
+                                  updatingAreaFromMap = true;
+                                  _updateAreaControllerFromMap(
+                                    areaController,
+                                    pontos,
+                                  );
+                                  updatingAreaFromMap = false;
+                                }
+                              }),
+                              onImported: (value) => setDialogState(() {
+                                pontos = value;
+                                areaEditedManually = false;
+                                updatingAreaFromMap = true;
+                                _updateAreaControllerFromMap(
+                                  areaController,
+                                  pontos,
+                                );
+                                updatingAreaFromMap = false;
+                              }),
+                            );
+
+                            if (narrow) {
+                              return Column(
+                                children: [
+                                  inputs,
+                                  const SizedBox(height: 18),
+                                  map,
+                                ],
+                              );
+                            }
+
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                inputs,
+                                const SizedBox(width: 22),
+                                Expanded(child: map),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (editing)
+                              OutlinedButton.icon(
+                                onPressed: () async {
+                                  Navigator.pop(dialogContext);
+                                  await _deleteLimitePropriedade(initial);
+                                },
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 20,
+                                ),
+                                label: const Text('Excluir limite'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor:
+                                      FlutterFlowTheme.of(context).error,
+                                  side: BorderSide(
+                                    color: FlutterFlowTheme.of(context).error,
+                                  ),
+                                  minimumSize: const Size(44, 52),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 22,
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(kPiqueteRadius),
+                                  ),
+                                  textStyle: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              )
+                            else
+                              const SizedBox.shrink(),
+                            Row(
+                              children: [
+                                PrototypeSecondaryButton(
+                                  label: 'Cancelar',
+                                  onPressed: () => Navigator.pop(dialogContext),
+                                ),
+                                PrototypePrimaryButton(
+                                  label: editing
+                                      ? 'Salvar alterações'
+                                      : 'Salvar limite',
+                                  icon: Icons.check_rounded,
+                                  onPressed: () {
+                                    final nome = nomeController.text.trim();
+                                    final area = double.tryParse(
+                                          areaController.text
+                                              .replaceAll(',', '.'),
+                                        ) ??
+                                        0;
+                                    if (nome.isEmpty ||
+                                        area <= 0 ||
+                                        pontos.length < 3) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: const Text(
+                                            'Informe nome, área e ao menos 3 pontos no mapa.',
+                                          ),
+                                          backgroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .error,
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    () async {
+                                      try {
+                                        await _store.saveLimitePropriedade(
+                                          limite: initial,
+                                          nome: nome,
+                                          areaHa: area,
+                                          anotacoes:
+                                              anotacoesController.text.trim(),
+                                          pontos: pontos,
+                                        );
+                                        if (!dialogContext.mounted) return;
+                                        Navigator.pop(dialogContext);
+                                      } catch (_) {
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              _store.errorMessage ??
+                                                  'Não foi possível salvar o limite da propriedade.',
+                                            ),
+                                            backgroundColor:
+                                                FlutterFlowTheme.of(context)
+                                                    .error,
+                                          ),
+                                        );
+                                      }
+                                    }();
+                                  },
+                                ),
+                              ].divide(const SizedBox(width: 12)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    nomeController.dispose();
+    areaController.dispose();
+    anotacoesController.dispose();
+  }
+
+  Future<void> _showRetiroDialog({RetiroPrototype? initial}) async {
+    final editing = initial != null;
+    final existingRetiroAreas = _existingRetiroAreas(except: initial);
+    final nomeController = TextEditingController(text: initial?.nome ?? '');
+    final areaController = TextEditingController(
+      text: _formatAreaInput(initial?.areaInformadaHa ?? 0),
+    );
+    final anotacoesController =
+        TextEditingController(text: initial?.anotacoes ?? '');
+    var pontos = initial?.pontos.toList() ?? <MapPoint>[];
+    var areaEditedManually = editing;
+    var updatingAreaFromMap = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final viewport = MediaQuery.sizeOf(context);
+            final maxDialogHeight = viewport.height > 520
+                ? viewport.height - 48
+                : viewport.height - 24;
+            return Dialog(
+              insetPadding: const EdgeInsets.all(32),
+              backgroundColor: Colors.transparent,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 1380,
+                  maxHeight: maxDialogHeight,
+                ),
+                child: SingleChildScrollView(
+                  child: PrototypeCard(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        PrototypePageHeader(
+                          title: editing ? 'Editar retiro' : 'Criar retiro',
+                          subtitle: existingRetiroAreas.isEmpty
+                              ? (editing
+                                  ? 'Ajuste dados e, se necessário, a demarcação do retiro'
+                                  : 'Informe os dados do retiro. A demarcação da área é opcional.')
+                              : (editing
+                                  ? 'Outros retiros aparecem em roxo para evitar sobreposição'
+                                  : 'Retiros já cadastrados aparecem em roxo. A demarcação da área é opcional.'),
+                          actions: [
+                            IconButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              icon: const Icon(Icons.close_rounded),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final narrow = constraints.maxWidth < 980;
+                            final mapHeight =
+                                (viewport.height - (narrow ? 300 : 250))
+                                    .clamp(narrow ? 420.0 : 500.0,
+                                        narrow ? 540.0 : 620.0)
+                                    .toDouble();
+                            final inputs = SizedBox(
+                              width: narrow ? double.infinity : 290,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _PrototypeTextField(
+                                    controller: nomeController,
+                                    label: 'Nome do retiro',
+                                    hint: 'Ex.: Retiro Sede',
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _PrototypeTextField(
+                                    controller: areaController,
+                                    label: 'Área total (ha)',
+                                    hint: 'Ex.: 120',
+                                    keyboardType: TextInputType.number,
+                                    onChanged: (_) {
+                                      if (!updatingAreaFromMap) {
+                                        areaEditedManually = true;
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _PrototypeTextField(
+                                    controller: anotacoesController,
+                                    label: 'Observações',
+                                    hint: 'Referências, acesso, manejo...',
+                                    maxLines: 3,
+                                  ),
+                                ],
+                              ),
+                            );
+                            final map = MapaDemarcacaoRealWidget(
+                              title: 'Área do retiro',
+                              points: pontos,
+                              retiroPoints:
+                                  _store.limitePropriedade?.pontos ?? const [],
+                              piqueteAreas: existingRetiroAreas,
+                              pointsLegendLabel:
+                                  editing ? 'Retiro em edição' : 'Novo retiro',
+                              editable: true,
+                              height: mapHeight,
+                              preferUserLocation: !editing,
+                              onChanged: (value) => setDialogState(() {
+                                pontos = value;
+                                if (!areaEditedManually) {
+                                  updatingAreaFromMap = true;
+                                  _updateAreaControllerFromMap(
+                                    areaController,
+                                    pontos,
+                                  );
+                                  updatingAreaFromMap = false;
+                                }
+                              }),
+                              onImported: (value) => setDialogState(() {
+                                pontos = value;
+                                areaEditedManually = false;
+                                updatingAreaFromMap = true;
+                                _updateAreaControllerFromMap(
+                                  areaController,
+                                  pontos,
+                                );
+                                updatingAreaFromMap = false;
+                              }),
+                            );
+
+                            if (narrow) {
+                              return Column(
+                                children: [
+                                  inputs,
+                                  const SizedBox(height: 18),
+                                  map,
+                                ],
+                              );
+                            }
+
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                inputs,
+                                const SizedBox(width: 22),
+                                Expanded(child: map),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (editing)
+                              OutlinedButton.icon(
+                                onPressed: () async {
+                                  Navigator.pop(dialogContext);
+                                  await _deleteRetiro(initial);
+                                },
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 20,
+                                ),
+                                label: const Text('Excluir retiro'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor:
+                                      FlutterFlowTheme.of(context).error,
+                                  side: BorderSide(
+                                    color: FlutterFlowTheme.of(context).error,
+                                  ),
+                                  minimumSize: const Size(44, 52),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 22,
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(kPiqueteRadius),
+                                  ),
+                                  textStyle: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              )
+                            else
+                              const SizedBox.shrink(),
+                            Row(
+                              children: [
+                                PrototypeSecondaryButton(
+                                  label: 'Cancelar',
+                                  onPressed: () => Navigator.pop(dialogContext),
+                                ),
+                                PrototypePrimaryButton(
+                                  label: editing
+                                      ? 'Salvar alterações'
+                                      : 'Salvar retiro',
+                                  icon: Icons.check_rounded,
+                                  onPressed: () {
+                                    final nome = nomeController.text.trim();
+                                    final area = double.tryParse(
+                                          areaController.text
+                                              .replaceAll(',', '.'),
+                                        ) ??
+                                        0;
+                                    if (nome.isEmpty) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: const Text(
+                                            'Informe o nome do retiro. Área e demarcação no mapa são opcionais.',
+                                          ),
+                                          backgroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .error,
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    () async {
+                                      try {
+                                        if (editing) {
+                                          await _store.updateRetiro(
+                                            retiro: initial,
+                                            nome: nome,
+                                            areaHa: area,
+                                            anotacoes:
+                                                anotacoesController.text.trim(),
+                                            pontos: pontos,
+                                          );
+                                        } else {
+                                          await _store.addRetiro(
+                                            nome: nome,
+                                            areaHa: area,
+                                            anotacoes:
+                                                anotacoesController.text.trim(),
+                                            pontos: pontos,
+                                          );
+                                        }
+                                        if (!dialogContext.mounted) return;
+                                        Navigator.pop(dialogContext);
+                                      } catch (_) {
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              _store.errorMessage ??
+                                                  'Não foi possível salvar o retiro.',
+                                            ),
+                                            backgroundColor:
+                                                FlutterFlowTheme.of(context)
+                                                    .error,
+                                          ),
+                                        );
+                                      }
+                                    }();
+                                  },
+                                ),
+                              ].divide(const SizedBox(width: 12)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    nomeController.dispose();
+    areaController.dispose();
+    anotacoesController.dispose();
+  }
+
+  List<PiqueteMapArea> _existingRetiroAreas({RetiroPrototype? except}) {
+    final exceptId = except?.id;
+    return _store.retiros
+        .where((retiro) => retiro.id != exceptId)
+        .where((retiro) => retiro.pontos.length >= 3)
+        .map(
+          (retiro) => PiqueteMapArea(
+            name: retiro.nome,
+            points: retiro.pontos,
+            color: _existingRetiroColor,
+            legendLabel: 'Retiro existente',
+            fillOpacity: 0.20,
+            borderStrokeWidth: 3.2,
+          ),
+        )
+        .toList();
+  }
+
+  Future<void> _deleteLimitePropriedade(
+    LimitePropriedadePrototype limite,
+  ) async {
+    final confirmed = await _confirmDelete(
+      title: 'Excluir limite da propriedade',
+      message:
+          'Tem certeza que deseja excluir o limite "${limite.nome}"? Retiros e piquetes existentes permanecem cadastrados, mas será necessário criar um novo limite antes de novas demarcações.',
+      confirmLabel: 'Excluir limite',
+    );
+    if (!confirmed) return;
+
+    try {
+      await _store.deleteLimitePropriedade(limite.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Limite excluído'),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ??
+                'Não foi possível excluir o limite da propriedade.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteRetiro(RetiroPrototype retiro) async {
+    final confirmed = await _confirmDelete(
+      title: 'Excluir retiro',
+      message:
+          'Tem certeza que deseja excluir o retiro "${retiro.nome}"? Os piquetes vinculados serão mantidos e movidos para "Sem retiro".',
+      confirmLabel: 'Excluir retiro',
+    );
+    if (!confirmed) return;
+
+    try {
+      await _store.deleteRetiro(retiro.id);
+      if (!mounted) return;
+      safeSetState(() => _selectedPiqueteId = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Retiro excluído'),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _store.errorMessage ?? 'Não foi possível excluir o retiro.',
+          ),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showVincularPiqueteDialog(PiquetePrototype piquete) async {
+    if (_store.retiros.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Crie um retiro antes de vincular piquetes.'),
+          backgroundColor: FlutterFlowTheme.of(context).error,
+        ),
+      );
+      return;
+    }
+
+    var selectedRetiroId =
+        _store.retiros.isNotEmpty ? _store.retiros.first.id : '';
+    var saving = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              insetPadding: const EdgeInsets.all(24),
+              backgroundColor: Colors.transparent,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: PrototypeCard(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Vincular piquete a um retiro',
+                        style: GoogleFonts.poppins(
+                          color: kPiqueteTextStrong,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Escolha o retiro que vai receber ${piquete.nome}.',
+                        style: GoogleFonts.poppins(
+                          color: kPiqueteTextMuted,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      ..._store.retiros.map(
+                        (retiro) {
+                          final selected = selectedRetiroId == retiro.id;
+                          return InkWell(
+                            onTap: saving
+                                ? null
+                                : () => setDialogState(
+                                      () => selectedRetiroId = retiro.id,
+                                    ),
+                            borderRadius: BorderRadius.circular(14),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? kPiquetePrimarySurface
+                                    : kPiqueteSurface,
+                                borderRadius:
+                                    BorderRadius.circular(kPiqueteRadius),
+                                border: Border.all(
+                                  color: selected
+                                      ? kPiquetePrimary
+                                      : kPiqueteBorder,
+                                  width: selected ? 1.4 : 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 34,
+                                    height: 34,
+                                    decoration: BoxDecoration(
+                                      color: kPiquetePrimarySurface,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.inventory_2_outlined,
+                                      color: kPiquetePrimaryDark,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          retiro.nome,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.poppins(
+                                            color: kPiqueteTextStrong,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          '${retiro.areaHa.toStringAsFixed(0)} ha · ${retiro.piquetesCount} piquetes',
+                                          style: GoogleFonts.poppins(
+                                            color: kPiqueteTextMuted,
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 140),
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: selected
+                                          ? kPiquetePrimary
+                                          : kPiqueteSurface,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: selected
+                                            ? kPiquetePrimary
+                                            : const Color(0xFFD6DDD7),
+                                      ),
+                                    ),
+                                    child: selected
+                                        ? const Icon(
+                                            Icons.check_rounded,
+                                            color: Colors.white,
+                                            size: 17,
+                                          )
+                                        : null,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          PrototypeSecondaryButton(
+                            label: 'Cancelar',
+                            onPressed: saving
+                                ? null
+                                : () => Navigator.pop(dialogContext),
+                          ),
+                          const SizedBox(width: 10),
+                          PrototypePrimaryButton(
+                            label: 'Vincular',
+                            icon: Icons.link_rounded,
+                            onPressed: saving || selectedRetiroId.isEmpty
+                                ? null
+                                : () async {
+                                    setDialogState(() => saving = true);
+                                    try {
+                                      final updated =
+                                          await _store.updatePiquete(
+                                        piquete.copyWith(
+                                          retiroId: selectedRetiroId,
+                                        ),
+                                      );
+                                      if (!mounted) return;
+                                      safeSetState(() {
+                                        _selectedPiqueteId = updated.id;
+                                        _expandedRetiroIds.add(
+                                          selectedRetiroId,
+                                        );
+                                      });
+                                      if (dialogContext.mounted) {
+                                        Navigator.pop(dialogContext);
+                                      }
+                                    } catch (_) {
+                                      if (!context.mounted) return;
+                                      setDialogState(() => saving = false);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            _store.errorMessage ??
+                                                'Não foi possível vincular o piquete.',
+                                          ),
+                                          backgroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .error,
+                                        ),
+                                      );
+                                    }
+                                  },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<bool> _confirmDelete({
+    required String title,
+    required String message,
+    required String confirmLabel,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final theme = FlutterFlowTheme.of(dialogContext);
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: TextButton.styleFrom(foregroundColor: theme.error),
+              child: Text(confirmLabel),
+            ),
+          ],
+        );
+      },
+    );
+
+    return confirmed ?? false;
+  }
+
+  Future<void> _showDeleteDialog(PiquetePrototype piquete) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          elevation: 0,
+          insetPadding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+          child: ModalExcluirPiqueteWidget(
+            idPiquete: piquete.id,
+            piqueteNome: piquete.nome,
+          ),
+        );
+      },
+    );
+  }
+
+  void _updateAreaControllerFromMap(
+    TextEditingController controller,
+    List<MapPoint> pontos,
+  ) {
+    final areaHa = estimateMapAreaHa(pontos);
+    final text = areaHa > 0 ? _formatAreaInput(areaHa) : '0';
+    if (controller.text == text) return;
+
+    controller.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+
+  String _formatAreaInput(double areaHa) {
+    final decimals = areaHa >= 10 ? 1 : 2;
+    return areaHa.toStringAsFixed(decimals).replaceFirst(RegExp(r'\.?0+$'), '');
+  }
+}
+
+class _RetiroTreeCard extends StatelessWidget {
+  const _RetiroTreeCard({
+    required this.retiro,
+    required this.piquetes,
+    required this.previewPiquetes,
+    required this.expanded,
+    required this.selectedPiqueteId,
+    required this.expandedPiqueteIds,
+    required this.onHeaderTap,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onPreviewHoverChanged,
+    required this.onPiquetePreviewHoverChanged,
+    required this.onPiqueteTap,
+  });
+
+  final RetiroPrototype retiro;
+  final List<PiquetePrototype> piquetes;
+  final List<PiquetePrototype> previewPiquetes;
+  final bool expanded;
+  final String? selectedPiqueteId;
+  final Set<String> expandedPiqueteIds;
+  final VoidCallback onHeaderTap;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final ValueChanged<bool> onPreviewHoverChanged;
+  final void Function(PiquetePrototype piquete, bool hovered)
+      onPiquetePreviewHoverChanged;
+  final ValueChanged<PiquetePrototype> onPiqueteTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: kPiqueteSurface,
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
+        border: Border.all(color: kPiqueteBorder),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(kPiqueteRadius),
+            onTap: onHeaderTap,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    expanded
+                        ? Icons.keyboard_arrow_down_rounded
+                        : Icons.chevron_right_rounded,
+                    color: kPiqueteTextMuted,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  _AreaPreviewBox(
+                    points: retiro.pontos,
+                    fallbackAreas: previewPiquetes
+                        .where((piquete) => piquete.pontos.length >= 3)
+                        .map((piquete) => piquete.pontos)
+                        .toList(),
+                    color: kPiqueteLimit,
+                    size: 58,
+                    tooltip: 'Este desenho representa a área do retiro/piquete',
+                    onHoverChanged: onPreviewHoverChanged,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          retiro.nome,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            color: kPiqueteTextStrong,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 7,
+                          runSpacing: 7,
+                          children: [
+                            PrototypeBadge(
+                              label: '${retiro.areaHa.toStringAsFixed(0)} ha',
+                              icon: Icons.crop_square_rounded,
+                            ),
+                            PrototypeBadge(
+                              label: '${retiro.piquetesCount} piquetes',
+                              icon: kPiqueteMenuIcon,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    tooltip: 'Ações do retiro',
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                      color: kPiqueteTextMuted,
+                    ),
+                    onSelected: (action) {
+                      if (action == 'edit') onEdit();
+                      if (action == 'delete') onDelete();
+                    },
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Text('Editar retiro'),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text('Excluir retiro'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (expanded)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsetsDirectional.fromSTEB(18, 0, 12, 12),
+              child: piquetes.isEmpty
+                  ? _RetiroEmptyPiquetes(retiro: retiro)
+                  : Column(
+                      children: piquetes
+                          .map(
+                            (piquete) => _PiqueteTreeTile(
+                              piquete: piquete,
+                              selected: selectedPiqueteId == piquete.id,
+                              expanded: expandedPiqueteIds.contains(piquete.id),
+                              compact: true,
+                              onTap: () => onPiqueteTap(piquete),
+                              onPreviewHoverChanged: (hovered) =>
+                                  onPiquetePreviewHoverChanged(
+                                piquete,
+                                hovered,
+                              ),
+                            ),
+                          )
+                          .toList()
+                          .divide(const SizedBox(height: 8)),
+                    ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RetiroEmptyPiquetes extends StatelessWidget {
+  const _RetiroEmptyPiquetes({required this.retiro});
+
+  final RetiroPrototype retiro;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: kPiqueteSurface,
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
+        border: Border.all(color: kPiqueteBorder),
+      ),
+      child: Text(
+        'Nenhum piquete carregado em ${retiro.nome}.',
+        style: GoogleFonts.poppins(
+          color: kPiqueteTextMuted,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+}
+
+class _PiqueteTreeTile extends StatelessWidget {
+  const _PiqueteTreeTile({
+    required this.piquete,
+    required this.selected,
+    required this.expanded,
+    required this.compact,
+    required this.onTap,
+    this.onLink,
+    this.onPreviewHoverChanged,
+  });
+
+  final PiquetePrototype piquete;
+  final bool selected;
+  final bool expanded;
+  final bool compact;
+  final VoidCallback onTap;
+  final VoidCallback? onLink;
+  final ValueChanged<bool>? onPreviewHoverChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final totalAnimais =
+        piquete.totalAnimaisIndividuais + piquete.animaisLotesCount;
+    final occupied = totalAnimais > 0 || piquete.totalLotes > 0;
+    return InkWell(
+      borderRadius: BorderRadius.circular(kPiqueteRadius),
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(compact ? 10 : 12),
+        decoration: BoxDecoration(
+          color: selected ? kPiquetePrimarySurface : kPiqueteSurface,
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
+          border: Border.all(
+            color: selected ? kPiquetePrimary : kPiqueteBorder,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _AreaPreviewBox(
+                  points: piquete.pontos,
+                  color: kPiquetePrimary,
+                  size: compact ? 38 : 42,
+                  tooltip: 'Este desenho representa a área do retiro/piquete',
+                  onHoverChanged: onPreviewHoverChanged,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        piquete.nome,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          color: selected
+                              ? kPiquetePrimaryDark
+                              : kPiqueteTextStrong,
+                          fontSize: compact ? 13.5 : 14.5,
+                          fontWeight: FontWeight.w800,
+                          height: 1.15,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              color: occupied
+                                  ? kPiquetePrimary
+                                  : const Color(0xFFB8C1BA),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              occupied
+                                  ? '$totalAnimais animais'
+                                  : 'Sem animais',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                color: kPiqueteTextMuted,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                height: 1.15,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                if (onLink != null)
+                  OutlinedButton(
+                    onPressed: onLink,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: kPiquetePrimaryDark,
+                      backgroundColor: kPiquetePrimarySurface,
+                      side: const BorderSide(color: kPiquetePrimary),
+                      minimumSize: const Size(44, 34),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      textStyle: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    child: const Text('Vincular'),
+                  )
+                else
+                  Text(
+                    '${piquete.areaHa.toStringAsFixed(0)} ha',
+                    style: GoogleFonts.poppins(
+                      color: kPiqueteTextStrong,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                const SizedBox(width: 8),
+                Icon(
+                  expanded
+                      ? Icons.keyboard_arrow_down_rounded
+                      : Icons.chevron_right_rounded,
+                  color: kPiqueteTextMuted,
+                  size: 20,
+                ),
+              ],
+            ),
+            if (expanded) ...[
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: kPiqueteSurface,
+                  borderRadius: BorderRadius.circular(kPiqueteRadius),
+                  border: Border.all(color: kPiqueteBorder),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _PiqueteDetailCell(
+                            label: 'ÁREA',
+                            value: '${piquete.areaHa.toStringAsFixed(0)} ha',
+                            icon: Icons.hexagon_outlined,
+                            iconColor: kPiquetePrimary,
+                          ),
+                        ),
+                        Expanded(
+                          child: _PiqueteDetailCell(
+                            label: 'ANIMAIS',
+                            value: totalAnimais.toString(),
+                            iconAsset: kPiqueteCowIconAsset,
+                            iconColor: kPiquetePrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 1, color: kPiqueteBorder),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _PiqueteDetailCell(
+                            label: 'LOTES',
+                            value: '${piquete.totalLotes} lotes',
+                            iconAsset: kPiqueteLoteIconAsset,
+                            iconColor: kPiquetePrimary,
+                          ),
+                        ),
+                        Expanded(
+                          child: _PiqueteDetailCell(
+                            label: 'SITUAÇÃO',
+                            value: occupied ? 'Ocupado' : 'Livre',
+                            icon: Icons.circle,
+                            iconColor: occupied
+                                ? const Color(0xFFE39F22)
+                                : const Color(0xFFB8C1BA),
+                            valueColor: occupied
+                                ? const Color(0xFF8A5A00)
+                                : kPiqueteTextMuted,
+                            iconSurface: occupied
+                                ? const Color(0xFFFFE5B5)
+                                : kPiqueteFieldSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PiqueteDetailCell extends StatelessWidget {
+  const _PiqueteDetailCell({
+    required this.label,
+    required this.value,
+    required this.iconColor,
+    this.icon,
+    this.iconAsset,
+    this.valueColor,
+    this.iconSurface,
+  });
+
+  final String label;
+  final String value;
+  final IconData? icon;
+  final String? iconAsset;
+  final Color iconColor;
+  final Color? valueColor;
+  final Color? iconSurface;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 62),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: const BoxDecoration(
+        border: Border(
+          right: BorderSide(color: kPiqueteBorder),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: iconSurface ?? kPiquetePrimarySurface,
+              borderRadius: BorderRadius.circular(kPiqueteRadius),
+            ),
+            child: iconAsset == null
+                ? Icon(icon, color: iconColor, size: 16)
+                : Center(
+                    child: iconAsset == kPiqueteCowIconAsset
+                        ? Image.asset(
+                            iconAsset!,
+                            width: piqueteAssetIconSize(iconAsset, 18),
+                            height: piqueteAssetIconSize(iconAsset, 18),
+                            fit: BoxFit.contain,
+                          )
+                        : Icon(
+                            kPiqueteMenuIcon,
+                            color: iconColor,
+                            size: 16,
+                          ),
+                  ),
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    color: kPiqueteTextSoft,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    color: valueColor ?? kPiqueteTextStrong,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AreaPreviewBox extends StatelessWidget {
+  const _AreaPreviewBox({
+    required this.points,
+    required this.color,
+    required this.size,
+    this.fallbackAreas = const [],
+    this.tooltip,
+    this.onHoverChanged,
+  });
+
+  final List<MapPoint> points;
+  final List<List<MapPoint>> fallbackAreas;
+  final Color color;
+  final double size;
+  final String? tooltip;
+  final ValueChanged<bool>? onHoverChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget preview = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.11),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(5),
+        child: CustomPaint(
+          painter: _AreaPreviewPainter(
+            points: points,
+            fallbackAreas: fallbackAreas,
+            color: color,
+          ),
+        ),
+      ),
+    );
+    if (onHoverChanged != null) {
+      preview = MouseRegion(
+        onEnter: (_) => onHoverChanged!(true),
+        onExit: (_) => onHoverChanged!(false),
+        child: preview,
+      );
+    }
+    final message = tooltip?.trim() ?? '';
+    if (message.isEmpty) return preview;
+    return Tooltip(message: message, child: preview);
+  }
+}
+
+class _AreaPreviewPainter extends CustomPainter {
+  const _AreaPreviewPainter({
+    required this.points,
+    required this.fallbackAreas,
+    required this.color,
+  });
+
+  final List<MapPoint> points;
+  final List<List<MapPoint>> fallbackAreas;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final areas = points.length >= 3
+        ? [points]
+        : fallbackAreas.where((area) => area.length >= 3).toList();
+    if (areas.isEmpty) {
+      final paint = Paint()
+        ..color = color.withValues(alpha: 0.5)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round;
+      final center = Offset(size.width / 2, size.height / 2);
+      canvas.drawCircle(
+          center, math.min(size.width, size.height) * 0.22, paint);
+      return;
+    }
+
+    final allPoints = areas.expand((area) => area).toList();
+    final minLat = allPoints.map((point) => point.latitude).reduce(math.min);
+    final maxLat = allPoints.map((point) => point.latitude).reduce(math.max);
+    final minLng = allPoints.map((point) => point.longitude).reduce(math.min);
+    final maxLng = allPoints.map((point) => point.longitude).reduce(math.max);
+    final latSpan = (maxLat - minLat).abs();
+    final lngSpan = (maxLng - minLng).abs();
+    if (latSpan == 0 || lngSpan == 0) return;
+
+    final normalizedAreas = areas
+        .map((area) => area.map((point) {
+              final x = ((point.longitude - minLng) / lngSpan) * size.width;
+              final y = size.height -
+                  ((point.latitude - minLat) / latSpan) * size.height;
+              return Offset(x, y);
+            }).toList())
+        .toList();
+
+    final allOffsets = normalizedAreas.expand((area) => area).toList();
+    final bounds = _boundsFor(allOffsets);
+    final scale = math.min(
+          bounds.width == 0 ? 1.0 : size.width / bounds.width,
+          bounds.height == 0 ? 1.0 : size.height / bounds.height,
+        ) *
+        0.82;
+    final dx = (size.width - bounds.width * scale) / 2 - bounds.left * scale;
+    final dy = (size.height - bounds.height * scale) / 2 - bounds.top * scale;
+    for (final normalized in normalizedAreas) {
+      final path = Path();
+      for (var i = 0; i < normalized.length; i++) {
+        final point = normalized[i];
+        final offset = Offset(point.dx * scale + dx, point.dy * scale + dy);
+        if (i == 0) {
+          path.moveTo(offset.dx, offset.dy);
+        } else {
+          path.lineTo(offset.dx, offset.dy);
+        }
+      }
+      path.close();
+
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = color.withValues(alpha: 0.20)
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.2
+          ..strokeJoin = StrokeJoin.round,
+      );
+    }
+  }
+
+  Rect _boundsFor(List<Offset> offsets) {
+    final left = offsets.map((offset) => offset.dx).reduce(math.min);
+    final right = offsets.map((offset) => offset.dx).reduce(math.max);
+    final top = offsets.map((offset) => offset.dy).reduce(math.min);
+    final bottom = offsets.map((offset) => offset.dy).reduce(math.max);
+    return Rect.fromLTRB(left, top, right, bottom);
+  }
+
+  @override
+  bool shouldRepaint(covariant _AreaPreviewPainter oldDelegate) {
+    return oldDelegate.points != points ||
+        oldDelegate.fallbackAreas != fallbackAreas ||
+        oldDelegate.color != color;
+  }
+}
+
+class _PiqueteSegmentedTabs extends StatelessWidget {
+  const _PiqueteSegmentedTabs({
+    required this.showingSemRetiro,
+    required this.retiroCount,
+    required this.semRetiroCount,
+    required this.onRetirosTap,
+    required this.onSemRetiroTap,
+  });
+
+  final bool showingSemRetiro;
+  final int retiroCount;
+  final int semRetiroCount;
+  final VoidCallback onRetirosTap;
+  final VoidCallback onSemRetiroTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F3F0),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _PiqueteSegmentButton(
+              label: 'Por retiro',
+              count: retiroCount,
+              selected: !showingSemRetiro,
+              onTap: onRetirosTap,
+            ),
+          ),
+          Expanded(
+            child: _PiqueteSegmentButton(
+              label: 'Sem retiro',
+              count: semRetiroCount,
+              selected: showingSemRetiro,
+              onTap: onSemRetiroTap,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PiqueteSegmentButton extends StatelessWidget {
+  const _PiqueteSegmentButton({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(kPiqueteRadius),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? kPiquetePrimary : Colors.transparent,
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  color: selected ? Colors.white : kPiqueteTextMuted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: selected
+                    ? Colors.white.withValues(alpha: 0.26)
+                    : const Color(0xFFDDE4DE),
+                borderRadius: BorderRadius.circular(kPiqueteRadius),
+              ),
+              child: Text(
+                count.toString(),
+                style: GoogleFonts.poppins(
+                  color: selected ? Colors.white : kPiqueteTextMuted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PiqueteMapContentToggle extends StatelessWidget {
+  const _PiqueteMapContentToggle({
+    required this.mode,
+    required this.lotesCount,
+    required this.animaisSemLoteCount,
+    required this.onChanged,
+  });
+
+  final String mode;
+  final int lotesCount;
+  final int animaisSemLoteCount;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F3F0),
+        borderRadius: BorderRadius.circular(kPiqueteRadius),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _PiqueteMapToggleButton(
+            label: 'Lotes',
+            count: lotesCount,
+            selected: mode == 'lotes',
+            onTap: () => onChanged('lotes'),
+          ),
+          _PiqueteMapToggleButton(
+            label: 'Animais sem lote',
+            count: animaisSemLoteCount,
+            selected: mode == 'animais',
+            onTap: () => onChanged('animais'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PiqueteMapToggleButton extends StatelessWidget {
+  const _PiqueteMapToggleButton({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(kPiqueteRadius),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? kPiquetePrimary : Colors.transparent,
+          borderRadius: BorderRadius.circular(kPiqueteRadius),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                color: selected ? Colors.white : kPiqueteTextMuted,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(width: 7),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: BoxDecoration(
+                color: selected
+                    ? Colors.white.withValues(alpha: 0.26)
+                    : const Color(0xFFDDE4DE),
+                borderRadius: BorderRadius.circular(kPiqueteRadius),
+              ),
+              child: Text(
+                count.toString(),
+                style: GoogleFonts.poppins(
+                  color: selected ? Colors.white : kPiqueteTextMuted,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PrototypeTextField extends StatelessWidget {
+  const _PrototypeTextField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    this.maxLines = 1,
+    this.keyboardType,
+    this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final int maxLines;
+  final TextInputType? keyboardType;
+  final ValueChanged<String>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            color: theme.primaryText,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          maxLines: maxLines,
+          keyboardType: keyboardType,
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            fillColor: theme.customColor2,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(kPiqueteRadius),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

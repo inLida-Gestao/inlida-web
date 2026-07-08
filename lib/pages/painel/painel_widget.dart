@@ -2229,9 +2229,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                 ),
                                                                                 Text(
                                                                                   () {
-                                                                                    final pct = FunctionsSupabaseRebanhoGroup
-                                                                                        .qtdAnimaisDesmamaCall
-                                                                                        .pctDesmamados(
+                                                                                    final pct = FunctionsSupabaseRebanhoGroup.qtdAnimaisDesmamaCall.pctDesmamados(
                                                                                       containerQtdAnimaisDesmamaResponse.jsonBody,
                                                                                     );
                                                                                     if (pct == null) {
@@ -3253,9 +3251,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                                 ) ??
                                                                                                 containerProjecaoDesmamasResponse.jsonBody,
                                                                                             _model.ddMesesValue ?? '6',
-                                                                                            _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2
-                                                                                                ? 'Todos'
-                                                                                                : _model.filtroSexoProjDesmamaValues.first,
+                                                                                            _model.filtroSexoProjDesmamaValues.isEmpty || _model.filtroSexoProjDesmamaValues.length == 2 ? 'Todos' : _model.filtroSexoProjDesmamaValues.first,
                                                                                           ),
                                                                                         ),
                                                                                       ],
@@ -3370,8 +3366,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                           .fromSTEB(
                                                           0.0, 24.0, 0.0, 0.0),
                                                   child: SingleChildScrollView(
-                                                    physics: const AlwaysScrollableScrollPhysics(
-                                                      parent: BouncingScrollPhysics(),
+                                                    physics:
+                                                        const AlwaysScrollableScrollPhysics(
+                                                      parent:
+                                                          BouncingScrollPhysics(),
                                                     ),
                                                     child: Column(
                                                       mainAxisSize:
@@ -3826,10 +3824,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       FutureBuilder<List<dynamic>>(
                                                                                         key: ValueKey('lotes_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
                                                                                         future: () {
-                                                                                          final dataInicioFiltro =
-                                                                                              _painelPeriodoDataInicio();
-                                                                                          final dataFimFiltro =
-                                                                                              _painelPeriodoDataFim();
+                                                                                          final dataInicioFiltro = _painelPeriodoDataInicio();
+                                                                                          final dataFimFiltro = _painelPeriodoDataFim();
 
                                                                                           return Future.wait([
                                                                                             ReproducaoTable().queryRows(
@@ -3904,28 +3900,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           );
                                                                                         },
                                                                                       ),
-                                                                                      FutureBuilder<List<ReproducaoRow>>(
+                                                                                      FutureBuilder<List<({String id, String nome})>>(
                                                                                         key: ValueKey('touros_filtro_taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
-                                                                                        future: () {
-                                                                                          final dataInicioFiltro =
-                                                                                              _painelPeriodoDataInicio();
-                                                                                          final dataFimFiltro =
-                                                                                              _painelPeriodoDataFim();
-
-                                                                                          return ReproducaoTable().queryRows(
-                                                                                            queryFn: (q) => q
-                                                                                                .eqOrNull(
-                                                                                                  'id_propriedade',
-                                                                                                  FFAppState().propriedadeSelecionada.idPropriedade,
-                                                                                                )
-                                                                                                .eqOrNull(
-                                                                                                  'deletado',
-                                                                                                  'NAO',
-                                                                                                )
-                                                                                                .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
-                                                                                            limit: 5000,
-                                                                                          );
-                                                                                        }(),
+                                                                                        future: _carregarTourosPeriodo(),
                                                                                         builder: (context, tourosSnapshot) {
                                                                                           if (!tourosSnapshot.hasData) {
                                                                                             return const SizedBox(
@@ -3939,27 +3916,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               ),
                                                                                             );
                                                                                           }
-                                                                                          final reproRows = tourosSnapshot.data!;
+                                                                                          final touros = tourosSnapshot.data!;
 
-                                                                                          final touroMap = <String, String>{};
-                                                                                          for (final r in reproRows) {
-                                                                                            final id = r.idRebanhoReprodutor?.trim() ?? '';
-                                                                                            if (id.isEmpty) continue;
-                                                                                            if (touroMap.containsKey(id)) continue;
-                                                                                            final nome = r.nomeReprodutor?.trim() ?? '';
-                                                                                            touroMap[id] = nome.isNotEmpty ? nome : 'Touro S/N';
-                                                                                          }
-
-                                                                                          final touroEntries = touroMap.entries.toList()
-                                                                                            ..sort((a, b) {
-                                                                                              final labelA = a.value.toLowerCase();
-                                                                                              final labelB = b.value.toLowerCase();
-                                                                                              if (labelA != labelB) return labelA.compareTo(labelB);
-                                                                                              return a.key.compareTo(b.key);
-                                                                                            });
-
-                                                                                          final touroOptions = touroEntries.map((e) => e.key).toList();
-                                                                                          final touroLabels = touroEntries.map((e) => e.value).toList();
+                                                                                          final touroOptions = touros.map((e) => e.id).toList();
+                                                                                          final touroLabels = touros.map((e) => e.nome).toList();
 
                                                                                           return _buildMultiFilterChip(
                                                                                             context,
@@ -4069,9 +4029,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             )
                                                                                           : Center(
                                                                                               child: Text(
-                                                                                                (containerTaxaConcepcaoResponse != null && !containerTaxaConcepcaoResponse.succeeded)
-                                                                                                    ? _mensagemErroTaxaConcepcao(containerTaxaConcepcaoResponse)
-                                                                                                    : 'Sem dados de reprodução no período.',
+                                                                                                (containerTaxaConcepcaoResponse != null && !containerTaxaConcepcaoResponse.succeeded) ? _mensagemErroTaxaConcepcao(containerTaxaConcepcaoResponse) : 'Sem dados de reprodução no período.',
                                                                                                 style: FlutterFlowTheme.of(context).labelMedium,
                                                                                                 textAlign: TextAlign.center,
                                                                                               ),
@@ -4218,10 +4176,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       FutureBuilder<List<dynamic>>(
                                                                                         key: ValueKey('lotes_filtro_taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
                                                                                         future: () {
-                                                                                          final dataInicioFiltro =
-                                                                                              _painelPeriodoDataInicio();
-                                                                                          final dataFimFiltro =
-                                                                                              _painelPeriodoDataFim();
+                                                                                          final dataInicioFiltro = _painelPeriodoDataInicio();
+                                                                                          final dataFimFiltro = _painelPeriodoDataFim();
 
                                                                                           return Future.wait([
                                                                                             ReproducaoTable().queryRows(
@@ -4296,28 +4252,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           );
                                                                                         },
                                                                                       ),
-                                                                                      FutureBuilder<List<ReproducaoRow>>(
+                                                                                      FutureBuilder<List<({String id, String nome})>>(
                                                                                         key: ValueKey('touros_filtro_taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}'),
-                                                                                        future: () {
-                                                                                          final dataInicioFiltro =
-                                                                                              _painelPeriodoDataInicio();
-                                                                                          final dataFimFiltro =
-                                                                                              _painelPeriodoDataFim();
-
-                                                                                          return ReproducaoTable().queryRows(
-                                                                                            queryFn: (q) => q
-                                                                                                .eqOrNull(
-                                                                                                  'id_propriedade',
-                                                                                                  FFAppState().propriedadeSelecionada.idPropriedade,
-                                                                                                )
-                                                                                                .eqOrNull(
-                                                                                                  'deletado',
-                                                                                                  'NAO',
-                                                                                                )
-                                                                                                .or('and(data_inseminacao.gte.$dataInicioFiltro,data_inseminacao.lte.$dataFimFiltro),and(data_inicial.gte.$dataInicioFiltro,data_inicial.lte.$dataFimFiltro)'),
-                                                                                            limit: 5000,
-                                                                                          );
-                                                                                        }(),
+                                                                                        future: _carregarTourosPeriodo(),
                                                                                         builder: (context, tourosSnapshot) {
                                                                                           if (!tourosSnapshot.hasData) {
                                                                                             return const SizedBox(
@@ -4331,27 +4268,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               ),
                                                                                             );
                                                                                           }
-                                                                                          final reproRows = tourosSnapshot.data!;
+                                                                                          final touros = tourosSnapshot.data!;
 
-                                                                                          final touroMap = <String, String>{};
-                                                                                          for (final r in reproRows) {
-                                                                                            final id = r.idRebanhoReprodutor?.trim() ?? '';
-                                                                                            if (id.isEmpty) continue;
-                                                                                            if (touroMap.containsKey(id)) continue;
-                                                                                            final nome = r.nomeReprodutor?.trim() ?? '';
-                                                                                            touroMap[id] = nome.isNotEmpty ? nome : 'Touro S/N';
-                                                                                          }
-
-                                                                                          final touroEntries = touroMap.entries.toList()
-                                                                                            ..sort((a, b) {
-                                                                                              final labelA = a.value.toLowerCase();
-                                                                                              final labelB = b.value.toLowerCase();
-                                                                                              if (labelA != labelB) return labelA.compareTo(labelB);
-                                                                                              return a.key.compareTo(b.key);
-                                                                                            });
-
-                                                                                          final touroOptions = touroEntries.map((e) => e.key).toList();
-                                                                                          final touroLabels = touroEntries.map((e) => e.value).toList();
+                                                                                          final touroOptions = touros.map((e) => e.id).toList();
+                                                                                          final touroLabels = touros.map((e) => e.nome).toList();
 
                                                                                           return _buildMultiFilterChip(
                                                                                             context,
@@ -4486,9 +4406,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             )
                                                                                           : Center(
                                                                                               child: Text(
-                                                                                                (containerTaxaPrenhez2Response != null && !containerTaxaPrenhez2Response.succeeded)
-                                                                                                    ? _mensagemErroTaxaPrenhez2(containerTaxaPrenhez2Response)
-                                                                                                    : 'Sem dados de reprodução no período.',
+                                                                                                (containerTaxaPrenhez2Response != null && !containerTaxaPrenhez2Response.succeeded) ? _mensagemErroTaxaPrenhez2(containerTaxaPrenhez2Response) : 'Sem dados de reprodução no período.',
                                                                                                 style: FlutterFlowTheme.of(context).labelMedium,
                                                                                                 textAlign: TextAlign.center,
                                                                                               ),
@@ -4505,13 +4423,15 @@ class _PainelWidgetState extends State<PainelWidget>
                                                               ),
                                                               // Taxa de natalidade: edge taxa-natalidade (só período global). Oculto por padrão.
                                                               if (!_painelMostrarCartaoTaxaNatalidade)
-                                                                const SizedBox.shrink()
+                                                                const SizedBox
+                                                                    .shrink()
                                                               else
                                                                 SizedBox(
                                                                   width: 550.0,
                                                                   child: FutureBuilder<
                                                                       ApiCallResponse>(
-                                                                    key: ValueKey(
+                                                                    key:
+                                                                        ValueKey(
                                                                       'taxa_natalidade_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}',
                                                                     ),
                                                                     future: () {
@@ -4522,10 +4442,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                           taxaNatalidadeKey) {
                                                                         _model.taxaNatalidadeFutureKey =
                                                                             taxaNatalidadeKey;
-                                                                        _model.taxaNatalidadeFuture =
-                                                                            SupabaseEdgeGroup
-                                                                                .taxaNatalidadeGetCall
-                                                                                .call(
+                                                                        _model.taxaNatalidadeFuture = SupabaseEdgeGroup
+                                                                            .taxaNatalidadeGetCall
+                                                                            .call(
                                                                           idPropriedade: FFAppState()
                                                                               .propriedadeSelecionada
                                                                               .idPropriedade,
@@ -4538,20 +4457,17 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                       return _model
                                                                           .taxaNatalidadeFuture;
                                                                     }(),
-                                                                    builder: (context,
-                                                                        snapshot) {
-                                                                      final isLoading = snapshot
-                                                                                  .connectionState ==
-                                                                              ConnectionState
-                                                                                  .waiting ||
-                                                                          !snapshot
-                                                                              .hasData;
-                                                                      final containerTaxaNatalidadeResponse =
-                                                                          snapshot
-                                                                                  .hasData
-                                                                              ? snapshot
-                                                                                  .data!
-                                                                              : null;
+                                                                    builder:
+                                                                        (context,
+                                                                            snapshot) {
+                                                                      final isLoading =
+                                                                          snapshot.connectionState == ConnectionState.waiting ||
+                                                                              !snapshot.hasData;
+                                                                      final containerTaxaNatalidadeResponse = snapshot
+                                                                              .hasData
+                                                                          ? snapshot
+                                                                              .data!
+                                                                          : null;
 
                                                                       final dataInicioStr =
                                                                           _painelPeriodoDataInicio();
@@ -4570,8 +4486,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         ),
                                                                         child:
                                                                             Container(
-                                                                          width: double
-                                                                              .infinity,
+                                                                          width:
+                                                                              double.infinity,
                                                                           height:
                                                                               433.0,
                                                                           constraints:
@@ -4588,17 +4504,13 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                           ),
                                                                           child:
                                                                               Padding(
-                                                                            padding: const EdgeInsets
-                                                                                .all(
-                                                                                24.0),
+                                                                            padding:
+                                                                                const EdgeInsets.all(24.0),
                                                                             child:
                                                                                 Column(
-                                                                              mainAxisSize:
-                                                                                  MainAxisSize.max,
-                                                                              mainAxisAlignment:
-                                                                                  MainAxisAlignment.start,
-                                                                              crossAxisAlignment:
-                                                                                  CrossAxisAlignment.start,
+                                                                              mainAxisSize: MainAxisSize.max,
+                                                                              mainAxisAlignment: MainAxisAlignment.start,
+                                                                              crossAxisAlignment: CrossAxisAlignment.start,
                                                                               children: [
                                                                                 Row(
                                                                                   children: [
@@ -4661,9 +4573,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               )
                                                                                             : Center(
                                                                                                 child: Text(
-                                                                                                  (containerTaxaNatalidadeResponse != null && !containerTaxaNatalidadeResponse.succeeded)
-                                                                                                      ? _mensagemErroTaxaNatalidade(containerTaxaNatalidadeResponse)
-                                                                                                      : 'Sem dados de natalidade no período.',
+                                                                                                  (containerTaxaNatalidadeResponse != null && !containerTaxaNatalidadeResponse.succeeded) ? _mensagemErroTaxaNatalidade(containerTaxaNatalidadeResponse) : 'Sem dados de natalidade no período.',
                                                                                                   style: FlutterFlowTheme.of(context).labelMedium,
                                                                                                   textAlign: TextAlign.center,
                                                                                                 ),
@@ -5139,6 +5049,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                       ],
                                                                                     ),
                                                                                   ),
+                                                                                  const SizedBox(width: 8.0),
                                                                                   _buildSingleFilterChip(
                                                                                     context,
                                                                                     label: 'Categoria',
@@ -5172,6 +5083,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                   ),
                                                                                 ],
                                                                               ),
+                                                                              const SizedBox(height: 8.0),
                                                                               Expanded(
                                                                                 child: Container(
                                                                                   width: double.infinity,
@@ -5314,6 +5226,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                   ),
                                                                                 ],
                                                                               ),
+                                                                              const SizedBox(height: 8.0),
                                                                               Expanded(
                                                                                 child: Container(
                                                                                   width: double.infinity,
@@ -5959,6 +5872,34 @@ class _PainelWidgetState extends State<PainelWidget>
     return '${ano.toString().padLeft(4, '0')}-${mes.toString().padLeft(2, '0')}-${ultimoDia.toString().padLeft(2, '0')}';
   }
 
+  /// Lista de touros (id + nome) com reprodução no período selecionado do painel.
+  ///
+  /// Calculada no banco via RPC `painel_touros_periodo` para evitar o limite de
+  /// linhas do PostgREST: antes a lista era montada puxando todas as linhas de
+  /// `reproducao` e deduplicando no cliente, mas a consulta era cortada em ~1000
+  /// linhas e touros além disso sumiam do filtro.
+  Future<List<({String id, String nome})>> _carregarTourosPeriodo() async {
+    final response = await SupaFlow.client.rpc(
+      'painel_touros_periodo',
+      params: {
+        'id_propriedade_param':
+            FFAppState().propriedadeSelecionada.idPropriedade,
+        'data_inicio_param': _painelPeriodoDataInicio(),
+        'data_fim_param': _painelPeriodoDataFim(),
+      },
+    );
+    final rows = (response as List?) ?? const [];
+    return rows
+        .map((row) {
+          final map = (row as Map).cast<String, dynamic>();
+          final id = (map['id_rebanho_reprodutor'] ?? '').toString().trim();
+          final nome = (map['nome'] ?? '').toString().trim();
+          return (id: id, nome: nome.isNotEmpty ? nome : 'Touro S/N');
+        })
+        .where((touro) => touro.id.isNotEmpty)
+        .toList();
+  }
+
   /// Soma o campo [field] de uma lista dinâmica de itens JSON.
   int _sumField(dynamic items, String field) {
     if (items == null) return 0;
@@ -6033,7 +5974,7 @@ class _PainelWidgetState extends State<PainelWidget>
     return total;
   }
 
-  /// Matrizes distintas expostas no período (relatório da estação / edge).
+  /// Registros de reprodução expostos no período (relatório da estação / edge).
   int _expostasTotalRelatorioEstacao(dynamic jsonBody) {
     if (jsonBody == null) return 0;
     final v = getJsonField(jsonBody, r'''$.expostas_total''');

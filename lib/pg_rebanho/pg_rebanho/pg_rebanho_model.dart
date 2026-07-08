@@ -36,6 +36,14 @@ class PgRebanhoModel extends FlutterFlowModel<PgRebanhoWidget> {
 
   int pageTotal = 1;
 
+  int rebanhosTotal = 0;
+
+  bool isLoadingRebanhos = false;
+
+  bool hasLoadedRebanhos = false;
+
+  int rebanhosRequestId = 0;
+
   List<RebanhoDTStruct> rebanhosPage = [];
   void addToRebanhosPage(RebanhoDTStruct item) => rebanhosPage.add(item);
   void removeFromRebanhosPage(RebanhoDTStruct item) =>
@@ -53,12 +61,8 @@ class PgRebanhoModel extends FlutterFlowModel<PgRebanhoWidget> {
 
   ///  State fields for stateful widgets in this page.
 
-  // Stores action output result for [Backend Call - API (Buscar Rebanho Filtros)] action in pgRebanho widget.
-  ApiCallResponse? buscaRebanhosIni;
   // Stores action output result for [Backend Call - Query Rows] action in pgRebanho widget.
   List<PropriedadesRow>? propriedadesUser;
-  // Stores action output result for [Backend Call - API (Rebanho Propriedade)] action in pgRebanho widget.
-  ApiCallResponse? qtdtesste;
   // Stores action output result for [Backend Call - API (QTD Rebanho Propriedade )] action in pgRebanho widget.
   ApiCallResponse? qtdAnimais;
   // Stores action output result for [Backend Call - API (QTD Rebanho Propriedades)] action in pgRebanho widget.

@@ -387,6 +387,8 @@ class BuscarReproducaoFiltrosCall {
     int? pOffset = 0,
     String? pPesquisa = '',
     String? pReprodutor = '',
+    String? pStatusReproducao = '',
+    String? pCategoria = '',
     String? pTipoReproducao = '',
     String? pSortColumn = 'data',
     String? pSortDirection = 'desc',
@@ -402,12 +404,14 @@ class BuscarReproducaoFiltrosCall {
   "p_data_previsao_parto_ate": "${escapeStringForJson(pDataPrevisaoPartoAte)}",
   "p_data_diagnostico_de": "${escapeStringForJson(pDataDiagnosticoDe)}",
   "p_data_diagnostico_ate": "${escapeStringForJson(pDataDiagnosticoAte)}",
+${pStatusReproducao?.trim().isNotEmpty == true ? '  "p_status_reproducao": "${escapeStringForJson(pStatusReproducao)}",\n' : ''}
   "p_tipo_reproducao": "${escapeStringForJson(pTipoReproducao)}",
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
   "p_inseminador": "${escapeStringForJson(pInseminador)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
   "p_matriz": "${escapeStringForJson(pMatriz)}",
   "p_reprodutor": "${escapeStringForJson(pReprodutor)}",
+${pCategoria?.trim().isNotEmpty == true ? '  "p_categoria": "${escapeStringForJson(pCategoria)}",\n' : ''}
   "p_limite": $pLimite,
   "p_offset": $pOffset,
   "p_sort_column": "${escapeStringForJson(pSortColumn)}",
@@ -450,6 +454,8 @@ class CountReproducaoFiltrosCall {
     String? pMatriz = '',
     String? pPesquisa = '',
     String? pReprodutor = '',
+    String? pStatusReproducao = '',
+    String? pCategoria = '',
     String? pTipoReproducao = '',
   }) async {
     final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
@@ -463,12 +469,13 @@ class CountReproducaoFiltrosCall {
   "p_data_previsao_parto_ate": "${escapeStringForJson(pDataPrevisaoPartoAte)}",
   "p_data_diagnostico_de": "${escapeStringForJson(pDataDiagnosticoDe)}",
   "p_data_diagnostico_ate": "${escapeStringForJson(pDataDiagnosticoAte)}",
+${pStatusReproducao?.trim().isNotEmpty == true ? '  "p_status_reproducao": "${escapeStringForJson(pStatusReproducao)}",\n' : ''}
   "p_tipo_reproducao": "${escapeStringForJson(pTipoReproducao)}",
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
   "p_inseminador": "${escapeStringForJson(pInseminador)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
   "p_matriz": "${escapeStringForJson(pMatriz)}",
-  "p_reprodutor": "${escapeStringForJson(pReprodutor)}"
+  "p_reprodutor": "${escapeStringForJson(pReprodutor)}"${pCategoria?.trim().isNotEmpty == true ? ',\n  "p_categoria": "${escapeStringForJson(pCategoria)}"' : ''}
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Count Reproducao Filtros ',
@@ -1410,9 +1417,9 @@ class SupabaseEdgeGroup {
     return '$base/functions/v1/';
   }
 
-  /// Edge Functions com "Verify JWT" no Supabase exigem Bearer (anon ou sessão).
+  /// O ApiManager injeta o JWT da sessão em Authorization; manter Bearer anon
+  /// aqui cria header duplicado e quebra auth.uid() após ativar RLS.
   static Map<String, String> get authHeaders => {
-        'Authorization': 'Bearer ${SupabaseConfig.anonKey}',
         'apikey': SupabaseConfig.anonKey,
         'Content-Type': 'application/json',
       };
@@ -1818,7 +1825,8 @@ class TaxaConcepcaoGetCall {
     if (pInseminador != null && pInseminador.trim().isNotEmpty) {
       params['p_inseminador'] = pInseminador.trim();
     }
-    if (pIdRebanhoReprodutor != null && pIdRebanhoReprodutor.trim().isNotEmpty) {
+    if (pIdRebanhoReprodutor != null &&
+        pIdRebanhoReprodutor.trim().isNotEmpty) {
       params['p_id_rebanho_reprodutor'] = pIdRebanhoReprodutor.trim();
     }
 
@@ -1882,7 +1890,8 @@ class TaxaPrenhez2GetCall {
     if (pInseminador != null && pInseminador.trim().isNotEmpty) {
       params['p_inseminador'] = pInseminador.trim();
     }
-    if (pIdRebanhoReprodutor != null && pIdRebanhoReprodutor.trim().isNotEmpty) {
+    if (pIdRebanhoReprodutor != null &&
+        pIdRebanhoReprodutor.trim().isNotEmpty) {
       params['p_id_rebanho_reprodutor'] = pIdRebanhoReprodutor.trim();
     }
     if (pTipoReproducao != null && pTipoReproducao.trim().isNotEmpty) {
@@ -1946,7 +1955,8 @@ class TaxaNatalidadeGetCall {
     if (pInseminador != null && pInseminador.trim().isNotEmpty) {
       params['p_inseminador'] = pInseminador.trim();
     }
-    if (pIdRebanhoReprodutor != null && pIdRebanhoReprodutor.trim().isNotEmpty) {
+    if (pIdRebanhoReprodutor != null &&
+        pIdRebanhoReprodutor.trim().isNotEmpty) {
       params['p_id_rebanho_reprodutor'] = pIdRebanhoReprodutor.trim();
     }
 
@@ -2607,7 +2617,8 @@ class ReproducaoDiagnosticosCategoriaCall {
         'idPropriedade': idPropriedade,
         'inicio': dataInicial,
         'fim': dataFinal,
-        if (categoria != null && categoria != '' && categoria != 'Todos') 'categoria': categoria,
+        if (categoria != null && categoria != '' && categoria != 'Todos')
+          'categoria': categoria,
       },
       returnBody: true,
       encodeBodyUtf8: false,

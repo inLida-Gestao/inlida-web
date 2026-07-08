@@ -12,6 +12,7 @@ import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -35,6 +36,23 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
     _model.onUpdate();
   }
 
+  int _parseAreaInteira(String? value) {
+    final normalized = value?.trim().replaceAll(',', '.');
+    if (normalized == null || normalized.isEmpty) {
+      return 0;
+    }
+    return double.tryParse(normalized)?.round() ?? 0;
+  }
+
+  int _areaInteira(TextEditingController? controller) =>
+      _parseAreaInteira(controller?.text);
+
+  int _areaTotalInteira() =>
+      _areaInteira(_model.areaPastagemTextController) +
+      _areaInteira(_model.areaBenfeitoriaTextController) +
+      _areaInteira(_model.areaReservaTextController) +
+      _areaInteira(_model.areaAgriculturaTextController);
+
   @override
   void initState() {
     super.initState();
@@ -44,10 +62,7 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       safeSetState(() {});
       safeSetState(() {});
-      _model.areaTotal = int.parse(_model.areaPastagemTextController.text) +
-          int.parse(_model.areaBenfeitoriaTextController.text) +
-          int.parse(_model.areaReservaTextController.text) +
-          int.parse(_model.areaAgriculturaTextController.text);
+      _model.areaTotal = _areaTotalInteira();
       _model.updatePage(() {});
     });
 
@@ -305,7 +320,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                   width: 444.0,
                                                   height: 56.0,
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF1F1F1),
+                                                    color:
+                                                        const Color(0xFFF1F1F1),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8.0),
@@ -384,7 +400,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -395,7 +412,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -470,7 +488,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                         .asValidator(context),
                                                   ),
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                           ),
                                           Column(
@@ -543,10 +562,12 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                 ],
                                                 onChanged: (val) {
                                                   safeSetState(() {
-                                                    _model.dropDownUFValue = val;
+                                                    _model.dropDownUFValue =
+                                                        val;
                                                     _model.dropDownCidadeSupabaseStream =
                                                         null;
-                                                    _model.dropDownCidadeValueController
+                                                    _model
+                                                        .dropDownCidadeValueController
                                                         ?.reset();
                                                     _model.dropDownCidadeValue =
                                                         null;
@@ -591,20 +612,23 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                       .secondaryText,
                                                   size: 24.0,
                                                 ),
-                                                fillColor: const Color(0xFFF1F1F1),
+                                                fillColor:
+                                                    const Color(0xFFF1F1F1),
                                                 elevation: 2.0,
                                                 borderColor: Colors.transparent,
                                                 borderWidth: 0.0,
                                                 borderRadius: 8.0,
-                                                margin: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                margin:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 12.0, 0.0),
                                                 hidesUnderline: true,
                                                 isOverButton: false,
                                                 isSearchable: false,
                                                 isMultiSelect: false,
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                           Column(
                                             mainAxisSize: MainAxisSize.max,
@@ -813,7 +837,7 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                     margin:
                                                         const EdgeInsetsDirectional
                                                             .fromSTEB(12.0, 0.0,
-                                                                12.0, 0.0),
+                                                            12.0, 0.0),
                                                     hidesUnderline: true,
                                                     isOverButton: false,
                                                     isSearchable: true,
@@ -821,7 +845,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                   );
                                                 },
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ].divide(const SizedBox(width: 24.0)),
                                       ),
@@ -864,7 +889,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                 Container(
                                                   height: 56.0,
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF1F1F1),
+                                                    color:
+                                                        const Color(0xFFF1F1F1),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8.0),
@@ -954,7 +980,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -965,7 +992,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -1033,6 +1061,10 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                         ),
                                                     keyboardType:
                                                         TextInputType.number,
+                                                    inputFormatters: [
+                                                      FilteringTextInputFormatter
+                                                          .digitsOnly
+                                                    ],
                                                     cursorColor:
                                                         FlutterFlowTheme.of(
                                                                 context)
@@ -1042,7 +1074,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                         .asValidator(context),
                                                   ),
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                           ),
                                           Flexible(
@@ -1081,7 +1114,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                 Container(
                                                   height: 56.0,
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF1F1F1),
+                                                    color:
+                                                        const Color(0xFFF1F1F1),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8.0),
@@ -1171,7 +1205,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -1182,7 +1217,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -1250,6 +1286,10 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                         ),
                                                     keyboardType:
                                                         TextInputType.number,
+                                                    inputFormatters: [
+                                                      FilteringTextInputFormatter
+                                                          .digitsOnly
+                                                    ],
                                                     cursorColor:
                                                         FlutterFlowTheme.of(
                                                                 context)
@@ -1259,7 +1299,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                         .asValidator(context),
                                                   ),
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                           ),
                                         ].divide(const SizedBox(width: 24.0)),
@@ -1303,7 +1344,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                 Container(
                                                   height: 56.0,
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF1F1F1),
+                                                    color:
+                                                        const Color(0xFFF1F1F1),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8.0),
@@ -1393,7 +1435,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -1404,7 +1447,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -1472,6 +1516,10 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                         ),
                                                     keyboardType:
                                                         TextInputType.number,
+                                                    inputFormatters: [
+                                                      FilteringTextInputFormatter
+                                                          .digitsOnly
+                                                    ],
                                                     cursorColor:
                                                         FlutterFlowTheme.of(
                                                                 context)
@@ -1481,7 +1529,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                         .asValidator(context),
                                                   ),
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                           ),
                                           Flexible(
@@ -1520,7 +1569,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                 Container(
                                                   height: 56.0,
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF1F1F1),
+                                                    color:
+                                                        const Color(0xFFF1F1F1),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8.0),
@@ -1610,7 +1660,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -1621,7 +1672,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -1689,6 +1741,10 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                         ),
                                                     keyboardType:
                                                         TextInputType.number,
+                                                    inputFormatters: [
+                                                      FilteringTextInputFormatter
+                                                          .digitsOnly
+                                                    ],
                                                     cursorColor:
                                                         FlutterFlowTheme.of(
                                                                 context)
@@ -1698,7 +1754,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                         .asValidator(context),
                                                   ),
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                           ),
                                         ].divide(const SizedBox(width: 24.0)),
@@ -1743,7 +1800,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                   width: double.infinity,
                                                   height: 56.0,
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF1F1F1),
+                                                    color:
+                                                        const Color(0xFFF1F1F1),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8.0),
@@ -1755,28 +1813,11 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                     child: Padding(
                                                       padding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  12.0,
-                                                                  8.0,
-                                                                  0.0,
-                                                                  8.0),
+                                                              .fromSTEB(12.0,
+                                                              8.0, 0.0, 8.0),
                                                       child: Text(
-                                                        valueOrDefault<String>(
-                                                          (int.parse(_model
-                                                                          .areaPastagemTextController
-                                                                          .text) +
-                                                                      int.parse(_model
-                                                                          .areaBenfeitoriaTextController
-                                                                          .text) +
-                                                                      int.parse(_model
-                                                                          .areaReservaTextController
-                                                                          .text) +
-                                                                      int.parse(_model
-                                                                          .areaAgriculturaTextController
-                                                                          .text))
-                                                              .toString(),
-                                                          '0',
-                                                        ),
+                                                        _areaTotalInteira()
+                                                            .toString(),
                                                         style:
                                                             FlutterFlowTheme.of(
                                                                     context)
@@ -1808,7 +1849,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                     ),
                                                   ),
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                           ),
                                         ].divide(const SizedBox(width: 24.0)),
@@ -1907,14 +1949,16 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                         .secondaryText,
                                                     size: 24.0,
                                                   ),
-                                                  fillColor: const Color(0xFFF1F1F1),
+                                                  fillColor:
+                                                      const Color(0xFFF1F1F1),
                                                   elevation: 2.0,
                                                   borderColor:
                                                       Colors.transparent,
                                                   borderWidth: 0.0,
                                                   borderRadius: 8.0,
-                                                  margin: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  margin:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           12.0, 0.0, 12.0, 0.0),
                                                   hidesUnderline: true,
                                                   isOverButton: false,
@@ -1924,7 +1968,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                       safeSetState(() => _model
                                                           .dropDownValue = val),
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                           ),
                                         ].divide(const SizedBox(width: 24.0)),
@@ -1967,7 +2012,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                 ),
                                                 Container(
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF1F1F1),
+                                                    color:
+                                                        const Color(0xFFF1F1F1),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8.0),
@@ -2044,7 +2090,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -2055,7 +2102,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -2133,14 +2181,16 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                         .asValidator(context),
                                                   ),
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                           ),
                                         ].divide(const SizedBox(width: 24.0)),
                                       ),
                                     ]
                                         .divide(const SizedBox(height: 24.0))
-                                        .addToStart(const SizedBox(height: 24.0)),
+                                        .addToStart(
+                                            const SizedBox(height: 24.0)),
                                   ),
                                 ),
                               ),
@@ -2191,7 +2241,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                 child: Container(
                                                   height: 56.0,
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF1F1F1),
+                                                    color:
+                                                        const Color(0xFFF1F1F1),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8.0),
@@ -2265,7 +2316,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -2276,7 +2328,8 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -2357,8 +2410,9 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                               ),
                                               Builder(
                                                 builder: (context) => Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           0.0, 0.0, 4.0, 0.0),
                                                   child: FFButtonWidget(
                                                     onPressed: () async {
@@ -2398,18 +2452,12 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                       height: 56.0,
                                                       padding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  16.0,
-                                                                  0.0,
-                                                                  16.0,
-                                                                  0.0),
+                                                              .fromSTEB(16.0,
+                                                              0.0, 16.0, 0.0),
                                                       iconPadding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0),
+                                                              .fromSTEB(0.0,
+                                                              0.0, 0.0, 0.0),
                                                       color: Colors.white,
                                                       textStyle:
                                                           FlutterFlowTheme.of(
@@ -2454,15 +2502,16 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                   ),
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(width: 24.0)),
+                                            ].divide(
+                                                const SizedBox(width: 24.0)),
                                           ),
                                           Builder(
                                             builder: (context) {
                                               final userProp = containerUsersUsersPropriedadesRowList
                                                   .where((e) =>
                                                       (_model.buscarUsuarioTextController
-                                                                  .text ==
-                                                              '') ||
+                                                              .text ==
+                                                          '') ||
                                                       ((e.nome!)
                                                               .toLowerCase()
                                                               .contains(_model
@@ -2493,10 +2542,12 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                   final userPropItem =
                                                       userProp[userPropIndex];
                                                   return Container(
-                                                    decoration: const BoxDecoration(),
+                                                    decoration:
+                                                        const BoxDecoration(),
                                                     child: Padding(
                                                       padding:
-                                                          const EdgeInsets.all(16.0),
+                                                          const EdgeInsets.all(
+                                                              16.0),
                                                       child: Row(
                                                         mainAxisSize:
                                                             MainAxisSize.max,
@@ -2597,8 +2648,10 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                                   ),
                                                                 ],
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                width: 10.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        10.0)),
                                                           ),
                                                           Row(
                                                             mainAxisSize:
@@ -2695,8 +2748,10 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                                                   size: 24.0,
                                                                 ),
                                                               ),
-                                                            ].divide(const SizedBox(
-                                                                width: 16.0)),
+                                                            ].divide(
+                                                                const SizedBox(
+                                                                    width:
+                                                                        16.0)),
                                                           ),
                                                         ],
                                                       ),
@@ -2707,8 +2762,10 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                             },
                                           ),
                                         ]
-                                            .divide(const SizedBox(height: 24.0))
-                                            .addToStart(const SizedBox(height: 24.0)),
+                                            .divide(
+                                                const SizedBox(height: 24.0))
+                                            .addToStart(
+                                                const SizedBox(height: 24.0)),
                                       ),
                                     ),
                                   );
@@ -2792,10 +2849,10 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                           ),
                                           letterSpacing: 0.0,
                                           fontWeight: FontWeight.w600,
-                                          fontStyle: FlutterFlowTheme.of(
-                                                  dialogContext)
-                                              .headlineSmall
-                                              .fontStyle,
+                                          fontStyle:
+                                              FlutterFlowTheme.of(dialogContext)
+                                                  .headlineSmall
+                                                  .fontStyle,
                                         ),
                                   ),
                                   content: Text(
@@ -2804,14 +2861,14 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                         .bodyMedium
                                         .override(
                                           font: GoogleFonts.poppins(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(dialogContext)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(dialogContext)
-                                                    .bodyMedium
-                                                    .fontStyle,
+                                            fontWeight: FlutterFlowTheme.of(
+                                                    dialogContext)
+                                                .bodyMedium
+                                                .fontWeight,
+                                            fontStyle: FlutterFlowTheme.of(
+                                                    dialogContext)
+                                                .bodyMedium
+                                                .fontStyle,
                                           ),
                                           letterSpacing: 0.0,
                                           fontWeight:
@@ -2830,31 +2887,32 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                           Navigator.pop(dialogContext),
                                       child: Text(
                                         'OK',
-                                        style: FlutterFlowTheme.of(dialogContext)
+                                        style: FlutterFlowTheme.of(
+                                                dialogContext)
                                             .bodyMedium
                                             .override(
                                               font: GoogleFonts.poppins(
-                                                fontWeight:
-                                                    FlutterFlowTheme.of(dialogContext)
-                                                        .bodyMedium
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(dialogContext)
-                                                        .bodyMedium
-                                                        .fontStyle,
+                                                fontWeight: FlutterFlowTheme.of(
+                                                        dialogContext)
+                                                    .bodyMedium
+                                                    .fontWeight,
+                                                fontStyle: FlutterFlowTheme.of(
+                                                        dialogContext)
+                                                    .bodyMedium
+                                                    .fontStyle,
                                               ),
-                                              color:
-                                                  FlutterFlowTheme.of(dialogContext)
-                                                      .primary,
+                                              color: FlutterFlowTheme.of(
+                                                      dialogContext)
+                                                  .primary,
                                               letterSpacing: 0.0,
-                                              fontWeight:
-                                                  FlutterFlowTheme.of(dialogContext)
-                                                      .bodyMedium
-                                                      .fontWeight,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(dialogContext)
-                                                      .bodyMedium
-                                                      .fontStyle,
+                                              fontWeight: FlutterFlowTheme.of(
+                                                      dialogContext)
+                                                  .bodyMedium
+                                                  .fontWeight,
+                                              fontStyle: FlutterFlowTheme.of(
+                                                      dialogContext)
+                                                  .bodyMedium
+                                                  .fontStyle,
                                             ),
                                       ),
                                     ),
@@ -2864,6 +2922,19 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                             );
                             return;
                           }
+                          final areaAgricultura = _areaInteira(
+                              _model.areaAgriculturaTextController);
+                          final areaBenfeitoria = _areaInteira(
+                              _model.areaBenfeitoriaTextController);
+                          final areaPastagem =
+                              _areaInteira(_model.areaPastagemTextController);
+                          final areaReserva =
+                              _areaInteira(_model.areaReservaTextController);
+                          final areaTotal = areaPastagem +
+                              areaBenfeitoria +
+                              areaReserva +
+                              areaAgricultura;
+
                           if (_model.usersPropriedade != null &&
                               (_model.usersPropriedade)!.isNotEmpty) {
                             await PropriedadesTable().update(
@@ -2876,39 +2947,11 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                                         .toList()),
                                 'anotacoes':
                                     _model.anotacoesTextController.text,
-                                'areaAgricultura': valueOrDefault<int>(
-                                  int.tryParse(_model
-                                      .areaAgriculturaTextController.text),
-                                  0,
-                                ),
-                                'areaBenfeitoria': valueOrDefault<int>(
-                                  int.tryParse(_model
-                                      .areaBenfeitoriaTextController.text),
-                                  0,
-                                ),
-                                'areaPastagem': valueOrDefault<int>(
-                                  int.tryParse(
-                                      _model.areaPastagemTextController.text),
-                                  0,
-                                ),
-                                'areaReserva': valueOrDefault<int>(
-                                  int.tryParse(
-                                      _model.areaReservaTextController.text),
-                                  0,
-                                ),
-                                'areaTotal': valueOrDefault<int>(
-                                  int.parse(_model.areaPastagemTextController
-                                              .text) +
-                                          int.parse(_model
-                                              .areaBenfeitoriaTextController
-                                              .text) +
-                                          int.parse(_model
-                                              .areaReservaTextController.text) +
-                                          int.parse(_model
-                                              .areaAgriculturaTextController
-                                        .text),
-                                  0,
-                                ),
+                                'areaAgricultura': areaAgricultura,
+                                'areaBenfeitoria': areaBenfeitoria,
+                                'areaPastagem': areaPastagem,
+                                'areaReserva': areaReserva,
+                                'areaTotal': areaTotal,
                                 'cidade': _model.dropDownCidadeValue,
                                 'estado': _model.dropDownUFValue,
                                 'atividades': functions.converterListaParaJSON(
@@ -2926,39 +2969,11 @@ class _EditPropriedadeWidgetState extends State<EditPropriedadeWidget>
                               data: {
                                 'anotacoes':
                                     _model.anotacoesTextController.text,
-                                'areaAgricultura': valueOrDefault<int>(
-                                  int.tryParse(_model
-                                      .areaAgriculturaTextController.text),
-                                  0,
-                                ),
-                                'areaBenfeitoria': valueOrDefault<int>(
-                                  int.tryParse(_model
-                                      .areaBenfeitoriaTextController.text),
-                                  0,
-                                ),
-                                'areaPastagem': valueOrDefault<int>(
-                                  int.tryParse(
-                                      _model.areaPastagemTextController.text),
-                                  0,
-                                ),
-                                'areaReserva': valueOrDefault<int>(
-                                  int.tryParse(
-                                      _model.areaReservaTextController.text),
-                                  0,
-                                ),
-                                'areaTotal': valueOrDefault<int>(
-                                  int.parse(_model.areaPastagemTextController
-                                              .text) +
-                                          int.parse(_model
-                                              .areaBenfeitoriaTextController
-                                              .text) +
-                                          int.parse(_model
-                                              .areaReservaTextController.text) +
-                                          int.parse(_model
-                                              .areaAgriculturaTextController
-                                        .text),
-                                  0,
-                                ),
+                                'areaAgricultura': areaAgricultura,
+                                'areaBenfeitoria': areaBenfeitoria,
+                                'areaPastagem': areaPastagem,
+                                'areaReserva': areaReserva,
+                                'areaTotal': areaTotal,
                                 'cidade': _model.dropDownCidadeValue,
                                 'estado': _model.dropDownUFValue,
                                 'atividades': functions.converterListaParaJSON(

@@ -1,4 +1,4 @@
-import '/backend/supabase/supabase.dart';
+import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'add_user_widget.dart' show AddUserWidget;
 import 'package:flutter/material.dart';
@@ -10,10 +10,10 @@ class AddUserModel extends FlutterFlowModel<AddUserWidget> {
   FocusNode? textFieldFocusNode;
   TextEditingController? textController;
   String? Function(BuildContext, String?)? textControllerValidator;
-  // Stores action output result for [Backend Call - Query Rows] action in Button widget.
-  List<UsersRow>? userBuscado;
-  // Stores action output result for [Backend Call - Query Rows] action in Button widget.
-  List<UsersPropriedadesRow>? verificacaoUser;
+  // Stores action output result for [Backend Call - RPC] action in Button widget.
+  UsersDTStruct? userBuscado;
+  // Stores action output result for [Backend Call - RPC] action in Button widget.
+  Map<String, dynamic>? usuarioPropriedadeResultado;
 
   @override
   void initState(BuildContext context) {}

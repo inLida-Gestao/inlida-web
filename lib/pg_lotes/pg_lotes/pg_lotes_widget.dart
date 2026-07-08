@@ -1025,7 +1025,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                             Builder(
                                           builder: (context) {
                                             final selectedProperty = FFAppState().propriedadeSelecionada.idPropriedade;
-                                            final lote =
+                                            final lote = _model.sortedLotes(
                                                 (pgLotesBuscarLotesFiltrosResponse
                                                                 .jsonBody
                                                                 .toList()
@@ -1041,7 +1041,7 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                     e.hasIdPropriedade() &&
                                                     e.idPropriedade.isNotEmpty &&
                                                     e.idPropriedade == selectedProperty)
-                                                  .toList();
+                                                  .toList());
                                             if (lote.isEmpty) {
                                               return Center(
                                                 child: EmptyRebanhoWidget(
@@ -1452,6 +1452,15 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                     .map((c) => DataCell(c))
                                                     .toList(),
                                               );
+                                              },
+                                              onSortChanged:
+                                                  (sortColumnIndex,
+                                                      sortAscending) {
+                                                _model.updateLotesSort(
+                                                  sortColumnIndex,
+                                                  sortAscending,
+                                                );
+                                                safeSetState(() {});
                                               },
                                               emptyBuilder: () => Center(
                                                 child: EmptyRebanhoWidget(

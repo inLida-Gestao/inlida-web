@@ -47,6 +47,9 @@ Future<bool> exportRebanhoExcel(String nameExcel, String idPropriedade) async {
 
     // Lista para armazenar todos os dados
     List<Map<String, dynamic>> allData = [];
+    final exportedIds = <String>{};
+    int fetchedRows = 0;
+    int skippedDuplicates = 0;
 
     // Configuração da paginação
     int batchSize = 1000;
@@ -65,14 +68,23 @@ Future<bool> exportRebanhoExcel(String nameExcel, String idPropriedade) async {
             .select()
             .eq('idPropriedade', idPropriedade)
             .eq('deletado', 'NAO')
+            .order('id', ascending: true)
             .range(offset, offset + batchSize - 1);
 
         print('Registros retornados: ${response.length}');
+        fetchedRows += response.length;
 
         // Adicionar os dados à lista principal
         for (var item in response) {
-          allData.add(Map<String, dynamic>.from(item));
-                  }
+          final row = Map<String, dynamic>.from(item);
+          final rowId = row['id']?.toString();
+          if (rowId != null && rowId.isNotEmpty && !exportedIds.add(rowId)) {
+            skippedDuplicates++;
+            print('Registro duplicado ignorado na exportação: id=$rowId');
+            continue;
+          }
+          allData.add(row);
+        }
 
         // Verificar se há mais dados
         if (response.length < batchSize) {
@@ -81,13 +93,15 @@ Future<bool> exportRebanhoExcel(String nameExcel, String idPropriedade) async {
         } else {
           offset += batchSize;
         }
-            } catch (e) {
+      } catch (e) {
         print('Erro ao buscar batch: $e');
         hasMoreData = false;
       }
     }
 
-    print('Total de registros carregados: ${allData.length}');
+    print('Total de registros buscados: $fetchedRows');
+    print('Total de duplicados ignorados: $skippedDuplicates');
+    print('Total de registros carregados para exportar: ${allData.length}');
 
     if (allData.isEmpty) {
       print('AVISO: Nenhum registro encontrado para exportar');
@@ -220,8 +234,8 @@ Future<bool> exportRebanhoExcel(String nameExcel, String idPropriedade) async {
             if (parsed != null) {
               cell.value = DateCellValue.fromDateTime(parsed);
             } else {
-              final isEmpty = value == null ||
-                  (value is String && value.trim().isEmpty);
+              final isEmpty =
+                  value == null || (value is String && value.trim().isEmpty);
               cell.value = TextCellValue(isEmpty ? '' : value.toString());
             }
           } else {

@@ -57,4 +57,7 @@ class UsersRow extends SupabaseDataRow {
   String? get cicloAssinatura => getField<String>('ciclo_assinatura');
   set cicloAssinatura(String? value) =>
       setField<String>('ciclo_assinatura', value);
+
+  String? get piquete => getField<String>('piquete');
+  set piquete(String? value) => setField<String>('piquete', value);
 }

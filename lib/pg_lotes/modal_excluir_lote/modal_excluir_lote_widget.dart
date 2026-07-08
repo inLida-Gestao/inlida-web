@@ -25,6 +25,73 @@ class ModalExcluirLoteWidget extends StatefulWidget {
 class _ModalExcluirLoteWidgetState extends State<ModalExcluirLoteWidget> {
   late ModalExcluirLoteModel _model;
 
+  bool _isActiveRow(Map<String, dynamic> row) {
+    return row['deletado']?.toString().trim().toUpperCase() != 'SIM';
+  }
+
+  Future<int> _countActiveRowsWithLote({
+    required String table,
+    required String idColumn,
+    required String propertyColumn,
+    required String idLote,
+    required String idPropriedade,
+  }) async {
+    const batchSize = 1000;
+    var offset = 0;
+    var total = 0;
+
+    while (true) {
+      final rows = await SupaFlow.client
+          .from(table)
+          .select('id,deletado')
+          .eq(idColumn, idLote)
+          .eq(propertyColumn, idPropriedade)
+          .range(offset, offset + batchSize - 1);
+
+      for (final row in rows) {
+        if (_isActiveRow(Map<String, dynamic>.from(row))) {
+          total++;
+        }
+      }
+
+      if (rows.length < batchSize) {
+        return total;
+      }
+      offset += batchSize;
+    }
+  }
+
+  Future<void> _showBlockedDeleteDialog({
+    required int animaisCount,
+    required int reproducoesCount,
+  }) async {
+    final motivos = <String>[
+      if (animaisCount > 0)
+        '$animaisCount ${animaisCount == 1 ? 'animal vinculado' : 'animais vinculados'}',
+      if (reproducoesCount > 0)
+        '$reproducoesCount ${reproducoesCount == 1 ? 'reprodução vinculada' : 'reproduções vinculadas'}',
+    ];
+
+    await showDialog(
+      context: context,
+      builder: (alertDialogContext) {
+        return AlertDialog(
+          title: const Text('Lote não pode ser excluído'),
+          content: Text(
+            'Este lote possui ${motivos.join(' e ')}. '
+            'Remova ou transfira os vínculos antes de excluir o lote.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(alertDialogContext),
+              child: const Text('Ok'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void setState(VoidCallback callback) {
     super.setState(callback);
@@ -116,7 +183,7 @@ class _ModalExcluirLoteWidgetState extends State<ModalExcluirLoteWidget> {
                     mainAxisSize: MainAxisSize.max,
                     children: [
                       const FaIcon(
-                        FontAwesomeIcons.exclamationTriangle,
+                        FontAwesomeIcons.triangleExclamation,
                         color: Color(0xFFCC3729),
                         size: 48.0,
                       ),
@@ -187,6 +254,65 @@ class _ModalExcluirLoteWidgetState extends State<ModalExcluirLoteWidget> {
                       ),
                       FFButtonWidget(
                         onPressed: () async {
+                          final idLote = widget.idLote?.trim();
+                          final idPropriedade =
+                              containerLotesRow?.idPropriedade?.trim();
+                          if (idLote == null ||
+                              idLote.isEmpty ||
+                              idPropriedade == null ||
+                              idPropriedade.isEmpty) {
+                            await showDialog(
+                              context: context,
+                              builder: (alertDialogContext) {
+                                return AlertDialog(
+                                  title: const Text('Não foi possível excluir'),
+                                  content: const Text(
+                                    'Não foi possível validar os vínculos deste lote. Tente novamente.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(alertDialogContext),
+                                      child: const Text('Ok'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                            return;
+                          }
+
+                          final animaisCount = await _countActiveRowsWithLote(
+                            table: 'rebanho',
+                            idColumn: 'loteID',
+                            propertyColumn: 'idPropriedade',
+                            idLote: idLote,
+                            idPropriedade: idPropriedade,
+                          );
+                          if (!context.mounted) {
+                            return;
+                          }
+
+                          final reproducoesCount =
+                              await _countActiveRowsWithLote(
+                            table: 'reproducao',
+                            idColumn: 'id_lote',
+                            propertyColumn: 'id_propriedade',
+                            idLote: idLote,
+                            idPropriedade: idPropriedade,
+                          );
+                          if (!context.mounted) {
+                            return;
+                          }
+
+                          if (animaisCount > 0 || reproducoesCount > 0) {
+                            await _showBlockedDeleteDialog(
+                              animaisCount: animaisCount,
+                              reproducoesCount: reproducoesCount,
+                            );
+                            return;
+                          }
+
                           await LotesTable().update(
                             data: {
                               'deletado': 'SIM',
@@ -196,6 +322,10 @@ class _ModalExcluirLoteWidgetState extends State<ModalExcluirLoteWidget> {
                               widget.idLote,
                             ),
                           );
+                          if (!context.mounted) {
+                            return;
+                          }
+
                           FFAppState().refreshLotes = true;
                           safeSetState(() {});
                           unawaited(

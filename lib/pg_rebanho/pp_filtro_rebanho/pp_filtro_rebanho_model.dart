@@ -1,9 +1,22 @@
+import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/form_field_controller.dart';
 import 'pp_filtro_rebanho_widget.dart' show PpFiltroRebanhoWidget;
 import 'package:flutter/material.dart';
 
 class PpFiltroRebanhoModel extends FlutterFlowModel<PpFiltroRebanhoWidget> {
+  Future<List<LotesRow>>? lotesFuture;
+
+  String pendingSexo = '';
+  String pendingStatus = '';
+  String pendingCategoria = '';
+  String pendingLoteId = '';
+  String pendingLoteNome = '';
+  String pendingRaca = '';
+  String pendingOrigem = '';
+  DateTime? pendingDataNascimentoDe;
+  DateTime? pendingDataNascimentoAte;
+
   ///  State fields for stateful widgets in this component.
 
   // State field(s) for DropDownSexo widget.

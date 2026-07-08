@@ -18,9 +18,13 @@ class ModalMoreWidget extends StatefulWidget {
   const ModalMoreWidget({
     super.key,
     required this.rebanhoId,
+    this.returnToLoteId,
+    this.returnToLoteNome,
   });
 
   final int? rebanhoId;
+  final String? returnToLoteId;
+  final String? returnToLoteNome;
 
   @override
   State<ModalMoreWidget> createState() => _ModalMoreWidgetState();
@@ -109,10 +113,13 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                     _model.indexCrias = 0;
                     safeSetState(() {});
                     while (_model.indexCrias < _model.criasMatriz!.length) {
-                      final criasMatrizRow = _model.criasMatriz?.elementAtOrNull(_model.indexCrias);
+                      final criasMatrizRow = _model.criasMatriz
+                          ?.elementAtOrNull(_model.indexCrias);
                       if ((criasMatrizRow?.id == widget.rebanhoId) ||
-                          (criasMatrizRow?.idRebanho == _model.rebanho?.firstOrNull?.idRebanho) ||
-                          (criasMatrizRow?.numeroAnimal == _model.rebanho?.firstOrNull?.numeroAnimal)) {
+                          (criasMatrizRow?.idRebanho ==
+                              _model.rebanho?.firstOrNull?.idRebanho) ||
+                          (criasMatrizRow?.numeroAnimal ==
+                              _model.rebanho?.firstOrNull?.numeroAnimal)) {
                         _model.indexCrias = _model.indexCrias + 1;
                         safeSetState(() {});
                         continue;
@@ -185,10 +192,13 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                     _model.indexCrias = 0;
                     safeSetState(() {});
                     while (_model.indexCrias < _model.criasReprodutor!.length) {
-                      final criasReprodutorRow = _model.criasReprodutor?.elementAtOrNull(_model.indexCrias);
+                      final criasReprodutorRow = _model.criasReprodutor
+                          ?.elementAtOrNull(_model.indexCrias);
                       if ((criasReprodutorRow?.id == widget.rebanhoId) ||
-                          (criasReprodutorRow?.idRebanho == _model.rebanho?.firstOrNull?.idRebanho) ||
-                          (criasReprodutorRow?.numeroAnimal == _model.rebanho?.firstOrNull?.numeroAnimal)) {
+                          (criasReprodutorRow?.idRebanho ==
+                              _model.rebanho?.firstOrNull?.idRebanho) ||
+                          (criasReprodutorRow?.numeroAnimal ==
+                              _model.rebanho?.firstOrNull?.numeroAnimal)) {
                         _model.indexCrias = _model.indexCrias + 1;
                         safeSetState(() {});
                         continue;
@@ -337,17 +347,22 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
             Builder(
               builder: (context) => FFButtonWidget(
                 onPressed: () async {
-                  Navigator.pop(context);
-                  await showDialog(
+                  final rootNavigator = Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  );
+                  final rootContext = rootNavigator.context;
+                  rootNavigator.pop();
+                  await showDialog<bool>(
                     barrierColor: const Color(0x29000000),
-                    context: context,
+                    context: rootContext,
                     builder: (dialogContext) {
                       return Dialog(
                         elevation: 0,
                         insetPadding: EdgeInsets.zero,
                         backgroundColor: Colors.transparent,
                         alignment: const AlignmentDirectional(0.0, 0.0)
-                            .resolve(Directionality.of(context)),
+                            .resolve(Directionality.of(dialogContext)),
                         child: PpAddPessagemWidget(
                           rebanhoId: widget.rebanhoId!,
                         ),
@@ -463,12 +478,23 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                   }(),
                 );
 
+                if (!context.mounted) {
+                  return;
+                }
                 context.pushNamed(
                   PgRebanhoEditWidget.routeName,
                   queryParameters: {
                     'rebanhoId': serializeParam(
                       widget.rebanhoId,
                       ParamType.int,
+                    ),
+                    'returnToLoteId': serializeParam(
+                      widget.returnToLoteId,
+                      ParamType.String,
+                    ),
+                    'returnToLoteNome': serializeParam(
+                      widget.returnToLoteNome,
+                      ParamType.String,
                     ),
                   }.withoutNulls,
                   extra: <String, dynamic>{

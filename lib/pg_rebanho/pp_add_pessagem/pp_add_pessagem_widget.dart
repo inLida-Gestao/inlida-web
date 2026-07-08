@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
+import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import 'pp_add_pessagem_model.dart';
 export 'pp_add_pessagem_model.dart';
 
@@ -334,8 +335,8 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                                 onTap: () async {
                                   final datePickedDate = await showDatePicker(
                                     context: context,
-                                    initialDate:
-                                        _model.datePicked ?? getCurrentTimestamp,
+                                    initialDate: _model.datePicked ??
+                                        getCurrentTimestamp,
                                     firstDate: DateTime(1900),
                                     lastDate: DateTime(2050),
                                     builder: (context, child) {
@@ -541,9 +542,8 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                                       .bodyMedium
                                       .fontStyle,
                                 ),
-                            keyboardType:
-                                const TextInputType.numberWithOptions(
-                                    decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             inputFormatters: const [
                               PesoDecimalInputFormatter(),
                             ],
@@ -619,8 +619,7 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                           );
                           return;
                         }
-                        final pesoTextoNorm = _model
-                            .pesoAddTextController.text
+                        final pesoTextoNorm = _model.pesoAddTextController.text
                             .trim()
                             .replaceAll(',', '.');
                         final pesoDouble = double.tryParse(pesoTextoNorm);
@@ -630,11 +629,13 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                               content: Text(
                                 'Informe um peso maior que zero.',
                                 style: TextStyle(
-                                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                                  color: FlutterFlowTheme.of(context)
+                                      .secondaryBackground,
                                 ),
                               ),
                               duration: const Duration(milliseconds: 3000),
-                              backgroundColor: FlutterFlowTheme.of(context).error,
+                              backgroundColor:
+                                  FlutterFlowTheme.of(context).error,
                             ),
                           );
                           return;
@@ -674,32 +675,11 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                             dataPesagem: _model.datePicked!,
                             peso: pesoDouble,
                           );
-                          // Atualiza ficha com a pesagem mais recente (última por data)
-                          final ultimas =
-                              await HistoricoPesagensTable().queryRows(
-                            queryFn: (q) => q
-                                .eqOrNull('idRebanho', idRebanho)
-                                .order('dataPesagem', ascending: false)
-                                .limit(100),
+                          await sincronizarUltimaPesagemRebanho(
+                            rebanhoId: widget.rebanhoId,
+                            idRebanho: idRebanho,
+                            sincronizarPesoAtual: true,
                           );
-                          final ultima = ultimas
-                              .where((pesagem) =>
-                                  pesagem.deletado?.trim().toUpperCase() !=
-                                  'SIM')
-                              .firstOrNull;
-                          if (ultima != null) {
-                            await RebanhoTable().update(
-                              data: {
-                                'pesoAtual': ultima.peso,
-                                'dataUltimaPesagem':
-                                    supaSerialize<DateTime>(ultima.dataPesagem),
-                              },
-                              matchingRows: (rows) => rows.eqOrNull(
-                                'idRebanho',
-                                idRebanho,
-                              ),
-                            );
-                          }
                           FFAppState().refreshPesagem = true;
                           if (!context.mounted) {
                             return;
@@ -722,6 +702,24 @@ class _PpAddPessagemWidgetState extends State<PpAddPessagemWidget> {
                             ),
                           );
                           Navigator.pop(context, true);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Não foi possível adicionar a pesagem. Tente novamente.',
+                                  style: TextStyle(
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryBackground,
+                                  ),
+                                ),
+                                duration: const Duration(milliseconds: 4000),
+                                backgroundColor:
+                                    FlutterFlowTheme.of(context).error,
+                              ),
+                            );
+                          }
+                          rethrow;
                         } finally {
                           _salvandoPesagem = false;
                           if (mounted) {
