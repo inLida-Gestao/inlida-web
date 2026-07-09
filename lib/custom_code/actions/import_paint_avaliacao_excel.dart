@@ -404,8 +404,16 @@ dynamic _celValue(List<dynamic> row, int index) {
   return v;
 }
 
-dynamic _celNum(List<dynamic> row, int index) {
-  return _celValue(row, index);
+/// Lê uma célula como número. Célula vazia (ou texto não-numérico) vira `null`
+/// — importante para NÃO enviar string vazia "" a colunas numéricas do banco
+/// (erro 22P02). Aceita vírgula decimal ("300,00").
+num? _celNum(List<dynamic> row, int index) {
+  final v = _celValue(row, index);
+  if (v == null) return null;
+  if (v is num) return v;
+  final s = v.toString().trim();
+  if (s.isEmpty) return null;
+  return num.tryParse(s.replaceAll(',', '.'));
 }
 
 String _a12DbValue(String raw) {
