@@ -129,6 +129,51 @@ class _PgReproducaoAddAnimalWidgetState
     super.dispose();
   }
 
+  Future<void> _selectPrevisaoPartoDate() async {
+    final datePicked7Date = await showDatePicker(
+      context: context,
+      initialDate: _model.datePicked7 ?? getCurrentTimestamp,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2050),
+      builder: (context, child) {
+        return wrapInMaterialDatePickerTheme(
+          context,
+          child!,
+          headerBackgroundColor: FlutterFlowTheme.of(context).primary,
+          headerForegroundColor: FlutterFlowTheme.of(context).info,
+          headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
+                font: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontStyle:
+                      FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                ),
+                fontSize: 32.0,
+                letterSpacing: 0.0,
+                fontWeight: FontWeight.w600,
+                fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+              ),
+          pickerBackgroundColor:
+              FlutterFlowTheme.of(context).secondaryBackground,
+          pickerForegroundColor: FlutterFlowTheme.of(context).primaryText,
+          selectedDateTimeBackgroundColor: FlutterFlowTheme.of(context).primary,
+          selectedDateTimeForegroundColor: FlutterFlowTheme.of(context).info,
+          actionButtonForegroundColor: FlutterFlowTheme.of(context).primaryText,
+          iconSize: 24.0,
+        );
+      },
+    );
+
+    if (datePicked7Date != null) {
+      safeSetState(() {
+        _model.datePicked7 = DateTime(
+          datePicked7Date.year,
+          datePicked7Date.month,
+          datePicked7Date.day,
+        );
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -1416,6 +1461,149 @@ class _PgReproducaoAddAnimalWidgetState
                                             ],
                                           ),
                                         ].divide(const SizedBox(height: 8.0)),
+                                          ),
+                                        ),
+                                        if (_model.tipoReproducao ==
+                                          'Monta Natural')
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.max,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Previsão do parto',
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      font:
+                                                          GoogleFonts.poppins(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      fontSize: 16.0,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
+                                              ),
+                                              InkWell(
+                                                splashColor:
+                                                    Colors.transparent,
+                                                focusColor:
+                                                    Colors.transparent,
+                                                hoverColor:
+                                                    Colors.transparent,
+                                                highlightColor:
+                                                    Colors.transparent,
+                                                onTap:
+                                                    _selectPrevisaoPartoDate,
+                                                child: Container(
+                                                  width: double.infinity,
+                                                  height: 56.0,
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .customColor2,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8.0),
+                                                  ),
+                                                  child: Align(
+                                                    alignment:
+                                                        const AlignmentDirectional(
+                                                            -1.0, 0.0),
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsetsDirectional
+                                                              .fromSTEB(
+                                                              12.0,
+                                                              0.0,
+                                                              0.0,
+                                                              0.0),
+                                                      child: Text(
+                                                        valueOrDefault<
+                                                            String>(
+                                                          dateTimeFormat(
+                                                            "d/M/y",
+                                                            _model
+                                                                .datePicked7,
+                                                            locale: FFLocalizations
+                                                                    .of(context)
+                                                                .languageCode,
+                                                          ),
+                                                          'dd/mm/yyyy',
+                                                        ),
+                                                        style: FlutterFlowTheme
+                                                                .of(context)
+                                                            .bodyMedium
+                                                            .override(
+                                                              font: GoogleFonts
+                                                                  .poppins(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
+                                                              fontSize: 16.0,
+                                                              letterSpacing:
+                                                                  0.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              fontStyle: FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Text(
+                                                'Selecione a data prevista do parto',
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      font:
+                                                          GoogleFonts.poppins(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .accent3,
+                                                      letterSpacing: 0.0,
+                                                    ),
+                                              ),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         const SizedBox(width: 16.0),
@@ -3475,6 +3663,97 @@ class _PgReproducaoAddAnimalWidgetState
                                               ].divide(const SizedBox(height: 8.0)),
                                             ),
                                           ),
+                                        if (_model.tipoReproducao ==
+                                            'Monta Natural')
+                                          Expanded(
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.max,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Previsão do parto',
+                                                  style: FlutterFlowTheme.of(
+                                                          context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        fontSize: 16.0,
+                                                        letterSpacing: 0.0,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                ),
+                                                FFButtonWidget(
+                                                  onPressed:
+                                                      _selectPrevisaoPartoDate,
+                                                  text: valueOrDefault<String>(
+                                                    dateTimeFormat(
+                                                      "d/M/y",
+                                                      _model.datePicked7,
+                                                      locale:
+                                                          FFLocalizations.of(
+                                                                  context)
+                                                              .languageCode,
+                                                    ),
+                                                    'dd/mm/yyyy',
+                                                  ),
+                                                  options: FFButtonOptions(
+                                                    width: double.infinity,
+                                                    height: 56.0,
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .customColor2,
+                                                    textStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .bodyMedium
+                                                            .override(
+                                                              font: GoogleFonts
+                                                                  .poppins(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
+                                                              fontSize: 16.0,
+                                                              letterSpacing:
+                                                                  0.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              fontStyle: FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                            ),
+                                                    elevation: 0.0,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8.0),
+                                                  ),
+                                                ),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
+                                            ),
+                                          ),
                                         const SizedBox(width: 16.0),
                                         Row(
                                           mainAxisSize: MainAxisSize.max,
@@ -4439,6 +4718,9 @@ class _PgReproducaoAddAnimalWidgetState
                                                 'data_final':
                                                     supaSerialize<DateTime>(
                                                         _model.datePicked4),
+                                                'previsao_parto':
+                                                    supaSerialize<DateTime>(
+                                                        _model.datePicked7),
                                                 'racaReprodutor': FFAppState()
                                                     .reprodutorSelecionado
                                                     .racaAnimal,

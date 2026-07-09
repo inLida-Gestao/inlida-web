@@ -86,6 +86,8 @@ class PgReproducaoEditAnimalModel
   TextEditingController? dataStatusTextController;
   String? Function(BuildContext, String?)? dataStatusTextControllerValidator;
   DateTime? datePicked6;
+  // State field(s) for previsaoParto widget.
+  DateTime? datePicked7;
   // State field(s) for anotacoes widget.
   FocusNode? anotacoesFocusNode;
   TextEditingController? anotacoesTextController;
