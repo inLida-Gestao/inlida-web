@@ -1465,7 +1465,8 @@ class _PgReproducaoAddAnimalWidgetState
                                         ),
                                         if (_model.tipoReproducao ==
                                           'Monta Natural')
-                                        Expanded(
+                                        SizedBox(
+                                          width: 326.0,
                                           child: Column(
                                             mainAxisSize: MainAxisSize.max,
                                             crossAxisAlignment:
@@ -3665,7 +3666,8 @@ class _PgReproducaoAddAnimalWidgetState
                                           ),
                                         if (_model.tipoReproducao ==
                                             'Monta Natural')
-                                          Expanded(
+                                          SizedBox(
+                                            width: 326.0,
                                             child: Column(
                                               mainAxisSize: MainAxisSize.max,
                                               crossAxisAlignment:

@@ -1789,7 +1789,8 @@ class _PgReproducaoEditAnimalWidgetState
                                                   ),
                                                   if (_model.tipoReproducao ==
                                                       'Monta Natural')
-                                                    Expanded(
+                                                    SizedBox(
+                                                      width: 326.0,
                                                       child: Column(
                                                         mainAxisSize:
                                                             MainAxisSize.max,
@@ -4728,7 +4729,8 @@ class _PgReproducaoEditAnimalWidgetState
                                                   ),
                                                 if (_model.tipoReproducao ==
                                                     'Monta Natural')
-                                                  Expanded(
+                                                  SizedBox(
+                                                    width: 326.0,
                                                     child: Column(
                                                       mainAxisSize:
                                                           MainAxisSize.max,
