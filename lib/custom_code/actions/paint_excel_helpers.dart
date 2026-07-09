@@ -393,6 +393,32 @@ bool temDadosSobreano(Map<String, dynamic> r) {
   return idade >= 365 && idade <= 550;
 }
 
+/// Janela de idade (dias) usada para classificar QUAIS pesagens do histórico
+/// pertencem à fase de sobreano ao montar o template Excel. Mais larga que a
+/// heurística de elegibilidade (`temDadosSobreano`, 365–550) para alinhar ao
+/// subtítulo da tela ("entre 340 e 670 dias") e não descartar pesagens válidas.
+const int sobreanoPesagemIdadeMinDias = 340;
+const int sobreanoPesagemIdadeMaxDias = 670;
+
+/// Classifica uma pesagem como pertencente à fase de sobreano: quando o `tipo`
+/// da pesagem já contém "sobre", ou quando a idade do animal na data da pesagem
+/// cai na janela [min]–[max] dias. Espelha a lógica de `auto_preencher_paint`.
+bool pesagemEhSobreano(
+  String? tipo,
+  String? dataPesagemIso,
+  String? dataNascimentoIso, {
+  int min = sobreanoPesagemIdadeMinDias,
+  int max = sobreanoPesagemIdadeMaxDias,
+}) {
+  if ((tipo ?? '').toLowerCase().contains('sobre')) return true;
+  if (dataPesagemIso == null || dataNascimentoIso == null) return false;
+  final dPes = DateTime.tryParse(dataPesagemIso);
+  final dNasc = DateTime.tryParse(dataNascimentoIso);
+  if (dPes == null || dNasc == null) return false;
+  final idade = dPes.difference(dNasc).inDays;
+  return idade >= min && idade <= max;
+}
+
 /// Categorias de adultos reprodutivos, excluídas das avaliações de jovens
 /// (desmama/sobreano) mesmo quando possuem dado antigo do evento.
 bool isCategoriaAdultoReprodutivo(Map<String, dynamic> r) {
@@ -476,6 +502,44 @@ Future<List<Map<String, dynamic>>> fetchRebanhoPaint(
     all.addAll(batch.cast<Map<String, dynamic>>());
     if (batch.length < page) break;
     offset += page;
+  }
+  return all;
+}
+
+/// Carrega pesagens de `historico_pesagens` dos animais informados, buscando por
+/// `idRebanho` (em lotes) — e NÃO por `id_propriedade`, porque pesagens lançadas
+/// pela ficha do animal muitas vezes não gravam `id_propriedade` (só o import em
+/// lote grava). Espelha `_fetchPesagensForProperty` do export de pesagem do
+/// inLida. Filtro `deletado`: mantém nulos e tudo que não seja 'SIM'.
+Future<List<Map<String, dynamic>>> fetchPesagensPaintPorRebanho(
+  Iterable<String> idsRebanho,
+) async {
+  final ids = idsRebanho
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toSet()
+      .toList();
+  if (ids.isEmpty) return const [];
+  const idChunk = 200;
+  const page = 1000;
+  final all = <Map<String, dynamic>>[];
+  for (var start = 0; start < ids.length; start += idChunk) {
+    final end = start + idChunk > ids.length ? ids.length : start + idChunk;
+    final chunk = ids.sublist(start, end);
+    var offset = 0;
+    while (true) {
+      final batch = await SupaFlow.client
+          .from('historico_pesagens')
+          .select('idRebanho,dataPesagem,peso,tipo,deletado')
+          .inFilter('idRebanho', chunk)
+          .or('deletado.is.null,deletado.neq.SIM')
+          .order('id')
+          .range(offset, offset + page - 1);
+      if (batch.isEmpty) break;
+      all.addAll(batch.cast<Map<String, dynamic>>());
+      if (batch.length < page) break;
+      offset += page;
+    }
   }
   return all;
 }

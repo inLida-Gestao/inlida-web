@@ -388,7 +388,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
           existSob.map((e) => '${e['animal_a12']}|${e['data']}').toSet();
       final insertSob = <Map<String, dynamic>>[];
       for (final p in pesagemRows) {
-        final tipo = (p['tipo'] ?? '').toString().toLowerCase();
+        final tipo = (p['tipo'] ?? '').toString();
         final pesoP = p['peso'];
         final dataP = p['dataPesagem'];
         if (pesoP == null || dataP == null) continue;
@@ -397,31 +397,15 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         if (reb == null) continue;
         if (!filtroSobreano(reb, status: status)) continue;
         if (!nascDentro(reb)) continue;
-        DateTime? dPes;
-        if (dataP is String && dataP.isNotEmpty) {
-          dPes = DateTime.tryParse(dataP);
-        } else if (dataP is DateTime) {
-          dPes = dataP;
+        final dataStr = parseDateIso(dataP);
+        if (dataStr == null) continue;
+        // Classificação da fase de sobreano (tipo "sobre" OU idade na janela),
+        // unificada com o template Excel via pesagemEhSobreano (340–670 dias).
+        if (!pesagemEhSobreano(tipo, dataStr, parseDateIso(reb['dataNascimento']))) {
+          continue;
         }
-        if (dPes == null) continue;
-        bool ehSobreano = tipo.contains('sobre');
-        if (!ehSobreano) {
-          final nasc = reb['dataNascimento'];
-          DateTime? dN;
-          if (nasc is String && nasc.isNotEmpty) {
-            dN = DateTime.tryParse(nasc);
-          } else if (nasc is DateTime) {
-            dN = nasc;
-          }
-          if (dN != null) {
-            final idade = dPes.difference(dN).inDays;
-            ehSobreano = idade >= 365 && idade <= 550;
-          }
-        }
-        if (!ehSobreano) continue;
         final a = a12Of(reb);
         if (a.isEmpty) continue;
-        final dataStr = dPes.toIso8601String().substring(0, 10);
         if (!avDentro(dataStr)) continue;
         final key = '$a|$dataStr';
         if (sobExist.contains(key)) continue;

@@ -112,45 +112,181 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
   final temFiltroAvaliacao =
       preenchido && (dataAvaliacaoDe != null || dataAvaliacaoAte != null);
 
-  // Seleciona (animal, avaliação) já aplicando o filtro de data de avaliação,
-  // usando a data efetiva (avaliação salva ou fallback do rebanho).
-  final selecionados = <_AnimalExport>[];
-  for (final r in comNascimento) {
-    final a12 = a12FromRebanho(r, cfg);
-    if (a12.isEmpty) continue;
-    final lista = preenchido
-        ? (existentesPorA12[a12.trim()] ?? const <Map<String, dynamic>>[])
-        : const <Map<String, dynamic>>[];
+  // Linhas de dados já computadas (valores por célula), desacopladas do número
+  // de animais: o sobreano gera UMA LINHA POR PESAGEM da fase (pode haver
+  // várias por animal); matrizes/desmama seguem 1 linha por animal.
+  final linhas = <List<dynamic>>[];
 
-    Map<String, dynamic>? exist;
-    if (temFiltroAvaliacao) {
-      // Prioriza uma avaliação salva dentro do intervalo selecionado.
-      for (final e in lista) {
-        if (dentroIntervaloData(
-            parseDateIso(e['data']), dataAvaliacaoDe, dataAvaliacaoAte)) {
-          exist = e;
-          break;
-        }
-      }
-      if (exist == null) {
-        // Sem avaliação salva no intervalo: exige que a data de fallback do
-        // rebanho (desmama/última pesagem) esteja dentro do intervalo.
-        final efetiva = dataEfetivaAvaliacao(t, r, null);
-        if (!dentroIntervaloData(
-            efetiva, dataAvaliacaoDe, dataAvaliacaoAte)) {
+  if (t == 'sobreano') {
+    // Pesagens do histórico buscadas por idRebanho (robusto a id_propriedade
+    // não preenchido em lançamentos pela ficha do animal).
+    final pesagens = await fetchPesagensPaintPorRebanho(
+      comNascimento.map((r) => (r['idRebanho'] ?? '').toString()),
+    );
+    final pesagensPorRebanho = <String, List<Map<String, dynamic>>>{};
+    for (final p in pesagens) {
+      final idReb = (p['idRebanho'] ?? '').toString();
+      if (idReb.isEmpty) continue;
+      (pesagensPorRebanho[idReb] ??= []).add(p);
+    }
+
+    for (final r in comNascimento) {
+      final a12 = a12FromRebanho(r, cfg);
+      if (a12.isEmpty) continue;
+      final a12Trim = a12.trim();
+      final nascIso = parseDateIso(r['dataNascimento']);
+      final idReb = (r['idRebanho'] ?? '').toString();
+
+      // Seleciona pesagens da fase e colapsa por dia (maior peso), pois o unique
+      // (id_propriedade, animal_a12, data) e o dedup do import descartariam
+      // duas linhas do mesmo dia.
+      final porDia = <String, num?>{};
+      for (final p in (pesagensPorRebanho[idReb] ?? const [])) {
+        final dataIso = parseDateIso(p['dataPesagem']);
+        if (dataIso == null) continue;
+        if (!pesagemEhSobreano(p['tipo']?.toString(), dataIso, nascIso)) {
           continue;
         }
+        if (!dentroIntervaloData(dataIso, dataAvaliacaoDe, dataAvaliacaoAte)) {
+          continue;
+        }
+        final pesoNum = p['peso'] is num
+            ? p['peso'] as num
+            : num.tryParse((p['peso'] ?? '').toString().replaceAll(',', '.'));
+        final atual = porDia[dataIso];
+        if (!porDia.containsKey(dataIso) ||
+            (pesoNum != null && (atual == null || pesoNum > atual))) {
+          porDia[dataIso] = pesoNum;
+        }
       }
-    } else {
-      exist = lista.isNotEmpty ? lista.first : null;
-    }
-    selecionados.add(_AnimalExport(r, exist));
-  }
+      final datasOrdenadas = porDia.keys.toList()..sort();
 
-  if (temFiltroAvaliacao && selecionados.isEmpty) {
-    return PaintExportStatus.semAvaliacao;
+      // Avaliações salvas por data (para pré-preencher notas no modo preenchido).
+      final salvasPorData = <String, Map<String, dynamic>>{};
+      if (preenchido) {
+        for (final e in (existentesPorA12[a12Trim] ?? const [])) {
+          final di = parseDateIso(e['data']);
+          if (di != null) salvasPorData[di] = e;
+        }
+      }
+
+      final numAnimal = (r['numeroAnimal'] ?? '').toString();
+      final nasc = nascIso ?? '';
+      final sexo = sexoMF(r['sexo']);
+
+      if (datasOrdenadas.isEmpty) {
+        // Sem filtro de data: mostra o animal (só identidade) para o técnico
+        // avaliar; com filtro ativo, respeita o recorte e omite.
+        if (temFiltroAvaliacao) continue;
+        linhas.add([
+          numAnimal, nasc, sexo, a12Trim, '', //
+          '', '', '', '', '', '', '', '',
+        ]);
+        continue;
+      }
+
+      for (final dataIso in datasOrdenadas) {
+        final exist = salvasPorData[dataIso];
+        linhas.add([
+          numAnimal,
+          nasc,
+          sexo,
+          a12Trim,
+          dataIso,
+          exist?['nota_c'] ?? '',
+          exist?['nota_p'] ?? '',
+          exist?['nota_m'] ?? '',
+          exist?['nota_u'] ?? '',
+          exist?['nota_t'] ?? '',
+          exist?['nota_ce'] ?? '',
+          exist?['obs'] ?? '',
+          porDia[dataIso] ?? '',
+        ]);
+      }
+    }
+
+    if (linhas.isEmpty) {
+      return temFiltroAvaliacao
+          ? PaintExportStatus.semAvaliacao
+          : PaintExportStatus.vazio;
+    }
+  } else {
+    // matrizes / desmama: 1 linha por animal (comportamento inalterado).
+    final selecionados = <_AnimalExport>[];
+    for (final r in comNascimento) {
+      final a12 = a12FromRebanho(r, cfg);
+      if (a12.isEmpty) continue;
+      final lista = preenchido
+          ? (existentesPorA12[a12.trim()] ?? const <Map<String, dynamic>>[])
+          : const <Map<String, dynamic>>[];
+
+      Map<String, dynamic>? exist;
+      if (temFiltroAvaliacao) {
+        // Prioriza uma avaliação salva dentro do intervalo selecionado.
+        for (final e in lista) {
+          if (dentroIntervaloData(
+              parseDateIso(e['data']), dataAvaliacaoDe, dataAvaliacaoAte)) {
+            exist = e;
+            break;
+          }
+        }
+        if (exist == null) {
+          // Sem avaliação salva no intervalo: exige que a data de fallback do
+          // rebanho (desmama/última pesagem) esteja dentro do intervalo.
+          final efetiva = dataEfetivaAvaliacao(t, r, null);
+          if (!dentroIntervaloData(efetiva, dataAvaliacaoDe, dataAvaliacaoAte)) {
+            continue;
+          }
+        }
+      } else {
+        exist = lista.isNotEmpty ? lista.first : null;
+      }
+      selecionados.add(_AnimalExport(r, exist));
+    }
+
+    if (temFiltroAvaliacao && selecionados.isEmpty) {
+      return PaintExportStatus.semAvaliacao;
+    }
+    if (selecionados.isEmpty) return PaintExportStatus.vazio;
+
+    for (final sel in selecionados) {
+      final r = sel.rebanho;
+      final exist = sel.avaliacao;
+      final numAnimal = (r['numeroAnimal'] ?? '').toString();
+      final nasc = parseDateIso(r['dataNascimento']) ?? '';
+      final sexo = sexoMF(r['sexo']);
+      final a12 = a12FromRebanho(r, cfg).trim();
+      final dataAv = dataEfetivaAvaliacao(t, r, exist) ?? '';
+
+      if (t == 'matrizes') {
+        linhas.add([
+          numAnimal,
+          nasc,
+          sexo,
+          a12,
+          dataAv,
+          exist?['racial'] ?? '',
+          exist?['frame'] ?? '',
+          exist?['aprumos'] ?? '',
+          exist?['pigmentacao'] ?? '',
+        ]);
+      } else {
+        linhas.add([
+          numAnimal,
+          nasc,
+          sexo,
+          a12,
+          dataAv,
+          exist?['nota_c'] ?? '',
+          exist?['nota_p'] ?? '',
+          exist?['nota_m'] ?? '',
+          exist?['nota_u'] ?? '',
+          exist?['obs'] ?? '',
+          exist?['peso'] ?? r['pesoDesmama'] ?? '',
+        ]);
+      }
+    }
   }
-  if (selecionados.isEmpty) return PaintExportStatus.vazio;
 
   final excel = Excel.createExcel();
   final sheet = excel.tables[excel.tables.keys.first]!;
@@ -160,60 +296,7 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
   }
 
   var rowIdx = 1;
-  for (final sel in selecionados) {
-    final r = sel.rebanho;
-    final exist = sel.avaliacao;
-    final numAnimal = (r['numeroAnimal'] ?? '').toString();
-    final nasc = parseDateIso(r['dataNascimento']) ?? '';
-    final sexo = sexoMF(r['sexo']);
-    final a12 = a12FromRebanho(r, cfg).trim();
-    final dataAv = dataEfetivaAvaliacao(t, r, exist) ?? '';
-
-    List<dynamic> vals;
-    if (t == 'matrizes') {
-      vals = [
-        numAnimal,
-        nasc,
-        sexo,
-        a12,
-        dataAv,
-        exist?['racial'] ?? '',
-        exist?['frame'] ?? '',
-        exist?['aprumos'] ?? '',
-        exist?['pigmentacao'] ?? '',
-      ];
-    } else if (t == 'desmama') {
-      vals = [
-        numAnimal,
-        nasc,
-        sexo,
-        a12,
-        dataAv,
-        exist?['nota_c'] ?? '',
-        exist?['nota_p'] ?? '',
-        exist?['nota_m'] ?? '',
-        exist?['nota_u'] ?? '',
-        exist?['obs'] ?? '',
-        exist?['peso'] ?? r['pesoDesmama'] ?? '',
-      ];
-    } else {
-      vals = [
-        numAnimal,
-        nasc,
-        sexo,
-        a12,
-        dataAv,
-        exist?['nota_c'] ?? '',
-        exist?['nota_p'] ?? '',
-        exist?['nota_m'] ?? '',
-        exist?['nota_u'] ?? '',
-        exist?['nota_t'] ?? '',
-        exist?['nota_ce'] ?? '',
-        exist?['obs'] ?? '',
-        exist?['peso'] ?? r['pesoAtual'] ?? '',
-      ];
-    }
-
+  for (final vals in linhas) {
     for (var c = 0; c < vals.length; c++) {
       final v = vals[c];
       final cell = sheet.cell(
