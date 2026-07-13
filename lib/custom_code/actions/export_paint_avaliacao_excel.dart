@@ -91,13 +91,12 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
   if (comNascimento.isEmpty) return PaintExportStatus.semNascimento;
 
   // Avaliações já salvas, agrupadas por A12 (pode haver mais de uma por animal).
+  // Sobreano não usa: o template sai só com a identidade do animal.
   final existentesPorA12 = <String, List<Map<String, dynamic>>>{};
-  if (preenchido) {
+  if (preenchido && t != 'sobreano') {
     final table = t == 'matrizes'
         ? 'paint_avaliacao_rah'
-        : t == 'desmama'
-            ? 'paint_avaliacao_desmama'
-            : 'paint_avaliacao_sobreano';
+        : 'paint_avaliacao_desmama';
     final rows = await SupaFlow.client
         .from(table)
         .select()
@@ -112,104 +111,28 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
   final temFiltroAvaliacao =
       preenchido && (dataAvaliacaoDe != null || dataAvaliacaoAte != null);
 
-  // Linhas de dados já computadas (valores por célula), desacopladas do número
-  // de animais: o sobreano gera UMA LINHA POR PESAGEM da fase (pode haver
-  // várias por animal); matrizes/desmama seguem 1 linha por animal.
+  // Linhas de dados já computadas (valores por célula).
   final linhas = <List<dynamic>>[];
 
   if (t == 'sobreano') {
-    // Pesagens do histórico buscadas por idRebanho (robusto a id_propriedade
-    // não preenchido em lançamentos pela ficha do animal).
-    final pesagens = await fetchPesagensPaintPorRebanho(
-      comNascimento.map((r) => (r['idRebanho'] ?? '').toString()),
-    );
-    final pesagensPorRebanho = <String, List<Map<String, dynamic>>>{};
-    for (final p in pesagens) {
-      final idReb = (p['idRebanho'] ?? '').toString();
-      if (idReb.isEmpty) continue;
-      (pesagensPorRebanho[idReb] ??= []).add(p);
-    }
-
+    // Sobreano traz APENAS a identidade do animal (Numero, Nascimento, Sexo,
+    // A12); Data_Avaliacao, notas e Peso_kg são preenchidos pelo avaliador no
+    // Excel e voltam via importação — que também registra a pesagem no rebanho
+    // (tipo "Atual"). Por não haver datas pré-preenchidas, o filtro de data de
+    // avaliação não se aplica a este template.
     for (final r in comNascimento) {
       final a12 = a12FromRebanho(r, cfg);
       if (a12.isEmpty) continue;
-      final a12Trim = a12.trim();
-      final nascIso = parseDateIso(r['dataNascimento']);
-      final idReb = (r['idRebanho'] ?? '').toString();
-
-      // Seleciona pesagens da fase e colapsa por dia (maior peso), pois o unique
-      // (id_propriedade, animal_a12, data) e o dedup do import descartariam
-      // duas linhas do mesmo dia.
-      final porDia = <String, num?>{};
-      for (final p in (pesagensPorRebanho[idReb] ?? const [])) {
-        final dataIso = parseDateIso(p['dataPesagem']);
-        if (dataIso == null) continue;
-        if (!pesagemEhSobreano(p['tipo']?.toString(), dataIso, nascIso)) {
-          continue;
-        }
-        if (!dentroIntervaloData(dataIso, dataAvaliacaoDe, dataAvaliacaoAte)) {
-          continue;
-        }
-        final pesoNum = p['peso'] is num
-            ? p['peso'] as num
-            : num.tryParse((p['peso'] ?? '').toString().replaceAll(',', '.'));
-        final atual = porDia[dataIso];
-        if (!porDia.containsKey(dataIso) ||
-            (pesoNum != null && (atual == null || pesoNum > atual))) {
-          porDia[dataIso] = pesoNum;
-        }
-      }
-      final datasOrdenadas = porDia.keys.toList()..sort();
-
-      // Avaliações salvas por data (para pré-preencher notas no modo preenchido).
-      final salvasPorData = <String, Map<String, dynamic>>{};
-      if (preenchido) {
-        for (final e in (existentesPorA12[a12Trim] ?? const [])) {
-          final di = parseDateIso(e['data']);
-          if (di != null) salvasPorData[di] = e;
-        }
-      }
-
-      final numAnimal = (r['numeroAnimal'] ?? '').toString();
-      final nasc = nascIso ?? '';
-      final sexo = sexoMF(r['sexo']);
-
-      if (datasOrdenadas.isEmpty) {
-        // Sem filtro de data: mostra o animal (só identidade) para o técnico
-        // avaliar; com filtro ativo, respeita o recorte e omite.
-        if (temFiltroAvaliacao) continue;
-        linhas.add([
-          numAnimal, nasc, sexo, a12Trim, '', //
-          '', '', '', '', '', '', '', '',
-        ]);
-        continue;
-      }
-
-      for (final dataIso in datasOrdenadas) {
-        final exist = salvasPorData[dataIso];
-        linhas.add([
-          numAnimal,
-          nasc,
-          sexo,
-          a12Trim,
-          dataIso,
-          exist?['nota_c'] ?? '',
-          exist?['nota_p'] ?? '',
-          exist?['nota_m'] ?? '',
-          exist?['nota_u'] ?? '',
-          exist?['nota_t'] ?? '',
-          exist?['nota_ce'] ?? '',
-          exist?['obs'] ?? '',
-          porDia[dataIso] ?? '',
-        ]);
-      }
+      linhas.add([
+        (r['numeroAnimal'] ?? '').toString(),
+        parseDateIso(r['dataNascimento']) ?? '',
+        sexoMF(r['sexo']),
+        a12.trim(),
+        '', '', '', '', '', '', '', '', '',
+      ]);
     }
 
-    if (linhas.isEmpty) {
-      return temFiltroAvaliacao
-          ? PaintExportStatus.semAvaliacao
-          : PaintExportStatus.vazio;
-    }
+    if (linhas.isEmpty) return PaintExportStatus.vazio;
   } else {
     // matrizes / desmama: 1 linha por animal (comportamento inalterado).
     final selecionados = <_AnimalExport>[];

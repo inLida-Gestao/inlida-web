@@ -5,10 +5,19 @@ import '/flutter_flow/flutter_flow_util.dart';
 import 'paint_excel_helpers.dart';
 // Begin custom action code
 
+import '/pg_rebanho/pesagem_rebanho_sync.dart'
+    show sincronizarUltimaPesagemRebanho;
 import 'package:excel/excel.dart';
 
 /// Importa planilha PAINT de avaliação (matrizes/desmama/sobreano).
-/// Retorna { inseridos, atualizados, erros: [{linha, motivo}] }.
+///
+/// Desmama/sobreano: o Peso_kg da planilha também vira pesagem no inLida
+/// (`historico_pesagens`, tipo 'Desmama'/'Atual') e a ficha do animal é
+/// sincronizada — terceira via de cadastro de peso, além do import do Painel e
+/// do lançamento manual no Rebanho.
+///
+/// Retorna { inseridos, atualizados, pesagens_inseridas, pesagens_atualizadas,
+/// erros: [{linha, motivo}] }.
 Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
   String? idPropriedade,
   String? tipo,
@@ -17,6 +26,8 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
   final result = <String, dynamic>{
     'inseridos': 0,
     'atualizados': 0,
+    'pesagens_inseridas': 0,
+    'pesagens_atualizadas': 0,
     'erros': <Map<String, dynamic>>[],
   };
   if (idPropriedade == null || idPropriedade.isEmpty) {
@@ -141,6 +152,10 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
   final inserts = <Map<String, dynamic>>[];
   final updates = <Map<String, dynamic>>[];
   final importKeys = <String>{};
+  // Pesos das linhas aceitas, para registrar em historico_pesagens após a
+  // gravação das avaliações (desmama → tipo 'Desmama'; sobreano → 'Atual').
+  final pesagensPlanilha = <_PesagemPlanilha>[];
+  final fichasPorRebanho = <String, Map<String, dynamic>>{};
 
   for (var r = 1; r < sheet.rows.length; r++) {
     final row = sheet.rows[r];
@@ -237,6 +252,7 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       'data': dataAv,
       'updated_at': DateTime.now().toIso8601String(),
     };
+    num? pesoPesagem;
 
     if (t == 'matrizes') {
       final racial = parseNota(_celNum(row, idx('raca')), min: 1, max: 5);
@@ -271,8 +287,18 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       payload['nota_u'] = u;
       final obs = normalizarAnotacao(_cel(row, idx('anotacao')));
       if (obs != null) payload['obs'] = obs;
+      final pesoRaw = _celValue(row, idx('peso_kg'));
       final peso = _celNum(row, idx('peso_kg'));
-      if (peso != null) payload['peso'] = peso;
+      if (peso != null && peso > 0) {
+        payload['peso'] = peso;
+        pesoPesagem = peso;
+      } else if (!_isBlankValue(pesoRaw)) {
+        erros.add({
+          'linha': linha,
+          'motivo': 'Aviso: Peso_kg inválido ("$pesoRaw") — avaliação '
+              'importada, mas a pesagem não foi registrada no rebanho.',
+        });
+      }
     } else {
       final c = parseNota(_celNum(row, idx('conformacao_c')));
       final p = parseNota(_celNum(row, idx('precocidade_p')));
@@ -296,8 +322,18 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       if (pe != null) payload['nota_ce'] = pe;
       final obs = normalizarAnotacao(_cel(row, idx('anotacao')));
       if (obs != null) payload['obs'] = obs;
+      final pesoRaw = _celValue(row, idx('peso_kg'));
       final peso = _celNum(row, idx('peso_kg'));
-      if (peso != null) payload['peso'] = peso;
+      if (peso != null && peso > 0) {
+        payload['peso'] = peso;
+        pesoPesagem = peso;
+      } else if (!_isBlankValue(pesoRaw)) {
+        erros.add({
+          'linha': linha,
+          'motivo': 'Aviso: Peso_kg inválido ("$pesoRaw") — avaliação '
+              'importada, mas a pesagem não foi registrada no rebanho.',
+        });
+      }
     }
 
     final key = '$a12Key|$dataAv';
@@ -325,6 +361,14 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       inserts.add(payload);
       inseridos++;
     }
+
+    if (pesoPesagem != null) {
+      final idReb = (reb['idRebanho'] ?? '').toString().trim();
+      if (idReb.isNotEmpty) {
+        pesagensPlanilha.add(_PesagemPlanilha(idReb, dataAv, pesoPesagem));
+        fichasPorRebanho[idReb] = reb;
+      }
+    }
   }
 
   const tam = 200;
@@ -337,10 +381,162 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
     await SupaFlow.client.from(table).upsert(updates.sublist(i, fim));
   }
 
+  // Só depois de as avaliações gravarem com sucesso, alimenta o peso no
+  // rebanho do inLida (elimina a dupla digitação Painel + PAINT).
+  if (t == 'desmama' || t == 'sobreano') {
+    final resumo = await _registrarPesagensImportadas(
+      idPropriedade: idPropriedade,
+      tipoPesagem: t == 'desmama' ? 'Desmama' : 'Atual',
+      itens: pesagensPlanilha,
+      fichas: fichasPorRebanho,
+      atualizarFichaDesmama: t == 'desmama',
+    );
+    result['pesagens_inseridas'] = resumo['inseridas'];
+    result['pesagens_atualizadas'] = resumo['atualizadas'];
+  }
+
   result['inseridos'] = inseridos;
   result['atualizados'] = atualizados;
   result['erros'] = erros;
   return result;
+}
+
+/// Peso de uma linha aceita da planilha, destinado a `historico_pesagens`.
+class _PesagemPlanilha {
+  final String idRebanho;
+  final String dataIso;
+  final num peso;
+  _PesagemPlanilha(this.idRebanho, this.dataIso, this.peso);
+}
+
+/// Registra os pesos da planilha em `historico_pesagens` e sincroniza a ficha
+/// dos animais afetados. Idempotente: reimportar a mesma planilha não duplica.
+///  - Desmama é evento único do animal: atualiza a pesagem 'Desmama' existente
+///    mesmo se a data foi corrigida na planilha (nunca cria uma segunda).
+///  - 'Atual' (sobreano) é um registro por data: mesma data atualiza o peso,
+///    data nova insere.
+Future<Map<String, int>> _registrarPesagensImportadas({
+  required String idPropriedade,
+  required String tipoPesagem,
+  required List<_PesagemPlanilha> itens,
+  required Map<String, Map<String, dynamic>> fichas,
+  required bool atualizarFichaDesmama,
+}) async {
+  if (itens.isEmpty) return const {'inseridas': 0, 'atualizadas': 0};
+
+  final existentes = await fetchPesagensPaintPorRebanho(
+    itens.map((i) => i.idRebanho),
+    tipo: tipoPesagem,
+  );
+  final porRebanho = <String, List<Map<String, dynamic>>>{};
+  for (final p in existentes) {
+    (porRebanho[(p['idRebanho'] ?? '').toString()] ??= []).add(p);
+  }
+
+  final inserts = <Map<String, dynamic>>[];
+  final updates = <Map<String, dynamic>>[];
+  // Animais cuja "Última pesagem"/"Peso atual" da ficha precisa ser recalculada.
+  final sincronizarFicha = <String>{};
+  final fichaDesmama = <String, Map<String, dynamic>>{};
+
+  for (final item in itens) {
+    final ativos = porRebanho[item.idRebanho] ?? const [];
+    Map<String, dynamic>? alvo;
+    for (final p in ativos) {
+      if (tipoPesagem != 'Desmama' &&
+          parseDateIso(p['dataPesagem']) != item.dataIso) {
+        continue;
+      }
+      if (alvo == null || (p['id'] as num) > (alvo['id'] as num)) alvo = p;
+    }
+
+    final registro = <String, dynamic>{
+      'idRebanho': item.idRebanho,
+      'id_propriedade': idPropriedade,
+      'dataPesagem': item.dataIso,
+      'tipo': tipoPesagem,
+      'peso': item.peso,
+      'deletado': 'NAO',
+    };
+
+    if (alvo != null) {
+      final mesmaData = parseDateIso(alvo['dataPesagem']) == item.dataIso;
+      if (!mesmaData || !_pesoIgual(alvo['peso'], item.peso)) {
+        updates.add({'id': alvo['id'], 'registro': registro});
+        sincronizarFicha.add(item.idRebanho);
+      }
+    } else {
+      inserts.add(registro);
+      // Insert só mexe na ficha se puder virar a última pesagem do animal.
+      final ultimaIso = parseDateIso(fichas[item.idRebanho]?['dataUltimaPesagem']);
+      if (ultimaIso == null || item.dataIso.compareTo(ultimaIso) >= 0) {
+        sincronizarFicha.add(item.idRebanho);
+      }
+    }
+
+    if (atualizarFichaDesmama) {
+      final ficha = fichas[item.idRebanho];
+      if (parseDateIso(ficha?['dataDesmama']) != item.dataIso ||
+          !_pesoIgual(ficha?['pesoDesmama'], item.peso)) {
+        fichaDesmama[item.idRebanho] = {
+          'dataDesmama': item.dataIso,
+          'pesoDesmama': item.peso,
+        };
+      }
+    }
+  }
+
+  const tam = 200;
+  for (var i = 0; i < inserts.length; i += tam) {
+    final fim = (i + tam < inserts.length) ? i + tam : inserts.length;
+    await SupaFlow.client
+        .from('historico_pesagens')
+        .insert(inserts.sublist(i, fim));
+  }
+  await _emLotesConcorrentes(updates, (u) async {
+    await SupaFlow.client
+        .from('historico_pesagens')
+        .update(u['registro'] as Map<String, dynamic>)
+        .eq('id', u['id']);
+  });
+
+  // Espelha o que o import do Painel grava na ficha para a desmama.
+  await _emLotesConcorrentes(fichaDesmama.entries.toList(), (e) async {
+    await SupaFlow.client.from('rebanho').update(e.value).eq('idRebanho', e.key);
+  });
+
+  // Recalcula Última pesagem/Peso atual pela regra oficial (pesagem ativa mais
+  // recente) — não regride se o animal já tem pesagem mais nova que a planilha.
+  await _emLotesConcorrentes(sincronizarFicha.toList(), (idReb) async {
+    await sincronizarUltimaPesagemRebanho(
+      idRebanho: idReb,
+      sincronizarPesoAtual: true,
+    );
+  });
+
+  return {'inseridas': inserts.length, 'atualizadas': updates.length};
+}
+
+bool _pesoIgual(dynamic a, num b) {
+  final na = a is num
+      ? a
+      : num.tryParse((a ?? '').toString().replaceAll(',', '.'));
+  if (na == null) return false;
+  return (na - b).abs() < 0.001;
+}
+
+/// Executa [acao] sobre [itens] em lotes paralelos limitados — atualizações
+/// linha a linha no PostgREST sem estourar conexões nem serializar tudo.
+Future<void> _emLotesConcorrentes<T>(
+  List<T> itens,
+  Future<void> Function(T) acao, {
+  int concorrencia = 8,
+}) async {
+  for (var i = 0; i < itens.length; i += concorrencia) {
+    final fim =
+        (i + concorrencia < itens.length) ? i + concorrencia : itens.length;
+    await Future.wait(itens.sublist(i, fim).map(acao));
+  }
 }
 
 List<int> _technicalIndexesFor(String tipo, int Function(String) idx) {

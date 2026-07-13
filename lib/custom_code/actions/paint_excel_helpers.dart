@@ -506,14 +506,17 @@ Future<List<Map<String, dynamic>>> fetchRebanhoPaint(
   return all;
 }
 
-/// Carrega pesagens de `historico_pesagens` dos animais informados, buscando por
-/// `idRebanho` (em lotes) — e NÃO por `id_propriedade`, porque pesagens lançadas
-/// pela ficha do animal muitas vezes não gravam `id_propriedade` (só o import em
-/// lote grava). Espelha `_fetchPesagensForProperty` do export de pesagem do
-/// inLida. Filtro `deletado`: mantém nulos e tudo que não seja 'SIM'.
+/// Carrega pesagens ativas de `historico_pesagens` dos animais informados,
+/// buscando por `idRebanho` (em lotes) — e NÃO por `id_propriedade`, porque
+/// pesagens lançadas pela ficha do animal muitas vezes não gravam
+/// `id_propriedade` (só o import em lote grava). Espelha
+/// `_fetchPesagensForProperty` do export de pesagem do inLida. Filtro
+/// `deletado`: mantém nulos e tudo que não seja 'SIM'. [tipo] restringe ao
+/// tipo de pesagem (ex.: 'Desmama', 'Atual').
 Future<List<Map<String, dynamic>>> fetchPesagensPaintPorRebanho(
-  Iterable<String> idsRebanho,
-) async {
+  Iterable<String> idsRebanho, {
+  String? tipo,
+}) async {
   final ids = idsRebanho
       .map((e) => e.trim())
       .where((e) => e.isNotEmpty)
@@ -528,13 +531,13 @@ Future<List<Map<String, dynamic>>> fetchPesagensPaintPorRebanho(
     final chunk = ids.sublist(start, end);
     var offset = 0;
     while (true) {
-      final batch = await SupaFlow.client
+      var query = SupaFlow.client
           .from('historico_pesagens')
-          .select('idRebanho,dataPesagem,peso,tipo,deletado')
+          .select('id,idRebanho,dataPesagem,peso,tipo,deletado')
           .inFilter('idRebanho', chunk)
-          .or('deletado.is.null,deletado.neq.SIM')
-          .order('id')
-          .range(offset, offset + page - 1);
+          .or('deletado.is.null,deletado.neq.SIM');
+      if (tipo != null) query = query.eq('tipo', tipo);
+      final batch = await query.order('id').range(offset, offset + page - 1);
       if (batch.isEmpty) break;
       all.addAll(batch.cast<Map<String, dynamic>>());
       if (batch.length < page) break;

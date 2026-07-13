@@ -2025,8 +2025,14 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         final motivo = e['motivo']?.toString() ?? 'Erro não informado.';
         return 'Linha $linha: $motivo';
       }).join('\n');
+      final pesagensNovas = (r['pesagens_inseridas'] as int?) ?? 0;
+      final pesagensAtualizadas = (r['pesagens_atualizadas'] as int?) ?? 0;
+      final resumoPesagens = pesagensNovas + pesagensAtualizadas > 0
+          ? '\n✓ Pesagens no rebanho: $pesagensNovas novas, '
+              '$pesagensAtualizadas atualizadas.'
+          : '';
       final msg = '✓ Importação $tipo: ${r['inseridos']} novos, '
-          '${r['atualizados']} atualizados.'
+          '${r['atualizados']} atualizados.$resumoPesagens'
           '${erros.isEmpty ? '' : '\n⚠ ${erros.length} linha(s) com erro.\n$detalhesErro'}';
       safeSetState(() {
         _model.importandoExcel = false;
