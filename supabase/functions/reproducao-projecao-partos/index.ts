@@ -111,9 +111,43 @@ async function buildProjecaoItems(
     return dataReproducao != null && dataReproducao >= inicio && dataReproducao <= fim;
   });
 
+  // Projeção conta MATRIZES DISTINTAS, não registros de reprodução: uma vaca
+  // pare uma vez na estação. Sem deduplicar, uma matriz com mais de um registro
+  // válido no período (IATF + repasse em monta natural, reinseminação após
+  // falha, etc.) era contada várias vezes, inflando o total acima do número de
+  // fêmeas em reprodução. Mantém-se um registro por matriz: o da cobertura mais
+  // recente (maior data_inseminacao/data_inicial), desempatando pela previsão de
+  // parto mais recente — é o que reflete a prenhez atual. Registros sem
+  // id_rebanho_matriz não dá para agrupar por vaca, então cada um segue contando
+  // individualmente (casos raros).
+  const porMatriz = new Map<string, Record<string, unknown>>();
+  const semMatriz: Record<string, unknown>[] = [];
+  for (const r of filtered) {
+    const mid = r.id_rebanho_matriz != null
+      ? String(r.id_rebanho_matriz).trim()
+      : "";
+    if (!mid) {
+      semMatriz.push(r);
+      continue;
+    }
+    const atual = porMatriz.get(mid);
+    if (!atual) {
+      porMatriz.set(mid, r);
+      continue;
+    }
+    const drNovo = dataReproducaoFromRow(r) ?? "";
+    const drAtual = dataReproducaoFromRow(atual) ?? "";
+    const ppNovo = String(r.previsao_parto ?? "").slice(0, 10);
+    const ppAtual = String(atual.previsao_parto ?? "").slice(0, 10);
+    if (drNovo > drAtual || (drNovo === drAtual && ppNovo > ppAtual)) {
+      porMatriz.set(mid, r);
+    }
+  }
+  const dedup = [...porMatriz.values(), ...semMatriz];
+
   const monthKeys = [
     ...new Set(
-      filtered
+      dedup
         .map((r) => bucketMonthFromPrevisao(r.previsao_parto))
         .filter((x): x is string => x != null),
     ),
@@ -124,7 +158,7 @@ async function buildProjecaoItems(
     agg.set(mk, { Novilha: 0, "Primípara": 0, "Multípara": 0 });
   }
 
-  const rawIds = filtered
+  const rawIds = dedup
     .map((r) => r.id_rebanho_matriz as string | null | undefined)
     .filter((x): x is string => x != null && String(x).trim() !== "");
 
@@ -171,7 +205,7 @@ async function buildProjecaoItems(
     }
   }
 
-  for (const r of filtered) {
+  for (const r of dedup) {
     const mk = bucketMonthFromPrevisao(r.previsao_parto);
     if (!mk || !agg.has(mk)) continue;
 
