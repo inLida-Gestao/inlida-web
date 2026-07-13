@@ -13,6 +13,7 @@ import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import '/reproducao/reproducao_lote_utils.dart';
+import '/reproducao/reproducao_status_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -1814,7 +1815,8 @@ class _PgReproducaoEditAnimalWidgetState
                                                                         .bodyMedium
                                                                         .fontStyle,
                                                                   ),
-                                                                  fontSize: 16.0,
+                                                                  fontSize:
+                                                                      16.0,
                                                                   letterSpacing:
                                                                       0.0,
                                                                   fontWeight:
@@ -1827,15 +1829,12 @@ class _PgReproducaoEditAnimalWidgetState
                                                                 ),
                                                           ),
                                                           InkWell(
-                                                            splashColor:
-                                                                Colors
-                                                                    .transparent,
-                                                            focusColor:
-                                                                Colors
-                                                                    .transparent,
-                                                            hoverColor:
-                                                                Colors
-                                                                    .transparent,
+                                                            splashColor: Colors
+                                                                .transparent,
+                                                            focusColor: Colors
+                                                                .transparent,
+                                                            hoverColor: Colors
+                                                                .transparent,
                                                             highlightColor:
                                                                 Colors
                                                                     .transparent,
@@ -1845,13 +1844,13 @@ class _PgReproducaoEditAnimalWidgetState
                                                                   ?.previsaoParto,
                                                             ),
                                                             child: Container(
-                                                              width:
-                                                                  double.infinity,
+                                                              width: double
+                                                                  .infinity,
                                                               height: 56.0,
                                                               decoration:
                                                                   BoxDecoration(
-                                                                color: FlutterFlowTheme
-                                                                        .of(context)
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
                                                                     .customColor2,
                                                                 borderRadius:
                                                                     BorderRadius
@@ -1872,30 +1871,29 @@ class _PgReproducaoEditAnimalWidgetState
                                                                           0.0,
                                                                           0.0),
                                                                   child: Text(
-                                                                    valueOrDefault<
-                                                                        String>(
-                                                                      dateTimeFormat(
-                                                                        "d/M/y",
-                                                                        _model.datePicked7 ??
+                                                                    statusReproducaoPermitePrevisaoParto(_model.dropDownStatusValue ??
                                                                             pgReproducaoEditAnimalReproducaoRow
-                                                                                ?.previsaoParto,
-                                                                        locale: FFLocalizations.of(
-                                                                                context)
-                                                                            .languageCode,
-                                                                      ),
-                                                                      'dd/mm/yyyy',
-                                                                    ),
+                                                                                ?.statusReproducao)
+                                                                        ? valueOrDefault<
+                                                                            String>(
+                                                                            dateTimeFormat(
+                                                                              "d/M/y",
+                                                                              _model.datePicked7 ?? pgReproducaoEditAnimalReproducaoRow?.previsaoParto,
+                                                                              locale: FFLocalizations.of(context).languageCode,
+                                                                            ),
+                                                                            'dd/mm/yyyy',
+                                                                          )
+                                                                        : 'Sem previsão',
                                                                     style: FlutterFlowTheme.of(
                                                                             context)
                                                                         .bodyMedium
                                                                         .override(
-                                                                          font: GoogleFonts
-                                                                              .poppins(
+                                                                          font:
+                                                                              GoogleFonts.poppins(
                                                                             fontWeight:
                                                                                 FontWeight.w600,
-                                                                            fontStyle: FlutterFlowTheme.of(context)
-                                                                                .bodyMedium
-                                                                                .fontStyle,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                           ),
                                                                           fontSize:
                                                                               16.0,
@@ -4648,22 +4646,23 @@ class _PgReproducaoEditAnimalWidgetState
                                                                         0.0,
                                                                         0.0),
                                                                 child: Text(
-                                                                  valueOrDefault<
-                                                                      String>(
-                                                                    dateTimeFormat(
-                                                                      "d/M/y",
-                                                                      functions.dataMais295(_model.datePicked1 !=
-                                                                              null
-                                                                          ? _model
-                                                                              .datePicked1!
-                                                                          : pgReproducaoEditAnimalReproducaoRow!
-                                                                              .dataInseminacao!),
-                                                                      locale: FFLocalizations.of(
-                                                                              context)
-                                                                          .languageCode,
-                                                                    ),
-                                                                    'dd/mm/yyyy',
-                                                                  ),
+                                                                  statusReproducaoPermitePrevisaoParto(_model
+                                                                              .dropDownStatusValue ??
+                                                                          pgReproducaoEditAnimalReproducaoRow
+                                                                              ?.statusReproducao)
+                                                                      ? valueOrDefault<
+                                                                          String>(
+                                                                          dateTimeFormat(
+                                                                            "d/M/y",
+                                                                            functions.dataMais295(_model.datePicked1 != null
+                                                                                ? _model.datePicked1!
+                                                                                : pgReproducaoEditAnimalReproducaoRow!.dataInseminacao!),
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
+                                                                          ),
+                                                                          'dd/mm/yyyy',
+                                                                        )
+                                                                      : 'Sem previsão',
                                                                   style: FlutterFlowTheme.of(
                                                                           context)
                                                                       .bodyMedium
@@ -4772,20 +4771,24 @@ class _PgReproducaoEditAnimalWidgetState
                                                             pgReproducaoEditAnimalReproducaoRow
                                                                 ?.previsaoParto,
                                                           ),
-                                                          text: valueOrDefault<
-                                                              String>(
-                                                            dateTimeFormat(
-                                                              "d/M/y",
-                                                              _model.datePicked7 ??
+                                                          text: statusReproducaoPermitePrevisaoParto(_model
+                                                                      .dropDownStatusValue ??
                                                                   pgReproducaoEditAnimalReproducaoRow
-                                                                      ?.previsaoParto,
-                                                              locale:
-                                                                  FFLocalizations.of(
-                                                                          context)
-                                                                      .languageCode,
-                                                            ),
-                                                            'dd/mm/yyyy',
-                                                          ),
+                                                                      ?.statusReproducao)
+                                                              ? valueOrDefault<
+                                                                  String>(
+                                                                  dateTimeFormat(
+                                                                    "d/M/y",
+                                                                    _model.datePicked7 ??
+                                                                        pgReproducaoEditAnimalReproducaoRow
+                                                                            ?.previsaoParto,
+                                                                    locale: FFLocalizations.of(
+                                                                            context)
+                                                                        .languageCode,
+                                                                  ),
+                                                                  'dd/mm/yyyy',
+                                                                )
+                                                              : 'Sem previsão',
                                                           options:
                                                               FFButtonOptions(
                                                             width:
@@ -5706,13 +5709,13 @@ class _PgReproducaoEditAnimalWidgetState
                                                                     e.idLote ==
                                                                     idLoteSelecionado)
                                                                 .firstOrNull;
-                                                    final idLoteReproducao =
-                                                        _model.loteCleared
-                                                            ? null
-                                                            : (idLoteSelecionado ??
-                                                                nonEmptyString(
-                                                                    pgReproducaoEditAnimalReproducaoRow
-                                                                        ?.idLote));
+                                                    final idLoteReproducao = _model
+                                                            .loteCleared
+                                                        ? null
+                                                        : (idLoteSelecionado ??
+                                                            nonEmptyString(
+                                                                pgReproducaoEditAnimalReproducaoRow
+                                                                    ?.idLote));
                                                     var nomeLoteReproducao =
                                                         _model.loteCleared
                                                             ? null
@@ -5756,14 +5759,22 @@ class _PgReproducaoEditAnimalWidgetState
                                                           'partida_semen':
                                                               _model
                                                                   .partidaSemen,
-                                                          'previsao_parto': supaSerialize<
-                                                              DateTime>(functions.dataMais295(_model
-                                                                      .datePicked1 !=
-                                                                  null
-                                                              ? _model
-                                                                  .datePicked1!
-                                                              : pgReproducaoEditAnimalReproducaoRow!
-                                                                  .dataInseminacao!)),
+                                                          'previsao_parto':
+                                                              supaSerialize<
+                                                                  DateTime>(
+                                                            previsaoPartoPermitida(
+                                                              _model.dropDownStatusValue ??
+                                                                  pgReproducaoEditAnimalReproducaoRow
+                                                                      ?.statusReproducao,
+                                                              functions.dataMais295(_model
+                                                                          .datePicked1 !=
+                                                                      null
+                                                                  ? _model
+                                                                      .datePicked1!
+                                                                  : pgReproducaoEditAnimalReproducaoRow!
+                                                                      .dataInseminacao!),
+                                                            ),
+                                                          ),
                                                           'data_inicial': supaSerialize<
                                                               DateTime>(_model
                                                                   .datePicked3 ??
@@ -5902,11 +5913,18 @@ class _PgReproducaoEditAnimalWidgetState
                                                                   .datePicked4 ??
                                                               pgReproducaoEditAnimalReproducaoRow
                                                                   ?.dataFinal),
-                                                          'previsao_parto': supaSerialize<
-                                                              DateTime>(_model
-                                                                  .datePicked7 ??
-                                                              pgReproducaoEditAnimalReproducaoRow
-                                                                  ?.previsaoParto),
+                                                          'previsao_parto':
+                                                              supaSerialize<
+                                                                  DateTime>(
+                                                            previsaoPartoPermitida(
+                                                              _model.dropDownStatusValue ??
+                                                                  pgReproducaoEditAnimalReproducaoRow
+                                                                      ?.statusReproducao,
+                                                              _model.datePicked7 ??
+                                                                  pgReproducaoEditAnimalReproducaoRow
+                                                                      ?.previsaoParto,
+                                                            ),
+                                                          ),
                                                           'status_reproducao':
                                                               _model
                                                                   .dropDownStatusValue,

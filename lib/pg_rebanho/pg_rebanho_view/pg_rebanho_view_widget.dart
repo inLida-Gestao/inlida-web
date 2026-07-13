@@ -12,6 +12,7 @@ import '/pg_rebanho/modal_more/modal_more_widget.dart';
 import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import '/pg_rebanho/pp_add_pessagem/pp_add_pessagem_widget.dart';
 import '/reproducao/modal_more_reproducao/modal_more_reproducao_widget.dart';
+import '/reproducao/reproducao_status_utils.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import '/flutter_flow/custom_functions.dart' as functions;
@@ -7471,7 +7472,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                     ),
                                                                                     Builder(
                                                                                       builder: (context) {
-                                                                                        if ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null)) {
+                                                                                        if (statusReproducaoPermitePrevisaoParto(reproducaoItem.statusReproducao) && ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null))) {
                                                                                           return Text(
                                                                                             valueOrDefault<String>(
                                                                                               reproducaoItem.previsaoParto == null
@@ -8122,7 +8123,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                     ),
                                                                                     Builder(
                                                                                       builder: (context) {
-                                                                                        if ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null)) {
+                                                                                        if (statusReproducaoPermitePrevisaoParto(reproducaoItem.statusReproducao) && ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null))) {
                                                                                           return Text(
                                                                                             valueOrDefault<String>(
                                                                                               reproducaoItem.previsaoParto == null

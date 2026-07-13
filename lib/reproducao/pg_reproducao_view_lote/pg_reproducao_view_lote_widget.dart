@@ -9,6 +9,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
+import '/reproducao/reproducao_status_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -56,7 +57,7 @@ class _PgReproducaoViewLoteWidgetState
       _model.tipoReproducao = _model.reproducao!.firstOrNull!.tipoReproducao!;
       _model.score = _model.reproducao?.firstOrNull?.scoreCorporal;
       _model.partidaSemen = _model.reproducao?.firstOrNull?.partidaSemen;
-      
+
       if (_model.reproducaoSelecionada?.idRebanhoReprodutor != null &&
           _model.reproducaoSelecionada!.idRebanhoReprodutor!.isNotEmpty) {
         _model.reprodutorData = await RebanhoTable().queryRows(
@@ -66,7 +67,7 @@ class _PgReproducaoViewLoteWidgetState
           ),
         );
       }
-      
+
       safeSetState(() {});
     });
 
@@ -257,9 +258,8 @@ class _PgReproducaoViewLoteWidgetState
                                           ],
                                         ),
                                         Padding(
-                                          padding:
-                                              const EdgeInsetsDirectional.fromSTEB(
-                                                  0.0, 0.0, 8.0, 0.0),
+                                          padding: const EdgeInsetsDirectional
+                                              .fromSTEB(0.0, 0.0, 8.0, 0.0),
                                           child: FFButtonWidget(
                                             onPressed: () async {
                                               var confirmDialogResponse =
@@ -279,7 +279,8 @@ class _PgReproducaoViewLoteWidgetState
                                                                         alertDialogContext,
                                                                         false),
                                                                 child:
-                                                                    const Text('Não'),
+                                                                    const Text(
+                                                                        'Não'),
                                                               ),
                                                               TextButton(
                                                                 onPressed: () =>
@@ -287,7 +288,8 @@ class _PgReproducaoViewLoteWidgetState
                                                                         alertDialogContext,
                                                                         true),
                                                                 child:
-                                                                    const Text('Sim'),
+                                                                    const Text(
+                                                                        'Sim'),
                                                               ),
                                                             ],
                                                           );
@@ -321,11 +323,14 @@ class _PgReproducaoViewLoteWidgetState
                                             ),
                                             options: FFButtonOptions(
                                               height: 56.0,
-                                              padding: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              padding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       16.0, 0.0, 16.0, 0.0),
-                                              iconPadding: const EdgeInsetsDirectional
-                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                              iconPadding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
+                                                      0.0, 0.0, 0.0, 0.0),
                                               color:
                                                   FlutterFlowTheme.of(context)
                                                       .secondaryBackground,
@@ -426,7 +431,8 @@ class _PgReproducaoViewLoteWidgetState
                                                   ),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(24.0),
+                                                  padding: const EdgeInsets.all(
+                                                      24.0),
                                                   child: Row(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
@@ -455,11 +461,8 @@ class _PgReproducaoViewLoteWidgetState
                                                       Padding(
                                                         padding:
                                                             const EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    10.0,
-                                                                    0.0,
-                                                                    0.0,
-                                                                    0.0),
+                                                                .fromSTEB(10.0,
+                                                                0.0, 0.0, 0.0),
                                                         child: Text(
                                                           'Inseminação',
                                                           style: FlutterFlowTheme
@@ -517,7 +520,8 @@ class _PgReproducaoViewLoteWidgetState
                                                   ),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(24.0),
+                                                  padding: const EdgeInsets.all(
+                                                      24.0),
                                                   child: Row(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
@@ -546,11 +550,8 @@ class _PgReproducaoViewLoteWidgetState
                                                       Padding(
                                                         padding:
                                                             const EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    10.0,
-                                                                    0.0,
-                                                                    0.0,
-                                                                    0.0),
+                                                                .fromSTEB(10.0,
+                                                                0.0, 0.0, 0.0),
                                                         child: Text(
                                                           'Monta Natural',
                                                           style: FlutterFlowTheme
@@ -626,9 +627,8 @@ class _PgReproducaoViewLoteWidgetState
                                                 BorderRadius.circular(8.0),
                                           ),
                                           child: Padding(
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    12.0, 0.0, 12.0, 0.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(12.0, 0.0, 12.0, 0.0),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.max,
                                               mainAxisAlignment:
@@ -716,9 +716,8 @@ class _PgReproducaoViewLoteWidgetState
                                                 BorderRadius.circular(8.0),
                                           ),
                                           child: Padding(
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    12.0, 0.0, 12.0, 0.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(12.0, 0.0, 12.0, 0.0),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.max,
                                               mainAxisAlignment:
@@ -728,7 +727,13 @@ class _PgReproducaoViewLoteWidgetState
                                                 Text(
                                                   '${_model.reprodutorData?.firstOrNull?.numeroAnimal ?? _model.reproducaoSelecionada?.numReprodutor ?? 'S/N'} • ${_model.reprodutorData?.firstOrNull?.nome ?? _model.reproducaoSelecionada?.nomeReprodutor ?? 'S/N'} • ${dateTimeFormat(
                                                     "d/M/y",
-                                                    _model.reprodutorData?.firstOrNull?.dataNascimento ?? _model.reproducaoSelecionada?.nascimentoReprodutor,
+                                                    _model
+                                                            .reprodutorData
+                                                            ?.firstOrNull
+                                                            ?.dataNascimento ??
+                                                        _model
+                                                            .reproducaoSelecionada
+                                                            ?.nascimentoReprodutor,
                                                     locale: FFLocalizations.of(
                                                             context)
                                                         .languageCode,
@@ -864,8 +869,8 @@ class _PgReproducaoViewLoteWidgetState
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         fontSize: 16.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
@@ -878,7 +883,8 @@ class _PgReproducaoViewLoteWidgetState
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -888,7 +894,8 @@ class _PgReproducaoViewLoteWidgetState
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -967,7 +974,8 @@ class _PgReproducaoViewLoteWidgetState
                                               Container(
                                                 width: double.infinity,
                                                 height: 56.0,
-                                                decoration: const BoxDecoration(),
+                                                decoration:
+                                                    const BoxDecoration(),
                                               ),
                                             ],
                                           ),
@@ -1201,7 +1209,8 @@ class _PgReproducaoViewLoteWidgetState
                                                     ),
                                                   ],
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                           ),
                                           Column(
@@ -1247,8 +1256,9 @@ class _PgReproducaoViewLoteWidgetState
                                                           6.0),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(10.0, 12.0,
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(10.0, 12.0,
                                                           10.0, 12.0),
                                                   child: Row(
                                                     mainAxisSize:
@@ -1341,7 +1351,8 @@ class _PgReproducaoViewLoteWidgetState
                                                   ),
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ].divide(const SizedBox(width: 16.0)),
                                       ),
@@ -1392,23 +1403,30 @@ class _PgReproducaoViewLoteWidgetState
                                               mainAxisSize: MainAxisSize.max,
                                               children: [
                                                 Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           12.0, 0.0, 0.0, 0.0),
                                                   child: Text(
-                                                    valueOrDefault<String>(
-                                                      dateTimeFormat(
-                                                        "d/M/y",
-                                                        functions.dataMais295(_model
-                                                            .reproducaoSelecionada!
-                                                            .dataInseminacao!),
-                                                        locale:
-                                                            FFLocalizations.of(
-                                                                    context)
-                                                                .languageCode,
-                                                      ),
-                                                      'dd/mm/yyyy',
-                                                    ),
+                                                    statusReproducaoPermitePrevisaoParto(_model
+                                                            .reproducaoSelecionada
+                                                            ?.statusReproducao)
+                                                        ? valueOrDefault<
+                                                            String>(
+                                                            dateTimeFormat(
+                                                              "d/M/y",
+                                                              _model.reproducaoSelecionada
+                                                                      ?.previsaoParto ??
+                                                                  functions.dataMais295(_model
+                                                                      .reproducaoSelecionada!
+                                                                      .dataInseminacao!),
+                                                              locale: FFLocalizations
+                                                                      .of(context)
+                                                                  .languageCode,
+                                                            ),
+                                                            'Sem previsão',
+                                                          )
+                                                        : 'Sem previsão',
                                                     style: FlutterFlowTheme.of(
                                                             context)
                                                         .bodyMedium
@@ -1567,8 +1585,8 @@ class _PgReproducaoViewLoteWidgetState
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         fontSize: 16.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
@@ -1581,7 +1599,8 @@ class _PgReproducaoViewLoteWidgetState
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1591,7 +1610,8 @@ class _PgReproducaoViewLoteWidgetState
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1670,7 +1690,8 @@ class _PgReproducaoViewLoteWidgetState
                                               Container(
                                                 width: double.infinity,
                                                 height: 56.0,
-                                                decoration: const BoxDecoration(),
+                                                decoration:
+                                                    const BoxDecoration(),
                                               ),
                                             ],
                                           ),
@@ -1770,8 +1791,8 @@ class _PgReproducaoViewLoteWidgetState
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         fontSize: 16.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
@@ -1784,7 +1805,8 @@ class _PgReproducaoViewLoteWidgetState
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1794,7 +1816,8 @@ class _PgReproducaoViewLoteWidgetState
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1873,7 +1896,8 @@ class _PgReproducaoViewLoteWidgetState
                                               Container(
                                                 width: double.infinity,
                                                 height: 56.0,
-                                                decoration: const BoxDecoration(),
+                                                decoration:
+                                                    const BoxDecoration(),
                                               ),
                                             ],
                                           ),
@@ -2042,8 +2066,9 @@ class _PgReproducaoViewLoteWidgetState
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
                                       children: [
-                                        if (ReproducaoDTStruct.ressincIndicaMarcacao(
-                                            _model.reproducaoSelecionada
+                                        if (ReproducaoDTStruct
+                                            .ressincIndicaMarcacao(_model
+                                                .reproducaoSelecionada
                                                 ?.ressinc))
                                           Icon(
                                             Icons.check_box_rounded,
@@ -2051,8 +2076,9 @@ class _PgReproducaoViewLoteWidgetState
                                                 .primary,
                                             size: 24.0,
                                           ),
-                                        if (!ReproducaoDTStruct.ressincIndicaMarcacao(
-                                            _model.reproducaoSelecionada
+                                        if (!ReproducaoDTStruct
+                                            .ressincIndicaMarcacao(_model
+                                                .reproducaoSelecionada
                                                 ?.ressinc))
                                           Icon(
                                             Icons.check_box_outline_blank,
@@ -2131,8 +2157,9 @@ class _PgReproducaoViewLoteWidgetState
                                                           8.0),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           12.0, 0.0, 12.0, 0.0),
                                                   child: Row(
                                                     mainAxisSize:
@@ -2188,7 +2215,8 @@ class _PgReproducaoViewLoteWidgetState
                                                   ),
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         Container(
@@ -2309,7 +2337,8 @@ class _PgReproducaoViewLoteWidgetState
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -2320,7 +2349,8 @@ class _PgReproducaoViewLoteWidgetState
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -2401,11 +2431,13 @@ class _PgReproducaoViewLoteWidgetState
                                                   Container(
                                                     width: double.infinity,
                                                     height: 56.0,
-                                                    decoration: const BoxDecoration(),
+                                                    decoration:
+                                                        const BoxDecoration(),
                                                   ),
                                                 ],
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ].divide(const SizedBox(width: 16.0)),
@@ -2495,7 +2527,8 @@ class _PgReproducaoViewLoteWidgetState
                                                               .labelMedium
                                                               .fontStyle,
                                                     ),
-                                                    color: const Color(0xFFBEBEBE),
+                                                    color:
+                                                        const Color(0xFFBEBEBE),
                                                     fontSize: 16.0,
                                                     letterSpacing: 0.0,
                                                     fontWeight: FontWeight.w600,
@@ -2589,11 +2622,11 @@ class _PgReproducaoViewLoteWidgetState
                                           options: FFButtonOptions(
                                             width: 218.0,
                                             height: 56.0,
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    16.0, 0.0, 16.0, 0.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(16.0, 0.0, 16.0, 0.0),
                                             iconPadding:
-                                                const EdgeInsetsDirectional.fromSTEB(
+                                                const EdgeInsetsDirectional
+                                                    .fromSTEB(
                                                     0.0, 0.0, 0.0, 0.0),
                                             color: FlutterFlowTheme.of(context)
                                                 .secondaryBackground,
@@ -2668,11 +2701,14 @@ class _PgReproducaoViewLoteWidgetState
                                             options: FFButtonOptions(
                                               width: 218.0,
                                               height: 56.0,
-                                              padding: const EdgeInsetsDirectional
-                                                  .fromSTEB(
+                                              padding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
                                                       16.0, 0.0, 16.0, 0.0),
-                                              iconPadding: const EdgeInsetsDirectional
-                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                              iconPadding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
+                                                      0.0, 0.0, 0.0, 0.0),
                                               color:
                                                   FlutterFlowTheme.of(context)
                                                       .primary,
