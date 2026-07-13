@@ -3528,13 +3528,6 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                   'id_propriedade': FFAppState()
                                                       .propriedadeSelecionada
                                                       .idPropriedade,
-                                                  'id_animais': functions
-                                                      .converterListaParaJSON(
-                                                          _model
-                                                              .animaisDentroLote
-                                                              .map((e) =>
-                                                                  e.idRebanho)
-                                                              .toList()),
                                                   'nome': _model
                                                       .nomeLoteTextController
                                                       .text,

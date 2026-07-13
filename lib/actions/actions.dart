@@ -19,10 +19,7 @@ Future countReproducoes(BuildContext context) async {
     0,
   );
   FFAppState().qtdInseminacoes = valueOrDefault<int>(
-    countRepro
-        .where((e) => e.tipoReproducao == 'Inseminação')
-        .toList()
-        .length,
+    countRepro.where((e) => e.tipoReproducao == 'Inseminação').toList().length,
     0,
   );
   FFAppState().qtdMontaNatural = valueOrDefault<int>(
@@ -55,17 +52,15 @@ Future countLotes(BuildContext context) async {
 
   // Busca todos os lotes da propriedade
   final todosLotes = await LotesTable().queryRows(
-    queryFn: (q) => q
-        .eq('id_propriedade', propriedadeId)
-        .eqOrNull('deletado', 'NAO'),
+    queryFn: (q) =>
+        q.eq('id_propriedade', propriedadeId).eqOrNull('deletado', 'NAO'),
   );
 
   // Aplica mesma lógica de hasExitInfo do pg_lotes_widget para determinar ativo/inativo
-  bool _isLoteAtivo(LotesRow l) {
+  bool isLoteAtivo(LotesRow l) {
     final statusRaw = (l.ativo ?? '').trim().toLowerCase();
     if (statusRaw != 'ativo') return false;
-    final hasExitInfo =
-        l.dataSaidaPiquete != null ||
+    final hasExitInfo = l.dataSaidaPiquete != null ||
         (l.motivo ?? '').trim().isNotEmpty ||
         l.dataMotivo != null;
     return !hasExitInfo;
@@ -75,7 +70,7 @@ Future countLotes(BuildContext context) async {
   var lotesInativosCount = 0;
 
   for (final l in todosLotes) {
-    if (_isLoteAtivo(l)) {
+    if (isLoteAtivo(l)) {
       lotesAtivosCount++;
     } else {
       lotesInativosCount++;
