@@ -92,6 +92,8 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
 
   final iA12 = idx('a12');
   final iDataAv = idx('data_avaliacao');
+  final iNasc = idx('data_nascimento');
+  final iSexo = idx('sexo');
   if (iA12 < 0 || iDataAv < 0) {
     result['erros'] = [
       {'linha': 1, 'motivo': 'Colunas A12 e Data_Avaliacao são obrigatórias.'},
@@ -108,8 +110,10 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
 
   final rebanho = await fetchRebanhoPaint(idPropriedade);
   final byNumero = <String, List<Map<String, dynamic>>>{};
-  final byA12 = <String, Map<String, dynamic>>{};
-  final duplicatedA12 = <String>{};
+  // Um A12 pode colidir (mesmos dígitos do número + mesmo ano de nascimento em
+  // animais diferentes), então o índice guarda TODOS os candidatos; a
+  // desambiguação por Data_Nascimento/Sexo da planilha acontece por linha.
+  final byA12 = <String, List<Map<String, dynamic>>>{};
   for (final r in rebanho) {
     final n = (r['numeroAnimal'] ?? '').toString().trim();
     if (n.isNotEmpty) {
@@ -117,12 +121,7 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
     }
     final a12Rebanho = _a12Key(a12FromRebanho(r, cfg));
     if (a12Rebanho.isEmpty) continue;
-    if (byA12.containsKey(a12Rebanho)) {
-      duplicatedA12.add(a12Rebanho);
-      byA12.remove(a12Rebanho);
-    } else if (!duplicatedA12.contains(a12Rebanho)) {
-      byA12[a12Rebanho] = r;
-    }
+    (byA12[a12Rebanho] ??= <Map<String, dynamic>>[]).add(r);
   }
 
   // Carrega TODAS as avaliações existentes da propriedade, paginando: o
@@ -170,22 +169,47 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       erros.add({'linha': linha, 'motivo': 'Data_Avaliacao inválida.'});
       continue;
     }
-    if (duplicatedA12.contains(a12Key)) {
-      erros.add({
-        'linha': linha,
-        'motivo':
-            'A12 $a12Key é ambíguo: mais de um animal da propriedade gera o mesmo código.',
-      });
-      continue;
-    }
-    final reb = byA12[a12Key];
-    if (reb == null) {
+    final candidatos = byA12[a12Key] ?? const <Map<String, dynamic>>[];
+    if (candidatos.isEmpty) {
       erros.add({
         'linha': linha,
         'motivo':
             'A12 $a12Key não pertence ao rebanho da propriedade ou não pôde ser calculado com a configuração PAINT atual.',
       });
       continue;
+    }
+    final nascCel = iNasc >= 0 ? parseDateIso(_celValue(row, iNasc)) : null;
+    Map<String, dynamic> reb;
+    if (candidatos.length == 1) {
+      reb = candidatos.first;
+    } else {
+      // A12 colidiu (mesmos dígitos do número + mesmo ano de nascimento em
+      // animais diferentes): usa a Data_Nascimento completa da planilha — e o
+      // Sexo como desempate — para achar o animal exato antes de desistir.
+      var filtrados = candidatos;
+      if (nascCel != null) {
+        filtrados = filtrados
+            .where((c) => parseDateIso(c['dataNascimento']) == nascCel)
+            .toList();
+      }
+      if (filtrados.length > 1 && iSexo >= 0) {
+        final sexoCel = sexoMF(_cel(row, iSexo));
+        if (sexoCel.isNotEmpty) {
+          filtrados =
+              filtrados.where((c) => sexoMF(c['sexo']) == sexoCel).toList();
+        }
+      }
+      if (filtrados.length != 1) {
+        erros.add({
+          'linha': linha,
+          'motivo': 'A12 $a12Key é ambíguo: ${candidatos.length} animais da '
+              'propriedade geram o mesmo código e a Data_Nascimento/Sexo da '
+              'planilha não bastam para distinguir. Corrija o número de um '
+              'dos animais duplicados no rebanho.',
+        });
+        continue;
+      }
+      reb = filtrados.first;
     }
     if (!isElegivelAvaliacaoPaint(t, reb)) {
       erros.add({
@@ -199,19 +223,15 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
     // Identificador único PAINT: A12 + número + data de nascimento. Quando a
     // planilha trouxer a coluna preenchida, confere com o rebanho para evitar
     // associar a avaliação ao animal errado.
-    final iNasc = idx('data_nascimento');
-    if (iNasc >= 0) {
-      final nascCel = parseDateIso(_celValue(row, iNasc));
-      if (nascCel != null) {
-        final nascReb = parseDateIso(reb['dataNascimento']);
-        if (nascReb != null && nascCel != nascReb) {
-          erros.add({
-            'linha': linha,
-            'motivo':
-                'Data_Nascimento $nascCel não confere com o animal do A12 $a12Key (rebanho: $nascReb).',
-          });
-          continue;
-        }
+    if (nascCel != null) {
+      final nascReb = parseDateIso(reb['dataNascimento']);
+      if (nascReb != null && nascCel != nascReb) {
+        erros.add({
+          'linha': linha,
+          'motivo':
+              'Data_Nascimento $nascCel não confere com o animal do A12 $a12Key (rebanho: $nascReb).',
+        });
+        continue;
       }
     }
 
