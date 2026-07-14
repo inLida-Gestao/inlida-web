@@ -64,7 +64,7 @@ class FFButtonWidget extends StatefulWidget {
 
   final String text;
   final Widget? icon;
-  final IconData? iconData;
+  final Object? iconData;
   final Function()? onPressed;
   final FFButtonOptions options;
   final bool showLoadingIndicator;
@@ -210,12 +210,7 @@ class _FFButtonWidgetState extends State<FFButtonWidget> {
     );
 
     if ((widget.icon != null || widget.iconData != null) && !loading) {
-      Widget icon = widget.icon ??
-          FaIcon(
-            widget.iconData!,
-            size: widget.options.iconSize,
-            color: widget.options.iconColor,
-          );
+      Widget icon = widget.icon ?? _buildIconFromData(widget.iconData!);
 
       if (text == null) {
         return Container(
@@ -266,6 +261,22 @@ class _FFButtonWidgetState extends State<FFButtonWidget> {
         focusNode: _focusNode,
         child: textWidget,
       ),
+    );
+  }
+
+  Widget _buildIconFromData(Object iconData) {
+    if (iconData is FaIconData) {
+      return FaIcon(
+        iconData,
+        size: widget.options.iconSize,
+        color: widget.options.iconColor,
+      );
+    }
+
+    return Icon(
+      iconData as IconData,
+      size: widget.options.iconSize,
+      color: widget.options.iconColor,
     );
   }
 }
