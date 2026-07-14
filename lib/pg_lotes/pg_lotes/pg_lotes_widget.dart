@@ -1047,7 +1047,9 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                 child: EmptyRebanhoWidget(
                                                   message: _hasLotesFilters()
                                                       ? 'Nenhum lote encontrado para os filtros aplicados'
-                                                      : null,
+                                                      : (selectedProperty.isNotEmpty
+                                                          ? 'Nenhum lote cadastrado'
+                                                          : 'Nenhuma propriedade selecionada'),
                                                 ),
                                               );
                                             }
@@ -1466,7 +1468,9 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
                                                 child: EmptyRebanhoWidget(
                                                   message: _hasLotesFilters()
                                                       ? 'Nenhum lote encontrado para os filtros aplicados'
-                                                      : null,
+                                                      : (selectedProperty.isNotEmpty
+                                                          ? 'Nenhum lote cadastrado'
+                                                          : 'Nenhuma propriedade selecionada'),
                                                 ),
                                               ),
                                               paginated: false,
