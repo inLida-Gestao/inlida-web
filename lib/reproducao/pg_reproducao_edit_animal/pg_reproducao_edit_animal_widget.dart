@@ -13,6 +13,7 @@ import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import '/reproducao/reproducao_lote_utils.dart';
+import '/reproducao/reproducao_status_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -91,13 +92,6 @@ class _PgReproducaoEditAnimalWidgetState
         final loteSalvo = nonEmptyString(row.idLote);
         if (loteSalvo != null) {
           _model.dropDownLoteValue = loteSalvo;
-        } else {
-          final matrizComLote = await buscarMatrizComLote(
-            idPropriedade: nonEmptyString(row.idPropriedade) ??
-                FFAppState().propriedadeSelecionada.idPropriedade,
-            idRebanho: nonEmptyString(row.idRebanhoMatriz) ?? '',
-          );
-          _model.dropDownLoteValue = nonEmptyString(matrizComLote?.loteID);
         }
         _model.dropDownLoteValueController?.value = _model.dropDownLoteValue;
       }
@@ -128,6 +122,51 @@ class _PgReproducaoEditAnimalWidgetState
     _model.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _selectPrevisaoPartoDate(DateTime? initialDate) async {
+    final datePicked7Date = await showDatePicker(
+      context: context,
+      initialDate: _model.datePicked7 ?? initialDate ?? getCurrentTimestamp,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2050),
+      builder: (context, child) {
+        return wrapInMaterialDatePickerTheme(
+          context,
+          child!,
+          headerBackgroundColor: FlutterFlowTheme.of(context).primary,
+          headerForegroundColor: FlutterFlowTheme.of(context).info,
+          headerTextStyle: FlutterFlowTheme.of(context).headlineLarge.override(
+                font: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontStyle:
+                      FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                ),
+                fontSize: 32.0,
+                letterSpacing: 0.0,
+                fontWeight: FontWeight.w600,
+                fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+              ),
+          pickerBackgroundColor:
+              FlutterFlowTheme.of(context).secondaryBackground,
+          pickerForegroundColor: FlutterFlowTheme.of(context).primaryText,
+          selectedDateTimeBackgroundColor: FlutterFlowTheme.of(context).primary,
+          selectedDateTimeForegroundColor: FlutterFlowTheme.of(context).info,
+          actionButtonForegroundColor: FlutterFlowTheme.of(context).primaryText,
+          iconSize: 24.0,
+        );
+      },
+    );
+
+    if (datePicked7Date != null) {
+      safeSetState(() {
+        _model.datePicked7 = DateTime(
+          datePicked7Date.year,
+          datePicked7Date.month,
+          datePicked7Date.day,
+        );
+      });
+    }
   }
 
   @override
@@ -1024,9 +1063,14 @@ class _PgReproducaoEditAnimalWidgetState
                                                                 'Sem nome')
                                                             .toList(),
                                                         onChanged: (val) =>
-                                                            safeSetState(() =>
-                                                                _model.dropDownLoteValue =
-                                                                    val),
+                                                            safeSetState(() {
+                                                          _model.dropDownLoteValue =
+                                                              val;
+                                                          _model.loteCleared =
+                                                              nonEmptyString(
+                                                                      val) ==
+                                                                  null;
+                                                        }),
                                                         width: double.infinity,
                                                         height: 56.0,
                                                         textStyle:
@@ -1744,6 +1788,156 @@ class _PgReproducaoEditAnimalWidgetState
                                                           height: 8.0)),
                                                     ),
                                                   ),
+                                                  if (_model.tipoReproducao ==
+                                                      'Monta Natural')
+                                                    SizedBox(
+                                                      width: 326.0,
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.max,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            'Previsão do parto',
+                                                            style: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  fontSize:
+                                                                      16.0,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                          ),
+                                                          InkWell(
+                                                            splashColor: Colors
+                                                                .transparent,
+                                                            focusColor: Colors
+                                                                .transparent,
+                                                            hoverColor: Colors
+                                                                .transparent,
+                                                            highlightColor:
+                                                                Colors
+                                                                    .transparent,
+                                                            onTap: () =>
+                                                                _selectPrevisaoPartoDate(
+                                                              pgReproducaoEditAnimalReproducaoRow
+                                                                  ?.previsaoParto,
+                                                            ),
+                                                            child: Container(
+                                                              width: double
+                                                                  .infinity,
+                                                              height: 56.0,
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .customColor2,
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            8.0),
+                                                              ),
+                                                              child: Align(
+                                                                alignment:
+                                                                    const AlignmentDirectional(
+                                                                        -1.0,
+                                                                        0.0),
+                                                                child: Padding(
+                                                                  padding:
+                                                                      const EdgeInsetsDirectional
+                                                                          .fromSTEB(
+                                                                          12.0,
+                                                                          0.0,
+                                                                          0.0,
+                                                                          0.0),
+                                                                  child: Text(
+                                                                    statusReproducaoPermitePrevisaoParto(_model.dropDownStatusValue ??
+                                                                            pgReproducaoEditAnimalReproducaoRow
+                                                                                ?.statusReproducao)
+                                                                        ? valueOrDefault<
+                                                                            String>(
+                                                                            dateTimeFormat(
+                                                                              "d/M/y",
+                                                                              _model.datePicked7 ?? pgReproducaoEditAnimalReproducaoRow?.previsaoParto,
+                                                                              locale: FFLocalizations.of(context).languageCode,
+                                                                            ),
+                                                                            'dd/mm/yyyy',
+                                                                          )
+                                                                        : 'Sem previsão',
+                                                                    style: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .override(
+                                                                          font:
+                                                                              GoogleFonts.poppins(
+                                                                            fontWeight:
+                                                                                FontWeight.w600,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                          ),
+                                                                          fontSize:
+                                                                              16.0,
+                                                                          letterSpacing:
+                                                                              0.0,
+                                                                          fontWeight:
+                                                                              FontWeight.w600,
+                                                                          fontStyle: FlutterFlowTheme.of(context)
+                                                                              .bodyMedium
+                                                                              .fontStyle,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            'Selecione a data prevista do parto',
+                                                            style: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  font: GoogleFonts
+                                                                      .poppins(
+                                                                    fontWeight: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontWeight,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .accent3,
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                ),
+                                                          ),
+                                                        ].divide(const SizedBox(
+                                                            height: 8.0)),
+                                                      ),
+                                                    ),
                                                   const SizedBox(width: 16.0),
                                                   Expanded(
                                                     child: Column(
@@ -4382,11 +4576,11 @@ class _PgReproducaoEditAnimalWidgetState
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.end,
                                               children: [
-                                                if ((pgReproducaoEditAnimalReproducaoRow
-                                                            ?.tipoReproducao ==
+                                                if ((_model.tipoReproducao ==
                                                         'Inseminação') &&
-                                                    (pgReproducaoEditAnimalReproducaoRow
-                                                            ?.dataInseminacao !=
+                                                    ((_model.datePicked1 ??
+                                                            pgReproducaoEditAnimalReproducaoRow
+                                                                ?.dataInseminacao) !=
                                                         null))
                                                   Expanded(
                                                     child: Column(
@@ -4452,22 +4646,23 @@ class _PgReproducaoEditAnimalWidgetState
                                                                         0.0,
                                                                         0.0),
                                                                 child: Text(
-                                                                  valueOrDefault<
-                                                                      String>(
-                                                                    dateTimeFormat(
-                                                                      "d/M/y",
-                                                                      functions.dataMais295(_model.datePicked1 !=
-                                                                              null
-                                                                          ? _model
-                                                                              .datePicked1!
-                                                                          : pgReproducaoEditAnimalReproducaoRow!
-                                                                              .dataInseminacao!),
-                                                                      locale: FFLocalizations.of(
-                                                                              context)
-                                                                          .languageCode,
-                                                                    ),
-                                                                    'dd/mm/yyyy',
-                                                                  ),
+                                                                  statusReproducaoPermitePrevisaoParto(_model
+                                                                              .dropDownStatusValue ??
+                                                                          pgReproducaoEditAnimalReproducaoRow
+                                                                              ?.statusReproducao)
+                                                                      ? valueOrDefault<
+                                                                          String>(
+                                                                          dateTimeFormat(
+                                                                            "d/M/y",
+                                                                            functions.dataMais295(_model.datePicked1 != null
+                                                                                ? _model.datePicked1!
+                                                                                : pgReproducaoEditAnimalReproducaoRow!.dataInseminacao!),
+                                                                            locale:
+                                                                                FFLocalizations.of(context).languageCode,
+                                                                          ),
+                                                                          'dd/mm/yyyy',
+                                                                        )
+                                                                      : 'Sem previsão',
                                                                   style: FlutterFlowTheme.of(
                                                                           context)
                                                                       .bodyMedium
@@ -4526,6 +4721,113 @@ class _PgReproducaoEditAnimalWidgetState
                                                                     .bodyMedium
                                                                     .fontStyle,
                                                               ),
+                                                        ),
+                                                      ].divide(const SizedBox(
+                                                          height: 8.0)),
+                                                    ),
+                                                  ),
+                                                if (_model.tipoReproducao ==
+                                                    'Monta Natural')
+                                                  SizedBox(
+                                                    width: 326.0,
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          'Previsão do parto',
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                fontSize: 16.0,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
+                                                        ),
+                                                        FFButtonWidget(
+                                                          onPressed: () =>
+                                                              _selectPrevisaoPartoDate(
+                                                            pgReproducaoEditAnimalReproducaoRow
+                                                                ?.previsaoParto,
+                                                          ),
+                                                          text: statusReproducaoPermitePrevisaoParto(_model
+                                                                      .dropDownStatusValue ??
+                                                                  pgReproducaoEditAnimalReproducaoRow
+                                                                      ?.statusReproducao)
+                                                              ? valueOrDefault<
+                                                                  String>(
+                                                                  dateTimeFormat(
+                                                                    "d/M/y",
+                                                                    _model.datePicked7 ??
+                                                                        pgReproducaoEditAnimalReproducaoRow
+                                                                            ?.previsaoParto,
+                                                                    locale: FFLocalizations.of(
+                                                                            context)
+                                                                        .languageCode,
+                                                                  ),
+                                                                  'dd/mm/yyyy',
+                                                                )
+                                                              : 'Sem previsão',
+                                                          options:
+                                                              FFButtonOptions(
+                                                            width:
+                                                                double.infinity,
+                                                            height: 56.0,
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .customColor2,
+                                                            textStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .override(
+                                                                      font: GoogleFonts
+                                                                          .poppins(
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                        fontStyle: FlutterFlowTheme.of(context)
+                                                                            .bodyMedium
+                                                                            .fontStyle,
+                                                                      ),
+                                                                      fontSize:
+                                                                          16.0,
+                                                                      letterSpacing:
+                                                                          0.0,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                            elevation: 0.0,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        8.0),
+                                                          ),
                                                         ),
                                                       ].divide(const SizedBox(
                                                           height: 8.0)),
@@ -5395,44 +5697,6 @@ class _PgReproducaoEditAnimalWidgetState
                                                 ),
                                                 FFButtonWidget(
                                                   onPressed: () async {
-                                                    final matrizComLote =
-                                                        await buscarMatrizComLote(
-                                                      idPropriedade: FFAppState()
-                                                          .propriedadeSelecionada
-                                                          .idPropriedade,
-                                                      idRebanho: FFAppState()
-                                                          .matrizSelecionada
-                                                          .idAnimal,
-                                                    );
-                                                    if (!context.mounted) {
-                                                      return;
-                                                    }
-                                                    final dataReferenciaLote = _model
-                                                                .tipoReproducao ==
-                                                            'Inseminação'
-                                                        ? (_model.datePicked1 ??
-                                                            pgReproducaoEditAnimalReproducaoRow
-                                                                ?.dataInseminacao)
-                                                        : (_model.datePicked3 ??
-                                                            pgReproducaoEditAnimalReproducaoRow
-                                                                ?.dataInicial);
-                                                    final loteMatrizCompativel =
-                                                        loteMatrizCompativelComData(
-                                                      matrizComLote,
-                                                      dataReferenciaLote,
-                                                    );
-                                                    final idLoteMatriz =
-                                                        loteMatrizCompativel
-                                                            ? nonEmptyString(
-                                                                matrizComLote
-                                                                    ?.loteID)
-                                                            : null;
-                                                    final nomeLoteMatriz =
-                                                        loteMatrizCompativel
-                                                            ? nonEmptyString(
-                                                                matrizComLote
-                                                                    ?.loteNome)
-                                                            : null;
                                                     final idLoteSelecionado =
                                                         nonEmptyString(_model
                                                             .dropDownLoteValue);
@@ -5445,32 +5709,32 @@ class _PgReproducaoEditAnimalWidgetState
                                                                     e.idLote ==
                                                                     idLoteSelecionado)
                                                                 .firstOrNull;
-                                                    final idLoteReproducao =
-                                                        idLoteSelecionado ??
-                                                            idLoteMatriz ??
+                                                    final idLoteReproducao = _model
+                                                            .loteCleared
+                                                        ? null
+                                                        : (idLoteSelecionado ??
                                                             nonEmptyString(
                                                                 pgReproducaoEditAnimalReproducaoRow
-                                                                    ?.idLote);
+                                                                    ?.idLote));
                                                     var nomeLoteReproducao =
-                                                        nonEmptyString(
-                                                            loteSelecionado
-                                                                ?.nome);
-                                                    if (nomeLoteReproducao ==
-                                                            null &&
-                                                        idLoteReproducao ==
+                                                        _model.loteCleared
+                                                            ? null
+                                                            : nonEmptyString(
+                                                                loteSelecionado
+                                                                    ?.nome);
+                                                    if (!_model.loteCleared) {
+                                                      if (nomeLoteReproducao ==
+                                                              null &&
+                                                          idLoteReproducao ==
+                                                              nonEmptyString(
+                                                                  pgReproducaoEditAnimalReproducaoRow
+                                                                      ?.idLote)) {
+                                                        nomeLoteReproducao =
                                                             nonEmptyString(
                                                                 pgReproducaoEditAnimalReproducaoRow
-                                                                    ?.idLote)) {
-                                                      nomeLoteReproducao =
-                                                          nonEmptyString(
-                                                              pgReproducaoEditAnimalReproducaoRow
-                                                                  ?.loteNome);
+                                                                    ?.loteNome);
+                                                      }
                                                     }
-                                                    nomeLoteReproducao ??=
-                                                        idLoteReproducao ==
-                                                                idLoteMatriz
-                                                            ? nomeLoteMatriz
-                                                            : null;
 
                                                     if (_model.tipoReproducao ==
                                                         'Inseminação') {
@@ -5495,14 +5759,22 @@ class _PgReproducaoEditAnimalWidgetState
                                                           'partida_semen':
                                                               _model
                                                                   .partidaSemen,
-                                                          'previsao_parto': supaSerialize<
-                                                              DateTime>(functions.dataMais295(_model
-                                                                      .datePicked1 !=
-                                                                  null
-                                                              ? _model
-                                                                  .datePicked1!
-                                                              : pgReproducaoEditAnimalReproducaoRow!
-                                                                  .dataInseminacao!)),
+                                                          'previsao_parto':
+                                                              supaSerialize<
+                                                                  DateTime>(
+                                                            previsaoPartoPermitida(
+                                                              _model.dropDownStatusValue ??
+                                                                  pgReproducaoEditAnimalReproducaoRow
+                                                                      ?.statusReproducao,
+                                                              functions.dataMais295(_model
+                                                                          .datePicked1 !=
+                                                                      null
+                                                                  ? _model
+                                                                      .datePicked1!
+                                                                  : pgReproducaoEditAnimalReproducaoRow!
+                                                                      .dataInseminacao!),
+                                                            ),
+                                                          ),
                                                           'data_inicial': supaSerialize<
                                                               DateTime>(_model
                                                                   .datePicked3 ??
@@ -5572,14 +5844,10 @@ class _PgReproducaoEditAnimalWidgetState
                                                           'racaMatriz': FFAppState()
                                                               .matrizSelecionada
                                                               .racaAnimal,
-                                                          if (idLoteReproducao !=
-                                                              null)
-                                                            'id_lote':
-                                                                idLoteReproducao,
-                                                          if (nomeLoteReproducao !=
-                                                              null)
-                                                            'loteNome':
-                                                                nomeLoteReproducao,
+                                                          'id_lote':
+                                                              idLoteReproducao,
+                                                          'loteNome':
+                                                              nomeLoteReproducao,
                                                           'id_rebanho_reprodutor':
                                                               FFAppState()
                                                                   .reprodutorSelecionado
@@ -5645,6 +5913,18 @@ class _PgReproducaoEditAnimalWidgetState
                                                                   .datePicked4 ??
                                                               pgReproducaoEditAnimalReproducaoRow
                                                                   ?.dataFinal),
+                                                          'previsao_parto':
+                                                              supaSerialize<
+                                                                  DateTime>(
+                                                            previsaoPartoPermitida(
+                                                              _model.dropDownStatusValue ??
+                                                                  pgReproducaoEditAnimalReproducaoRow
+                                                                      ?.statusReproducao,
+                                                              _model.datePicked7 ??
+                                                                  pgReproducaoEditAnimalReproducaoRow
+                                                                      ?.previsaoParto,
+                                                            ),
+                                                          ),
                                                           'status_reproducao':
                                                               _model
                                                                   .dropDownStatusValue,
@@ -5704,14 +5984,10 @@ class _PgReproducaoEditAnimalWidgetState
                                                           'racaMatriz': FFAppState()
                                                               .matrizSelecionada
                                                               .racaAnimal,
-                                                          if (idLoteReproducao !=
-                                                              null)
-                                                            'id_lote':
-                                                                idLoteReproducao,
-                                                          if (nomeLoteReproducao !=
-                                                              null)
-                                                            'loteNome':
-                                                                nomeLoteReproducao,
+                                                          'id_lote':
+                                                              idLoteReproducao,
+                                                          'loteNome':
+                                                              nomeLoteReproducao,
                                                           'id_rebanho_reprodutor':
                                                               FFAppState()
                                                                   .reprodutorSelecionado

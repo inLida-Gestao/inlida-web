@@ -4,7 +4,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
-import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/pg_rebanho/peso_decimal_formatter.dart';
 import 'package:flutter/material.dart';
@@ -312,8 +311,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         fontSize: 16.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
@@ -326,7 +325,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -336,7 +336,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -406,7 +407,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                     .numAnimalTextControllerValidator
                                                     .asValidator(context),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         Expanded(
@@ -494,8 +496,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         fontSize: 16.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
@@ -508,7 +510,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -518,7 +521,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -588,7 +592,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                     .chipTextControllerValidator
                                                     .asValidator(context),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         Expanded(
@@ -677,8 +682,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         fontSize: 16.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
@@ -691,7 +696,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -701,7 +707,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -771,7 +778,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                     .codRegistroTextControllerValidator
                                                     .asValidator(context),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ].divide(const SizedBox(width: 24.0)),
@@ -859,8 +867,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         fontSize: 16.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
@@ -873,7 +881,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -883,7 +892,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -958,7 +968,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                     .nomeAnimalTextControllerValidator
                                                     .asValidator(context),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ].divide(const SizedBox(width: 24.0)),
@@ -1003,22 +1014,34 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                         .dropDownSexoValueController ??=
                                                     FormFieldController<String>(
                                                         null),
-                                                options: const ['Fêmea', 'Macho'],
+                                                options: const [
+                                                  'Fêmea',
+                                                  'Macho'
+                                                ],
                                                 onChanged: (val) {
-                                                    safeSetState(() {
-                                                      _model.dropDownSexoValue = val;
-                                                      // Reset controllers para recriar com valor correto
-                                                      _model.dDCatRebanhoFemeaValueController?.dispose();
-                                                      _model.dDCatRebanhoFemeaValueController = null;
-                                                      _model.dDCatRebanhoMachoValueController?.dispose();
-                                                      _model.dDCatRebanhoMachoValueController = null;
-                                                      if (val == 'Fêmea') {
-                                                        _model.dDCatRebanhoFemeaValue = 'Bezerra';
-                                                      } else if (val == 'Macho') {
-                                                        _model.dDCatRebanhoMachoValue = 'Bezerro';
-                                                      }
-                                                    });
-                                                  },
+                                                  safeSetState(() {
+                                                    _model.dropDownSexoValue =
+                                                        val;
+                                                    // Reset controllers para recriar com valor correto
+                                                    _model
+                                                        .dDCatRebanhoFemeaValueController
+                                                        ?.dispose();
+                                                    _model.dDCatRebanhoFemeaValueController =
+                                                        null;
+                                                    _model
+                                                        .dDCatRebanhoMachoValueController
+                                                        ?.dispose();
+                                                    _model.dDCatRebanhoMachoValueController =
+                                                        null;
+                                                    if (val == 'Fêmea') {
+                                                      _model.dDCatRebanhoFemeaValue =
+                                                          'Bezerra';
+                                                    } else if (val == 'Macho') {
+                                                      _model.dDCatRebanhoMachoValue =
+                                                          'Bezerro';
+                                                    }
+                                                  });
+                                                },
                                                 height: 56.0,
                                                 textStyle: FlutterFlowTheme.of(
                                                         context)
@@ -1052,20 +1075,23 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       .secondaryText,
                                                   size: 24.0,
                                                 ),
-                                                fillColor: const Color(0xFFF1F1F1),
+                                                fillColor:
+                                                    const Color(0xFFF1F1F1),
                                                 elevation: 2.0,
                                                 borderColor: Colors.transparent,
                                                 borderWidth: 0.0,
                                                 borderRadius: 8.0,
-                                                margin: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                margin:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 12.0, 0.0),
                                                 hidesUnderline: true,
                                                 isOverButton: false,
                                                 isSearchable: false,
                                                 isMultiSelect: false,
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         Expanded(
@@ -1171,7 +1197,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -1182,7 +1209,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -1351,8 +1379,7 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                                 .year,
                                                             datePicked1Date
                                                                 .month,
-                                                            datePicked1Date
-                                                                .day,
+                                                            datePicked1Date.day,
                                                           );
                                                         });
                                                       } else if (_model
@@ -1385,7 +1412,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                   ),
                                                 ],
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ].divide(const SizedBox(width: 24.0)),
@@ -1479,8 +1507,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                                   .labelMedium
                                                                   .fontStyle,
                                                         ),
-                                                        color:
-                                                            const Color(0xFFBEBEBE),
+                                                        color: const Color(
+                                                            0xFFBEBEBE),
                                                         fontSize: 16.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
@@ -1493,7 +1521,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1503,7 +1532,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1566,8 +1596,13 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                               .bodyMedium
                                                               .fontStyle,
                                                     ),
-                                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                                inputFormatters: const [PesoDecimalInputFormatter()],
+                                                keyboardType:
+                                                    const TextInputType
+                                                        .numberWithOptions(
+                                                        decimal: true),
+                                                inputFormatters: const [
+                                                  PesoDecimalInputFormatter()
+                                                ],
                                                 cursorColor:
                                                     FlutterFlowTheme.of(context)
                                                         .primaryText,
@@ -1575,7 +1610,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                     .pesoNascimentoTextControllerValidator
                                                     .asValidator(context),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         Expanded(
@@ -1653,13 +1689,15 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       .secondaryText,
                                                   size: 24.0,
                                                 ),
-                                                fillColor: const Color(0xFFF1F1F1),
+                                                fillColor:
+                                                    const Color(0xFFF1F1F1),
                                                 elevation: 2.0,
                                                 borderColor: Colors.transparent,
                                                 borderWidth: 0.0,
                                                 borderRadius: 8.0,
-                                                margin: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                margin:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 12.0, 0.0),
                                                 hidesUnderline: true,
                                                 isOverButton: false,
@@ -1667,7 +1705,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                 isMultiSelect: false,
                                                 allowClear: true,
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ].divide(const SizedBox(width: 24.0)),
@@ -1760,14 +1799,16 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                         .secondaryText,
                                                     size: 24.0,
                                                   ),
-                                                  fillColor: const Color(0xFFF1F1F1),
+                                                  fillColor:
+                                                      const Color(0xFFF1F1F1),
                                                   elevation: 2.0,
                                                   borderColor:
                                                       Colors.transparent,
                                                   borderWidth: 0.0,
                                                   borderRadius: 8.0,
-                                                  margin: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  margin:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           12.0, 0.0, 12.0, 0.0),
                                                   hidesUnderline: true,
                                                   isOverButton: false,
@@ -1827,14 +1868,16 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                         .secondaryText,
                                                     size: 24.0,
                                                   ),
-                                                  fillColor: const Color(0xFFF1F1F1),
+                                                  fillColor:
+                                                      const Color(0xFFF1F1F1),
                                                   elevation: 2.0,
                                                   borderColor:
                                                       Colors.transparent,
                                                   borderWidth: 0.0,
                                                   borderRadius: 8.0,
-                                                  margin: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  margin:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           12.0, 0.0, 12.0, 0.0),
                                                   hidesUnderline: true,
                                                   isOverButton: false,
@@ -1881,7 +1924,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                                 .fontStyle,
                                                       ),
                                                 ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         Expanded(
@@ -1959,13 +2003,15 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       .secondaryText,
                                                   size: 24.0,
                                                 ),
-                                                fillColor: const Color(0xFFF1F1F1),
+                                                fillColor:
+                                                    const Color(0xFFF1F1F1),
                                                 elevation: 2.0,
                                                 borderColor: Colors.transparent,
                                                 borderWidth: 0.0,
                                                 borderRadius: 8.0,
-                                                margin: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                margin:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 12.0, 0.0),
                                                 hidesUnderline: true,
                                                 isOverButton: false,
@@ -1973,7 +2019,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                 isMultiSelect: false,
                                                 allowClear: true,
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ].divide(const SizedBox(width: 24.0)),
@@ -2066,13 +2113,15 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       .secondaryText,
                                                   size: 24.0,
                                                 ),
-                                                fillColor: const Color(0xFFF1F1F1),
+                                                fillColor:
+                                                    const Color(0xFFF1F1F1),
                                                 elevation: 2.0,
                                                 borderColor: Colors.transparent,
                                                 borderWidth: 0.0,
                                                 borderRadius: 8.0,
-                                                margin: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                margin:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 12.0, 0.0),
                                                 hidesUnderline: true,
                                                 isOverButton: false,
@@ -2080,7 +2129,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                 isMultiSelect: false,
                                                 allowClear: true,
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         Expanded(
@@ -2186,7 +2236,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -2197,7 +2248,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -2366,8 +2418,7 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                                 .year,
                                                             datePicked2Date
                                                                 .month,
-                                                            datePicked2Date
-                                                                .day,
+                                                            datePicked2Date.day,
                                                           );
                                                         });
                                                       } else if (_model
@@ -2400,7 +2451,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                   ),
                                                 ],
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ].divide(const SizedBox(width: 24.0)),
@@ -2523,13 +2575,15 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       .secondaryText,
                                                   size: 24.0,
                                                 ),
-                                                fillColor: const Color(0xFFF1F1F1),
+                                                fillColor:
+                                                    const Color(0xFFF1F1F1),
                                                 elevation: 2.0,
                                                 borderColor: Colors.transparent,
                                                 borderWidth: 0.0,
                                                 borderRadius: 8.0,
-                                                margin: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                margin:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 12.0, 0.0),
                                                 hidesUnderline: true,
                                                 isOverButton: false,
@@ -2684,13 +2738,15 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       .secondaryText,
                                                   size: 24.0,
                                                 ),
-                                                fillColor: const Color(0xFFF1F1F1),
+                                                fillColor:
+                                                    const Color(0xFFF1F1F1),
                                                 elevation: 2.0,
                                                 borderColor: Colors.transparent,
                                                 borderWidth: 0.0,
                                                 borderRadius: 8.0,
-                                                margin: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                margin:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 12.0, 0.0),
                                                 hidesUnderline: true,
                                                 isOverButton: false,
@@ -2828,20 +2884,23 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       .secondaryText,
                                                   size: 24.0,
                                                 ),
-                                                fillColor: const Color(0xFFF1F1F1),
+                                                fillColor:
+                                                    const Color(0xFFF1F1F1),
                                                 elevation: 2.0,
                                                 borderColor: Colors.transparent,
                                                 borderWidth: 0.0,
                                                 borderRadius: 8.0,
-                                                margin: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                margin:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 12.0, 0.0),
                                                 hidesUnderline: true,
                                                 isOverButton: false,
                                                 isSearchable: false,
                                                 isMultiSelect: false,
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ],
@@ -2884,7 +2943,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                               Container(
                                                 height: 100.0,
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFFF1F1F1),
+                                                  color:
+                                                      const Color(0xFFF1F1F1),
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           8.0),
@@ -2937,8 +2997,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                                     .labelMedium
                                                                     .fontStyle,
                                                           ),
-                                                          color:
-                                                              const Color(0xFFBEBEBE),
+                                                          color: const Color(
+                                                              0xFFBEBEBE),
                                                           fontSize: 16.0,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
@@ -2951,7 +3011,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                         ),
                                                     enabledBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -2962,7 +3023,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                     ),
                                                     focusedBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -3041,7 +3103,8 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                       .asValidator(context),
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ],
@@ -3147,185 +3210,164 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                         onPressed: _model.isSaving
                             ? null
                             : () async {
-                          if (_model.isSaving) {
-                            return;
-                          }
-                          if ((_model.dropDownStatusValue ?? '')
-                              .isEmpty) {
-                            await showDialog(
-                              context: context,
-                              builder: (alertDialogContext) {
-                                return AlertDialog(
-                                  content: const Text(
-                                      'O campo status é obrigatório'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(
-                                              alertDialogContext),
-                                      child: const Text('Ok'),
-                                    ),
-                                  ],
+                                if (_model.isSaving) {
+                                  return;
+                                }
+                                if ((_model.dropDownStatusValue ?? '')
+                                    .isEmpty) {
+                                  await showDialog(
+                                    context: context,
+                                    builder: (alertDialogContext) {
+                                      return AlertDialog(
+                                        content: const Text(
+                                            'O campo status é obrigatório'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(
+                                                alertDialogContext),
+                                            child: const Text('Ok'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                  return;
+                                }
+                                _model.isSaving = true;
+                                safeSetState(() {});
+                                _model.idRebanho = null;
+                                safeSetState(() {});
+                                _model.idRebanho = random_data.randomString(
+                                  20,
+                                  20,
+                                  true,
+                                  false,
+                                  true,
                                 );
+                                safeSetState(() {});
+                                await RebanhoTable().insert({
+                                  'idPropriedade': FFAppState()
+                                      .propriedadeSelecionada
+                                      .idPropriedade,
+                                  'numeroAnimal':
+                                      _model.numAnimalTextController.text,
+                                  'chip': _model.chipTextController.text,
+                                  'codRegistro':
+                                      _model.codRegistroTextController.text,
+                                  'nome': _model.nomeAnimalTextController.text,
+                                  'sexo': _model.dropDownSexoValue,
+                                  'categoria':
+                                      _model.dropDownSexoValue == 'Macho'
+                                          ? (_model.dDCatRebanhoMachoValue ??
+                                              'Bezerro')
+                                          : (_model.dDCatRebanhoFemeaValue ??
+                                              'Bezerra'),
+                                  'dataNascimento': supaSerialize<DateTime>(
+                                      _model.datePicked1),
+                                  'pesoNascimento': double.tryParse(_model
+                                      .pesoNascimentoTextController.text
+                                      .replaceAll(',', '.')),
+                                  'porte': _model.dropDownPorteValue,
+                                  'raca': _model.dropDownRacaValue,
+                                  'loteID': _model.dropDownLotesValue,
+                                  'dataEntradaLote': supaSerialize<DateTime>(
+                                      _model.datePicked2),
+                                  'rebanhoIdMatriz': _model.dropDownMatrizValue,
+                                  'rebanhoIdReprodutor':
+                                      _model.dropDownReprodutorValue,
+                                  'status': _model.dropDownStatusValue,
+                                  'anotacoes':
+                                      _model.anotacoesTextController.text,
+                                  'idRebanho': _model.idRebanho,
+                                  'deletado': 'NAO',
+                                  'loteNome': FFAppState()
+                                      .rebanhoLotesSelecionar
+                                      .where((e) =>
+                                          _model.dropDownLotesValue == e.idLote)
+                                      .toList()
+                                      .firstOrNull
+                                      ?.nome,
+                                  'tipo': 'animal',
+                                  'origem': 'Nascimento',
+                                  'nomeConcat':
+                                      '${_model.numAnimalTextController.text} - ${_model.nomeAnimalTextController.text} - ${dateTimeFormat(
+                                    "d/M/y",
+                                    _model.datePicked1,
+                                    locale: FFLocalizations.of(context)
+                                        .languageCode,
+                                  )}',
+                                });
+                                final pesoPesoNascimentoHist = double.tryParse(
+                                    _model.pesoNascimentoTextController.text
+                                        .replaceAll(',', '.'));
+                                if (pesoPesoNascimentoHist != null &&
+                                    pesoPesoNascimentoHist > 0) {
+                                  await HistoricoPesagensTable().insert({
+                                    'idRebanho': _model.idRebanho,
+                                    'id_propriedade': FFAppState()
+                                        .propriedadeSelecionada
+                                        .idPropriedade,
+                                    'dataPesagem': supaSerialize<DateTime>(
+                                        _model.datePicked1),
+                                    'tipo': 'Nascimento',
+                                    'peso': pesoPesoNascimentoHist,
+                                    'deletado': 'NAO',
+                                  });
+                                }
+                                safeSetState(() {
+                                  _model.dropDownSexoValueController?.reset();
+                                  _model.dropDownSexoValue = null;
+                                  _model.dropDownPorteValueController?.reset();
+                                  _model.dropDownPorteValue = null;
+                                  _model.dDCatRebanhoFemeaValueController
+                                      ?.reset();
+                                  _model.dDCatRebanhoFemeaValue = null;
+                                  _model.dDCatRebanhoMachoValueController
+                                      ?.reset();
+                                  _model.dDCatRebanhoMachoValue = null;
+                                  _model.dropDownRacaValueController?.reset();
+                                  _model.dropDownRacaValue = null;
+                                  _model.dropDownLotesValueController?.reset();
+                                  _model.dropDownLotesValue = null;
+                                  _model.dropDownMatrizValueController?.reset();
+                                  _model.dropDownMatrizValue = null;
+                                  _model.dropDownReprodutorValueController
+                                      ?.reset();
+                                  _model.dropDownReprodutorValue = null;
+                                  _model.dropDownStatusValueController?.reset();
+                                  _model.dropDownStatusValue = null;
+                                });
+                                safeSetState(() {
+                                  _model.numAnimalTextController?.clear();
+                                  _model.chipTextController?.clear();
+                                  _model.codRegistroTextController?.clear();
+                                  _model.nomeAnimalTextController?.clear();
+                                  _model.dataNascimentoTextController?.text =
+                                      dateTimeFormat(
+                                    "d/M/y",
+                                    _model.datePicked1,
+                                    locale: FFLocalizations.of(context)
+                                        .languageCode,
+                                  );
+
+                                  _model.pesoNascimentoTextController?.clear();
+                                  _model.dataEntradaLoteTextController?.text =
+                                      dateTimeFormat(
+                                    "d/M/y",
+                                    _model.datePicked2,
+                                    locale: FFLocalizations.of(context)
+                                        .languageCode,
+                                  );
+
+                                  _model.anotacoesTextController?.clear();
+                                });
+                                FFAppState().refreshRebanho = true;
+                                safeSetState(() {});
+                                FFAppState().pageRebanho = 'rebanho';
+                                _model.updatePage(() {});
+
+                                safeSetState(() {});
                               },
-                            );
-                            return;
-                          }
-                          _model.isSaving = true;
-                          safeSetState(() {});
-                          _model.idRebanho = null;
-                          safeSetState(() {});
-                          _model.idRebanho = random_data.randomString(
-                            20,
-                            20,
-                            true,
-                            false,
-                            true,
-                          );
-                          safeSetState(() {});
-                          await RebanhoTable().insert({
-                            'idPropriedade': FFAppState()
-                                .propriedadeSelecionada
-                                .idPropriedade,
-                            'numeroAnimal': _model.numAnimalTextController.text,
-                            'chip': _model.chipTextController.text,
-                            'codRegistro':
-                                _model.codRegistroTextController.text,
-                            'nome': _model.nomeAnimalTextController.text,
-                            'sexo': _model.dropDownSexoValue,
-                            'categoria': _model.dropDownSexoValue == 'Macho'
-                                ? (_model.dDCatRebanhoMachoValue ?? 'Bezerro')
-                                : (_model.dDCatRebanhoFemeaValue ?? 'Bezerra'),
-                            'dataNascimento':
-                                supaSerialize<DateTime>(_model.datePicked1),
-                            'pesoNascimento': double.tryParse(_model.pesoNascimentoTextController.text.replaceAll(',', '.')),
-                            'porte': _model.dropDownPorteValue,
-                            'raca': _model.dropDownRacaValue,
-                            'loteID': _model.dropDownLotesValue,
-                            'dataEntradaLote':
-                                supaSerialize<DateTime>(_model.datePicked2),
-                            'rebanhoIdMatriz': _model.dropDownMatrizValue,
-                            'rebanhoIdReprodutor':
-                                _model.dropDownReprodutorValue,
-                            'status': _model.dropDownStatusValue,
-                            'anotacoes': _model.anotacoesTextController.text,
-                            'idRebanho': _model.idRebanho,
-                            'deletado': 'NAO',
-                            'loteNome': FFAppState()
-                                .rebanhoLotesSelecionar
-                                .where((e) =>
-                                    _model.dropDownLotesValue == e.idLote)
-                                .toList()
-                                .firstOrNull
-                                ?.nome,
-                            'tipo': 'animal',
-                            'origem': 'Nascimento',
-                            'nomeConcat':
-                                '${_model.numAnimalTextController.text} - ${_model.nomeAnimalTextController.text} - ${dateTimeFormat(
-                              "d/M/y",
-                              _model.datePicked1,
-                              locale: FFLocalizations.of(context).languageCode,
-                            )}',
-                          });
-                          final _pesoPesoNascimentoHist = double.tryParse(_model.pesoNascimentoTextController.text.replaceAll(',', '.'));
-                          if (_pesoPesoNascimentoHist != null && _pesoPesoNascimentoHist > 0) {
-                            await HistoricoPesagensTable().insert({
-                              'idRebanho': _model.idRebanho,
-                              'id_propriedade': FFAppState()
-                                  .propriedadeSelecionada
-                                  .idPropriedade,
-                              'dataPesagem':
-                                  supaSerialize<DateTime>(_model.datePicked1),
-                              'tipo': 'Nascimento',
-                              'peso': _pesoPesoNascimentoHist,
-                              'deletado': 'NAO',
-                            });
-                          }
-                          if (_model.dropDownLotesValue != null &&
-                              _model.dropDownLotesValue != '') {
-                            _model.loteSelecionado =
-                                await LotesTable().queryRows(
-                              queryFn: (q) => q.eqOrNull(
-                                'id_lote',
-                                _model.dropDownLotesValue,
-                              ),
-                            );
-                            _model.animaisLote = (functions
-                                        .converterJSONparaLista(_model
-                                            .loteSelecionado
-                                            ?.firstOrNull
-                                            ?.idAnimais) ??
-                                    <String>[])
-                                .toList()
-                                .cast<String>();
-                            safeSetState(() {});
-                            if (!_model.animaisLote
-                                .contains(_model.idRebanho)) {
-                              _model.addToAnimaisLote(_model.idRebanho!);
-                            }
-                            safeSetState(() {});
-                            await LotesTable().update(
-                              data: {
-                                'id_animais': functions.converterListaParaJSON(
-                                    _model.animaisLote.toList()),
-                                'updated_at': supaSerialize<DateTime>(
-                                    getCurrentTimestamp),
-                              },
-                              matchingRows: (rows) => rows.eqOrNull(
-                                'id_lote',
-                                _model.dropDownLotesValue,
-                              ),
-                            );
-                          }
-                          safeSetState(() {
-                            _model.dropDownSexoValueController?.reset();
-                            _model.dropDownSexoValue = null;
-                            _model.dropDownPorteValueController?.reset();
-                            _model.dropDownPorteValue = null;
-                            _model.dDCatRebanhoFemeaValueController?.reset();
-                            _model.dDCatRebanhoFemeaValue = null;
-                            _model.dDCatRebanhoMachoValueController?.reset();
-                            _model.dDCatRebanhoMachoValue = null;
-                            _model.dropDownRacaValueController?.reset();
-                            _model.dropDownRacaValue = null;
-                            _model.dropDownLotesValueController?.reset();
-                            _model.dropDownLotesValue = null;
-                            _model.dropDownMatrizValueController?.reset();
-                            _model.dropDownMatrizValue = null;
-                            _model.dropDownReprodutorValueController?.reset();
-                            _model.dropDownReprodutorValue = null;
-                            _model.dropDownStatusValueController?.reset();
-                            _model.dropDownStatusValue = null;
-                          });
-                          safeSetState(() {
-                            _model.numAnimalTextController?.clear();
-                            _model.chipTextController?.clear();
-                            _model.codRegistroTextController?.clear();
-                            _model.nomeAnimalTextController?.clear();
-                            _model.dataNascimentoTextController?.text =
-                                dateTimeFormat(
-                              "d/M/y",
-                              _model.datePicked1,
-                              locale: FFLocalizations.of(context).languageCode,
-                            );
-
-                            _model.pesoNascimentoTextController?.clear();
-                            _model.dataEntradaLoteTextController?.text =
-                                dateTimeFormat(
-                              "d/M/y",
-                              _model.datePicked2,
-                              locale: FFLocalizations.of(context).languageCode,
-                            );
-
-                            _model.anotacoesTextController?.clear();
-                          });
-                          FFAppState().refreshRebanho = true;
-                          safeSetState(() {});
-                          FFAppState().pageRebanho = 'rebanho';
-                          _model.updatePage(() {});
-
-                          safeSetState(() {});
-                        },
                         text: _model.isSaving ? 'Salvando...' : 'Salvar',
                         options: FFButtonOptions(
                           width: 160.0,

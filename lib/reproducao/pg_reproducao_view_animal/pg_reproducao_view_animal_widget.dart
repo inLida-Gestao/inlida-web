@@ -9,6 +9,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
+import '/reproducao/reproducao_status_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -57,7 +58,8 @@ class _PgReproducaoViewAnimalWidgetState
         );
       }
       _model.reproducaoSelecionada = _model.reproducao?.firstOrNull;
-      _model.tipoReproducao = _model.reproducao?.firstOrNull?.tipoReproducao ?? _model.tipoReproducao;
+      _model.tipoReproducao = _model.reproducao?.firstOrNull?.tipoReproducao ??
+          _model.tipoReproducao;
       _model.score = _model.reproducao?.firstOrNull?.scoreCorporal;
       _model.partidaSemen = _model.reproducao?.firstOrNull?.partidaSemen;
       _model.parida = _model.reproducao?.firstOrNull?.parida == 'SIM';
@@ -122,7 +124,7 @@ class _PgReproducaoViewAnimalWidgetState
           ),
         );
       }
-      
+
       safeSetState(() {});
     });
 
@@ -328,11 +330,14 @@ class _PgReproducaoViewAnimalWidgetState
                                                     fit: BoxFit.cover,
                                                   ),
                                                 ),
-                                              ].divide(const SizedBox(width: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(width: 8.0)),
                                             ),
                                             Padding(
-                                              padding: const EdgeInsetsDirectional
-                                                  .fromSTEB(0.0, 0.0, 8.0, 0.0),
+                                              padding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
+                                                      0.0, 0.0, 8.0, 0.0),
                                               child: FFButtonWidget(
                                                 onPressed: () async {
                                                   var confirmDialogResponse =
@@ -396,13 +401,14 @@ class _PgReproducaoViewAnimalWidgetState
                                                 ),
                                                 options: FFButtonOptions(
                                                   height: 56.0,
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           16.0, 0.0, 16.0, 0.0),
                                                   iconPadding:
                                                       const EdgeInsetsDirectional
-                                                          .fromSTEB(0.0, 0.0,
-                                                              0.0, 0.0),
+                                                          .fromSTEB(
+                                                          0.0, 0.0, 0.0, 0.0),
                                                   color: FlutterFlowTheme.of(
                                                           context)
                                                       .secondaryBackground,
@@ -508,7 +514,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                   ),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(24.0),
+                                                  padding: const EdgeInsets.all(
+                                                      24.0),
                                                   child: Row(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
@@ -537,11 +544,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                       Padding(
                                                         padding:
                                                             const EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    10.0,
-                                                                    0.0,
-                                                                    0.0,
-                                                                    0.0),
+                                                                .fromSTEB(10.0,
+                                                                0.0, 0.0, 0.0),
                                                         child: Text(
                                                           'Inseminação',
                                                           style: FlutterFlowTheme
@@ -599,7 +603,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                   ),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(24.0),
+                                                  padding: const EdgeInsets.all(
+                                                      24.0),
                                                   child: Row(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
@@ -628,11 +633,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                       Padding(
                                                         padding:
                                                             const EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    10.0,
-                                                                    0.0,
-                                                                    0.0,
-                                                                    0.0),
+                                                                .fromSTEB(10.0,
+                                                                0.0, 0.0, 0.0),
                                                         child: Text(
                                                           'Monta Natural',
                                                           style: FlutterFlowTheme
@@ -720,8 +722,9 @@ class _PgReproducaoViewAnimalWidgetState
                                                           8.0),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           12.0, 0.0, 12.0, 0.0),
                                                   child: Row(
                                                     mainAxisSize:
@@ -732,15 +735,33 @@ class _PgReproducaoViewAnimalWidgetState
                                                     children: [
                                                       Text(
                                                         '${valueOrDefault<String>(
-                                                          _model.matrizData?.firstOrNull?.numeroAnimal ?? _model.reproducaoSelecionada?.numMatriz,
+                                                          _model
+                                                                  .matrizData
+                                                                  ?.firstOrNull
+                                                                  ?.numeroAnimal ??
+                                                              _model
+                                                                  .reproducaoSelecionada
+                                                                  ?.numMatriz,
                                                           'S/N',
                                                         )} • ${valueOrDefault<String>(
-                                                          _model.matrizData?.firstOrNull?.nome ?? _model.reproducaoSelecionada?.nomeMatriz,
+                                                          _model
+                                                                  .matrizData
+                                                                  ?.firstOrNull
+                                                                  ?.nome ??
+                                                              _model
+                                                                  .reproducaoSelecionada
+                                                                  ?.nomeMatriz,
                                                           'S/N',
                                                         )} • ${valueOrDefault<String>(
                                                           dateTimeFormat(
                                                             "d/M/y",
-                                                            _model.matrizData?.firstOrNull?.dataNascimento ?? _model.reproducaoSelecionada?.nascimentoMatriz,
+                                                            _model
+                                                                    .matrizData
+                                                                    ?.firstOrNull
+                                                                    ?.dataNascimento ??
+                                                                _model
+                                                                    .reproducaoSelecionada
+                                                                    ?.nascimentoMatriz,
                                                             locale: FFLocalizations
                                                                     .of(context)
                                                                 .languageCode,
@@ -778,7 +799,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                   ),
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         Column(
@@ -822,8 +844,9 @@ class _PgReproducaoViewAnimalWidgetState
                                                     BorderRadius.circular(6.0),
                                               ),
                                               child: Padding(
-                                                padding: const EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         10.0, 12.0, 10.0, 12.0),
                                                 child: Row(
                                                   mainAxisSize:
@@ -955,9 +978,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                 BorderRadius.circular(8.0),
                                           ),
                                           child: Padding(
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    12.0, 0.0, 12.0, 0.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(12.0, 0.0, 12.0, 0.0),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.max,
                                               mainAxisAlignment:
@@ -966,15 +988,33 @@ class _PgReproducaoViewAnimalWidgetState
                                               children: [
                                                 Text(
                                                   '${valueOrDefault<String>(
-                                                    _model.reprodutorData?.firstOrNull?.numeroAnimal ?? _model.reproducaoSelecionada?.numReprodutor,
+                                                    _model
+                                                            .reprodutorData
+                                                            ?.firstOrNull
+                                                            ?.numeroAnimal ??
+                                                        _model
+                                                            .reproducaoSelecionada
+                                                            ?.numReprodutor,
                                                     'S/N',
                                                   )} • ${valueOrDefault<String>(
-                                                    _model.reprodutorData?.firstOrNull?.nome ?? _model.reproducaoSelecionada?.nomeReprodutor,
+                                                    _model
+                                                            .reprodutorData
+                                                            ?.firstOrNull
+                                                            ?.nome ??
+                                                        _model
+                                                            .reproducaoSelecionada
+                                                            ?.nomeReprodutor,
                                                     'S/N',
                                                   )} • ${valueOrDefault<String>(
                                                     dateTimeFormat(
                                                       "d/M/y",
-                                                      _model.reprodutorData?.firstOrNull?.dataNascimento ?? _model.reproducaoSelecionada?.nascimentoReprodutor,
+                                                      _model
+                                                              .reprodutorData
+                                                              ?.firstOrNull
+                                                              ?.dataNascimento ??
+                                                          _model
+                                                              .reproducaoSelecionada
+                                                              ?.nascimentoReprodutor,
                                                       locale:
                                                           FFLocalizations.of(
                                                                   context)
@@ -1122,7 +1162,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1132,7 +1173,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1211,7 +1253,8 @@ class _PgReproducaoViewAnimalWidgetState
                                               Container(
                                                 width: double.infinity,
                                                 height: 56.0,
-                                                decoration: const BoxDecoration(),
+                                                decoration:
+                                                    const BoxDecoration(),
                                               ),
                                             ],
                                           ),
@@ -1446,7 +1489,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                     ),
                                                   ],
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                           ),
                                           Column(
@@ -1492,8 +1536,9 @@ class _PgReproducaoViewAnimalWidgetState
                                                           6.0),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(10.0, 12.0,
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(10.0, 12.0,
                                                           10.0, 12.0),
                                                   child: Row(
                                                     mainAxisSize:
@@ -1586,7 +1631,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                   ),
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ].divide(const SizedBox(width: 16.0)),
                                       ),
@@ -1637,23 +1683,30 @@ class _PgReproducaoViewAnimalWidgetState
                                               mainAxisSize: MainAxisSize.max,
                                               children: [
                                                 Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           12.0, 0.0, 0.0, 0.0),
                                                   child: Text(
-                                                    valueOrDefault<String>(
-                                                      dateTimeFormat(
-                                                        "d/M/y",
-                                                        functions.dataMais295(_model
-                                                            .reproducaoSelecionada!
-                                                            .dataInseminacao!),
-                                                        locale:
-                                                            FFLocalizations.of(
-                                                                    context)
-                                                                .languageCode,
-                                                      ),
-                                                      'dd/mm/yyyy',
-                                                    ),
+                                                    statusReproducaoPermitePrevisaoParto(_model
+                                                            .reproducaoSelecionada
+                                                            ?.statusReproducao)
+                                                        ? valueOrDefault<
+                                                            String>(
+                                                            dateTimeFormat(
+                                                              "d/M/y",
+                                                              _model.reproducaoSelecionada
+                                                                      ?.previsaoParto ??
+                                                                  functions.dataMais295(_model
+                                                                      .reproducaoSelecionada!
+                                                                      .dataInseminacao!),
+                                                              locale: FFLocalizations
+                                                                      .of(context)
+                                                                  .languageCode,
+                                                            ),
+                                                            'Sem previsão',
+                                                          )
+                                                        : 'Sem previsão',
                                                     style: FlutterFlowTheme.of(
                                                             context)
                                                         .bodyMedium
@@ -1828,7 +1881,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1838,7 +1892,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -1917,7 +1972,8 @@ class _PgReproducaoViewAnimalWidgetState
                                               Container(
                                                 width: double.infinity,
                                                 height: 56.0,
-                                                decoration: const BoxDecoration(),
+                                                decoration:
+                                                    const BoxDecoration(),
                                               ),
                                             ],
                                           ),
@@ -2033,7 +2089,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                       ),
                                                   enabledBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -2043,7 +2100,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
-                                                    borderSide: const BorderSide(
+                                                    borderSide:
+                                                        const BorderSide(
                                                       color: Color(0x00000000),
                                                       width: 1.0,
                                                     ),
@@ -2122,7 +2180,8 @@ class _PgReproducaoViewAnimalWidgetState
                                               Container(
                                                 width: double.infinity,
                                                 height: 56.0,
-                                                decoration: const BoxDecoration(),
+                                                decoration:
+                                                    const BoxDecoration(),
                                               ),
                                             ],
                                           ),
@@ -2294,141 +2353,266 @@ class _PgReproducaoViewAnimalWidgetState
                                         Expanded(
                                           child: Column(
                                             mainAxisSize: MainAxisSize.max,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 'Ressinc.',
-                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                  font: GoogleFonts.poppins(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                  ),
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                ),
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      font: GoogleFonts.poppins(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      fontSize: 16.0,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                               ),
                                               Container(
                                                 width: double.infinity,
                                                 height: 56.0,
                                                 decoration: BoxDecoration(
-                                                  color: FlutterFlowTheme.of(context).customColor2,
-                                                  borderRadius: BorderRadius.circular(8.0),
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .customColor2,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0),
                                                 ),
-                                                alignment: const AlignmentDirectional(-1.0, 0.0),
-                                                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                alignment:
+                                                    const AlignmentDirectional(
+                                                        -1.0, 0.0),
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
+                                                        16.0, 0.0, 16.0, 0.0),
                                                 child: Text(
-                                                  (_model.ressinc != null && _model.ressinc != 'NAO' && _model.ressinc!.isNotEmpty)
+                                                  (_model.ressinc != null &&
+                                                          _model.ressinc !=
+                                                              'NAO' &&
+                                                          _model.ressinc!
+                                                              .isNotEmpty)
                                                       ? _model.ressinc!
                                                       : '-',
-                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                    font: GoogleFonts.poppins(
-                                                      fontWeight: FontWeight.w600,
-                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                    ),
-                                                    fontSize: 16.0,
-                                                    letterSpacing: 0.0,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                  ),
+                                                  style: FlutterFlowTheme.of(
+                                                          context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        fontSize: 16.0,
+                                                        letterSpacing: 0.0,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         const SizedBox(width: 16.0),
                                         Expanded(
                                           child: Column(
                                             mainAxisSize: MainAxisSize.max,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 'GnRH',
-                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                  font: GoogleFonts.poppins(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                  ),
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                ),
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      font: GoogleFonts.poppins(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      fontSize: 16.0,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                               ),
                                               Container(
                                                 width: double.infinity,
                                                 height: 56.0,
                                                 decoration: BoxDecoration(
-                                                  color: FlutterFlowTheme.of(context).customColor2,
-                                                  borderRadius: BorderRadius.circular(8.0),
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .customColor2,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0),
                                                 ),
-                                                alignment: const AlignmentDirectional(-1.0, 0.0),
-                                                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                alignment:
+                                                    const AlignmentDirectional(
+                                                        -1.0, 0.0),
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
+                                                        16.0, 0.0, 16.0, 0.0),
                                                 child: Text(
-                                                  (_model.gnrh != null && _model.gnrh != 'NAO' && _model.gnrh!.isNotEmpty)
+                                                  (_model.gnrh != null &&
+                                                          _model.gnrh !=
+                                                              'NAO' &&
+                                                          _model
+                                                              .gnrh!.isNotEmpty)
                                                       ? _model.gnrh!
                                                       : '-',
-                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                    font: GoogleFonts.poppins(
-                                                      fontWeight: FontWeight.w600,
-                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                    ),
-                                                    fontSize: 16.0,
-                                                    letterSpacing: 0.0,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                  ),
+                                                  style: FlutterFlowTheme.of(
+                                                          context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        fontSize: 16.0,
+                                                        letterSpacing: 0.0,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         const SizedBox(width: 16.0),
                                         Expanded(
                                           child: Column(
                                             mainAxisSize: MainAxisSize.max,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 'Cio',
-                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                  font: GoogleFonts.poppins(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                  ),
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                ),
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      font: GoogleFonts.poppins(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      fontSize: 16.0,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                               ),
                                               Container(
                                                 width: double.infinity,
                                                 height: 56.0,
                                                 decoration: BoxDecoration(
-                                                  color: FlutterFlowTheme.of(context).customColor2,
-                                                  borderRadius: BorderRadius.circular(8.0),
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .customColor2,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0),
                                                 ),
-                                                alignment: const AlignmentDirectional(-1.0, 0.0),
-                                                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                alignment:
+                                                    const AlignmentDirectional(
+                                                        -1.0, 0.0),
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
+                                                        16.0, 0.0, 16.0, 0.0),
                                                 child: Text(
-                                                  (_model.cio != null && _model.cio != 'NAO' && _model.cio!.isNotEmpty)
+                                                  (_model.cio != null &&
+                                                          _model.cio != 'NAO' &&
+                                                          _model
+                                                              .cio!.isNotEmpty)
                                                       ? _model.cio!
                                                       : '-',
-                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                    font: GoogleFonts.poppins(
-                                                      fontWeight: FontWeight.w600,
-                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                    ),
-                                                    fontSize: 16.0,
-                                                    letterSpacing: 0.0,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                  ),
+                                                  style: FlutterFlowTheme.of(
+                                                          context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        fontSize: 16.0,
+                                                        letterSpacing: 0.0,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ],
@@ -2777,8 +2961,7 @@ class _PgReproducaoViewAnimalWidgetState
                                                         safeSetState(() {
                                                           _model.datePicked =
                                                               DateTime(
-                                                            datePickedDate
-                                                                .year,
+                                                            datePickedDate.year,
                                                             datePickedDate
                                                                 .month,
                                                             datePickedDate.day,
@@ -2821,37 +3004,71 @@ class _PgReproducaoViewAnimalWidgetState
                                     if (_model.parida == true)
                                       Builder(
                                         builder: (context) {
-                                          final dataInsem = _model.reproducaoSelecionada?.dataInseminacao;
-                                          final dataParto = _model.datePicked ?? _model.reproducaoSelecionada?.dataParto;
-                                          if (dataInsem == null || dataParto == null) return const SizedBox.shrink();
-                                          final dias = dataParto.difference(dataInsem).inDays;
+                                          final dataInsem = _model
+                                              .reproducaoSelecionada
+                                              ?.dataInseminacao;
+                                          final dataParto = _model.datePicked ??
+                                              _model.reproducaoSelecionada
+                                                  ?.dataParto;
+                                          if (dataInsem == null ||
+                                              dataParto == null)
+                                            return const SizedBox.shrink();
+                                          final dias = dataParto
+                                              .difference(dataInsem)
+                                              .inDays;
                                           return Padding(
-                                            padding: const EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 0.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(0.0, 8.0, 0.0, 0.0),
                                             child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 16.0,
+                                                      vertical: 12.0),
                                               decoration: BoxDecoration(
                                                 color: const Color(0xFFF0F7F4),
-                                                borderRadius: BorderRadius.circular(8.0),
-                                                border: Border.all(color: const Color(0xFF1E7A4C), width: 1.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                border: Border.all(
+                                                    color:
+                                                        const Color(0xFF1E7A4C),
+                                                    width: 1.0),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  const Icon(Icons.calendar_today, color: Color(0xFF1E7A4C), size: 20.0),
+                                                  const Icon(
+                                                      Icons.calendar_today,
+                                                      color: Color(0xFF1E7A4C),
+                                                      size: 20.0),
                                                   const SizedBox(width: 8.0),
                                                   Text(
                                                     'Dias entre ${_model.tipoReproducao == 'Inseminação' ? 'inseminação' : 'monta'} e parto: $dias dias',
-                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                      font: GoogleFonts.poppins(
-                                                        fontWeight: FontWeight.w600,
-                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                      ),
-                                                      fontSize: 14.0,
-                                                      letterSpacing: 0.0,
-                                                      color: const Color(0xFF1E7A4C),
-                                                      fontWeight: FontWeight.w600,
-                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                    ),
+                                                    style: FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          font: GoogleFonts
+                                                              .poppins(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
+                                                          fontSize: 14.0,
+                                                          letterSpacing: 0.0,
+                                                          color: const Color(
+                                                              0xFF1E7A4C),
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
                                                   ),
                                                 ],
                                               ),
@@ -2906,8 +3123,9 @@ class _PgReproducaoViewAnimalWidgetState
                                                           8.0),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           12.0, 0.0, 12.0, 0.0),
                                                   child: Row(
                                                     mainAxisSize:
@@ -2963,7 +3181,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                   ),
                                                 ),
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                         Container(
@@ -3065,10 +3284,9 @@ class _PgReproducaoViewAnimalWidgetState
                                                                       .labelMedium
                                                                       .fontStyle,
                                                                 ),
-                                                                color:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primaryText,
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .primaryText,
                                                                 fontSize: 16.0,
                                                                 letterSpacing:
                                                                     0.0,
@@ -3082,7 +3300,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -3093,7 +3312,8 @@ class _PgReproducaoViewAnimalWidgetState
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -3174,11 +3394,13 @@ class _PgReproducaoViewAnimalWidgetState
                                                   Container(
                                                     width: double.infinity,
                                                     height: 56.0,
-                                                    decoration: const BoxDecoration(),
+                                                    decoration:
+                                                        const BoxDecoration(),
                                                   ),
                                                 ],
                                               ),
-                                            ].divide(const SizedBox(height: 8.0)),
+                                            ].divide(
+                                                const SizedBox(height: 8.0)),
                                           ),
                                         ),
                                       ].divide(const SizedBox(width: 16.0)),
@@ -3364,11 +3586,11 @@ class _PgReproducaoViewAnimalWidgetState
                                           options: FFButtonOptions(
                                             width: 218.0,
                                             height: 56.0,
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    16.0, 0.0, 16.0, 0.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(16.0, 0.0, 16.0, 0.0),
                                             iconPadding:
-                                                const EdgeInsetsDirectional.fromSTEB(
+                                                const EdgeInsetsDirectional
+                                                    .fromSTEB(
                                                     0.0, 0.0, 0.0, 0.0),
                                             color: FlutterFlowTheme.of(context)
                                                 .secondaryBackground,
@@ -3418,19 +3640,59 @@ class _PgReproducaoViewAnimalWidgetState
                                           onPressed: () async {
                                             FFAppState().matrizSelecionada =
                                                 AnimalSelecionadoStruct(
-                                              numAnimal: _model.matrizData?.firstOrNull?.numeroAnimal ?? _model.reproducaoSelecionada?.numMatriz,
-                                              nomeAnimal: _model.matrizData?.firstOrNull?.nome ?? _model.reproducaoSelecionada?.nomeMatriz,
-                                              dataNascAnimal: (_model.matrizData?.firstOrNull?.dataNascimento ?? _model.reproducaoSelecionada?.nascimentoMatriz)?.toString(),
-                                              racaAnimal: _model.matrizData?.firstOrNull?.raca ?? _model.reproducaoSelecionada?.racaMatriz,
-                                              idAnimal: _model.reproducaoSelecionada?.idRebanhoMatriz,
+                                              numAnimal: _model
+                                                      .matrizData
+                                                      ?.firstOrNull
+                                                      ?.numeroAnimal ??
+                                                  _model.reproducaoSelecionada
+                                                      ?.numMatriz,
+                                              nomeAnimal: _model.matrizData
+                                                      ?.firstOrNull?.nome ??
+                                                  _model.reproducaoSelecionada
+                                                      ?.nomeMatriz,
+                                              dataNascAnimal: (_model
+                                                          .matrizData
+                                                          ?.firstOrNull
+                                                          ?.dataNascimento ??
+                                                      _model
+                                                          .reproducaoSelecionada
+                                                          ?.nascimentoMatriz)
+                                                  ?.toString(),
+                                              racaAnimal: _model.matrizData
+                                                      ?.firstOrNull?.raca ??
+                                                  _model.reproducaoSelecionada
+                                                      ?.racaMatriz,
+                                              idAnimal: _model
+                                                  .reproducaoSelecionada
+                                                  ?.idRebanhoMatriz,
                                             );
                                             FFAppState().reprodutorSelecionado =
                                                 AnimalSelecionadoStruct(
-                                              numAnimal: _model.reprodutorData?.firstOrNull?.numeroAnimal ?? _model.reproducaoSelecionada?.numReprodutor,
-                                              nomeAnimal: _model.reprodutorData?.firstOrNull?.nome ?? _model.reproducaoSelecionada?.nomeReprodutor,
-                                              dataNascAnimal: (_model.reprodutorData?.firstOrNull?.dataNascimento ?? _model.reproducaoSelecionada?.nascimentoReprodutor)?.toString(),
-                                              racaAnimal: _model.reprodutorData?.firstOrNull?.raca ?? _model.reproducaoSelecionada?.racaReprodutor,
-                                              idAnimal: _model.reproducaoSelecionada?.idRebanhoReprodutor,
+                                              numAnimal: _model
+                                                      .reprodutorData
+                                                      ?.firstOrNull
+                                                      ?.numeroAnimal ??
+                                                  _model.reproducaoSelecionada
+                                                      ?.numReprodutor,
+                                              nomeAnimal: _model.reprodutorData
+                                                      ?.firstOrNull?.nome ??
+                                                  _model.reproducaoSelecionada
+                                                      ?.nomeReprodutor,
+                                              dataNascAnimal: (_model
+                                                          .reprodutorData
+                                                          ?.firstOrNull
+                                                          ?.dataNascimento ??
+                                                      _model
+                                                          .reproducaoSelecionada
+                                                          ?.nascimentoReprodutor)
+                                                  ?.toString(),
+                                              racaAnimal: _model.reprodutorData
+                                                      ?.firstOrNull?.raca ??
+                                                  _model.reproducaoSelecionada
+                                                      ?.racaReprodutor,
+                                              idAnimal: _model
+                                                  .reproducaoSelecionada
+                                                  ?.idRebanhoReprodutor,
                                             );
                                             safeSetState(() {});
 
@@ -3453,11 +3715,11 @@ class _PgReproducaoViewAnimalWidgetState
                                           options: FFButtonOptions(
                                             width: 218.0,
                                             height: 56.0,
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    16.0, 0.0, 16.0, 0.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(16.0, 0.0, 16.0, 0.0),
                                             iconPadding:
-                                                const EdgeInsetsDirectional.fromSTEB(
+                                                const EdgeInsetsDirectional
+                                                    .fromSTEB(
                                                     0.0, 0.0, 0.0, 0.0),
                                             color: FlutterFlowTheme.of(context)
                                                 .primary,

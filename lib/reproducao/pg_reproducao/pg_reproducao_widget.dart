@@ -11,6 +11,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/reproducao/modal_add_reproducao/modal_add_reproducao_widget.dart';
 import '/reproducao/modal_more_reproducao/modal_more_reproducao_widget.dart';
 import '/reproducao/pp_filtro_reproducao/pp_filtro_reproducao_widget.dart';
+import '/reproducao/reproducao_status_utils.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'dart:async';
@@ -66,9 +67,6 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
 
     _model.textController ??= TextEditingController();
     _model.textFieldFocusNode ??= FocusNode();
-
-    _model.paginatedDataTableController.sortColumnIndex = 1;
-    _model.paginatedDataTableController.sortAscending = false;
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -2453,40 +2451,33 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                 .fontStyle,
                                                       ),
                                                 ),
-                                                Visibility(
-                                                  visible: reproducaoItem
-                                                          .previsaoParto !=
-                                                      '',
-                                                  child: Text(
-                                                    valueOrDefault<String>(
-                                                      dateTimeFormat(
-                                                        "d/M/y",
-                                                        functions.converterParaData(
-                                                            reproducaoItem
-                                                                .previsaoParto),
-                                                        locale:
-                                                            FFLocalizations.of(
-                                                                    context)
+                                                Text(
+                                                  statusReproducaoPermitePrevisaoParto(
+                                                              reproducaoItem
+                                                                  .statusReproducao) &&
+                                                          reproducaoItem
+                                                              .previsaoParto
+                                                              .trim()
+                                                              .isNotEmpty
+                                                      ? valueOrDefault<String>(
+                                                          dateTimeFormat(
+                                                            "d/M/y",
+                                                            functions.converterParaData(
+                                                                reproducaoItem
+                                                                    .previsaoParto),
+                                                            locale: FFLocalizations
+                                                                    .of(context)
                                                                 .languageCode,
-                                                      ),
-                                                      'S/D',
-                                                    ),
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
                                                           ),
-                                                          fontSize: 16.0,
-                                                          letterSpacing: 0.0,
+                                                          'Sem previsão',
+                                                        )
+                                                      : 'Sem previsão',
+                                                  style: FlutterFlowTheme.of(
+                                                          context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font:
+                                                            GoogleFonts.poppins(
                                                           fontWeight:
                                                               FontWeight.w500,
                                                           fontStyle:
@@ -2495,7 +2486,16 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                                   .bodyMedium
                                                                   .fontStyle,
                                                         ),
-                                                  ),
+                                                        fontSize: 16.0,
+                                                        letterSpacing: 0.0,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
                                                 ),
                                                 Text(
                                                   valueOrDefault<String>(

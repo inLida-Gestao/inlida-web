@@ -33,6 +33,8 @@ class PgReproducaoEditAnimalModel
   String? dropDownLoteValue;
   FormFieldController<String>? dropDownLoteValueController;
 
+  bool loteCleared = false;
+
   ///  State fields for stateful widgets in this page.
 
   // Stores action output result for [Backend Call - Query Rows] action in pgReproducaoEditAnimal widget.
@@ -84,6 +86,8 @@ class PgReproducaoEditAnimalModel
   TextEditingController? dataStatusTextController;
   String? Function(BuildContext, String?)? dataStatusTextControllerValidator;
   DateTime? datePicked6;
+  // State field(s) for previsaoParto widget.
+  DateTime? datePicked7;
   // State field(s) for anotacoes widget.
   FocusNode? anotacoesFocusNode;
   TextEditingController? anotacoesTextController;

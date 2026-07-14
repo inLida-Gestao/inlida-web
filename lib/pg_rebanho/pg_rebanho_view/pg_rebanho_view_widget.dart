@@ -12,6 +12,7 @@ import '/pg_rebanho/modal_more/modal_more_widget.dart';
 import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import '/pg_rebanho/pp_add_pessagem/pp_add_pessagem_widget.dart';
 import '/reproducao/modal_more_reproducao/modal_more_reproducao_widget.dart';
+import '/reproducao/reproducao_status_utils.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import '/flutter_flow/custom_functions.dart' as functions;
@@ -232,6 +233,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
   String? _reproducoesReprodutorFutureKey;
   Future<List<SanidadeRow>>? _sanidadesFuture;
   String? _sanidadesFutureKey;
+  Future<List<AnimaisStruct>>? _criasFuture;
+  String? _criasFutureKey;
   VoidCallback? _disposeReproducaoRefreshListener;
   VoidCallback? _disposeSanidadeRefreshListener;
 
@@ -447,11 +450,82 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     return _sanidadesFuture!;
   }
 
+  Future<List<AnimaisStruct>> _loadCrias({
+    required String? idRebanho,
+    required String? sexo,
+    required String? idPropriedade,
+    required int? rowId,
+    required String? numeroAnimal,
+  }) async {
+    final rebanho = idRebanho?.trim();
+    final propriedade = idPropriedade?.trim();
+    if (rebanho == null ||
+        rebanho.isEmpty ||
+        propriedade == null ||
+        propriedade.isEmpty) {
+      return [];
+    }
+
+    final rows = await RebanhoTable().queryRows(
+      queryFn: (q) {
+        final query = sexo == 'Macho'
+            ? q.eqOrNull('rebanhoIdReprodutor', rebanho)
+            : q.eqOrNull('rebanhoIdMatriz', rebanho);
+        return query
+            .eqOrNull('idPropriedade', propriedade)
+            .eqOrNull('deletado', 'NAO');
+      },
+    );
+
+    return rows.where((row) {
+      return row.id != rowId &&
+          row.idRebanho != rebanho &&
+          (numeroAnimal == null || row.numeroAnimal != numeroAnimal);
+    }).map((row) {
+      return AnimaisStruct(
+        id: row.id,
+        idRebanho: row.idRebanho,
+        numeroAnimal: row.numeroAnimal,
+        nome: row.nome,
+        sexo: row.sexo,
+        dataNascimento: row.dataNascimento?.toString(),
+        categoria: row.categoria,
+        raca: row.raca,
+        loteNome: row.loteNome,
+        rebanhoIdMatriz: row.rebanhoIdMatriz,
+        rebanhoIdReprodutor: row.rebanhoIdReprodutor,
+        status: row.status,
+      );
+    }).toList();
+  }
+
+  Future<List<AnimaisStruct>> _getCriasFuture(RebanhoRow? animal) {
+    final key = _futureKey([
+      animal?.idRebanho,
+      animal?.sexo,
+      animal?.idPropriedade,
+      animal?.id.toString(),
+    ]);
+    if (_criasFuture == null || _criasFutureKey != key) {
+      _criasFutureKey = key;
+      _criasFuture = _loadCrias(
+        idRebanho: animal?.idRebanho,
+        sexo: animal?.sexo,
+        idPropriedade: animal?.idPropriedade,
+        rowId: animal?.id,
+        numeroAnimal: animal?.numeroAnimal,
+      );
+    }
+    return _criasFuture!;
+  }
+
   void _resetRebanhoCache() {
     _rebanhoFuture = null;
     _rebanhoFutureKey = null;
     _desmamaPesagemFuture = null;
     _desmamaPesagemFutureKey = null;
+    _criasFuture = null;
+    _criasFutureKey = null;
   }
 
   void _resetReproducoesCache() {
@@ -1365,8 +1439,33 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
     _model.pesoDesmamaTextController2 = null;
   }
 
-  Future<void> _recarregarPesagens() async {
+  Future<void> _recarregarPesagens({
+    String? idRebanho,
+  }) async {
     safeSetState(_resetPesagensCache);
+    final idRebanhoNormalizado = idRebanho?.trim();
+    if (idRebanhoNormalizado != null && idRebanhoNormalizado.isNotEmpty) {
+      final rebanhoAtualizado = await RebanhoTable().querySingleRow(
+        queryFn: (q) => q.eqOrNull('idRebanho', idRebanhoNormalizado),
+      );
+      final row = rebanhoAtualizado.firstOrNull;
+      if (row != null && mounted) {
+        _model.dataDesmamaTextController2 ??= TextEditingController();
+        _model.dataDesmamaTextController2!.text = valueOrDefault<String>(
+          dateTimeFormat(
+            "d/M/y",
+            row.dataUltimaPesagem,
+            locale: FFLocalizations.of(context).languageCode,
+          ),
+          'N/A',
+        );
+        _model.pesoDesmamaTextController2 ??= TextEditingController();
+        _model.pesoDesmamaTextController2!.text = valueOrDefault<String>(
+          row.pesoAtual?.toString(),
+          'N/A',
+        );
+      }
+    }
     await _model.waitForRequestCompleted();
     if (mounted) {
       safeSetState(() {});
@@ -1752,7 +1851,19 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                           );
                                                           if (pesagemAdicionada ==
                                                               true) {
-                                                            await _recarregarPesagens();
+                                                            await _syncPesoAtualAposPesagem(
+                                                              rebanhoId:
+                                                                  pgRebanhoViewRebanhoRow
+                                                                      ?.id,
+                                                              idRebanho:
+                                                                  pgRebanhoViewRebanhoRow
+                                                                      ?.idRebanho,
+                                                            );
+                                                            await _recarregarPesagens(
+                                                              idRebanho:
+                                                                  pgRebanhoViewRebanhoRow
+                                                                      ?.idRebanho,
+                                                            );
                                                           }
                                                         },
                                                         text:
@@ -6010,53 +6121,34 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                             MainAxisSize.max,
                                                         children: [
                                                           Expanded(
-                                                            child: Builder(
-                                                              builder:
-                                                                  (context) {
-                                                                final selectedIdRebanho =
-                                                                    pgRebanhoViewRebanhoRow
-                                                                            ?.idRebanho ??
-                                                                        '';
-                                                                final selectedRowId =
-                                                                    pgRebanhoViewRebanhoRow
-                                                                        ?.id;
-                                                                final selectedNumeroAnimal =
-                                                                    pgRebanhoViewRebanhoRow
-                                                                        ?.numeroAnimal;
+                                                            child: FutureBuilder<
+                                                                List<
+                                                                    AnimaisStruct>>(
+                                                              future: _getCriasFuture(
+                                                                  pgRebanhoViewRebanhoRow),
+                                                              builder: (context,
+                                                                  criasSnapshot) {
+                                                                if (criasSnapshot
+                                                                        .connectionState ==
+                                                                    ConnectionState
+                                                                        .waiting) {
+                                                                  return Center(
+                                                                    child:
+                                                                        CircularProgressIndicator(
+                                                                      valueColor:
+                                                                          AlwaysStoppedAnimation<
+                                                                              Color>(
+                                                                        FlutterFlowTheme.of(context)
+                                                                            .primary,
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                                }
 
                                                                 final crias =
-                                                                    FFAppState()
-                                                                        .crias
-                                                                        .where(
-                                                                            (e) {
-                                                                  if (selectedIdRebanho
-                                                                      .isEmpty) {
-                                                                    return false;
-                                                                  }
-
-                                                                  final isSelf = (selectedRowId !=
-                                                                              null &&
-                                                                          e.id ==
-                                                                              selectedRowId) ||
-                                                                      (e.idRebanho ==
-                                                                          selectedIdRebanho) ||
-                                                                      (selectedNumeroAnimal !=
-                                                                              null &&
-                                                                          e.numeroAnimal ==
-                                                                              selectedNumeroAnimal);
-                                                                  if (isSelf) {
-                                                                    return false;
-                                                                  }
-
-                                                                  if (pgRebanhoViewRebanhoRow
-                                                                          ?.sexo ==
-                                                                      'Macho') {
-                                                                    return e.rebanhoIdReprodutor ==
-                                                                        selectedIdRebanho;
-                                                                  }
-                                                                  return e.rebanhoIdMatriz ==
-                                                                      selectedIdRebanho;
-                                                                }).toList();
+                                                                    criasSnapshot
+                                                                            .data ??
+                                                                        const <AnimaisStruct>[];
                                                                 if (crias
                                                                     .isEmpty) {
                                                                   return const Center(
@@ -6897,7 +6989,9 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                               rebanhoId: pgRebanhoViewRebanhoRow?.id,
                                                                                               idRebanho: pgRebanhoViewRebanhoRow?.idRebanho,
                                                                                             );
-                                                                                            await _recarregarPesagens();
+                                                                                            await _recarregarPesagens(
+                                                                                              idRebanho: pgRebanhoViewRebanhoRow?.idRebanho,
+                                                                                            );
                                                                                           }
                                                                                         },
                                                                                       ),
@@ -7432,7 +7526,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                     ),
                                                                                     Builder(
                                                                                       builder: (context) {
-                                                                                        if ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null)) {
+                                                                                        if (statusReproducaoPermitePrevisaoParto(reproducaoItem.statusReproducao) && ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null))) {
                                                                                           return Text(
                                                                                             valueOrDefault<String>(
                                                                                               reproducaoItem.previsaoParto == null
@@ -8083,7 +8177,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                     ),
                                                                                     Builder(
                                                                                       builder: (context) {
-                                                                                        if ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null)) {
+                                                                                        if (statusReproducaoPermitePrevisaoParto(reproducaoItem.statusReproducao) && ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null))) {
                                                                                           return Text(
                                                                                             valueOrDefault<String>(
                                                                                               reproducaoItem.previsaoParto == null

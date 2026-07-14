@@ -10,6 +10,7 @@ import '/flutter_flow/form_field_controller.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
+import '/reproducao/reproducao_status_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -207,8 +208,9 @@ class _PgReproducaoEditLoteWidgetState
                                           .secondaryBackground,
                                     ),
                                     child: Padding(
-                                      padding: const EdgeInsetsDirectional.fromSTEB(
-                                          32.0, 34.0, 32.0, 34.0),
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              32.0, 34.0, 32.0, 34.0),
                                       child: SingleChildScrollView(
                                         child: Column(
                                           mainAxisSize: MainAxisSize.max,
@@ -252,7 +254,8 @@ class _PgReproducaoEditLoteWidgetState
                                                                 .fontStyle,
                                                       ),
                                                 ),
-                                              ].divide(const SizedBox(width: 24.0)),
+                                              ].divide(
+                                                  const SizedBox(width: 24.0)),
                                             ),
                                             Column(
                                               mainAxisSize: MainAxisSize.max,
@@ -331,8 +334,8 @@ class _PgReproducaoEditLoteWidgetState
                                                           ),
                                                           child: Padding(
                                                             padding:
-                                                                const EdgeInsets.all(
-                                                                    24.0),
+                                                                const EdgeInsets
+                                                                    .all(24.0),
                                                             child: Row(
                                                               mainAxisSize:
                                                                   MainAxisSize
@@ -361,8 +364,9 @@ class _PgReproducaoEditLoteWidgetState
                                                                     size: 24.0,
                                                                   ),
                                                                 Padding(
-                                                                  padding: const EdgeInsetsDirectional
-                                                                      .fromSTEB(
+                                                                  padding:
+                                                                      const EdgeInsetsDirectional
+                                                                          .fromSTEB(
                                                                           10.0,
                                                                           0.0,
                                                                           0.0,
@@ -439,8 +443,8 @@ class _PgReproducaoEditLoteWidgetState
                                                           ),
                                                           child: Padding(
                                                             padding:
-                                                                const EdgeInsets.all(
-                                                                    24.0),
+                                                                const EdgeInsets
+                                                                    .all(24.0),
                                                             child: Row(
                                                               mainAxisSize:
                                                                   MainAxisSize
@@ -469,8 +473,9 @@ class _PgReproducaoEditLoteWidgetState
                                                                     size: 24.0,
                                                                   ),
                                                                 Padding(
-                                                                  padding: const EdgeInsetsDirectional
-                                                                      .fromSTEB(
+                                                                  padding:
+                                                                      const EdgeInsetsDirectional
+                                                                          .fromSTEB(
                                                                           10.0,
                                                                           0.0,
                                                                           0.0,
@@ -506,10 +511,11 @@ class _PgReproducaoEditLoteWidgetState
                                                         ),
                                                       ),
                                                     ),
-                                                  ].divide(
-                                                      const SizedBox(width: 8.0)),
+                                                  ].divide(const SizedBox(
+                                                      width: 8.0)),
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                             Column(
                                               mainAxisSize: MainAxisSize.max,
@@ -598,14 +604,16 @@ class _PgReproducaoEditLoteWidgetState
                                                         .secondaryText,
                                                     size: 24.0,
                                                   ),
-                                                  fillColor: const Color(0xFFF1F1F1),
+                                                  fillColor:
+                                                      const Color(0xFFF1F1F1),
                                                   elevation: 2.0,
                                                   borderColor:
                                                       Colors.transparent,
                                                   borderWidth: 0.0,
                                                   borderRadius: 8.0,
-                                                  margin: const EdgeInsetsDirectional
-                                                      .fromSTEB(
+                                                  margin:
+                                                      const EdgeInsetsDirectional
+                                                          .fromSTEB(
                                                           12.0, 0.0, 12.0, 0.0),
                                                   hidesUnderline: true,
                                                   disabled: pgReproducaoEditLoteReproducaoRow
@@ -618,7 +626,8 @@ class _PgReproducaoEditLoteWidgetState
                                                   isSearchable: false,
                                                   isMultiSelect: false,
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                             Column(
                                               mainAxisSize: MainAxisSize.max,
@@ -738,7 +747,7 @@ class _PgReproducaoEditLoteWidgetState
                                                     margin:
                                                         const EdgeInsetsDirectional
                                                             .fromSTEB(12.0, 0.0,
-                                                                12.0, 0.0),
+                                                            12.0, 0.0),
                                                     hidesUnderline: true,
                                                     isOverButton: false,
                                                     isSearchable: false,
@@ -784,7 +793,8 @@ class _PgReproducaoEditLoteWidgetState
                                                                   .fontStyle,
                                                         ),
                                                   ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                             if (_model.tipoReproducao ==
                                                 'Inseminação')
@@ -795,80 +805,93 @@ class _PgReproducaoEditLoteWidgetState
                                                 children: [
                                                   Expanded(
                                                     child: Column(
-                                                mainAxisSize: MainAxisSize.max,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'Data da inseminação*',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          'Data da inseminação*',
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                fontSize: 16.0,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
                                                                         context)
                                                                     .bodyMedium
                                                                     .fontStyle,
-                                                          ),
-                                                          fontSize: 16.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
+                                                              ),
                                                         ),
-                                                  ),
-                                                  Stack(
-                                                    children: [
-                                                      TextFormField(
-                                                        controller: _model
-                                                                .dataInseminacaoTextController ??=
-                                                            TextEditingController(
-                                                          text: valueOrDefault<
-                                                              String>(
-                                                            _model.datePicked1 !=
-                                                                    null
-                                                                ? dateTimeFormat(
-                                                                    "d/M/y",
-                                                                    _model
-                                                                        .datePicked1,
-                                                                    locale: FFLocalizations.of(
-                                                                            context)
-                                                                        .languageCode,
-                                                                  )
-                                                                : dateTimeFormat(
-                                                                    "d/M/y",
-                                                                    pgReproducaoEditLoteReproducaoRow
-                                                                        .dataInseminacao,
-                                                                    locale: FFLocalizations.of(
-                                                                            context)
-                                                                        .languageCode,
-                                                                  ),
-                                                            'dd/mm/yyyy',
-                                                          ),
-                                                        ),
-                                                        focusNode: _model
-                                                            .dataInseminacaoFocusNode,
-                                                        autofocus: false,
-                                                        obscureText: false,
-                                                        decoration:
-                                                            InputDecoration(
-                                                          isDense: false,
-                                                          labelStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .override(
-                                                                    font: GoogleFonts
-                                                                        .poppins(
+                                                        Stack(
+                                                          children: [
+                                                            TextFormField(
+                                                              controller: _model
+                                                                      .dataInseminacaoTextController ??=
+                                                                  TextEditingController(
+                                                                text:
+                                                                    valueOrDefault<
+                                                                        String>(
+                                                                  _model.datePicked1 !=
+                                                                          null
+                                                                      ? dateTimeFormat(
+                                                                          "d/M/y",
+                                                                          _model
+                                                                              .datePicked1,
+                                                                          locale:
+                                                                              FFLocalizations.of(context).languageCode,
+                                                                        )
+                                                                      : dateTimeFormat(
+                                                                          "d/M/y",
+                                                                          pgReproducaoEditLoteReproducaoRow
+                                                                              .dataInseminacao,
+                                                                          locale:
+                                                                              FFLocalizations.of(context).languageCode,
+                                                                        ),
+                                                                  'dd/mm/yyyy',
+                                                                ),
+                                                              ),
+                                                              focusNode: _model
+                                                                  .dataInseminacaoFocusNode,
+                                                              autofocus: false,
+                                                              obscureText:
+                                                                  false,
+                                                              decoration:
+                                                                  InputDecoration(
+                                                                isDense: false,
+                                                                labelStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelMedium
+                                                                    .override(
+                                                                      font: GoogleFonts
+                                                                          .poppins(
+                                                                        fontWeight: FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .fontWeight,
+                                                                        fontStyle: FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .fontStyle,
+                                                                      ),
+                                                                      fontSize:
+                                                                          16.0,
+                                                                      letterSpacing:
+                                                                          0.0,
                                                                       fontWeight: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelMedium
@@ -878,28 +901,26 @@ class _PgReproducaoEditLoteWidgetState
                                                                           .labelMedium
                                                                           .fontStyle,
                                                                     ),
-                                                                    fontSize:
-                                                                        16.0,
-                                                                    letterSpacing:
-                                                                        0.0,
-                                                                    fontWeight: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .labelMedium
-                                                                        .fontWeight,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .labelMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                          hintText:
-                                                              'dd/mm/aaaa',
-                                                          hintStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .override(
-                                                                    font: GoogleFonts
-                                                                        .poppins(
+                                                                hintText:
+                                                                    'dd/mm/aaaa',
+                                                                hintStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelMedium
+                                                                    .override(
+                                                                      font: GoogleFonts
+                                                                          .poppins(
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                        fontStyle: FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .fontStyle,
+                                                                      ),
+                                                                      color: const Color(
+                                                                          0xFFBEBEBE),
+                                                                      fontSize:
+                                                                          16.0,
+                                                                      letterSpacing:
+                                                                          0.0,
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .w600,
@@ -908,8 +929,87 @@ class _PgReproducaoEditLoteWidgetState
                                                                           .labelMedium
                                                                           .fontStyle,
                                                                     ),
-                                                                    color: const Color(
-                                                                        0xFFBEBEBE),
+                                                                enabledBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      const BorderSide(
+                                                                    color: Color(
+                                                                        0x00000000),
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                focusedBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      const BorderSide(
+                                                                    color: Color(
+                                                                        0x00000000),
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                errorBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      BorderSide(
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .error,
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                focusedErrorBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      BorderSide(
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .error,
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                filled: true,
+                                                                fillColor: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .customColor2,
+                                                                suffixIcon:
+                                                                    Icon(
+                                                                  Icons
+                                                                      .calendar_today,
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .secondaryText,
+                                                                ),
+                                                              ),
+                                                              style: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
                                                                     fontSize:
                                                                         16.0,
                                                                     letterSpacing:
@@ -919,82 +1019,174 @@ class _PgReproducaoEditLoteWidgetState
                                                                             .w600,
                                                                     fontStyle: FlutterFlowTheme.of(
                                                                             context)
-                                                                        .labelMedium
+                                                                        .bodyMedium
                                                                         .fontStyle,
                                                                   ),
-                                                          enabledBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                const BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
-                                                              width: 1.0,
+                                                              cursorColor:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .primaryText,
+                                                              validator: _model
+                                                                  .dataInseminacaoTextControllerValidator
+                                                                  .asValidator(
+                                                                      context),
                                                             ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          focusedBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                const BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
-                                                              width: 1.0,
+                                                            InkWell(
+                                                              splashColor: Colors
+                                                                  .transparent,
+                                                              focusColor: Colors
+                                                                  .transparent,
+                                                              hoverColor: Colors
+                                                                  .transparent,
+                                                              highlightColor:
+                                                                  Colors
+                                                                      .transparent,
+                                                              onTap: () async {
+                                                                final datePicked1Date =
+                                                                    await showDatePicker(
+                                                                  context:
+                                                                      context,
+                                                                  initialDate:
+                                                                      getCurrentTimestamp,
+                                                                  firstDate:
+                                                                      DateTime(
+                                                                          1900),
+                                                                  lastDate:
+                                                                      DateTime(
+                                                                          2050),
+                                                                  builder:
+                                                                      (context,
+                                                                          child) {
+                                                                    return wrapInMaterialDatePickerTheme(
+                                                                      context,
+                                                                      child!,
+                                                                      headerBackgroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primary,
+                                                                      headerForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .info,
+                                                                      headerTextStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .headlineLarge
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
+                                                                              fontWeight: FontWeight.w600,
+                                                                              fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                            ),
+                                                                            fontSize:
+                                                                                32.0,
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                            fontWeight:
+                                                                                FontWeight.w600,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                          ),
+                                                                      pickerBackgroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .secondaryBackground,
+                                                                      pickerForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primaryText,
+                                                                      selectedDateTimeBackgroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primary,
+                                                                      selectedDateTimeForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .info,
+                                                                      actionButtonForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primaryText,
+                                                                      iconSize:
+                                                                          24.0,
+                                                                    );
+                                                                  },
+                                                                );
+
+                                                                if (datePicked1Date !=
+                                                                    null) {
+                                                                  safeSetState(
+                                                                      () {
+                                                                    _model.datePicked1 =
+                                                                        DateTime(
+                                                                      datePicked1Date
+                                                                          .year,
+                                                                      datePicked1Date
+                                                                          .month,
+                                                                      datePicked1Date
+                                                                          .day,
+                                                                    );
+                                                                  });
+                                                                } else if (_model
+                                                                        .datePicked1 !=
+                                                                    null) {
+                                                                  safeSetState(
+                                                                      () {
+                                                                    _model.datePicked1 =
+                                                                        getCurrentTimestamp;
+                                                                  });
+                                                                }
+                                                                safeSetState(
+                                                                    () {
+                                                                  _model.dataInseminacaoTextController
+                                                                          ?.text =
+                                                                      dateTimeFormat(
+                                                                    "d/M/y",
+                                                                    _model
+                                                                        .datePicked1,
+                                                                    locale: FFLocalizations.of(
+                                                                            context)
+                                                                        .languageCode,
+                                                                  );
+                                                                });
+
+                                                                safeSetState(
+                                                                    () {});
+                                                              },
+                                                              child: Container(
+                                                                width: double
+                                                                    .infinity,
+                                                                height: 56.0,
+                                                                decoration:
+                                                                    const BoxDecoration(),
+                                                              ),
                                                             ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          errorBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                BorderSide(
-                                                              color: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .error,
-                                                              width: 1.0,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          focusedErrorBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                BorderSide(
-                                                              color: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .error,
-                                                              width: 1.0,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          filled: true,
-                                                          fillColor:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .customColor2,
-                                                          suffixIcon: Icon(
-                                                            Icons
-                                                                .calendar_today,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .secondaryText,
-                                                          ),
+                                                          ],
                                                         ),
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
+                                                      ].divide(const SizedBox(
+                                                          height: 8.0)),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16.0),
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          'Ressinc.',
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                fontSize: 16.0,
+                                                                letterSpacing:
+                                                                    0.0,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w600,
@@ -1003,316 +1195,302 @@ class _PgReproducaoEditLoteWidgetState
                                                                     .bodyMedium
                                                                     .fontStyle,
                                                               ),
-                                                              fontSize: 16.0,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
-                                                            ),
-                                                        cursorColor:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                        validator: _model
-                                                            .dataInseminacaoTextControllerValidator
-                                                            .asValidator(
-                                                                context),
-                                                      ),
-                                                      InkWell(
-                                                        splashColor:
-                                                            Colors.transparent,
-                                                        focusColor:
-                                                            Colors.transparent,
-                                                        hoverColor:
-                                                            Colors.transparent,
-                                                        highlightColor:
-                                                            Colors.transparent,
-                                                        onTap: () async {
-                                                          final datePicked1Date =
-                                                              await showDatePicker(
-                                                            context: context,
-                                                            initialDate:
-                                                                getCurrentTimestamp,
-                                                            firstDate:
-                                                                DateTime(1900),
-                                                            lastDate:
-                                                                DateTime(2050),
-                                                            builder: (context,
-                                                                child) {
-                                                              return wrapInMaterialDatePickerTheme(
-                                                                context,
-                                                                child!,
-                                                                headerBackgroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primary,
-                                                                headerForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .info,
-                                                                headerTextStyle:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .headlineLarge
-                                                                        .override(
-                                                                          font:
-                                                                              GoogleFonts.poppins(
-                                                                            fontWeight:
-                                                                                FontWeight.w600,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).headlineLarge.fontStyle,
-                                                                          ),
-                                                                          fontSize:
-                                                                              32.0,
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                          fontWeight:
-                                                                              FontWeight.w600,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .headlineLarge
-                                                                              .fontStyle,
-                                                                        ),
-                                                                pickerBackgroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .secondaryBackground,
-                                                                pickerForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primaryText,
-                                                                selectedDateTimeBackgroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primary,
-                                                                selectedDateTimeForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .info,
-                                                                actionButtonForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primaryText,
-                                                                iconSize: 24.0,
-                                                              );
-                                                            },
-                                                          );
-
-                                                          if (datePicked1Date !=
-                                                              null) {
-                                                            safeSetState(() {
-                                                              _model.datePicked1 =
-                                                                  DateTime(
-                                                                datePicked1Date
-                                                                    .year,
-                                                                datePicked1Date
-                                                                    .month,
-                                                                datePicked1Date
-                                                                    .day,
-                                                              );
-                                                            });
-                                                          } else if (_model
-                                                                  .datePicked1 !=
-                                                              null) {
-                                                            safeSetState(() {
-                                                              _model.datePicked1 =
-                                                                  getCurrentTimestamp;
-                                                            });
-                                                          }
-                                                          safeSetState(() {
-                                                            _model.dataInseminacaoTextController
-                                                                    ?.text =
-                                                                dateTimeFormat(
-                                                              "d/M/y",
-                                                              _model
-                                                                  .datePicked1,
-                                                              locale: FFLocalizations
-                                                                      .of(context)
-                                                                  .languageCode,
-                                                            );
-                                                          });
-
-                                                          safeSetState(() {});
-                                                        },
-                                                        child: Container(
-                                                          width:
-                                                              double.infinity,
-                                                          height: 56.0,
-                                                          decoration:
-                                                              const BoxDecoration(),
                                                         ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ].divide(const SizedBox(height: 8.0)),
-                                              ),
-                                                  ),
-                                                  const SizedBox(width: 16.0),
-                                                  Expanded(
-                                                    child: Column(
-                                                      mainAxisSize: MainAxisSize.max,
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(
-                                                          'Ressinc.',
-                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
-                                                        ),
-                                                        FlutterFlowDropDown<String>(
-                                                          controller: _model.ressincDropdownValueController ??= FormFieldController<String>(_model.ressincDropdownValue),
+                                                        FlutterFlowDropDown<
+                                                            String>(
+                                                          controller: _model
+                                                                  .ressincDropdownValueController ??=
+                                                              FormFieldController<
+                                                                      String>(
+                                                                  _model
+                                                                      .ressincDropdownValue),
                                                           options: const [
                                                             'Tradicional',
                                                             'Precoce',
                                                             'Superprecoce',
                                                           ],
-                                                          onChanged: (val) => safeSetState(() => _model.ressincDropdownValue = val),
-                                                          width: double.infinity,
+                                                          onChanged: (val) =>
+                                                              safeSetState(() =>
+                                                                  _model.ressincDropdownValue =
+                                                                      val),
+                                                          width:
+                                                              double.infinity,
                                                           height: 56.0,
-                                                          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
-                                                          hintText: 'Selecionar',
+                                                          textStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                    fontSize:
+                                                                        16.0,
+                                                                    letterSpacing:
+                                                                        0.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                          hintText:
+                                                              'Selecionar',
                                                           icon: Icon(
                                                             Icons.expand_more,
-                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryText,
                                                             size: 24.0,
                                                           ),
-                                                          fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                          fillColor:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .customColor2,
                                                           elevation: 0,
-                                                          borderColor: Colors.transparent,
+                                                          borderColor: Colors
+                                                              .transparent,
                                                           borderWidth: 0,
                                                           borderRadius: 8,
-                                                          margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                                                          margin:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                  16, 0, 16, 0),
                                                           hidesUnderline: true,
                                                         ),
-                                                      ].divide(const SizedBox(height: 8.0)),
+                                                      ].divide(const SizedBox(
+                                                          height: 8.0)),
                                                     ),
                                                   ),
                                                   const SizedBox(width: 16.0),
                                                   Expanded(
                                                     child: Column(
-                                                      mainAxisSize: MainAxisSize.max,
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         Text(
                                                           'GnRH',
-                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                fontSize: 16.0,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
                                                         ),
-                                                        FlutterFlowDropDown<String>(
-                                                          controller: _model.gnrhDropdownValueController ??= FormFieldController<String>(_model.gnrhDropdownValue),
+                                                        FlutterFlowDropDown<
+                                                            String>(
+                                                          controller: _model
+                                                                  .gnrhDropdownValueController ??=
+                                                              FormFieldController<
+                                                                      String>(
+                                                                  _model
+                                                                      .gnrhDropdownValue),
                                                           options: const [
                                                             'Sim',
                                                             'Não',
                                                           ],
-                                                          onChanged: (val) => safeSetState(() => _model.gnrhDropdownValue = val),
-                                                          width: double.infinity,
+                                                          onChanged: (val) =>
+                                                              safeSetState(() =>
+                                                                  _model.gnrhDropdownValue =
+                                                                      val),
+                                                          width:
+                                                              double.infinity,
                                                           height: 56.0,
-                                                          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
-                                                          hintText: 'Selecionar',
+                                                          textStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                    fontSize:
+                                                                        16.0,
+                                                                    letterSpacing:
+                                                                        0.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                          hintText:
+                                                              'Selecionar',
                                                           icon: Icon(
                                                             Icons.expand_more,
-                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryText,
                                                             size: 24.0,
                                                           ),
-                                                          fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                          fillColor:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .customColor2,
                                                           elevation: 0,
-                                                          borderColor: Colors.transparent,
+                                                          borderColor: Colors
+                                                              .transparent,
                                                           borderWidth: 0,
                                                           borderRadius: 8,
-                                                          margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                                                          margin:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                  16, 0, 16, 0),
                                                           hidesUnderline: true,
                                                         ),
-                                                      ].divide(const SizedBox(height: 8.0)),
+                                                      ].divide(const SizedBox(
+                                                          height: 8.0)),
                                                     ),
                                                   ),
                                                   const SizedBox(width: 16.0),
                                                   Expanded(
                                                     child: Column(
-                                                      mainAxisSize: MainAxisSize.max,
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         Text(
                                                           'Cio',
-                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                fontSize: 16.0,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
                                                         ),
-                                                        FlutterFlowDropDown<String>(
-                                                          controller: _model.cioDropdownValueController ??= FormFieldController<String>(_model.cioDropdownValue),
-                                                          options: const ['Sim', 'Não'],
-                                                          onChanged: (val) => safeSetState(() => _model.cioDropdownValue = val),
-                                                          width: double.infinity,
+                                                        FlutterFlowDropDown<
+                                                            String>(
+                                                          controller: _model
+                                                                  .cioDropdownValueController ??=
+                                                              FormFieldController<
+                                                                      String>(
+                                                                  _model
+                                                                      .cioDropdownValue),
+                                                          options: const [
+                                                            'Sim',
+                                                            'Não'
+                                                          ],
+                                                          onChanged: (val) =>
+                                                              safeSetState(() =>
+                                                                  _model.cioDropdownValue =
+                                                                      val),
+                                                          width:
+                                                              double.infinity,
                                                           height: 56.0,
-                                                          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
-                                                          hintText: 'Selecionar',
+                                                          textStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                    fontSize:
+                                                                        16.0,
+                                                                    letterSpacing:
+                                                                        0.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                          hintText:
+                                                              'Selecionar',
                                                           icon: Icon(
                                                             Icons.expand_more,
-                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryText,
                                                             size: 24.0,
                                                           ),
-                                                          fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                          fillColor:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .customColor2,
                                                           elevation: 0,
-                                                          borderColor: Colors.transparent,
+                                                          borderColor: Colors
+                                                              .transparent,
                                                           borderWidth: 0,
                                                           borderRadius: 8,
-                                                          margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                                                          margin:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                  16, 0, 16, 0),
                                                           hidesUnderline: true,
                                                         ),
-                                                      ].divide(const SizedBox(height: 8.0)),
+                                                      ].divide(const SizedBox(
+                                                          height: 8.0)),
                                                     ),
                                                   ),
                                                 ],
@@ -1730,10 +1908,10 @@ class _PgReproducaoEditLoteWidgetState
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      10.0,
-                                                                      12.0,
-                                                                      10.0,
-                                                                      12.0),
+                                                                  10.0,
+                                                                  12.0,
+                                                                  10.0,
+                                                                  12.0),
                                                           child: Row(
                                                             mainAxisSize:
                                                                 MainAxisSize
@@ -1836,10 +2014,11 @@ class _PgReproducaoEditLoteWidgetState
                                                           ),
                                                         ),
                                                       ),
-                                                    ].divide(
-                                                        const SizedBox(height: 8.0)),
+                                                    ].divide(const SizedBox(
+                                                        height: 8.0)),
                                                   ),
-                                                ].divide(const SizedBox(width: 16.0)),
+                                                ].divide(const SizedBox(
+                                                    width: 16.0)),
                                               ),
                                             if (_model.tipoReproducao ==
                                                 'Monta Natural')
@@ -1850,80 +2029,446 @@ class _PgReproducaoEditLoteWidgetState
                                                 children: [
                                                   Expanded(
                                                     child: Column(
-                                                mainAxisSize: MainAxisSize.max,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'Data da inicial*',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          'Data da inicial*',
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                fontSize: 16.0,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
                                                                         context)
                                                                     .bodyMedium
                                                                     .fontStyle,
-                                                          ),
-                                                          fontSize: 16.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
+                                                              ),
                                                         ),
-                                                  ),
-                                                  Stack(
-                                                    children: [
-                                                      TextFormField(
-                                                        controller: _model
-                                                                .dataInicialTextController ??=
-                                                            TextEditingController(
-                                                          text: valueOrDefault<
-                                                              String>(
-                                                            _model.datePicked3 !=
-                                                                    null
-                                                                ? dateTimeFormat(
+                                                        Stack(
+                                                          children: [
+                                                            TextFormField(
+                                                              controller: _model
+                                                                      .dataInicialTextController ??=
+                                                                  TextEditingController(
+                                                                text:
+                                                                    valueOrDefault<
+                                                                        String>(
+                                                                  _model.datePicked3 !=
+                                                                          null
+                                                                      ? dateTimeFormat(
+                                                                          "d/M/y",
+                                                                          _model
+                                                                              .datePicked3,
+                                                                          locale:
+                                                                              FFLocalizations.of(context).languageCode,
+                                                                        )
+                                                                      : dateTimeFormat(
+                                                                          "d/M/y",
+                                                                          pgReproducaoEditLoteReproducaoRow
+                                                                              .dataInicial,
+                                                                          locale:
+                                                                              FFLocalizations.of(context).languageCode,
+                                                                        ),
+                                                                  'dd/mm/yyyy',
+                                                                ),
+                                                              ),
+                                                              focusNode: _model
+                                                                  .dataInicialFocusNode,
+                                                              autofocus: false,
+                                                              obscureText:
+                                                                  false,
+                                                              decoration:
+                                                                  InputDecoration(
+                                                                isDense: false,
+                                                                labelStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelMedium
+                                                                    .override(
+                                                                      font: GoogleFonts
+                                                                          .poppins(
+                                                                        fontWeight: FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .fontWeight,
+                                                                        fontStyle: FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .fontStyle,
+                                                                      ),
+                                                                      fontSize:
+                                                                          16.0,
+                                                                      letterSpacing:
+                                                                          0.0,
+                                                                      fontWeight: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .labelMedium
+                                                                          .fontWeight,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .labelMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                hintText:
+                                                                    'dd/mm/aaaa',
+                                                                hintStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelMedium
+                                                                    .override(
+                                                                      font: GoogleFonts
+                                                                          .poppins(
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                        fontStyle: FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .fontStyle,
+                                                                      ),
+                                                                      color: const Color(
+                                                                          0xFFBEBEBE),
+                                                                      fontSize:
+                                                                          16.0,
+                                                                      letterSpacing:
+                                                                          0.0,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .labelMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                enabledBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      const BorderSide(
+                                                                    color: Color(
+                                                                        0x00000000),
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                focusedBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      const BorderSide(
+                                                                    color: Color(
+                                                                        0x00000000),
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                errorBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      BorderSide(
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .error,
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                focusedErrorBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      BorderSide(
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .error,
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                filled: true,
+                                                                fillColor: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .customColor2,
+                                                                suffixIcon:
+                                                                    Icon(
+                                                                  Icons
+                                                                      .calendar_today,
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .secondaryText,
+                                                                ),
+                                                              ),
+                                                              style: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                    fontSize:
+                                                                        16.0,
+                                                                    letterSpacing:
+                                                                        0.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                              cursorColor:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .primaryText,
+                                                              validator: _model
+                                                                  .dataInicialTextControllerValidator
+                                                                  .asValidator(
+                                                                      context),
+                                                            ),
+                                                            InkWell(
+                                                              splashColor: Colors
+                                                                  .transparent,
+                                                              focusColor: Colors
+                                                                  .transparent,
+                                                              hoverColor: Colors
+                                                                  .transparent,
+                                                              highlightColor:
+                                                                  Colors
+                                                                      .transparent,
+                                                              onTap: () async {
+                                                                final datePicked3Date =
+                                                                    await showDatePicker(
+                                                                  context:
+                                                                      context,
+                                                                  initialDate:
+                                                                      getCurrentTimestamp,
+                                                                  firstDate:
+                                                                      getCurrentTimestamp,
+                                                                  lastDate:
+                                                                      DateTime(
+                                                                          2050),
+                                                                  builder:
+                                                                      (context,
+                                                                          child) {
+                                                                    return wrapInMaterialDatePickerTheme(
+                                                                      context,
+                                                                      child!,
+                                                                      headerBackgroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primary,
+                                                                      headerForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .info,
+                                                                      headerTextStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .headlineLarge
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
+                                                                              fontWeight: FontWeight.w600,
+                                                                              fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                            ),
+                                                                            fontSize:
+                                                                                32.0,
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                            fontWeight:
+                                                                                FontWeight.w600,
+                                                                            fontStyle:
+                                                                                FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                          ),
+                                                                      pickerBackgroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .secondaryBackground,
+                                                                      pickerForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primaryText,
+                                                                      selectedDateTimeBackgroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primary,
+                                                                      selectedDateTimeForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .info,
+                                                                      actionButtonForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primaryText,
+                                                                      iconSize:
+                                                                          24.0,
+                                                                    );
+                                                                  },
+                                                                );
+
+                                                                if (datePicked3Date !=
+                                                                    null) {
+                                                                  safeSetState(
+                                                                      () {
+                                                                    _model.datePicked3 =
+                                                                        DateTime(
+                                                                      datePicked3Date
+                                                                          .year,
+                                                                      datePicked3Date
+                                                                          .month,
+                                                                      datePicked3Date
+                                                                          .day,
+                                                                    );
+                                                                  });
+                                                                } else if (_model
+                                                                        .datePicked3 !=
+                                                                    null) {
+                                                                  safeSetState(
+                                                                      () {
+                                                                    _model.datePicked3 =
+                                                                        getCurrentTimestamp;
+                                                                  });
+                                                                }
+                                                                safeSetState(
+                                                                    () {
+                                                                  _model.dataInicialTextController
+                                                                          ?.text =
+                                                                      dateTimeFormat(
                                                                     "d/M/y",
                                                                     _model
                                                                         .datePicked3,
                                                                     locale: FFLocalizations.of(
                                                                             context)
                                                                         .languageCode,
-                                                                  )
-                                                                : dateTimeFormat(
-                                                                    "d/M/y",
-                                                                    pgReproducaoEditLoteReproducaoRow
-                                                                        .dataInicial,
-                                                                    locale: FFLocalizations.of(
-                                                                            context)
-                                                                        .languageCode,
-                                                                  ),
-                                                            'dd/mm/yyyy',
-                                                          ),
+                                                                  );
+                                                                });
+                                                              },
+                                                              child: Container(
+                                                                width: double
+                                                                    .infinity,
+                                                                height: 56.0,
+                                                                decoration:
+                                                                    const BoxDecoration(),
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
-                                                        focusNode: _model
-                                                            .dataInicialFocusNode,
-                                                        autofocus: false,
-                                                        obscureText: false,
-                                                        decoration:
-                                                            InputDecoration(
-                                                          isDense: false,
-                                                          labelStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .override(
-                                                                    font: GoogleFonts
-                                                                        .poppins(
+                                                      ].divide(const SizedBox(
+                                                          height: 8.0)),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16.0),
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          'Data da final*',
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                fontSize: 16.0,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
+                                                        ),
+                                                        Stack(
+                                                          children: [
+                                                            TextFormField(
+                                                              controller: _model
+                                                                      .dataFinalTextController ??=
+                                                                  TextEditingController(
+                                                                text:
+                                                                    valueOrDefault<
+                                                                        String>(
+                                                                  _model.datePicked4 !=
+                                                                          null
+                                                                      ? dateTimeFormat(
+                                                                          "d/M/y",
+                                                                          _model
+                                                                              .datePicked4,
+                                                                          locale:
+                                                                              FFLocalizations.of(context).languageCode,
+                                                                        )
+                                                                      : dateTimeFormat(
+                                                                          "d/M/y",
+                                                                          pgReproducaoEditLoteReproducaoRow
+                                                                              .dataFinal,
+                                                                          locale:
+                                                                              FFLocalizations.of(context).languageCode,
+                                                                        ),
+                                                                  'dd/mm/yyyy',
+                                                                ),
+                                                              ),
+                                                              focusNode: _model
+                                                                  .dataFinalFocusNode,
+                                                              autofocus: false,
+                                                              obscureText:
+                                                                  false,
+                                                              decoration:
+                                                                  InputDecoration(
+                                                                isDense: false,
+                                                                labelStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelMedium
+                                                                    .override(
+                                                                      font: GoogleFonts
+                                                                          .poppins(
+                                                                        fontWeight: FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .fontWeight,
+                                                                        fontStyle: FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .fontStyle,
+                                                                      ),
+                                                                      fontSize:
+                                                                          16.0,
+                                                                      letterSpacing:
+                                                                          0.0,
                                                                       fontWeight: FlutterFlowTheme.of(
                                                                               context)
                                                                           .labelMedium
@@ -1933,28 +2478,26 @@ class _PgReproducaoEditLoteWidgetState
                                                                           .labelMedium
                                                                           .fontStyle,
                                                                     ),
-                                                                    fontSize:
-                                                                        16.0,
-                                                                    letterSpacing:
-                                                                        0.0,
-                                                                    fontWeight: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .labelMedium
-                                                                        .fontWeight,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .labelMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                          hintText:
-                                                              'dd/mm/aaaa',
-                                                          hintStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .override(
-                                                                    font: GoogleFonts
-                                                                        .poppins(
+                                                                hintText:
+                                                                    'dd/mm/aaaa',
+                                                                hintStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelMedium
+                                                                    .override(
+                                                                      font: GoogleFonts
+                                                                          .poppins(
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                        fontStyle: FlutterFlowTheme.of(context)
+                                                                            .labelMedium
+                                                                            .fontStyle,
+                                                                      ),
+                                                                      color: const Color(
+                                                                          0xFFBEBEBE),
+                                                                      fontSize:
+                                                                          16.0,
+                                                                      letterSpacing:
+                                                                          0.0,
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .w600,
@@ -1963,8 +2506,87 @@ class _PgReproducaoEditLoteWidgetState
                                                                           .labelMedium
                                                                           .fontStyle,
                                                                     ),
-                                                                    color: const Color(
-                                                                        0xFFBEBEBE),
+                                                                enabledBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      const BorderSide(
+                                                                    color: Color(
+                                                                        0x00000000),
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                focusedBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      const BorderSide(
+                                                                    color: Color(
+                                                                        0x00000000),
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                errorBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      BorderSide(
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .error,
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                focusedErrorBorder:
+                                                                    OutlineInputBorder(
+                                                                  borderSide:
+                                                                      BorderSide(
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .error,
+                                                                    width: 1.0,
+                                                                  ),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8.0),
+                                                                ),
+                                                                filled: true,
+                                                                fillColor: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .customColor2,
+                                                                suffixIcon:
+                                                                    Icon(
+                                                                  Icons
+                                                                      .calendar_today,
+                                                                  color: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .secondaryText,
+                                                                ),
+                                                              ),
+                                                              style: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
                                                                     fontSize:
                                                                         16.0,
                                                                     letterSpacing:
@@ -1974,594 +2596,141 @@ class _PgReproducaoEditLoteWidgetState
                                                                             .w600,
                                                                     fontStyle: FlutterFlowTheme.of(
                                                                             context)
-                                                                        .labelMedium
+                                                                        .bodyMedium
                                                                         .fontStyle,
                                                                   ),
-                                                          enabledBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                const BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
-                                                              width: 1.0,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          focusedBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                const BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
-                                                              width: 1.0,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          errorBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                BorderSide(
-                                                              color: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .error,
-                                                              width: 1.0,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          focusedErrorBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                BorderSide(
-                                                              color: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .error,
-                                                              width: 1.0,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          filled: true,
-                                                          fillColor:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .customColor2,
-                                                          suffixIcon: Icon(
-                                                            Icons
-                                                                .calendar_today,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .secondaryText,
-                                                          ),
-                                                        ),
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                              ),
-                                                              fontSize: 16.0,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontStyle:
+                                                              cursorColor:
                                                                   FlutterFlowTheme.of(
                                                                           context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
+                                                                      .primaryText,
+                                                              validator: _model
+                                                                  .dataFinalTextControllerValidator
+                                                                  .asValidator(
+                                                                      context),
                                                             ),
-                                                        cursorColor:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                        validator: _model
-                                                            .dataInicialTextControllerValidator
-                                                            .asValidator(
-                                                                context),
-                                                      ),
-                                                      InkWell(
-                                                        splashColor:
-                                                            Colors.transparent,
-                                                        focusColor:
-                                                            Colors.transparent,
-                                                        hoverColor:
-                                                            Colors.transparent,
-                                                        highlightColor:
-                                                            Colors.transparent,
-                                                        onTap: () async {
-                                                          final datePicked3Date =
-                                                              await showDatePicker(
-                                                            context: context,
-                                                            initialDate:
-                                                                getCurrentTimestamp,
-                                                            firstDate:
-                                                                getCurrentTimestamp,
-                                                            lastDate:
-                                                                DateTime(2050),
-                                                            builder: (context,
-                                                                child) {
-                                                              return wrapInMaterialDatePickerTheme(
-                                                                context,
-                                                                child!,
-                                                                headerBackgroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primary,
-                                                                headerForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .info,
-                                                                headerTextStyle:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .headlineLarge
-                                                                        .override(
-                                                                          font:
-                                                                              GoogleFonts.poppins(
+                                                            InkWell(
+                                                              splashColor: Colors
+                                                                  .transparent,
+                                                              focusColor: Colors
+                                                                  .transparent,
+                                                              hoverColor: Colors
+                                                                  .transparent,
+                                                              highlightColor:
+                                                                  Colors
+                                                                      .transparent,
+                                                              onTap: () async {
+                                                                final datePicked4Date =
+                                                                    await showDatePicker(
+                                                                  context:
+                                                                      context,
+                                                                  initialDate:
+                                                                      getCurrentTimestamp,
+                                                                  firstDate:
+                                                                      getCurrentTimestamp,
+                                                                  lastDate:
+                                                                      DateTime(
+                                                                          2050),
+                                                                  builder:
+                                                                      (context,
+                                                                          child) {
+                                                                    return wrapInMaterialDatePickerTheme(
+                                                                      context,
+                                                                      child!,
+                                                                      headerBackgroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primary,
+                                                                      headerForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .info,
+                                                                      headerTextStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .headlineLarge
+                                                                          .override(
+                                                                            font:
+                                                                                GoogleFonts.poppins(
+                                                                              fontWeight: FontWeight.w600,
+                                                                              fontStyle: FlutterFlowTheme.of(context).headlineLarge.fontStyle,
+                                                                            ),
+                                                                            fontSize:
+                                                                                32.0,
+                                                                            letterSpacing:
+                                                                                0.0,
                                                                             fontWeight:
                                                                                 FontWeight.w600,
                                                                             fontStyle:
                                                                                 FlutterFlowTheme.of(context).headlineLarge.fontStyle,
                                                                           ),
-                                                                          fontSize:
-                                                                              32.0,
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                          fontWeight:
-                                                                              FontWeight.w600,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .headlineLarge
-                                                                              .fontStyle,
-                                                                        ),
-                                                                pickerBackgroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .secondaryBackground,
-                                                                pickerForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primaryText,
-                                                                selectedDateTimeBackgroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primary,
-                                                                selectedDateTimeForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .info,
-                                                                actionButtonForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primaryText,
-                                                                iconSize: 24.0,
-                                                              );
-                                                            },
-                                                          );
+                                                                      pickerBackgroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .secondaryBackground,
+                                                                      pickerForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primaryText,
+                                                                      selectedDateTimeBackgroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primary,
+                                                                      selectedDateTimeForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .info,
+                                                                      actionButtonForegroundColor:
+                                                                          FlutterFlowTheme.of(context)
+                                                                              .primaryText,
+                                                                      iconSize:
+                                                                          24.0,
+                                                                    );
+                                                                  },
+                                                                );
 
-                                                          if (datePicked3Date !=
-                                                              null) {
-                                                            safeSetState(() {
-                                                              _model.datePicked3 =
-                                                                  DateTime(
-                                                                datePicked3Date
-                                                                    .year,
-                                                                datePicked3Date
-                                                                    .month,
-                                                                datePicked3Date
-                                                                    .day,
-                                                              );
-                                                            });
-                                                          } else if (_model
-                                                                  .datePicked3 !=
-                                                              null) {
-                                                            safeSetState(() {
-                                                              _model.datePicked3 =
-                                                                  getCurrentTimestamp;
-                                                            });
-                                                          }
-                                                          safeSetState(() {
-                                                            _model.dataInicialTextController
-                                                                    ?.text =
-                                                                dateTimeFormat(
-                                                              "d/M/y",
-                                                              _model
-                                                                  .datePicked3,
-                                                              locale: FFLocalizations
-                                                                      .of(context)
-                                                                  .languageCode,
-                                                            );
-                                                          });
-                                                        },
-                                                        child: Container(
-                                                          width:
-                                                              double.infinity,
-                                                          height: 56.0,
-                                                          decoration:
-                                                              const BoxDecoration(),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ].divide(const SizedBox(height: 8.0)),
-                                              ),
-                                                  ),
-                                                  const SizedBox(width: 16.0),
-                                                  Expanded(
-                                                    child: Column(
-                                                mainAxisSize: MainAxisSize.max,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'Data da final*',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .poppins(
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          fontSize: 16.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                  Stack(
-                                                    children: [
-                                                      TextFormField(
-                                                        controller: _model
-                                                                .dataFinalTextController ??=
-                                                            TextEditingController(
-                                                          text: valueOrDefault<
-                                                              String>(
-                                                            _model.datePicked4 !=
-                                                                    null
-                                                                ? dateTimeFormat(
+                                                                if (datePicked4Date !=
+                                                                    null) {
+                                                                  safeSetState(
+                                                                      () {
+                                                                    _model.datePicked4 =
+                                                                        DateTime(
+                                                                      datePicked4Date
+                                                                          .year,
+                                                                      datePicked4Date
+                                                                          .month,
+                                                                      datePicked4Date
+                                                                          .day,
+                                                                    );
+                                                                  });
+                                                                } else if (_model
+                                                                        .datePicked4 !=
+                                                                    null) {
+                                                                  safeSetState(
+                                                                      () {
+                                                                    _model.datePicked4 =
+                                                                        getCurrentTimestamp;
+                                                                  });
+                                                                }
+                                                                safeSetState(
+                                                                    () {
+                                                                  _model.dataFinalTextController
+                                                                          ?.text =
+                                                                      dateTimeFormat(
                                                                     "d/M/y",
                                                                     _model
                                                                         .datePicked4,
                                                                     locale: FFLocalizations.of(
                                                                             context)
                                                                         .languageCode,
-                                                                  )
-                                                                : dateTimeFormat(
-                                                                    "d/M/y",
-                                                                    pgReproducaoEditLoteReproducaoRow
-                                                                        .dataFinal,
-                                                                    locale: FFLocalizations.of(
-                                                                            context)
-                                                                        .languageCode,
-                                                                  ),
-                                                            'dd/mm/yyyy',
-                                                          ),
-                                                        ),
-                                                        focusNode: _model
-                                                            .dataFinalFocusNode,
-                                                        autofocus: false,
-                                                        obscureText: false,
-                                                        decoration:
-                                                            InputDecoration(
-                                                          isDense: false,
-                                                          labelStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .override(
-                                                                    font: GoogleFonts
-                                                                        .poppins(
-                                                                      fontWeight: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelMedium
-                                                                          .fontWeight,
-                                                                      fontStyle: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelMedium
-                                                                          .fontStyle,
-                                                                    ),
-                                                                    fontSize:
-                                                                        16.0,
-                                                                    letterSpacing:
-                                                                        0.0,
-                                                                    fontWeight: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .labelMedium
-                                                                        .fontWeight,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .labelMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                          hintText:
-                                                              'dd/mm/aaaa',
-                                                          hintStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .override(
-                                                                    font: GoogleFonts
-                                                                        .poppins(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600,
-                                                                      fontStyle: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .labelMedium
-                                                                          .fontStyle,
-                                                                    ),
-                                                                    color: const Color(
-                                                                        0xFFBEBEBE),
-                                                                    fontSize:
-                                                                        16.0,
-                                                                    letterSpacing:
-                                                                        0.0,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                    fontStyle: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .labelMedium
-                                                                        .fontStyle,
-                                                                  ),
-                                                          enabledBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                const BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
-                                                              width: 1.0,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          focusedBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                const BorderSide(
-                                                              color: Color(
-                                                                  0x00000000),
-                                                              width: 1.0,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          errorBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                BorderSide(
-                                                              color: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .error,
-                                                              width: 1.0,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          focusedErrorBorder:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                BorderSide(
-                                                              color: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .error,
-                                                              width: 1.0,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
-                                                          ),
-                                                          filled: true,
-                                                          fillColor:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .customColor2,
-                                                          suffixIcon: Icon(
-                                                            Icons
-                                                                .calendar_today,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .secondaryText,
-                                                          ),
-                                                        ),
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              font: GoogleFonts
-                                                                  .poppins(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                fontStyle: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
+                                                                  );
+                                                                });
+                                                              },
+                                                              child: Container(
+                                                                width: double
+                                                                    .infinity,
+                                                                height: 56.0,
+                                                                decoration:
+                                                                    const BoxDecoration(),
                                                               ),
-                                                              fontSize: 16.0,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMedium
-                                                                      .fontStyle,
                                                             ),
-                                                        cursorColor:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                        validator: _model
-                                                            .dataFinalTextControllerValidator
-                                                            .asValidator(
-                                                                context),
-                                                      ),
-                                                      InkWell(
-                                                        splashColor:
-                                                            Colors.transparent,
-                                                        focusColor:
-                                                            Colors.transparent,
-                                                        hoverColor:
-                                                            Colors.transparent,
-                                                        highlightColor:
-                                                            Colors.transparent,
-                                                        onTap: () async {
-                                                          final datePicked4Date =
-                                                              await showDatePicker(
-                                                            context: context,
-                                                            initialDate:
-                                                                getCurrentTimestamp,
-                                                            firstDate:
-                                                                getCurrentTimestamp,
-                                                            lastDate:
-                                                                DateTime(2050),
-                                                            builder: (context,
-                                                                child) {
-                                                              return wrapInMaterialDatePickerTheme(
-                                                                context,
-                                                                child!,
-                                                                headerBackgroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primary,
-                                                                headerForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .info,
-                                                                headerTextStyle:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .headlineLarge
-                                                                        .override(
-                                                                          font:
-                                                                              GoogleFonts.poppins(
-                                                                            fontWeight:
-                                                                                FontWeight.w600,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).headlineLarge.fontStyle,
-                                                                          ),
-                                                                          fontSize:
-                                                                              32.0,
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                          fontWeight:
-                                                                              FontWeight.w600,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .headlineLarge
-                                                                              .fontStyle,
-                                                                        ),
-                                                                pickerBackgroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .secondaryBackground,
-                                                                pickerForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primaryText,
-                                                                selectedDateTimeBackgroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primary,
-                                                                selectedDateTimeForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .info,
-                                                                actionButtonForegroundColor:
-                                                                    FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .primaryText,
-                                                                iconSize: 24.0,
-                                                              );
-                                                            },
-                                                          );
-
-                                                          if (datePicked4Date !=
-                                                              null) {
-                                                            safeSetState(() {
-                                                              _model.datePicked4 =
-                                                                  DateTime(
-                                                                datePicked4Date
-                                                                    .year,
-                                                                datePicked4Date
-                                                                    .month,
-                                                                datePicked4Date
-                                                                    .day,
-                                                              );
-                                                            });
-                                                          } else if (_model
-                                                                  .datePicked4 !=
-                                                              null) {
-                                                            safeSetState(() {
-                                                              _model.datePicked4 =
-                                                                  getCurrentTimestamp;
-                                                            });
-                                                          }
-                                                          safeSetState(() {
-                                                            _model.dataFinalTextController
-                                                                    ?.text =
-                                                                dateTimeFormat(
-                                                              "d/M/y",
-                                                              _model
-                                                                  .datePicked4,
-                                                              locale: FFLocalizations
-                                                                      .of(context)
-                                                                  .languageCode,
-                                                            );
-                                                          });
-                                                        },
-                                                        child: Container(
-                                                          width:
-                                                              double.infinity,
-                                                          height: 56.0,
-                                                          decoration:
-                                                              const BoxDecoration(),
+                                                          ],
                                                         ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ].divide(const SizedBox(height: 8.0)),
-                                              ),
+                                                      ].divide(const SizedBox(
+                                                          height: 8.0)),
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -2574,167 +2743,335 @@ class _PgReproducaoEditLoteWidgetState
                                                 children: [
                                                   Expanded(
                                                     child: Column(
-                                                      mainAxisSize: MainAxisSize.max,
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         Text(
                                                           'Ressinc.',
-                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                fontSize: 16.0,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
                                                         ),
-                                                        FlutterFlowDropDown<String>(
-                                                          controller: _model.ressincDropdownValueController ??= FormFieldController<String>(_model.ressincDropdownValue),
+                                                        FlutterFlowDropDown<
+                                                            String>(
+                                                          controller: _model
+                                                                  .ressincDropdownValueController ??=
+                                                              FormFieldController<
+                                                                      String>(
+                                                                  _model
+                                                                      .ressincDropdownValue),
                                                           options: const [
                                                             'Tradicional',
                                                             'Precoce',
                                                             'Superprecoce',
                                                           ],
-                                                          onChanged: (val) => safeSetState(() => _model.ressincDropdownValue = val),
-                                                          width: double.infinity,
+                                                          onChanged: (val) =>
+                                                              safeSetState(() =>
+                                                                  _model.ressincDropdownValue =
+                                                                      val),
+                                                          width:
+                                                              double.infinity,
                                                           height: 56.0,
-                                                          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
-                                                          hintText: 'Selecionar',
+                                                          textStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                    fontSize:
+                                                                        16.0,
+                                                                    letterSpacing:
+                                                                        0.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                          hintText:
+                                                              'Selecionar',
                                                           icon: Icon(
                                                             Icons.expand_more,
-                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryText,
                                                             size: 24.0,
                                                           ),
-                                                          fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                          fillColor:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .customColor2,
                                                           elevation: 0,
-                                                          borderColor: Colors.transparent,
+                                                          borderColor: Colors
+                                                              .transparent,
                                                           borderWidth: 0,
                                                           borderRadius: 8,
-                                                          margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                                                          margin:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                  16, 0, 16, 0),
                                                           hidesUnderline: true,
                                                         ),
-                                                      ].divide(const SizedBox(height: 8.0)),
+                                                      ].divide(const SizedBox(
+                                                          height: 8.0)),
                                                     ),
                                                   ),
                                                   const SizedBox(width: 16.0),
                                                   Expanded(
                                                     child: Column(
-                                                      mainAxisSize: MainAxisSize.max,
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         Text(
                                                           'GnRH',
-                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                fontSize: 16.0,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
                                                         ),
-                                                        FlutterFlowDropDown<String>(
-                                                          controller: _model.gnrhDropdownValueController ??= FormFieldController<String>(_model.gnrhDropdownValue),
+                                                        FlutterFlowDropDown<
+                                                            String>(
+                                                          controller: _model
+                                                                  .gnrhDropdownValueController ??=
+                                                              FormFieldController<
+                                                                      String>(
+                                                                  _model
+                                                                      .gnrhDropdownValue),
                                                           options: const [
                                                             'Sim',
                                                             'Não',
                                                           ],
-                                                          onChanged: (val) => safeSetState(() => _model.gnrhDropdownValue = val),
-                                                          width: double.infinity,
+                                                          onChanged: (val) =>
+                                                              safeSetState(() =>
+                                                                  _model.gnrhDropdownValue =
+                                                                      val),
+                                                          width:
+                                                              double.infinity,
                                                           height: 56.0,
-                                                          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
-                                                          hintText: 'Selecionar',
+                                                          textStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                    fontSize:
+                                                                        16.0,
+                                                                    letterSpacing:
+                                                                        0.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                          hintText:
+                                                              'Selecionar',
                                                           icon: Icon(
                                                             Icons.expand_more,
-                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryText,
                                                             size: 24.0,
                                                           ),
-                                                          fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                          fillColor:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .customColor2,
                                                           elevation: 0,
-                                                          borderColor: Colors.transparent,
+                                                          borderColor: Colors
+                                                              .transparent,
                                                           borderWidth: 0,
                                                           borderRadius: 8,
-                                                          margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                                                          margin:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                  16, 0, 16, 0),
                                                           hidesUnderline: true,
                                                         ),
-                                                      ].divide(const SizedBox(height: 8.0)),
+                                                      ].divide(const SizedBox(
+                                                          height: 8.0)),
                                                     ),
                                                   ),
                                                   const SizedBox(width: 16.0),
                                                   Expanded(
                                                     child: Column(
-                                                      mainAxisSize: MainAxisSize.max,
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         Text(
                                                           'Cio',
-                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                fontSize: 16.0,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                              ),
                                                         ),
-                                                        FlutterFlowDropDown<String>(
-                                                          controller: _model.cioDropdownValueController ??= FormFieldController<String>(_model.cioDropdownValue),
+                                                        FlutterFlowDropDown<
+                                                            String>(
+                                                          controller: _model
+                                                                  .cioDropdownValueController ??=
+                                                              FormFieldController<
+                                                                      String>(
+                                                                  _model
+                                                                      .cioDropdownValue),
                                                           options: const [
                                                             'Sim',
                                                             'Não',
                                                           ],
-                                                          onChanged: (val) => safeSetState(() => _model.cioDropdownValue = val),
-                                                          width: double.infinity,
+                                                          onChanged: (val) =>
+                                                              safeSetState(() =>
+                                                                  _model.cioDropdownValue =
+                                                                      val),
+                                                          width:
+                                                              double.infinity,
                                                           height: 56.0,
-                                                          textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                            font: GoogleFonts.poppins(
-                                                              fontWeight: FontWeight.w600,
-                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                            ),
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                          ),
-                                                          hintText: 'Selecionar',
+                                                          textStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    font: GoogleFonts
+                                                                        .poppins(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      fontStyle: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodyMedium
+                                                                          .fontStyle,
+                                                                    ),
+                                                                    fontSize:
+                                                                        16.0,
+                                                                    letterSpacing:
+                                                                        0.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                    fontStyle: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMedium
+                                                                        .fontStyle,
+                                                                  ),
+                                                          hintText:
+                                                              'Selecionar',
                                                           icon: Icon(
                                                             Icons.expand_more,
-                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryText,
                                                             size: 24.0,
                                                           ),
-                                                          fillColor: FlutterFlowTheme.of(context).customColor2,
+                                                          fillColor:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .customColor2,
                                                           elevation: 0,
-                                                          borderColor: Colors.transparent,
+                                                          borderColor: Colors
+                                                              .transparent,
                                                           borderWidth: 0,
                                                           borderRadius: 8,
-                                                          margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                                                          margin:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                  16, 0, 16, 0),
                                                           hidesUnderline: true,
                                                         ),
-                                                      ].divide(const SizedBox(height: 8.0)),
+                                                      ].divide(const SizedBox(
+                                                          height: 8.0)),
                                                     ),
                                                   ),
                                                 ],
@@ -2824,8 +3161,8 @@ class _PgReproducaoEditLoteWidgetState
                                                                     .labelMedium
                                                                     .fontStyle,
                                                           ),
-                                                          color:
-                                                              const Color(0xFFBEBEBE),
+                                                          color: const Color(
+                                                              0xFFBEBEBE),
                                                           fontSize: 16.0,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
@@ -2838,7 +3175,8 @@ class _PgReproducaoEditLoteWidgetState
                                                         ),
                                                     enabledBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -2849,7 +3187,8 @@ class _PgReproducaoEditLoteWidgetState
                                                     ),
                                                     focusedBorder:
                                                         OutlineInputBorder(
-                                                      borderSide: const BorderSide(
+                                                      borderSide:
+                                                          const BorderSide(
                                                         color:
                                                             Color(0x00000000),
                                                         width: 1.0,
@@ -2922,7 +3261,8 @@ class _PgReproducaoEditLoteWidgetState
                                                       .nomeInseminadorTextControllerValidator
                                                       .asValidator(context),
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                             Row(
                                               mainAxisSize: MainAxisSize.max,
@@ -2936,7 +3276,7 @@ class _PgReproducaoEditLoteWidgetState
                                                             .start,
                                                     children: [
                                                       Text(
-                                                                                                                'Diagnóstico*',
+                                                        'Diagnóstico*',
                                                         style: FlutterFlowTheme
                                                                 .of(context)
                                                             .bodyMedium
@@ -3018,8 +3358,7 @@ class _PgReproducaoEditLoteWidgetState
                                                                       .bodyMedium
                                                                       .fontStyle,
                                                                 ),
-                                                        hintText:
-                                                            'Selecionar',
+                                                        hintText: 'Selecionar',
                                                         icon: Icon(
                                                           Icons
                                                               .keyboard_arrow_down_rounded,
@@ -3028,32 +3367,30 @@ class _PgReproducaoEditLoteWidgetState
                                                               .secondaryText,
                                                           size: 24.0,
                                                         ),
-                                                        fillColor:
-                                                            const Color(0xFFF1F1F1),
+                                                        fillColor: const Color(
+                                                            0xFFF1F1F1),
                                                         elevation: 2.0,
-                                                        borderColor: Colors
-                                                            .transparent,
+                                                        borderColor:
+                                                            Colors.transparent,
                                                         borderWidth: 0.0,
                                                         borderRadius: 8.0,
                                                         margin:
                                                             const EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    12.0,
-                                                                    0.0,
-                                                                    12.0,
-                                                                    0.0),
+                                                                .fromSTEB(12.0,
+                                                                0.0, 12.0, 0.0),
                                                         hidesUnderline: true,
                                                         isOverButton: false,
                                                         isSearchable: false,
                                                         isMultiSelect: false,
                                                       ),
-                                                    ].divide(
-                                                        const SizedBox(height: 8.0)),
+                                                    ].divide(const SizedBox(
+                                                        height: 8.0)),
                                                   ),
                                                 ),
                                                 Container(
                                                   width: 327.0,
-                                                  decoration: const BoxDecoration(),
+                                                  decoration:
+                                                      const BoxDecoration(),
                                                   child: Column(
                                                     mainAxisSize:
                                                         MainAxisSize.max,
@@ -3062,7 +3399,7 @@ class _PgReproducaoEditLoteWidgetState
                                                             .start,
                                                     children: [
                                                       Text(
-                                                                                                                'Data do diagnóstico',
+                                                        'Data do diagnóstico',
                                                         style: FlutterFlowTheme
                                                                 .of(context)
                                                             .bodyMedium
@@ -3400,11 +3737,12 @@ class _PgReproducaoEditLoteWidgetState
                                                           ),
                                                         ],
                                                       ),
-                                                    ].divide(
-                                                        const SizedBox(height: 8.0)),
+                                                    ].divide(const SizedBox(
+                                                        height: 8.0)),
                                                   ),
                                                 ),
-                                              ].divide(const SizedBox(width: 16.0)),
+                                              ].divide(
+                                                  const SizedBox(width: 16.0)),
                                             ),
                                             if ((_model.tipoReproducao ==
                                                     'Inseminação') &&
@@ -3463,27 +3801,32 @@ class _PgReproducaoEditLoteWidgetState
                                                           padding:
                                                               const EdgeInsetsDirectional
                                                                   .fromSTEB(
-                                                                      12.0,
-                                                                      0.0,
-                                                                      0.0,
-                                                                      0.0),
+                                                                  12.0,
+                                                                  0.0,
+                                                                  0.0,
+                                                                  0.0),
                                                           child: Text(
-                                                            valueOrDefault<
-                                                                String>(
-                                                              dateTimeFormat(
-                                                                "d/M/y",
-                                                                functions.dataMais295(_model.datePicked1 !=
-                                                                        null
-                                                                    ? _model
-                                                                        .datePicked1!
-                                                                    : pgReproducaoEditLoteReproducaoRow
-                                                                        .dataInseminacao!),
-                                                                locale: FFLocalizations.of(
-                                                                        context)
-                                                                    .languageCode,
-                                                              ),
-                                                              'dd/mm/yyyy',
-                                                            ),
+                                                            statusReproducaoPermitePrevisaoParto(_model
+                                                                        .dropDownStatusValue ??
+                                                                    pgReproducaoEditLoteReproducaoRow
+                                                                        .statusReproducao)
+                                                                ? valueOrDefault<
+                                                                    String>(
+                                                                    dateTimeFormat(
+                                                                      "d/M/y",
+                                                                      functions.dataMais295(_model.datePicked1 !=
+                                                                              null
+                                                                          ? _model
+                                                                              .datePicked1!
+                                                                          : pgReproducaoEditLoteReproducaoRow
+                                                                              .dataInseminacao!),
+                                                                      locale: FFLocalizations.of(
+                                                                              context)
+                                                                          .languageCode,
+                                                                    ),
+                                                                    'dd/mm/yyyy',
+                                                                  )
+                                                                : 'Sem previsão',
                                                             style: FlutterFlowTheme
                                                                     .of(context)
                                                                 .bodyMedium
@@ -3550,7 +3893,8 @@ class _PgReproducaoEditLoteWidgetState
                                                                   .fontStyle,
                                                         ),
                                                   ),
-                                                ].divide(const SizedBox(height: 8.0)),
+                                                ].divide(const SizedBox(
+                                                    height: 8.0)),
                                               ),
                                             Column(
                                               mainAxisSize: MainAxisSize.max,
@@ -3587,7 +3931,8 @@ class _PgReproducaoEditLoteWidgetState
                                                 Container(
                                                   height: 100.0,
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF1F1F1),
+                                                    color:
+                                                        const Color(0xFFF1F1F1),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8.0),
@@ -3666,7 +4011,8 @@ class _PgReproducaoEditLoteWidgetState
                                                               ),
                                                       enabledBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -3677,7 +4023,8 @@ class _PgReproducaoEditLoteWidgetState
                                                       ),
                                                       focusedBorder:
                                                           OutlineInputBorder(
-                                                        borderSide: const BorderSide(
+                                                        borderSide:
+                                                            const BorderSide(
                                                           color:
                                                               Color(0x00000000),
                                                           width: 1.0,
@@ -3749,7 +4096,8 @@ class _PgReproducaoEditLoteWidgetState
                                                         .asValidator(context),
                                                   ),
                                                 ),
-                                              ].divide(const SizedBox(height: 8.0)),
+                                              ].divide(
+                                                  const SizedBox(height: 8.0)),
                                             ),
                                             Row(
                                               mainAxisSize: MainAxisSize.max,
@@ -3769,11 +4117,11 @@ class _PgReproducaoEditLoteWidgetState
                                                     padding:
                                                         const EdgeInsetsDirectional
                                                             .fromSTEB(16.0, 0.0,
-                                                                16.0, 0.0),
+                                                            16.0, 0.0),
                                                     iconPadding:
                                                         const EdgeInsetsDirectional
-                                                            .fromSTEB(0.0, 0.0,
-                                                                0.0, 0.0),
+                                                            .fromSTEB(
+                                                            0.0, 0.0, 0.0, 0.0),
                                                     color: FlutterFlowTheme.of(
                                                             context)
                                                         .secondaryBackground,
@@ -3844,30 +4192,41 @@ class _PgReproducaoEditLoteWidgetState
                                                                     .dropDownReprodutorValue,
                                                             'data_inseminacao': supaSerialize<
                                                                 DateTime>(_model
-                                                                    .datePicked1 ?? pgReproducaoEditLoteReproducaoRow
+                                                                    .datePicked1 ??
+                                                                pgReproducaoEditLoteReproducaoRow
                                                                     .dataInseminacao),
                                                             'data_partida_semen': supaSerialize<
                                                                 DateTime>(_model
-                                                                    .datePicked2 ?? pgReproducaoEditLoteReproducaoRow
+                                                                    .datePicked2 ??
+                                                                pgReproducaoEditLoteReproducaoRow
                                                                     .dataPartidaSemen),
                                                             'partida_semen':
                                                                 _model
                                                                     .partidaSemen,
-                                                            'previsao_parto': supaSerialize<
-                                                                DateTime>(functions.dataMais295(_model
-                                                                        .datePicked1 !=
-                                                                    null
-                                                                ? _model
-                                                                    .datePicked1!
-                                                                : pgReproducaoEditLoteReproducaoRow
-                                                                    .previsaoParto!)),
+                                                            'previsao_parto':
+                                                                supaSerialize<
+                                                                    DateTime>(
+                                                              previsaoPartoPermitida(
+                                                                _model.dropDownStatusValue ??
+                                                                    pgReproducaoEditLoteReproducaoRow
+                                                                        .statusReproducao,
+                                                                functions.dataMais295(_model.datePicked1 !=
+                                                                        null
+                                                                    ? _model
+                                                                        .datePicked1!
+                                                                    : pgReproducaoEditLoteReproducaoRow
+                                                                        .dataInseminacao!),
+                                                              ),
+                                                            ),
                                                             'data_inicial': supaSerialize<
                                                                 DateTime>(_model
-                                                                    .datePicked3 ?? pgReproducaoEditLoteReproducaoRow
+                                                                    .datePicked3 ??
+                                                                pgReproducaoEditLoteReproducaoRow
                                                                     .dataInicial),
                                                             'data_final': supaSerialize<
                                                                 DateTime>(_model
-                                                                    .datePicked4 ?? pgReproducaoEditLoteReproducaoRow
+                                                                    .datePicked4 ??
+                                                                pgReproducaoEditLoteReproducaoRow
                                                                     .dataFinal),
                                                             'status_reproducao':
                                                                 _model
@@ -3884,7 +4243,8 @@ class _PgReproducaoEditLoteWidgetState
                                                                     getCurrentTimestamp),
                                                             'data_status': supaSerialize<
                                                                 DateTime>(_model
-                                                                    .datePicked5 ?? pgReproducaoEditLoteReproducaoRow
+                                                                    .datePicked5 ??
+                                                                pgReproducaoEditLoteReproducaoRow
                                                                     .dataStatus),
                                                             'numReprodutor':
                                                                 pgRebanhRebanhoRowList
@@ -3914,25 +4274,34 @@ class _PgReproducaoEditLoteWidgetState
                                                                     .toList()
                                                                     .firstOrNull
                                                                     ?.dataNascimento),
-                                                            'ressinc':
-                                                                (_model.ressincDropdownValue ?? '').trim().isNotEmpty
-                                                                    ? _model.ressincDropdownValue
-                                                                    : 'NAO',
-                                                            'gnrh':
-                                                                (_model.gnrhDropdownValue ?? '').trim().isNotEmpty
-                                                                    ? _model.gnrhDropdownValue
-                                                                    : 'NAO',
-                                                            'cio':
-                                                                (_model.cioDropdownValue ?? '').trim().isNotEmpty
-                                                                    ? _model.cioDropdownValue
-                                                                    : 'NAO',
+                                                            'ressinc': (_model
+                                                                            .ressincDropdownValue ??
+                                                                        '')
+                                                                    .trim()
+                                                                    .isNotEmpty
+                                                                ? _model
+                                                                    .ressincDropdownValue
+                                                                : 'NAO',
+                                                            'gnrh': (_model.gnrhDropdownValue ??
+                                                                        '')
+                                                                    .trim()
+                                                                    .isNotEmpty
+                                                                ? _model
+                                                                    .gnrhDropdownValue
+                                                                : 'NAO',
+                                                            'cio': (_model.cioDropdownValue ??
+                                                                        '')
+                                                                    .trim()
+                                                                    .isNotEmpty
+                                                                ? _model
+                                                                    .cioDropdownValue
+                                                                : 'NAO',
                                                           },
                                                           matchingRows:
                                                               (rows) =>
                                                                   rows.eqOrNull(
                                                             'id_reproducao',
-                                                            widget
-                                                                .idReproducao,
+                                                            widget.idReproducao,
                                                           ),
                                                         );
                                                       } else {
@@ -3947,15 +4316,28 @@ class _PgReproducaoEditLoteWidgetState
                                                                     .dropDownReprodutorValue,
                                                             'data_inicial': supaSerialize<
                                                                 DateTime>(_model
-                                                                    .datePicked3 ?? pgReproducaoEditLoteReproducaoRow
+                                                                    .datePicked3 ??
+                                                                pgReproducaoEditLoteReproducaoRow
                                                                     .dataInicial),
                                                             'data_final': supaSerialize<
                                                                 DateTime>(_model
-                                                                    .datePicked4 ?? pgReproducaoEditLoteReproducaoRow
+                                                                    .datePicked4 ??
+                                                                pgReproducaoEditLoteReproducaoRow
                                                                     .dataFinal),
                                                             'status_reproducao':
                                                                 _model
                                                                     .dropDownStatusValue,
+                                                            'previsao_parto':
+                                                                supaSerialize<
+                                                                    DateTime>(
+                                                              previsaoPartoPermitida(
+                                                                _model.dropDownStatusValue ??
+                                                                    pgReproducaoEditLoteReproducaoRow
+                                                                        .statusReproducao,
+                                                                pgReproducaoEditLoteReproducaoRow
+                                                                    .previsaoParto,
+                                                              ),
+                                                            ),
                                                             'inseminador': _model
                                                                 .nomeInseminadorTextController
                                                                 .text,
@@ -3968,7 +4350,8 @@ class _PgReproducaoEditLoteWidgetState
                                                                     getCurrentTimestamp),
                                                             'data_status': supaSerialize<
                                                                 DateTime>(_model
-                                                                    .datePicked5 ?? pgReproducaoEditLoteReproducaoRow
+                                                                    .datePicked5 ??
+                                                                pgReproducaoEditLoteReproducaoRow
                                                                     .dataStatus),
                                                             'numReprodutor':
                                                                 pgRebanhRebanhoRowList
@@ -3998,25 +4381,34 @@ class _PgReproducaoEditLoteWidgetState
                                                                     .toList()
                                                                     .firstOrNull
                                                                     ?.dataNascimento),
-                                                            'ressinc':
-                                                                (_model.ressincDropdownValue ?? '').trim().isNotEmpty
-                                                                    ? _model.ressincDropdownValue
-                                                                    : 'NAO',
-                                                            'gnrh':
-                                                                (_model.gnrhDropdownValue ?? '').trim().isNotEmpty
-                                                                    ? _model.gnrhDropdownValue
-                                                                    : 'NAO',
-                                                            'cio':
-                                                                (_model.cioDropdownValue ?? '').trim().isNotEmpty
-                                                                    ? _model.cioDropdownValue
-                                                                    : 'NAO',
+                                                            'ressinc': (_model
+                                                                            .ressincDropdownValue ??
+                                                                        '')
+                                                                    .trim()
+                                                                    .isNotEmpty
+                                                                ? _model
+                                                                    .ressincDropdownValue
+                                                                : 'NAO',
+                                                            'gnrh': (_model.gnrhDropdownValue ??
+                                                                        '')
+                                                                    .trim()
+                                                                    .isNotEmpty
+                                                                ? _model
+                                                                    .gnrhDropdownValue
+                                                                : 'NAO',
+                                                            'cio': (_model.cioDropdownValue ??
+                                                                        '')
+                                                                    .trim()
+                                                                    .isNotEmpty
+                                                                ? _model
+                                                                    .cioDropdownValue
+                                                                : 'NAO',
                                                           },
                                                           matchingRows:
                                                               (rows) =>
                                                                   rows.eqOrNull(
                                                             'id_reproducao',
-                                                            widget
-                                                                .idReproducao,
+                                                            widget.idReproducao,
                                                           ),
                                                         );
                                                       }
@@ -4039,18 +4431,12 @@ class _PgReproducaoEditLoteWidgetState
                                                       height: 56.0,
                                                       padding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  16.0,
-                                                                  0.0,
-                                                                  16.0,
-                                                                  0.0),
+                                                              .fromSTEB(16.0,
+                                                              0.0, 16.0, 0.0),
                                                       iconPadding:
                                                           const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0,
-                                                                  0.0),
+                                                              .fromSTEB(0.0,
+                                                              0.0, 0.0, 0.0),
                                                       color:
                                                           FlutterFlowTheme.of(
                                                                   context)
@@ -4090,9 +4476,11 @@ class _PgReproducaoEditLoteWidgetState
                                                               6.0),
                                                     ),
                                                   ),
-                                              ].divide(const SizedBox(width: 24.0)),
+                                              ].divide(
+                                                  const SizedBox(width: 24.0)),
                                             ),
-                                          ].divide(const SizedBox(height: 24.0)),
+                                          ].divide(
+                                              const SizedBox(height: 24.0)),
                                         ),
                                       ),
                                     ),
