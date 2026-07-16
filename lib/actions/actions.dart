@@ -1,6 +1,5 @@
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
-import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 
