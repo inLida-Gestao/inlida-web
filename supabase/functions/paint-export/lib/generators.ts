@@ -102,6 +102,38 @@ async function loadInseminadorByNome(ctx: ExportContext): Promise<Map<string, st
   return map;
 }
 
+// Chave normalizada (maiúsculas, sem espaços) para casar identificadores que o
+// PAINT grava com grafias variáveis (ex.: "pPECA 458115" ~ "PECA4581").
+function normBibKey(v: unknown): string {
+  return String(v ?? "").toUpperCase().replace(/\s+/g, "");
+}
+
+// Biblioteca de Touros oficial do PAINT (paint_biblioteca_touros): mapa
+// chave-normalizada -> A12 exato do PAINT. Indexa pelo próprio A12 e pelo
+// registro (rgd), porque o reprodutor do rebanho às vezes guarda o A12 e às
+// vezes o registro no campo codRegistro. Nome NÃO é chave (a lista traz a
+// grafia do PAINT, que costuma divergir do cadastro da fazenda).
+async function loadBibliotecaTouroA12(
+  ctx: ExportContext,
+): Promise<Map<string, string>> {
+  const rows = await selectAll<any>(
+    ctx.supa,
+    "paint_biblioteca_touros",
+    (q) => q,
+    { columns: "a12,rgd", orderColumn: "a12" },
+  );
+  const map = new Map<string, string>();
+  for (const b of rows) {
+    const a12 = String(b.a12 ?? "").trim();
+    if (!a12) continue;
+    const ka = normBibKey(a12);
+    if (ka && !map.has(ka)) map.set(ka, a12);
+    const kr = normBibKey(b.rgd);
+    if (kr && !map.has(kr)) map.set(kr, a12);
+  }
+  return map;
+}
+
 // Mapa idRebanho -> loteNome (a partir do pre-fetch de rebanho em genAnimal).
 function loteByRebanhoId(ctx: ExportContext): Map<string, string> {
   const map = new Map<string, string>();
@@ -339,12 +371,30 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
   // Inseminador: reproducao guarda o nome; resolvemos para o código PAINT.
   const inseminadorByNome = await loadInseminadorByNome(ctx);
 
+  // Fallback do A12 do touro: reprodutores externos/de sêmen sem data de
+  // nascimento não têm A12 calculável (o A12 posicional depende do ano de
+  // nascimento). Resolvemos pela Biblioteca de Touros oficial do PAINT,
+  // casando o codRegistro do reprodutor com o A12 ou o registro (rgd) da lista.
+  const bibByChave = await loadBibliotecaTouroA12(ctx);
+  const codRegByReb = new Map<string, string>();
+  for (const a of (ctx.rebanhoRows ?? [])) {
+    if (a.idRebanho != null) {
+      codRegByReb.set(String(a.idRebanho), String(a.codRegistro ?? "").trim());
+    }
+  }
+
   const lines: string[] = [];
   let recno = 0;
   for (const r of rows) {
     recno += 1;
     const matrizA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_matriz)) ?? "";
-    const touroA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_reprodutor)) ?? "";
+    let touroA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_reprodutor)) ?? "";
+    if (!touroA12) {
+      const chave = normBibKey(
+        codRegByReb.get(String(r.id_rebanho_reprodutor)) ?? "",
+      );
+      if (chave) touroA12 = bibByChave.get(chave) ?? "";
+    }
     const grpMatriz = grupoManejoFromLote(
       loteByReb.get(String(r.id_rebanho_matriz)),
       grupoByDescricao,
