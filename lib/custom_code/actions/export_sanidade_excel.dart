@@ -144,7 +144,6 @@ Future<bool> exportSanidadeExcel(String nameExcel, String idPropriedade) async {
     Sheet sheet = excel['Sheet1'];
 
     const template = <String, String>{
-      'Animal': 'id_rebanho',
       'Numero': 'numeroAnimal',
       'Nome': 'nome',
       'Data_nascimento': 'dataNascimento',
