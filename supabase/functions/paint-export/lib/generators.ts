@@ -339,12 +339,28 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
   // Inseminador: reproducao guarda o nome; resolvemos para o código PAINT.
   const inseminadorByNome = await loadInseminadorByNome(ctx);
 
+  // Fallback do A12 do touro: reprodutores externos/PO (touros de sêmen)
+  // normalmente não têm data de nascimento no rebanho, e o A12 posicional
+  // depende do ano de nascimento — sem ela, a12FromRebanho devolve vazio e o
+  // cob_touro saía em branco. Nesses casos usamos o código de registro (que já
+  // traz o identificador do touro), como está.
+  const codRegByReb = new Map<string, string>();
+  for (const a of (ctx.rebanhoRows ?? [])) {
+    if (a.idRebanho != null) {
+      codRegByReb.set(String(a.idRebanho), String(a.codRegistro ?? "").trim());
+    }
+  }
+
   const lines: string[] = [];
   let recno = 0;
   for (const r of rows) {
     recno += 1;
     const matrizA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_matriz)) ?? "";
-    const touroA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_reprodutor)) ?? "";
+    const touroA12Calc =
+      ctx.a12ByRebanhoId.get(String(r.id_rebanho_reprodutor)) ?? "";
+    // "como está": código de registro sem transformar (só o trim já aplicado).
+    const touroA12 =
+      touroA12Calc || (codRegByReb.get(String(r.id_rebanho_reprodutor)) ?? "");
     const grpMatriz = grupoManejoFromLote(
       loteByReb.get(String(r.id_rebanho_matriz)),
       grupoByDescricao,
