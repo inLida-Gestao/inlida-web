@@ -49,6 +49,16 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  String _normalizeIdRebanho(String? value) => value?.trim() ?? '';
+
+  bool _rebanhoLoteAtivo(RebanhoRow row) =>
+      row.deletado?.trim().toUpperCase() != 'SIM';
+
+  bool _loteIdAusenteOuInvalido(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    return normalized == null || normalized.isEmpty || normalized == 'null';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -111,9 +121,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
   }
 
   /// Alinhado a [PgViewLoteWidget._loadAnimaisDoLote].
-  /// Carrega animais do lote usando rebanho.loteID/loteNome.
-  /// `lotes.id_animais` é mantido como fallback para lotes legados.
-  /// Desduplicação por idRebanho — mesma lógica de PgViewLoteWidget._loadAnimaisDoLote.
+  /// Carrega animais pelo vínculo atual. loteNome é fallback só para legado sem loteID.
   Future<List<RebanhoDTStruct>> _loadAnimaisDoLoteParaEdicao() async {
     if (widget.idLote == null || widget.idLote!.isEmpty) return [];
     final lote = _model.loteEdit?.firstOrNull;
@@ -126,60 +134,40 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
     final list = <RebanhoDTStruct>[];
 
     void addIfNew(RebanhoRow row) {
-      final id = row.idRebanho;
-      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
+      final id = _normalizeIdRebanho(row.idRebanho);
+      if (id.isNotEmpty && _rebanhoLoteAtivo(row) && idsSeen.add(id)) {
         list.add(_rebanhoRowToStruct(row));
       }
     }
 
-    // 1. Animais no JSON id_animais (legado)
-    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
-    for (final idRebanho in idAnimais) {
-      final id = idRebanho.trim();
-      if (id.isEmpty) continue;
-      final rows = await RebanhoTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('idRebanho', id)
-            .eqOrNull('idPropriedade', idPropriedadeLote)
-            .eqOrNull('deletado', 'NAO'),
-        limit: 1,
-      );
-      final row = rows.firstOrNull;
-      if (row != null) addIfNew(row);
-    }
-
-    // 2. Animais com loteID = id_lote
     final byLoteID = await RebanhoTable().queryRows(
       queryFn: (q) => q
           .eqOrNull('loteID', widget.idLote)
-          .eqOrNull('idPropriedade', idPropriedadeLote)
-          .eqOrNull('deletado', 'NAO'),
+          .eqOrNull('idPropriedade', idPropriedadeLote),
       limit: 10000,
     );
     for (final row in byLoteID) {
       addIfNew(row);
     }
 
-    // 3. Animais com loteNome = nome do lote
     final nomeLote = lote.nome;
     if (nomeLote != null && nomeLote.trim().isNotEmpty) {
       final byLoteNome = await RebanhoTable().queryRows(
         queryFn: (q) => q
             .eqOrNull('loteNome', nomeLote.trim())
-            .eqOrNull('idPropriedade', idPropriedadeLote)
-            .eqOrNull('deletado', 'NAO'),
+            .eqOrNull('idPropriedade', idPropriedadeLote),
         limit: 10000,
       );
       for (final row in byLoteNome) {
-        addIfNew(row);
+        if (_loteIdAusenteOuInvalido(row.loteID)) {
+          addIfNew(row);
+        }
       }
 
-      // 4. Animais com loteID = nome do lote (bug legado: loteID recebia o nome)
       final byLoteIDAsName = await RebanhoTable().queryRows(
         queryFn: (q) => q
             .eqOrNull('loteID', nomeLote.trim())
-            .eqOrNull('idPropriedade', idPropriedadeLote)
-            .eqOrNull('deletado', 'NAO'),
+            .eqOrNull('idPropriedade', idPropriedadeLote),
         limit: 10000,
       );
       for (final row in byLoteIDAsName) {
