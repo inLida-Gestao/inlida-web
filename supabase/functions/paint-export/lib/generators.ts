@@ -111,6 +111,32 @@ function loteByRebanhoId(ctx: ExportContext): Map<string, string> {
   return map;
 }
 
+// Mapa A12 -> loteNome, para derivar o grupo de manejo em tabelas keyed por A12
+// (DESMAMA, ANO_SOBREANO). O campo grupo_manejo_codigo dessas tabelas não é
+// preenchido no cadastro/importação, então caímos no grupo do lote atual do
+// animal — mesma fonte usada em ANIMAL/NASCIMENTO (manual §8.4).
+function loteNomeByA12(ctx: ExportContext): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const r of ctx.rebanhoRows ?? []) {
+    const a12 = ctx.a12ByRebanhoId.get(String(r.idRebanho ?? ""));
+    if (a12) map.set(a12.trim().toUpperCase(), String(r.loteNome ?? ""));
+  }
+  return map;
+}
+
+// grupo_manejo_codigo do registro OU, se vazio, o grupo derivado do lote do
+// animal (via A12). Usado por DESMAMA/ANO_SOBREANO.
+function grupoManejoAvaliacao(
+  r: any,
+  loteA12: Map<string, string>,
+  grupoByDescricao: Map<string, string>,
+): string {
+  const gm = String(r.grupo_manejo_codigo ?? "").trim();
+  if (gm) return gm;
+  const lote = loteA12.get(String(r.animal_a12 ?? "").trim().toUpperCase());
+  return grupoManejoFromLote(lote, grupoByDescricao);
+}
+
 // =============================================================================
 // FAZENDA — 1 linha derivada de propriedades + paint_fazenda_config
 // =============================================================================
@@ -599,6 +625,8 @@ async function genBaixa(ctx: ExportContext): Promise<string> {
 }
 
 async function genDesmama(ctx: ExportContext): Promise<string> {
+  const grupoByDescricao = await loadGrupoByDescricao(ctx);
+  const loteA12 = loteNomeByA12(ctx);
   return paintTableGenerator(ctx, "DESMAMA", "paint_avaliacao_desmama", (r, recno) => ({
     dsm_parceiro: ctx.config.codigo_transmissao,
     dsm_animal_id: r.animal_a12,
@@ -614,7 +642,7 @@ async function genDesmama(ctx: ExportContext): Promise<string> {
     dsm_nota_ce: "", // só sobreano
     dsm_nota_a: "",
     dsm_regime_alimentar_animal: r.regime_alimentar_codigo ?? "",
-    dsm_grupo_manejo: r.grupo_manejo_codigo ?? "",
+    dsm_grupo_manejo: grupoManejoAvaliacao(r, loteA12, grupoByDescricao),
     dsm_avaliador: r.avaliador_codigo ?? "",
     dsm_local: r.local_codigo ?? "",
     dsm_obs: (r.obs ?? "").toString().slice(0, 40),
@@ -627,6 +655,8 @@ async function genDesmama(ctx: ExportContext): Promise<string> {
 }
 
 async function genAnoSobreano(ctx: ExportContext): Promise<string> {
+  const grupoByDescricao = await loadGrupoByDescricao(ctx);
+  const loteA12 = loteNomeByA12(ctx);
   return paintTableGenerator(ctx, "ANO_SOBREANO", "paint_avaliacao_sobreano", (r, recno) => ({
     sbr_parceiro: ctx.config.codigo_transmissao,
     sbr_animal_id: r.animal_a12,
@@ -643,7 +673,7 @@ async function genAnoSobreano(ctx: ExportContext): Promise<string> {
     sbr_nota_ce: formatNumeric(r.nota_ce, 8, 2),
     sbr_nota_a: formatNumeric(r.nota_a, 8, 2),
     sbr_regime_alimentar_animal: r.regime_alimentar_codigo ?? "",
-    sbr_grupo_manejo: r.grupo_manejo_codigo ?? "",
+    sbr_grupo_manejo: grupoManejoAvaliacao(r, loteA12, grupoByDescricao),
     sbr_local: r.local_codigo ?? "",
     sbr_avaliador: r.avaliador_codigo ?? "",
     sbr_obs: (r.obs ?? "").toString().slice(0, 40),
