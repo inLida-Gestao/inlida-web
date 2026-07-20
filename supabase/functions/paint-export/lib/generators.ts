@@ -168,6 +168,36 @@ async function genFazenda(ctx: ExportContext): Promise<string> {
   return joinLines([buildLine(layout, row)]);
 }
 
+// Resolve o A12 do pai/mãe (ani_pai / ani_mae / nas_pai). O A12 posicional
+// depende da data de nascimento; touros de SÊMEN (reprodutor externo) não têm
+// data e a12FromRebanho retorna vazio — deixando o campo em branco. Nesses
+// casos o A12 real do pai é o próprio código de registro (já é um A12 do PAINT,
+// 12 chars, ex.: "pPECA 458115"). Mesmo tratamento do cob_touro na cobertura.
+// `allRows` deve ser o conjunto COMPLETO do rebanho (incluindo os de sêmen, que
+// não têm dataNascimento e são filtrados fora do NASCIMENTO).
+function makeParentA12Resolver(
+  ctx: ExportContext,
+  allRows: any[],
+): (idPai: unknown) => string {
+  const rowByRebanhoId = new Map<string, any>();
+  for (const a of allRows) {
+    if (a.idRebanho != null) rowByRebanhoId.set(String(a.idRebanho), a);
+  }
+  return (idPai: unknown): string => {
+    const key = idPai != null ? String(idPai) : "";
+    if (!key) return "";
+    const computed = ctx.a12ByRebanhoId.get(key) ?? "";
+    const parent = rowByRebanhoId.get(key);
+    const statusNorm = String(parent?.status ?? "")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+    const cr = String(parent?.codRegistro ?? "").trim();
+    // Pai de sêmen, ou qualquer pai cujo A12 posicional não pôde ser calculado:
+    // usa o código de registro quando já é um A12 do PAINT (12 chars).
+    if ((statusNorm === "semen" || !computed) && cr.length === 12) return cr;
+    return computed;
+  };
+}
+
 // =============================================================================
 // ANIMAL — populado a partir de rebanho. Compõe A12, A17 (= A12 sem alguns
 // chars + complemento, manual exige 17 chars; preencher com espaços), e busca
@@ -226,18 +256,16 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
     if (key) rahByA12.set(key, rah); // ordenado por data asc → fica a última
   }
 
+  const resolveParentA12 = makeParentA12Resolver(ctx, rows);
+
   const lines: string[] = [];
   let recno = 0;
   for (const r of rows) {
     recno += 1;
     const a12 = ctx.a12ByRebanhoId.get(String(r.idRebanho ?? "")) ??
       a12FromRebanho(ctx.config, r);
-    const paiA12 = r.rebanhoIdReprodutor && ctx.a12ByRebanhoId.has(String(r.rebanhoIdReprodutor))
-      ? ctx.a12ByRebanhoId.get(String(r.rebanhoIdReprodutor))!
-      : "";
-    const maeA12 = r.rebanhoIdMatriz && ctx.a12ByRebanhoId.has(String(r.rebanhoIdMatriz))
-      ? ctx.a12ByRebanhoId.get(String(r.rebanhoIdMatriz))!
-      : "";
+    const paiA12 = resolveParentA12(r.rebanhoIdReprodutor);
+    const maeA12 = resolveParentA12(r.rebanhoIdMatriz);
     const categoria = mapCategoriaPaint(r);
     const rah = rahByA12.get(a12.trim());
     const row: Record<string, unknown> = {
@@ -437,6 +465,9 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
       .neq("deletado", "SIM"),
   );
   const rows = rowsAll.filter((r) => r.dataNascimento != null);
+  // Resolver de pai usa o conjunto COMPLETO (rowsAll): pais de sêmen não têm
+  // dataNascimento e ficam fora de `rows`, mas precisam ser encontrados aqui.
+  const resolveParentA12 = makeParentA12Resolver(ctx, rowsAll);
 
   const grupoByDescricao = await loadGrupoByDescricao(ctx);
 
@@ -461,9 +492,7 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
     recno += 1;
     const a12Cria = ctx.a12ByRebanhoId.get(String(r.idRebanho)) ?? "";
     const matrizA12 = ctx.a12ByRebanhoId.get(String(r.rebanhoIdMatriz)) ?? "";
-    const paiA12 = r.rebanhoIdReprodutor
-      ? ctx.a12ByRebanhoId.get(String(r.rebanhoIdReprodutor)) ?? ""
-      : "";
+    const paiA12 = resolveParentA12(r.rebanhoIdReprodutor);
     const cob = coberturaByMatriz.get(String(r.rebanhoIdMatriz));
     lines.push(buildLine(layout, {
       nas_parceiro: ctx.config.codigo_transmissao,
