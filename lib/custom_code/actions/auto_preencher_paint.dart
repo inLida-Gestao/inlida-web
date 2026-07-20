@@ -3,6 +3,7 @@ import '/backend/supabase/supabase.dart';
 // Imports other custom actions
 import 'paint_excel_helpers.dart';
 import 'paint_helpers.dart';
+import 'paint_mappers.dart' show derivaSafraCodigo;
 // Imports custom functions
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
@@ -217,14 +218,18 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       for (final r in reproRows) {
         final nome = (r['inseminador'] ?? '').toString().trim();
         if (nome.isEmpty) continue;
-        final norm = nome.toUpperCase();
+        // Compara pelo MESMO valor que será gravado (truncado a 20): comparar
+        // o nome completo com a versão truncada já salva nunca casava, e cada
+        // clique em "Importar tudo" duplicava o cadastro com outro código.
+        final nomeGravado = nome.length > 20 ? nome.substring(0, 20) : nome;
+        final norm = nomeGravado.trim().toUpperCase();
         if (insExistNomes.contains(norm)) continue;
         if (insSet.contains(norm)) continue;
         insSet.add(norm);
         insertIns.add({
           'id_propriedade': idPropriedade,
           'codigo': _proximoCodigoLivre(insCodigosUsados),
-          'nome': nome.length > 20 ? nome.substring(0, 20) : nome,
+          'nome': nomeGravado,
           'situacao': 'ATIVO',
         });
       }
@@ -259,14 +264,18 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       for (final r in loteRows) {
         final nome = (r['nome'] ?? '').toString().trim();
         if (nome.isEmpty) continue;
-        final norm = nome.toUpperCase();
+        // Compara pela descrição como será gravada (truncada a 20). Lotes com
+        // nome maior que 20 chars nunca casavam com a descrição truncada já
+        // salva e eram re-inseridos com código novo a cada "Importar tudo".
+        final descrGravada = nome.length > 20 ? nome.substring(0, 20) : nome;
+        final norm = descrGravada.trim().toUpperCase();
         if (grpExistDesc.contains(norm)) continue;
         if (grpSet.contains(norm)) continue;
         grpSet.add(norm);
         insertGrp.add({
           'id_propriedade': idPropriedade,
           'codigo': _proximoCodigoLivre(grpCodigosUsados),
-          'descricao': nome.length > 20 ? nome.substring(0, 20) : nome,
+          'descricao': descrGravada,
         });
       }
       if (insertGrp.isNotEmpty) {
@@ -353,6 +362,11 @@ Future<Map<String, dynamic>> autoPreencherPaint(
     await exec('desmamas', () async {
       final desExist =
           existDes.map((e) => '${e['animal_a12']}|${e['data']}').toSet();
+      // Desmama é evento único por animal: se já existe avaliação de desmama
+      // (em qualquer data), não cria outra. dataDesmama/pesoDesmama podem ser
+      // corrigidos depois, e recriar em cada data nova duplicava a cada clique.
+      final desExistAnimal =
+          existDes.map((e) => (e['animal_a12'] ?? '').toString()).toSet();
       final insertDes = <Map<String, dynamic>>[];
       for (final r in rebanhoRows) {
         if (!filtroDesmama(r, status: status)) continue;
@@ -362,12 +376,14 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         if (peso == null || data == null) continue;
         final a = a12Of(r);
         if (a.isEmpty) continue;
+        if (desExistAnimal.contains(a)) continue;
         final dataStr = parseDateIso(data);
         if (dataStr == null) continue;
         if (!avDentro(dataStr)) continue;
         final key = '$a|$dataStr';
         if (desExist.contains(key)) continue;
         desExist.add(key);
+        desExistAnimal.add(a);
         insertDes.add({
           'id_propriedade': idPropriedade,
           'animal_a12': a,
@@ -386,6 +402,10 @@ Future<Map<String, dynamic>> autoPreencherPaint(
     await exec('sobreanos', () async {
       final sobExist =
           existSob.map((e) => '${e['animal_a12']}|${e['data']}').toSet();
+      // Animais que já têm alguma avaliação de sobreano — usado no fallback do
+      // rebanho (loop 2), que deriva de dataUltimaPesagem (campo móvel).
+      final sobExistAnimal =
+          existSob.map((e) => (e['animal_a12'] ?? '').toString()).toSet();
       final insertSob = <Map<String, dynamic>>[];
       for (final p in pesagemRows) {
         final tipo = (p['tipo'] ?? '').toString();
@@ -410,6 +430,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         final key = '$a|$dataStr';
         if (sobExist.contains(key)) continue;
         sobExist.add(key);
+        sobExistAnimal.add(a);
         insertSob.add({
           'id_propriedade': idPropriedade,
           'animal_a12': a,
@@ -425,12 +446,17 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         if (peso == null || data == null) continue;
         final a = a12Of(reb);
         if (a.isEmpty) continue;
+        // Fallback (última pesagem do rebanho): só para animal que ainda não
+        // tem NENHUM sobreano — dataUltimaPesagem muda a cada pesagem e
+        // recriar em cada data nova acumulava avaliações a cada clique.
+        if (sobExistAnimal.contains(a)) continue;
         final dataStr = parseDateIso(data);
         if (dataStr == null) continue;
         if (!avDentro(dataStr)) continue;
         final key = '$a|$dataStr';
         if (sobExist.contains(key)) continue;
         sobExist.add(key);
+        sobExistAnimal.add(a);
         insertSob.add({
           'id_propriedade': idPropriedade,
           'animal_a12': a,
@@ -449,6 +475,11 @@ Future<Map<String, dynamic>> autoPreencherPaint(
     await exec('rahs', () async {
       final rahExist =
           existRah.map((e) => '${e['animal_a12']}|${e['data']}').toSet();
+      // RAH deriva de pesoAtual/dataUltimaPesagem, que mudam a cada pesagem:
+      // se a matriz já tem avaliação RAH (em qualquer data), não cria outra —
+      // recriar na data da última pesagem duplicava a cada clique.
+      final rahExistAnimal =
+          existRah.map((e) => (e['animal_a12'] ?? '').toString()).toSet();
       final insertRah = <Map<String, dynamic>>[];
       for (final r in rebanhoRows) {
         if (!filtroMatrizes(r, status: status)) continue;
@@ -458,12 +489,14 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         if (peso == null || data == null) continue;
         final a = a12Of(r);
         if (a.isEmpty) continue;
+        if (rahExistAnimal.contains(a)) continue;
         final dataStr = parseDateIso(data);
         if (dataStr == null) continue;
         if (!avDentro(dataStr)) continue;
         final key = '$a|$dataStr';
         if (rahExist.contains(key)) continue;
         rahExist.add(key);
+        rahExistAnimal.add(a);
         insertRah.add({
           'id_propriedade': idPropriedade,
           'animal_a12': a,
@@ -480,10 +513,14 @@ Future<Map<String, dynamic>> autoPreencherPaint(
 
     // ---------------- 9. DIAGNÓSTICO ----------------
     await exec('diagnosticos', () async {
+      // Chave normalizada: a data do banco é DATE (yyyy-MM-dd); normalizar os
+      // dois lados evita re-inserir por diferença de formato.
       final diagExist = existDiag
-          .map((e) => '${e['animal_a12']}|${e['data']}|${e['safra_codigo']}')
+          .map((e) =>
+              '${e['animal_a12']}|${parseDateIso(e['data']) ?? e['data']}|${(e['safra_codigo'] ?? '').toString().trim()}')
           .toSet();
       final insertDiag = <Map<String, dynamic>>[];
+      final safrasNecessarias = <String>{};
       for (final rep in reproRows) {
         final status =
             (rep['status_reproducao'] ?? '').toString().toLowerCase();
@@ -500,22 +537,53 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         final reb = rebanhoById[idMatriz];
         if (reb == null) continue;
         if (!nascDentro(reb)) continue;
-        if (!avDentro(parseDateIso(dataDiag))) continue;
+        final dataStr = parseDateIso(dataDiag);
+        if (dataStr == null) continue;
+        if (!avDentro(dataStr)) continue;
         final a = a12Of(reb);
         if (a.isEmpty) continue;
-        final dataStr = dataDiag is String ? dataDiag : dataDiag.toString();
-        final key = '$a|$dataStr|$codSafra';
+        // Safra derivada da DATA do diagnóstico (manual §8.5, janela
+        // 01/06–31/05) — não a safra do dia do clique: carimbar a safra atual
+        // reetiquetava o histórico inteiro a cada trimestre e duplicava os
+        // diagnósticos em cada nova execução.
+        final safraDiag = derivaSafraCodigo(dataStr);
+        if (safraDiag.isEmpty) continue;
+        final key = '$a|$dataStr|$safraDiag';
         if (diagExist.contains(key)) continue;
         diagExist.add(key);
+        safrasNecessarias.add(safraDiag);
         insertDiag.add({
           'id_propriedade': idPropriedade,
-          'safra_codigo': codSafra,
+          'safra_codigo': safraDiag,
           'animal_a12': a,
           'data': dataStr,
           'resultado': resultadoPV,
         });
       }
       if (insertDiag.isNotEmpty) {
+        // Garante o cadastro das safras referenciadas pelos diagnósticos.
+        final safrasExistentes = existSafras
+            .map((e) => (e['codigo'] ?? '').toString().trim())
+            .toSet();
+        final novasSafras = <Map<String, dynamic>>[];
+        for (final cod in safrasNecessarias) {
+          if (safrasExistentes.contains(cod)) continue;
+          final ano = int.tryParse(cod.substring(0, cod.length - 1));
+          if (ano == null) continue;
+          novasSafras.add({
+            'id_propriedade': idPropriedade,
+            'codigo': cod,
+            'descricao': 'Safra $cod',
+            'data_inicio': '$ano-06-01',
+            'data_final': '${ano + 1}-05-31',
+            'concluida': false,
+          });
+        }
+        if (novasSafras.isNotEmpty) {
+          await _upsertIgnore(
+              client, 'paint_safra', novasSafras, 'id_propriedade,codigo');
+          result['safras'] = (result['safras'] as int) + novasSafras.length;
+        }
         await _upsertIgnore(client, 'paint_diagnostico', insertDiag,
             'id_propriedade,safra_codigo,animal_a12,data');
         result['diagnosticos'] = insertDiag.length;
