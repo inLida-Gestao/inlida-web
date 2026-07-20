@@ -14,8 +14,10 @@ class PrenhezDataPoint {
   final String titulo;
   final double porcentagem;
   final String porcentagemFormatada;
+
   /// Prenhes na categoria (numerador da taxa), quando a API enviar.
   final int? totalPrenhe;
+
   /// Denominador da taxa (inseminações ou matrizes expostas), quando a API enviar.
   final int? totalInseminadas;
 
@@ -112,8 +114,7 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
           final m = Map<String, dynamic>.from(json);
 
           final tituloRaw = m['titulo'] ?? m['label'];
-          final tituloStr =
-              tituloRaw == null ? null : tituloRaw.toString().trim();
+          final tituloStr = tituloRaw?.toString().trim();
           if (tituloStr == null || tituloStr.isEmpty) return null;
 
           final prenhe = _countsFromJson(m, const [
@@ -152,7 +153,8 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
           if (porcentagem == null) return null;
 
           final double pctDouble = porcentagem.toDouble();
-          final double pct0a1 = (pctDouble > 1.0) ? (pctDouble / 100.0) : pctDouble;
+          final double pct0a1 =
+              (pctDouble > 1.0) ? (pctDouble / 100.0) : pctDouble;
           final porcentagemNormalizada = pct0a1.clamp(0.0, 1.0);
 
           return PrenhezDataPoint(
@@ -167,7 +169,8 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
   }
 
   /// Linha agregada "Todos": com contagens por categoria, usa taxa global (soma/soma) e o mesmo par (a/b).
-  static PrenhezDataPoint _linhaTodosAgregada(List<PrenhezDataPoint> categorias) {
+  static PrenhezDataPoint _linhaTodosAgregada(
+      List<PrenhezDataPoint> categorias) {
     final comContagem = categorias
         .where(
           (p) =>
@@ -177,10 +180,9 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
         )
         .toList();
     if (comContagem.length == categorias.length && categorias.isNotEmpty) {
-      final sumP =
-          comContagem.fold<int>(0, (a, p) => a + (p.totalPrenhe ?? 0));
-      final sumI = comContagem.fold<int>(
-          0, (acb, p) => acb + (p.totalInseminadas ?? 0));
+      final sumP = comContagem.fold<int>(0, (a, p) => a + (p.totalPrenhe ?? 0));
+      final sumI =
+          comContagem.fold<int>(0, (acb, p) => acb + (p.totalInseminadas ?? 0));
       final pct = sumI > 0 ? (sumP / sumI).clamp(0.0, 1.0) : 0.0;
       return PrenhezDataPoint(
         'Todos',
@@ -204,7 +206,8 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
     final items = _extractItems(widget.prenhezData);
     final List<PrenhezDataPoint> chartData = _parseData(items);
 
-    final categorias = chartData.where((p) => !_isLinhaTodosCategoria(p)).toList();
+    final categorias =
+        chartData.where((p) => !_isLinhaTodosCategoria(p)).toList();
 
     final List<PrenhezDataPoint> orderedData;
     if (categorias.isEmpty) {
@@ -215,10 +218,10 @@ class _TaxaPrenhezChartState extends State<TaxaPrenhezChart> {
     }
 
     final double? w =
-      (widget.width != null && widget.width!.isFinite) ? widget.width : null;
+        (widget.width != null && widget.width!.isFinite) ? widget.width : null;
     final double? h = (widget.height != null && widget.height!.isFinite)
-      ? widget.height
-      : null;
+        ? widget.height
+        : null;
 
     // Estado vazio
     if (orderedData.isEmpty) {

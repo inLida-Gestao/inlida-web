@@ -1122,6 +1122,21 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
     return list;
   }
 
+  /// Filtra os animais do lote pelo termo digitado na barra de pesquisa da aba
+  /// Animais. Casa com número, nome, registro e chip (case-insensitive).
+  List<RebanhoDTStruct> _filtrarAnimaisPorPesquisa(
+      List<RebanhoDTStruct> animais) {
+    final termo =
+        (_model.pesquisaTextController?.text ?? '').trim().toLowerCase();
+    if (termo.isEmpty) return animais;
+    return animais.where((a) {
+      return a.numeroAnimal.toLowerCase().contains(termo) ||
+          a.nome.toLowerCase().contains(termo) ||
+          a.codRegistro.toLowerCase().contains(termo) ||
+          a.chip.toLowerCase().contains(termo);
+    }).toList();
+  }
+
   RebanhoDTStruct _rowToStruct(RebanhoRow row) {
     return RebanhoDTStruct(
       id: row.id,
@@ -1193,6 +1208,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
           );
         }
         final animaisNesteLote = snapshot.data ?? <RebanhoDTStruct>[];
+        // Lista exibida na tabela da aba Animais, respeitando a barra de pesquisa.
+        final animaisFiltrados = _filtrarAnimaisPorPesquisa(animaisNesteLote);
         final animaisComPesagemAtual =
             animaisNesteLote.where((e) => e.hasPesoAtual()).toList();
 
@@ -3445,7 +3462,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                           children: [
                                                                             Text(
                                                                               'Animais neste lote (${valueOrDefault<String>(
-                                                                                animaisNesteLote.length.toString(),
+                                                                                animaisFiltrados.length.toString(),
                                                                                 '0',
                                                                               )})',
                                                                               style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -3641,7 +3658,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
                                                                               Builder(
                                                                             builder:
                                                                                 (context) {
-                                                                              final rebanhos = animaisNesteLote;
+                                                                              final rebanhos = animaisFiltrados;
                                                                               if (rebanhos.isEmpty) {
                                                                                 return const Center(
                                                                                   child: EmptyWidget(),

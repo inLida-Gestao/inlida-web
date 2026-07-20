@@ -21,6 +21,70 @@ String _sexoParaExportacao(dynamic raw) {
   return s;
 }
 
+bool _temValorSanidadeExport(dynamic value) =>
+    value != null && value.toString().trim().isNotEmpty;
+
+Future<void> _preencherDadosAnimaisSanidade(
+  List<Map<String, dynamic>> rows,
+) async {
+  const camposAnimal = [
+    'numeroAnimal',
+    'nome',
+    'dataNascimento',
+    'raca',
+    'sexo',
+  ];
+  final idsComDadosIncompletos = rows
+      .where((row) =>
+          camposAnimal.any((campo) => !_temValorSanidadeExport(row[campo])))
+      .map((row) => row['id_rebanho']?.toString().trim() ?? '')
+      .where((id) => id.isNotEmpty)
+      .toSet()
+      .toList(growable: false);
+
+  if (idsComDadosIncompletos.isEmpty) return;
+
+  const chunkSize = 200;
+  final animaisPorId = <String, Map<String, dynamic>>{};
+
+  try {
+    for (var start = 0;
+        start < idsComDadosIncompletos.length;
+        start += chunkSize) {
+      final end = start + chunkSize > idsComDadosIncompletos.length
+          ? idsComDadosIncompletos.length
+          : start + chunkSize;
+      final response = await SupaFlow.client
+          .from('rebanho')
+          .select('idRebanho, numeroAnimal, nome, dataNascimento, raca, sexo')
+          .inFilter('idRebanho', idsComDadosIncompletos.sublist(start, end));
+
+      for (final item in response) {
+        final animal = Map<String, dynamic>.from(item);
+        final idRebanho = animal['idRebanho']?.toString().trim() ?? '';
+        if (idRebanho.isNotEmpty) {
+          animaisPorId[idRebanho] = animal;
+        }
+      }
+    }
+  } catch (e) {
+    print('AVISO: não foi possível complementar dados do rebanho: $e');
+    return;
+  }
+
+  for (final row in rows) {
+    final idRebanho = row['id_rebanho']?.toString().trim() ?? '';
+    final animal = animaisPorId[idRebanho];
+    if (animal == null) continue;
+
+    for (final campo in camposAnimal) {
+      if (!_temValorSanidadeExport(row[campo])) {
+        row[campo] = animal[campo];
+      }
+    }
+  }
+}
+
 Future<bool> exportSanidadeExcel(String nameExcel, String idPropriedade) async {
   try {
     print('=== INÍCIO DA EXPORTAÇÃO - SANIDADE ===');
@@ -73,12 +137,13 @@ Future<bool> exportSanidadeExcel(String nameExcel, String idPropriedade) async {
       return false;
     }
 
+    await _preencherDadosAnimaisSanidade(allData);
+
     print('Criando Excel...');
     var excel = Excel.createExcel();
     Sheet sheet = excel['Sheet1'];
 
     const template = <String, String>{
-      'Animal': 'id_rebanho',
       'Numero': 'numeroAnimal',
       'Nome': 'nome',
       'Data_nascimento': 'dataNascimento',

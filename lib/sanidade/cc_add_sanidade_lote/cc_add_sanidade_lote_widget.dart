@@ -5,7 +5,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
-import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import 'package:flutter/material.dart';
 import 'cc_add_sanidade_lote_model.dart';
@@ -1736,30 +1735,10 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
     );
   }
 
-  /// Mesma regra de `PgViewLoteWidget._loadAnimaisDoLote`: lista `id_animais` do lote
-  /// quando existir; senão animais com `loteID` ou `loteNome` na propriedade.
+  /// Mesma regra de `PgViewLoteWidget._loadAnimaisDoLote`: animais com
+  /// `loteID` ou `loteNome` na propriedade.
   /// Evita divergência entre a contagem na tela do lote e o lançamento de sanidade.
   Future<List<RebanhoRow>> _rebanhosDoLoteAlinhadoComTelaLote(LotesRow lote) async {
-    final idAnimais = functions.converterJSONparaLista(lote.idAnimais) ?? [];
-    final hasIdAnimais = idAnimais.any((id) => id.trim().isNotEmpty);
-
-    if (hasIdAnimais) {
-      final list = <RebanhoRow>[];
-      for (final idRebanho in idAnimais) {
-        if (idRebanho.trim().isEmpty) continue;
-        final rows = await RebanhoTable().queryRows(
-          queryFn: (q) => q
-              .eqOrNull('idRebanho', idRebanho)
-              .eqOrNull('deletado', 'NAO'),
-        );
-        final row = rows.firstOrNull;
-        if (row != null) {
-          list.add(row);
-        }
-      }
-      return list;
-    }
-
     final idPropriedadeLote = lote.idPropriedade;
     final nomeLote = lote.nome;
     if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) {
@@ -1846,7 +1825,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
       final loteDbIdStr = _loteSelecionadoDbId?.trim();
       final idProp = FFAppState().propriedadeSelecionada.idPropriedade;
 
-      // Buscar animais do lote (alinhado à tela do lote: id_animais / loteID / loteNome)
+      // Buscar animais do lote (alinhado à tela do lote: loteID / loteNome)
       LotesRow? loteRow;
       final lotesPorIdLote = await LotesTable().queryRows(
         queryFn: (q) => q
