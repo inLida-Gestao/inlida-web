@@ -27,4 +27,5 @@ export 'export_paint_avaliacao_excel.dart'
 export 'import_paint_avaliacao_excel.dart' show importPaintAvaliacaoExcel;
 export 'export_paint_resultados_excel.dart' show exportPaintResultadosExcel;
 export 'registrar_paint_excluido.dart' show registrarPaintExcluido;
+export 'resetar_dados_paint.dart' show resetarDadosPaint;
 export 'paint_helpers.dart' show formatA12, PaintEstrategiaA12, parseEstrategiaA12;

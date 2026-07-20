@@ -629,9 +629,13 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         if (!ehTouro) continue;
         final a = a12Of(r);
         if (a.isEmpty) continue;
-        if (bibExist.contains(a)) continue;
-        if (bibSet.contains(a)) continue;
-        bibSet.add(a);
+        // Chave normalizada (trim): bibExist vem do banco com trim; comparar o
+        // A12 cru re-enviava os mesmos touros a cada clique (upsert pela PK não
+        // duplica, mas o contador reportava "importados" indevidamente).
+        final chave = a.trim();
+        if (bibExist.contains(chave)) continue;
+        if (bibSet.contains(chave)) continue;
+        bibSet.add(chave);
         final nome = (r['nome'] ?? r['numeroAnimal'] ?? '').toString().trim();
         final raca = (r['raca'] ?? '').toString().trim();
         final racaCurta = raca.isEmpty

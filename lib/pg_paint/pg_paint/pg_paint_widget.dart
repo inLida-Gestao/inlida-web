@@ -1917,9 +1917,183 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                     ),
                   ),
                 ],
+                const SizedBox(height: 20),
+                Divider(color: theme.alternate),
+                const SizedBox(height: 4),
+                Text(
+                  'Zona de risco',
+                  style: theme.bodyMedium.override(
+                    fontFamily: 'Readex Pro',
+                    color: theme.error,
+                    fontWeight: FontWeight.w600,
+                    useGoogleFonts:
+                        GoogleFonts.asMap().containsKey('Readex Pro'),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Apaga todos os dados PAINT desta propriedade (avaliações, '
+                  'diagnósticos, cadastros derivados e histórico de '
+                  'exportações) para recomeçar do zero. A configuração '
+                  '(códigos PAINT) e a Biblioteca de Touros não são afetadas.',
+                  style: theme.bodySmall,
+                ),
+                const SizedBox(height: 8),
+                FFButtonWidget(
+                  onPressed: (_model.resetandoPaint || _idPropriedade.isEmpty)
+                      ? null
+                      : _confirmarResetPaint,
+                  text: _model.resetandoPaint
+                      ? 'Resetando dados PAINT...'
+                      : 'Resetar dados PAINT',
+                  icon: const Icon(Icons.delete_forever, size: 16),
+                  options: FFButtonOptions(
+                    height: 36,
+                    padding:
+                        const EdgeInsetsDirectional.fromSTEB(14, 0, 14, 0),
+                    color: theme.secondaryBackground,
+                    textStyle: theme.bodyMedium.override(
+                      fontFamily: 'Readex Pro',
+                      color: theme.error,
+                      useGoogleFonts:
+                          GoogleFonts.asMap().containsKey('Readex Pro'),
+                    ),
+                    elevation: 0,
+                    borderSide: BorderSide(color: theme.error),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                if (_model.mensagemReset != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _model.mensagemReset!,
+                    style: theme.bodySmall,
+                  ),
+                ],
               ],
             ),
     );
+  }
+
+  Future<void> _confirmarResetPaint() async {
+    if (_idPropriedade.isEmpty) return;
+    final nomeFazenda = FFAppState().propriedadeSelecionada.nome;
+    final confirmController = TextEditingController();
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final theme = FlutterFlowTheme.of(dialogContext);
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            final habilitado =
+                confirmController.text.trim().toUpperCase() == 'RESETAR';
+            return AlertDialog(
+              title: Text(
+                nomeFazenda.isEmpty
+                    ? 'Resetar dados PAINT'
+                    : 'Resetar dados PAINT — $nomeFazenda',
+              ),
+              content: SizedBox(
+                width: 460,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Isso apaga TODOS os dados PAINT desta propriedade:\n'
+                      '• avaliações (desmama, sobreano, matrizes) e diagnósticos;\n'
+                      '• cadastros derivados (grupos de manejo, inseminadores, '
+                      'safras, matrizes por safra, localidades, regimes, '
+                      'avaliadores, baixas, estoque, touro múltiplo, '
+                      'composição racial);\n'
+                      '• histórico de exportações.\n\n'
+                      'NÃO apaga a configuração PAINT (códigos) nem a '
+                      'Biblioteca de Touros. O rebanho, lotes e reproduções do '
+                      'inLida não são tocados.\n\n'
+                      'Esta ação não pode ser desfeita. Digite RESETAR para '
+                      'confirmar:',
+                      style: theme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: confirmController,
+                      autofocus: true,
+                      onChanged: (_) => setStateDialog(() {}),
+                      decoration: const InputDecoration(
+                        hintText: 'RESETAR',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: habilitado
+                      ? () => Navigator.of(dialogContext).pop(true)
+                      : null,
+                  child: Text(
+                    'Apagar tudo',
+                    style: TextStyle(
+                      color: habilitado ? theme.error : theme.secondaryText,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    // Defesa em profundidade: além do gate do botão, revalida o texto digitado
+    // após o diálogo fechar (protege contra confirmação acidental/sintética).
+    final textoDigitado = confirmController.text.trim().toUpperCase();
+    confirmController.dispose();
+    if (confirmado != true || textoDigitado != 'RESETAR') return;
+    await _resetarDadosPaint();
+  }
+
+  Future<void> _resetarDadosPaint() async {
+    final propId = _idPropriedade;
+    safeSetState(() {
+      _model.resetandoPaint = true;
+      _model.mensagemReset = null;
+    });
+    try {
+      final r = await paint_actions.resetarDadosPaint(propId);
+      if (!_aindaMesmaPropriedade(propId)) return;
+      final total = (r['total'] as int?) ?? 0;
+      safeSetState(() {
+        _model.resetandoPaint = false;
+        if ((r['erro'] as int?) == 1) {
+          _model.mensagemReset =
+              '⚠ ${r['mensagem']} ($total registros removidos até a falha — '
+              'clique novamente para concluir.)';
+        } else {
+          _model.mensagemReset =
+              '✓ Dados PAINT resetados: $total registros removidos.';
+        }
+        // Estado de exportação da sessão fica obsoleto após o reset.
+        _model.exportJobStatus = null;
+        _model.exportStoragePath = null;
+        _model.exportNomeZip = null;
+        _model.linkUltimoZip = null;
+        _model.mensagemExport = null;
+      });
+      await _carregarStatus();
+    } catch (e) {
+      if (!_aindaMesmaPropriedade(propId)) return;
+      safeSetState(() {
+        _model.resetandoPaint = false;
+        _model.mensagemReset = '⚠ Erro ao resetar: $e';
+      });
+    }
   }
 
   Widget _statusLinha({

@@ -53,6 +53,9 @@ class PgPaintModel extends FlutterFlowModel<PgPaintWidget> {
   String? mensagemAuto;
   Map<String, int> counts = const {};
 
+  bool resetandoPaint = false;
+  String? mensagemReset;
+
   bool exportandoExcel = false;
   bool importandoExcel = false;
   String? mensagemExcel;
