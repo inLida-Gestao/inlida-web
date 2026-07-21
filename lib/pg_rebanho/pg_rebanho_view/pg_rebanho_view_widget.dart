@@ -206,9 +206,15 @@ class PgRebanhoViewWidget extends StatefulWidget {
   const PgRebanhoViewWidget({
     super.key,
     required this.idRebanho,
+    this.returnToLoteId,
+    this.returnToLoteNome,
   });
 
   final String? idRebanho;
+  // Quando o animal é aberto a partir de um lote, guardamos o lote de origem
+  // para que ao salvar a edição o app volte à lista de animais do lote.
+  final String? returnToLoteId;
+  final String? returnToLoteNome;
 
   static String routeName = 'pgRebanhoView';
   static String routePath = '/viewrebanho';
@@ -9127,6 +9133,17 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                           pgRebanhoViewRebanhoRow
                                                               ?.id,
                                                           ParamType.int,
+                                                        ),
+                                                        'returnToLoteId':
+                                                            serializeParam(
+                                                          widget.returnToLoteId,
+                                                          ParamType.String,
+                                                        ),
+                                                        'returnToLoteNome':
+                                                            serializeParam(
+                                                          widget
+                                                              .returnToLoteNome,
+                                                          ParamType.String,
                                                         ),
                                                       }.withoutNulls,
                                                       extra: <String, dynamic>{

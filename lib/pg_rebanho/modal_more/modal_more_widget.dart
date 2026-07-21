@@ -301,6 +301,14 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                       _model.rebanho?.firstOrNull?.idRebanho,
                       ParamType.String,
                     ),
+                    'returnToLoteId': serializeParam(
+                      widget.returnToLoteId,
+                      ParamType.String,
+                    ),
+                    'returnToLoteNome': serializeParam(
+                      widget.returnToLoteNome,
+                      ParamType.String,
+                    ),
                   }.withoutNulls,
                   extra: <String, dynamic>{
                     kTransitionInfoKey: const TransitionInfo(
