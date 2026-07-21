@@ -151,6 +151,8 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
         pLimite: _rebanhoPageLimit,
         pOffset:
             functions.calcDeslocamento(_model.pageNum, _rebanhoPageLimit),
+        pOrdenar: _model.rebanhosOrdenar,
+        pAsc: _model.rebanhosAsc,
       );
       final countFuture =
           FunctionsSupabaseRebanhoGroup.countRebanhoFiltrosCall.call(
@@ -1931,15 +1933,17 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
                                           ),
                                           onSortChanged:
                                               (columnIndex, ascending) async {
-                                            _model.rebanhosPage = functions
-                                                .rebanhoSortingFunction(
-                                                    _model.rebanhosPage
-                                                        .toList(),
-                                                    columnIndex,
-                                                    ascending)!
-                                                .toList()
-                                                .cast<RebanhoDTStruct>();
-                                            safeSetState(() {});
+                                            // Ordena no servidor (dataset
+                                            // inteiro) e recarrega da página 1
+                                            // — senão a ordem só valeria para a
+                                            // página exibida.
+                                            _model.rebanhosOrdenar =
+                                                columnIndex == 3
+                                                    ? 'nascimento'
+                                                    : 'numero';
+                                            _model.rebanhosAsc = ascending;
+                                            await _loadRebanhos(
+                                                resetPage: true);
                                           },
                                           paginated: false,
                                           selectable: false,
