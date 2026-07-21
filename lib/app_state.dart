@@ -18,6 +18,7 @@ class FFAppState extends ChangeNotifier {
     'Parainfluenza e herpes',
     'Raiva',
     'Rinotraqueíte (IBR)',
+    'Outros',
   ];
 
   static const List<String> _kTratamentoOptions = <String>[
@@ -30,6 +31,7 @@ class FFAppState extends ChangeNotifier {
     'Complexo Vitamínico & Mineral',
     'Homeopático',
     'Hormônio',
+    'Outros',
   ];
 
   static const List<String> _kAntiparasitarioOptions = <String>[
@@ -45,6 +47,7 @@ class FFAppState extends ChangeNotifier {
     'Ivermectina',
     'Levamisol',
     'Moxidectina',
+    'Outros',
   ];
 
   static const List<String> _kProtocoloReprodutivoOptions = <String>[
@@ -52,6 +55,7 @@ class FFAppState extends ChangeNotifier {
     'D0-D8-D10',
     'D0-D9-D11',
     'D0-D7-D9-D11',
+    'Outros',
   ];
 
   static const List<String> _kRacaOptions = <String>[

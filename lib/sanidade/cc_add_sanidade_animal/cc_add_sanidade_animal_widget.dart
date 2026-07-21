@@ -1723,6 +1723,35 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
       return;
     }
 
+    // Cada seção de sanidade selecionada exige uma opção no dropdown (uma da
+    // lista ou "Outros"). Sem isso o registro era salvo vazio.
+    final faltandoOpcao = <String>[];
+    if (_model.tiposSelecionados.contains('Vacinação') &&
+        !(_model.vacinaDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Vacinação');
+    }
+    if (_model.tiposSelecionados.contains('Antiparasitário') &&
+        !(_model.antiparasitarioDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Antiparasitário');
+    }
+    if (_model.tiposSelecionados.contains('Tratamento') &&
+        !(_model.tratamentoDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Tratamento');
+    }
+    if (_model.tiposSelecionados.contains('Protocolo reprodutivo') &&
+        (_model.protocoloDropdownValue ?? '').trim().isEmpty) {
+      faltandoOpcao.add('Protocolo reprodutivo');
+    }
+    if (faltandoOpcao.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Selecione uma opção em: ${faltandoOpcao.join(', ')}'),
+        ),
+      );
+      return;
+    }
+
     try {
       final vacinaOutros = _model.vacinaOutrosTextController.text.trim();
       final vacinaObs = _model.vacinaObsTextController.text.trim();
