@@ -3011,8 +3011,9 @@ class _PgReproducaoViewAnimalWidgetState
                                               _model.reproducaoSelecionada
                                                   ?.dataParto;
                                           if (dataInsem == null ||
-                                              dataParto == null)
+                                              dataParto == null) {
                                             return const SizedBox.shrink();
+                                          }
                                           final dias = dataParto
                                               .difference(dataInsem)
                                               .inDays;

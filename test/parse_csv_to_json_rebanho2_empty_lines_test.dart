@@ -128,6 +128,26 @@ void main() {
     expect(row9['numeroAnimal'], 'LAMPIÃO');
   });
 
+  test('parseCsvToJsonRebanho2 aceita asterisco no animal e reprodutor',
+      () async {
+    final csv = [
+      'numeroAnimal;nome;sexo;raca;numeroReprodutor\n',
+      'PO JVA 2296 *;ANZION;Macho;Nelore PO;\n',
+      'WCT 164 M;WCT 02 371;Macho;Nelore;PO JVA 2296 *\n',
+    ].join();
+
+    final file = FFUploadedFile(
+      name: 'rebanho.csv',
+      bytes: Uint8List.fromList(latin1.encode(csv)),
+    );
+
+    final out = await parseCsvToJsonRebanho2(file);
+
+    expect(out, hasLength(2));
+    expect((out[0] as Map)['numeroAnimal'], 'PO JVA 2296 *');
+    expect((out[1] as Map)['numeroReprodutor'], 'PO JVA 2296 *');
+  });
+
   test('parseCsvToJsonRebanho2 lê Data_desmama de XLSX', () async {
     final excel = xl.Excel.createExcel();
     final sheet = excel['Sheet1'];

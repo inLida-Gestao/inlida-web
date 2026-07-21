@@ -11,6 +11,7 @@ import '/flutter_flow/form_field_controller.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
+import '/reproducao/reproducao_form_validation.dart';
 import '/reproducao/reproducao_status_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -4034,6 +4035,35 @@ class _PgReproducaoEditLoteWidgetState
                                                 ))
                                                   FFButtonWidget(
                                                     onPressed: () async {
+                                                      final erroMontaNatural =
+                                                          validarCamposMontaNatural(
+                                                        tipoReproducao: _model
+                                                            .tipoReproducao,
+                                                        dataInicial: _model
+                                                                .datePicked3 ??
+                                                            pgReproducaoEditLoteReproducaoRow
+                                                                .dataInicial,
+                                                        idReprodutor: _model
+                                                                .dropDownReprodutorValue ??
+                                                            pgReproducaoEditLoteReproducaoRow
+                                                                .idRebanhoReprodutor,
+                                                      );
+                                                      if (erroMontaNatural !=
+                                                          null) {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                                erroMontaNatural),
+                                                            backgroundColor:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .error,
+                                                          ),
+                                                        );
+                                                        return;
+                                                      }
                                                       if (_model
                                                               .tipoReproducao ==
                                                           'Inseminação') {
