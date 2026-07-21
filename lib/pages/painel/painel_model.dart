@@ -65,6 +65,9 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   // Single-select filter para Tipo de reprodução na Taxa de prenhez.
   // 'Todos' | 'Monta Natural' | 'Inseminação' | 'Ressinc'
   String filtroTipoTaxaPrenhezValue = 'Todos';
+  // Single-select filter de Ressinc na Taxa de concepção.
+  // 'Todos' | 'Ressinc' | 'Tradicional' | 'Precoce' | 'Superprecoce'
+  String filtroTipoConcepcaoValue = 'Todos';
   // Cache: edge taxa-prenhez → calcular_taxa_prenhez.
   Future<ApiCallResponse>? taxaConcepcaoFuture;
   String? taxaConcepcaoFutureKey;

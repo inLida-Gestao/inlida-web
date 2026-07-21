@@ -3702,11 +3702,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
                                                                   key: ValueKey(
-                                                                    'taxa_concepcao_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                    'taxa_concepcao_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoConcepcaoValue}',
                                                                   ),
                                                                   future: () {
                                                                     final taxaConcepcaoKey =
-                                                                        'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}';
+                                                                        'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoConcepcaoValue}';
                                                                     if (_model
                                                                             .taxaConcepcaoFutureKey !=
                                                                         taxaConcepcaoKey) {
@@ -3731,6 +3731,12 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         pInseminador: _model
                                                                             .filtroInseminadorTaxaConcepcaoValues
                                                                             .join(','),
+                                                                        pTipoReproducao: _model
+                                                                                    .filtroTipoConcepcaoValue ==
+                                                                                'Todos'
+                                                                            ? ''
+                                                                            : _model
+                                                                                .filtroTipoConcepcaoValue,
                                                                       );
                                                                     }
                                                                     return _model
@@ -3988,6 +3994,33 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           );
                                                                                         },
                                                                                       ),
+                                                                                      _buildSingleFilterChip(
+                                                                                        context,
+                                                                                        label: 'Ressinc',
+                                                                                        selectedValue: _model.filtroTipoConcepcaoValue == 'Todos' ? null : _model.filtroTipoConcepcaoValue,
+                                                                                        options: const [
+                                                                                          'Ressinc',
+                                                                                          'Tradicional',
+                                                                                          'Precoce',
+                                                                                          'Superprecoce',
+                                                                                        ],
+                                                                                        optionLabels: const [
+                                                                                          'Todas as ressinc',
+                                                                                          'Tradicional',
+                                                                                          'Precoce',
+                                                                                          'Superprecoce',
+                                                                                        ],
+                                                                                        onChanged: (val) {
+                                                                                          safeSetState(() {
+                                                                                            _model.filtroTipoConcepcaoValue = val;
+                                                                                          });
+                                                                                        },
+                                                                                        onClear: () {
+                                                                                          safeSetState(() {
+                                                                                            _model.filtroTipoConcepcaoValue = 'Todos';
+                                                                                          });
+                                                                                        },
+                                                                                      ),
                                                                                     ],
                                                                                   ),
                                                                                 ),
@@ -4020,7 +4053,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               height: double.infinity,
                                                                                               child: custom_widgets.TaxaPrenhezChart(
                                                                                                 key: ValueKey(
-                                                                                                  'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                                                  'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoConcepcaoValue}',
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
