@@ -44,6 +44,10 @@ class PgRebanhoModel extends FlutterFlowModel<PgRebanhoWidget> {
 
   int rebanhosRequestId = 0;
 
+  // Ordenação server-side ('' = padrão created_at; 'numero'; 'nascimento').
+  String rebanhosOrdenar = '';
+  bool rebanhosAsc = true;
+
   List<RebanhoDTStruct> rebanhosPage = [];
   void addToRebanhosPage(RebanhoDTStruct item) => rebanhosPage.add(item);
   void removeFromRebanhosPage(RebanhoDTStruct item) =>
