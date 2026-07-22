@@ -108,11 +108,14 @@ async function loadInseminadorByNome(ctx: ExportContext): Promise<Map<string, st
 }
 
 // Mapa idRebanho -> loteNome (a partir do pre-fetch de rebanho em genAnimal).
+// Memoizado em ctx: precisa existir mesmo depois de rebanhoRows ser liberado.
 function loteByRebanhoId(ctx: ExportContext): Map<string, string> {
+  if (ctx.loteNomePorRebanhoId) return ctx.loteNomePorRebanhoId;
   const map = new Map<string, string>();
   for (const r of ctx.rebanhoRows ?? []) {
     if (r.idRebanho) map.set(String(r.idRebanho), String(r.loteNome ?? ""));
   }
+  ctx.loteNomePorRebanhoId = map;
   return map;
 }
 
@@ -120,13 +123,25 @@ function loteByRebanhoId(ctx: ExportContext): Map<string, string> {
 // (DESMAMA, ANO_SOBREANO). O campo grupo_manejo_codigo dessas tabelas não é
 // preenchido no cadastro/importação, então caímos no grupo do lote atual do
 // animal — mesma fonte usada em ANIMAL/NASCIMENTO (manual §8.4).
+// Memoizado em ctx NO PREFETCH: DESMAMA/ANO_SOBREANO rodam depois de
+// rebanhoRows ser liberado (pós-NASCIMENTO); sem o cache o mapa sairia vazio
+// e o grupo de manejo dessas tabelas iria em branco (bug 2026-07-22).
 function loteNomeByA12(ctx: ExportContext): Map<string, string> {
+  if (ctx.loteNomePorA12) return ctx.loteNomePorA12;
   const map = new Map<string, string>();
   for (const r of ctx.rebanhoRows ?? []) {
     const a12 = ctx.a12ByRebanhoId.get(String(r.idRebanho ?? ""));
     if (a12) map.set(a12.trim().toUpperCase(), String(r.loteNome ?? ""));
   }
+  ctx.loteNomePorA12 = map;
   return map;
+}
+
+// Constrói os caches leves de lote enquanto rebanhoRows ainda está na memória.
+// Chamado pelo prefetch do index.ts, antes do loop de geração.
+export function primeLoteCaches(ctx: ExportContext): void {
+  loteNomeByA12(ctx);
+  loteByRebanhoId(ctx);
 }
 
 // grupo_manejo_codigo do registro OU, se vazio, o grupo derivado do lote do

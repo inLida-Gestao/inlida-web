@@ -3,8 +3,13 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
-import { GENERATORS, genUltimaTransmissao, type ExportContext, type PaintConfig }
-  from "./lib/generators.ts";
+import {
+  GENERATORS,
+  genUltimaTransmissao,
+  primeLoteCaches,
+  type ExportContext,
+  type PaintConfig,
+} from "./lib/generators.ts";
 import { PAINT_FILES, PAINT_ZIP_FILES } from "./lib/layouts.ts";
 import { encodeWin1252, formatDate, formatTime } from "./lib/fixed-width.ts";
 import { buildZipStore, type ZipEntry } from "./lib/zip-store.ts";
@@ -132,8 +137,12 @@ async function prefetchRebanho(ctx: ExportContext): Promise<void> {
       ctx.numeroByRebanhoId.set(String(r.idRebanho), String(r.numeroAnimal ?? ""));
     }
   }
+  // Constrói os mapas A12->lote e idRebanho->lote AGORA: rebanhoRows é
+  // liberado após NASCIMENTO (memória), mas DESMAMA/ANO_SOBREANO ainda
+  // precisam desses mapas para derivar o grupo de manejo.
+  primeLoteCaches(ctx);
   console.log(
-    `[paint-export] prefetch rebanho=${rows.length} a12=${ctx.a12ByRebanhoId.size}`,
+    `[paint-export] prefetch rebanho=${rows.length} a12=${ctx.a12ByRebanhoId.size} lotesA12=${ctx.loteNomePorA12?.size ?? 0}`,
   );
 }
 
