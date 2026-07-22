@@ -12,11 +12,10 @@ import '/flutter_flow/form_field_controller.dart';
 import '/pg_rebanho/pp_filtro_rebanho/pp_filtro_rebanho_widget.dart';
 import 'dart:async';
 import '/actions/actions.dart' as action_blocks;
-import '/custom_code/actions/remover_animal_de_lote_anterior.dart'
-    show removerAnimalDeLoteAnterior;
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
+import '/pg_lotes/lote_assignment_utils.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -2593,9 +2592,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             return;
                                                                           }
 
-                                                                          final idProp = FFAppState()
-                                                                              .propriedadeSelecionada
-                                                                              .idPropriedade;
                                                                           final destNome = _model.nomeLoteTextController.text.trim().isNotEmpty
                                                                               ? _model.nomeLoteTextController.text.trim()
                                                                               : (containerLotesRow?.nome ?? widget.loteNome ?? '').trim();
@@ -2647,16 +2643,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             if (!aceitou) {
                                                                               return;
                                                                             }
-
-                                                                            for (final a
-                                                                                in conflitos) {
-                                                                              await removerAnimalDeLoteAnterior(
-                                                                                idPropriedade: idProp,
-                                                                                idRebanho: a.idRebanho,
-                                                                                loteNomeHint: a.loteNome.trim().isNotEmpty && a.loteNome.trim().toLowerCase() != 'null' ? a.loteNome.trim() : null,
-                                                                                loteIdHint: a.loteID.trim().isNotEmpty && a.loteID.trim().toLowerCase() != 'null' ? a.loteID.trim() : null,
-                                                                              );
-                                                                            }
                                                                           }
 
                                                                           if (!context
@@ -2664,20 +2650,9 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             return;
                                                                           }
 
-                                                                          final idsConflito = conflitos
-                                                                              .map((e) => e.idRebanho)
-                                                                              .toSet();
                                                                           _model.animaisDentroLote = _model
                                                                               .animaisSelecionados
-                                                                              .map((a) {
-                                                                            if (idsConflito.contains(a.idRebanho)) {
-                                                                              final m = Map<String, dynamic>.from(a.toMap());
-                                                                              m['loteID'] = null;
-                                                                              m['loteNome'] = null;
-                                                                              return RebanhoDTStruct.fromMap(m);
-                                                                            }
-                                                                            return a;
-                                                                          }).toList();
+                                                                              .toList();
 
                                                                           safeSetState(
                                                                               () {});
@@ -3506,228 +3481,207 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                       ),
                                                       FFButtonWidget(
                                                         onPressed: () async {
-                                                          _model.index = 0;
-                                                          safeSetState(() {});
-                                                          // Primeiro remove do lote os animais retirados (para não incluí-los na atualização em massa)
-                                                          if (_model
-                                                              .animaisRetiradosLote
-                                                              .isNotEmpty) {
-                                                            while (_model
-                                                                    .index <
-                                                                _model
-                                                                    .animaisRetiradosLote
-                                                                    .length) {
-                                                              await RebanhoTable()
-                                                                  .update(
-                                                                data: {
-                                                                  'loteID':
-                                                                      'null',
-                                                                  'loteNome':
-                                                                      'null',
-                                                                  'updated_at':
-                                                                      supaSerialize<
-                                                                              DateTime>(
-                                                                          getCurrentTimestamp),
-                                                                },
-                                                                matchingRows:
-                                                                    (rows) => rows
-                                                                        .eqOrNull(
-                                                                  'idRebanho',
-                                                                  _model
-                                                                      .animaisRetiradosLote
-                                                                      .elementAtOrNull(
-                                                                          _model
-                                                                              .index)
-                                                                      ?.idRebanho,
-                                                                ),
-                                                              );
-                                                              _model.index =
-                                                                  _model.index +
-                                                                      1;
-                                                              safeSetState(
-                                                                  () {});
-                                                            }
-                                                            _model.index = 0;
-                                                            safeSetState(() {});
-                                                          }
-                                                          // Atualiza cada animal listado no lote (inclui os vindos de outro lote),
-                                                          // para que nome/status/venda fiquem consistentes ao salvar.
-                                                          final animaisRetiradosIds = _model
-                                                              .animaisRetiradosLote
-                                                              .map((e) => e
-                                                                  .idRebanho
-                                                                  .trim())
-                                                              .where((e) =>
-                                                                  e.isNotEmpty)
-                                                              .toSet();
-                                                          final animaisParaAtualizar =
-                                                              <RebanhoDTStruct>[];
-                                                          final animaisIdsSeen =
-                                                              <String>{};
-                                                          void addAnimalParaAtualizar(
-                                                              RebanhoDTStruct
-                                                                  animal) {
-                                                            final id = animal
-                                                                .idRebanho
-                                                                .trim();
-                                                            if (id.isEmpty ||
-                                                                animaisRetiradosIds
-                                                                    .contains(
-                                                                        id) ||
-                                                                !animaisIdsSeen
-                                                                    .add(id)) {
-                                                              return;
-                                                            }
-                                                            animaisParaAtualizar
-                                                                .add(animal);
+                                                          if (_model.isSaving) {
+                                                            return;
                                                           }
 
-                                                          for (final animal
-                                                              in _model
-                                                                  .animaisDentroLote) {
-                                                            addAnimalParaAtualizar(
-                                                                animal);
-                                                          }
-                                                          final animaisCarregados =
-                                                              await _loadAnimaisDoLoteParaEdicao();
-                                                          for (final animal
-                                                              in animaisCarregados) {
-                                                            addAnimalParaAtualizar(
-                                                                animal);
-                                                          }
-
-                                                          final novoLoteNome = _model
-                                                                  .nomeLoteTextController
-                                                                  .text
-                                                                  .isNotEmpty
-                                                              ? _model
-                                                                  .nomeLoteTextController
-                                                                  .text
-                                                              : containerLotesRow
-                                                                      ?.nome ??
-                                                                  widget
-                                                                      .loteNome;
-                                                          await SupaFlow.client
-                                                              .rpc(
-                                                            'salvar_lote_status_e_sincronizar_animais',
-                                                            params: {
-                                                              'p_id_propriedade':
-                                                                  containerLotesRow
-                                                                          ?.idPropriedade ??
-                                                                      FFAppState()
-                                                                          .propriedadeSelecionada
-                                                                          .idPropriedade,
-                                                              'p_id_lote':
-                                                                  containerLotesRow
-                                                                          ?.idLote ??
-                                                                      widget
-                                                                          .idLote,
-                                                              'p_nome':
-                                                                  novoLoteNome,
-                                                              'p_anotacoes': _model
-                                                                          .anotacoesTextController
-                                                                          .text !=
-                                                                      ''
-                                                                  ? _model
-                                                                      .anotacoesTextController
-                                                                      .text
-                                                                  : _model
-                                                                      .loteEdit
-                                                                      ?.firstOrNull
-                                                                      ?.anotacoes,
-                                                              'p_ativo':
-                                                                  _model.switchValue ==
-                                                                          true
-                                                                      ? 'Ativo'
-                                                                      : 'Inativo',
-                                                              'p_motivo': _model
-                                                                          .switchValue ==
-                                                                      true
-                                                                  ? null
-                                                                  : _model
-                                                                          .motivoCleared
-                                                                      ? null
-                                                                      : (_model
-                                                                              .dropDownLotesValue ??
-                                                                          containerLotesRow
-                                                                              ?.motivo),
-                                                              'p_data_motivo': _model
-                                                                          .switchValue ==
-                                                                      true
-                                                                  ? null
-                                                                  : _model
-                                                                          .dataMotivoCleared
-                                                                      ? null
-                                                                      : supaSerialize<
-                                                                          DateTime>(_model
-                                                                              .datePicked ??
-                                                                          containerLotesRow
-                                                                              ?.dataMotivo),
-                                                              'p_valor_venda': _model
-                                                                          .switchValue ==
-                                                                      true
-                                                                  ? null
-                                                                  : FFAppState()
-                                                                      .valueDouble2,
-                                                              'p_id_animais': functions.converterListaParaJSON(animaisParaAtualizar
-                                                                  .map((e) => e
-                                                                      .idRebanho)
-                                                                  .where((e) => e
-                                                                      .trim()
-                                                                      .isNotEmpty)
-                                                                  .toList()),
-                                                            },
-                                                          );
-                                                          _model.animaisDentroLote =
-                                                              [];
-                                                          _model.animaisSelecionados =
-                                                              [];
-                                                          _model.animaisRetiradosLote =
-                                                              [];
-                                                          safeSetState(() {});
-                                                          FFAppState()
-                                                                  .refreshLotes =
+                                                          _model.isSaving =
                                                               true;
                                                           safeSetState(() {});
-                                                          unawaited(
-                                                            () async {
-                                                              await action_blocks
-                                                                  .countLotes(
-                                                                      context);
-                                                            }(),
-                                                          );
-                                                          ScaffoldMessenger.of(
-                                                                  context)
-                                                              .showSnackBar(
-                                                            SnackBar(
-                                                              content: Text(
-                                                                'Lote atualizado com sucesso',
-                                                                style:
-                                                                    TextStyle(
-                                                                  color: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .secondaryBackground,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
-                                                                ),
-                                                              ),
-                                                              duration:
-                                                                  const Duration(
-                                                                      milliseconds:
-                                                                          4000),
-                                                              backgroundColor:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .secondary,
-                                                            ),
-                                                          );
 
-                                                          context.pushNamed(
-                                                              PgLotesWidget
-                                                                  .routeName);
+                                                          try {
+                                                            final animalIds =
+                                                                loteAnimalIds(_model
+                                                                    .animaisDentroLote);
+                                                            final novoLoteNome = _model
+                                                                    .nomeLoteTextController
+                                                                    .text
+                                                                    .trim()
+                                                                    .isNotEmpty
+                                                                ? _model
+                                                                    .nomeLoteTextController
+                                                                    .text
+                                                                    .trim()
+                                                                : containerLotesRow
+                                                                        ?.nome ??
+                                                                    widget
+                                                                        .loteNome;
+                                                            final response =
+                                                                await SupaFlow
+                                                                    .client
+                                                                    .rpc(
+                                                              'salvar_lote_status_e_sincronizar_animais',
+                                                              params: {
+                                                                'p_id_propriedade': containerLotesRow
+                                                                        ?.idPropriedade ??
+                                                                    FFAppState()
+                                                                        .propriedadeSelecionada
+                                                                        .idPropriedade,
+                                                                'p_id_lote':
+                                                                    containerLotesRow
+                                                                            ?.idLote ??
+                                                                        widget
+                                                                            .idLote,
+                                                                'p_nome':
+                                                                    novoLoteNome,
+                                                                'p_anotacoes': _model
+                                                                            .anotacoesTextController
+                                                                            .text !=
+                                                                        ''
+                                                                    ? _model
+                                                                        .anotacoesTextController
+                                                                        .text
+                                                                    : _model
+                                                                        .loteEdit
+                                                                        ?.firstOrNull
+                                                                        ?.anotacoes,
+                                                                'p_ativo': _model
+                                                                            .switchValue ==
+                                                                        true
+                                                                    ? 'Ativo'
+                                                                    : 'Inativo',
+                                                                'p_motivo': _model
+                                                                            .switchValue ==
+                                                                        true
+                                                                    ? null
+                                                                    : _model
+                                                                            .motivoCleared
+                                                                        ? null
+                                                                        : (_model.dropDownLotesValue ??
+                                                                            containerLotesRow?.motivo),
+                                                                'p_data_motivo': _model
+                                                                            .switchValue ==
+                                                                        true
+                                                                    ? null
+                                                                    : _model
+                                                                            .dataMotivoCleared
+                                                                        ? null
+                                                                        : supaSerialize<
+                                                                            DateTime>(_model
+                                                                                .datePicked ??
+                                                                            containerLotesRow?.dataMotivo),
+                                                                'p_valor_venda':
+                                                                    _model.switchValue ==
+                                                                            true
+                                                                        ? null
+                                                                        : FFAppState()
+                                                                            .valueDouble2,
+                                                                'p_id_animais':
+                                                                    functions
+                                                                        .converterListaParaJSON(
+                                                                            animalIds),
+                                                              },
+                                                            );
+
+                                                            if (response
+                                                                is! Map) {
+                                                              throw Exception(
+                                                                  'Resposta invalida ao salvar lote');
+                                                            }
+
+                                                            final result = Map<
+                                                                    String,
+                                                                    dynamic>.from(
+                                                                response);
+                                                            final requested =
+                                                                int.tryParse(
+                                                                    '${result['animais_solicitados']}');
+                                                            final linked =
+                                                                int.tryParse(
+                                                                    '${result['animais_vinculados']}');
+                                                            if (requested !=
+                                                                    animalIds
+                                                                        .length ||
+                                                                linked !=
+                                                                    animalIds
+                                                                        .length) {
+                                                              throw Exception(
+                                                                  'Quantidade de animais vinculados diferente da solicitada');
+                                                            }
+
+                                                            _model.animaisDentroLote =
+                                                                [];
+                                                            _model.animaisSelecionados =
+                                                                [];
+                                                            _model.animaisRetiradosLote =
+                                                                [];
+                                                            FFAppState()
+                                                                    .refreshLotes =
+                                                                true;
+                                                            safeSetState(() {});
+                                                            unawaited(
+                                                              () async {
+                                                                await action_blocks
+                                                                    .countLotes(
+                                                                        context);
+                                                              }(),
+                                                            );
+                                                            if (!context
+                                                                .mounted) {
+                                                              return;
+                                                            }
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                  'Lote atualizado com sucesso',
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .secondaryBackground,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w500,
+                                                                  ),
+                                                                ),
+                                                                duration: const Duration(
+                                                                    milliseconds:
+                                                                        4000),
+                                                                backgroundColor:
+                                                                    FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .secondary,
+                                                              ),
+                                                            );
+
+                                                            context.pushNamed(
+                                                                PgLotesWidget
+                                                                    .routeName);
+                                                          } catch (_) {
+                                                            if (!context
+                                                                .mounted) {
+                                                              return;
+                                                            }
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                  'Não foi possível salvar o lote. Verifique os animais selecionados e tente novamente.',
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .secondaryBackground,
+                                                                  ),
+                                                                ),
+                                                                backgroundColor:
+                                                                    FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .error,
+                                                              ),
+                                                            );
+                                                          } finally {
+                                                            _model.isSaving =
+                                                                false;
+                                                            safeSetState(() {});
+                                                          }
                                                         },
-                                                        text: 'Salvar',
+                                                        text: _model.isSaving
+                                                            ? 'Salvando...'
+                                                            : 'Salvar',
                                                         options:
                                                             FFButtonOptions(
                                                           width: 160.0,
