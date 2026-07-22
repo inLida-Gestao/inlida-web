@@ -1050,6 +1050,11 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
     _model.pesquisaTextController ??= TextEditingController();
     _model.pesquisaFocusNode ??= FocusNode();
 
+    // O filtro avançado (modal "Filtrar" -> PpFiltroRebanhoWidget) usa o estado
+    // global FFAppState().filtro*, compartilhado com a tela Rebanho. Zeramos ao
+    // entrar para o lote começar sem filtro herdado de outra tela.
+    _limparFiltrosAvancados();
+
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {
           _model.dataEntradaLoteTextController?.text = dateTimeFormat(
             "d/M/y",
@@ -1137,6 +1142,71 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
     }).toList();
   }
 
+  /// Aplica os filtros escolhidos no modal "Filtrar" (PpFiltroRebanhoWidget),
+  /// que grava as seleções em FFAppState().filtro*. Como os animais do lote já
+  /// vêm carregados em memória, filtramos client-side. Os filtros de lote
+  /// (id/nome) são ignorados de propósito: a lista já está restrita a este lote.
+  List<RebanhoDTStruct> _aplicarFiltrosAvancados(
+      List<RebanhoDTStruct> animais) {
+    final appState = FFAppState();
+    final sexo = appState.filtroSexo.trim().toLowerCase();
+    final status = appState.filtroStatusRebanho.trim().toLowerCase();
+    final categoria = appState.filtroCategoria.trim().toLowerCase();
+    final raca = appState.filtroRaca.trim().toLowerCase();
+    final origem = appState.filtroOrigem.trim().toLowerCase();
+    final nascDe = _soData(appState.filtroDataNacimentoDe);
+    final nascAte = _soData(appState.filtroDataNacimentoAte);
+
+    final semFiltro = sexo.isEmpty &&
+        status.isEmpty &&
+        categoria.isEmpty &&
+        raca.isEmpty &&
+        origem.isEmpty &&
+        nascDe == null &&
+        nascAte == null;
+    if (semFiltro) return animais;
+
+    return animais.where((a) {
+      if (sexo.isNotEmpty && a.sexo.trim().toLowerCase() != sexo) return false;
+      if (status.isNotEmpty && a.status.trim().toLowerCase() != status) {
+        return false;
+      }
+      if (categoria.isNotEmpty &&
+          a.categoria.trim().toLowerCase() != categoria) {
+        return false;
+      }
+      if (raca.isNotEmpty && a.raca.trim().toLowerCase() != raca) return false;
+      if (origem.isNotEmpty && a.origem.trim().toLowerCase() != origem) {
+        return false;
+      }
+      if (nascDe != null || nascAte != null) {
+        final nasc = _soData(DateTime.tryParse(a.dataNascimento));
+        if (nasc == null) return false;
+        if (nascDe != null && nasc.isBefore(nascDe)) return false;
+        if (nascAte != null && nasc.isAfter(nascAte)) return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  /// Normaliza para data (sem hora) para comparação de faixa de nascimento.
+  DateTime? _soData(DateTime? d) =>
+      d == null ? null : DateTime(d.year, d.month, d.day);
+
+  /// Zera os campos de filtro avançado (globais) usados por esta tela.
+  void _limparFiltrosAvancados() {
+    final appState = FFAppState();
+    appState.filtroSexo = '';
+    appState.filtroStatusRebanho = '';
+    appState.filtroCategoria = '';
+    appState.filtroRaca = '';
+    appState.filtroOrigem = '';
+    appState.filtroDataNacimentoDe = null;
+    appState.filtroDataNacimentoAte = null;
+    appState.filtroLoteId = '';
+    appState.filtroLoteNome = '';
+  }
+
   RebanhoDTStruct _rowToStruct(RebanhoRow row) {
     return RebanhoDTStruct(
       id: row.id,
@@ -1178,6 +1248,8 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
 
   @override
   void dispose() {
+    // Não deixa o filtro avançado deste lote vazar para outras telas (Rebanho).
+    _limparFiltrosAvancados();
     _model.dispose();
 
     super.dispose();
@@ -1208,8 +1280,10 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
           );
         }
         final animaisNesteLote = snapshot.data ?? <RebanhoDTStruct>[];
-        // Lista exibida na tabela da aba Animais, respeitando a barra de pesquisa.
-        final animaisFiltrados = _filtrarAnimaisPorPesquisa(animaisNesteLote);
+        // Lista exibida na tabela da aba Animais: aplica o filtro avançado
+        // (modal "Filtrar") e a barra de pesquisa.
+        final animaisFiltrados = _filtrarAnimaisPorPesquisa(
+            _aplicarFiltrosAvancados(animaisNesteLote));
         final animaisComPesagemAtual =
             animaisNesteLote.where((e) => e.hasPesoAtual()).toList();
 
