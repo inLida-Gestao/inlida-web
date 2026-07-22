@@ -49,6 +49,8 @@ class PgEditLoteModel extends FlutterFlowModel<PgEditLoteWidget> {
 
   bool ativo = true;
 
+  bool isSaving = false;
+
   // Local filter state for "Animais neste lote" (right side)
   String filtroRightSexo = '';
   String filtroRightCategoria = '';
@@ -105,14 +107,14 @@ class PgEditLoteModel extends FlutterFlowModel<PgEditLoteWidget> {
   // State field(s) for DropDownLotes widget.
   String? dropDownLotesValue;
   FormFieldController<String>? dropDownLotesValueController;
-    bool motivoCleared = false;
+  bool motivoCleared = false;
   // State field(s) for dataEntradaLote widget.
   FocusNode? dataEntradaLoteFocusNode;
   TextEditingController? dataEntradaLoteTextController;
   String? Function(BuildContext, String?)?
       dataEntradaLoteTextControllerValidator;
   DateTime? datePicked;
-    bool dataMotivoCleared = false;
+  bool dataMotivoCleared = false;
   // State field(s) for pesquisa widget.
   FocusNode? pesquisaFocusNode;
   TextEditingController? pesquisaTextController;

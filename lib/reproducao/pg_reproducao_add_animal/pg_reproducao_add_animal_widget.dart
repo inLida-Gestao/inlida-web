@@ -3405,11 +3405,17 @@ class _PgReproducaoAddAnimalWidgetState
                                                 ),
                                           ),
                                           InseminadorAutocompleteField(
-                                            controller: _model.nomeInseminadorTextController ??= TextEditingController(),
-                                            focusNode: _model.nomeInseminadorFocusNode ??= FocusNode(),
-                                            idPropriedade:
-                                                FFAppState().propriedadeSelecionada.idPropriedade,
-                                            validator: _model.nomeInseminadorTextControllerValidator
+                                            controller: _model
+                                                    .nomeInseminadorTextController ??=
+                                                TextEditingController(),
+                                            focusNode: _model
+                                                    .nomeInseminadorFocusNode ??=
+                                                FocusNode(),
+                                            idPropriedade: FFAppState()
+                                                .propriedadeSelecionada
+                                                .idPropriedade,
+                                            validator: _model
+                                                .nomeInseminadorTextControllerValidator
                                                 .asValidator(context),
                                           ),
                                         ].divide(const SizedBox(height: 8.0)),

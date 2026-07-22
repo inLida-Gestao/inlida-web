@@ -3915,11 +3915,19 @@ class _PgReproducaoEditAnimalWidgetState
                                                         ),
                                                   ),
                                                   InseminadorAutocompleteField(
-                                                    controller: _model.nomeInseminadorTextController ??= TextEditingController(text: pgReproducaoEditAnimalReproducaoRow?.inseminador),
-                                                    focusNode: _model.nomeInseminadorFocusNode ??= FocusNode(),
-                                                    idPropriedade:
-                                                        FFAppState().propriedadeSelecionada.idPropriedade,
-                                                    validator: _model.nomeInseminadorTextControllerValidator
+                                                    controller: _model
+                                                            .nomeInseminadorTextController ??=
+                                                        TextEditingController(
+                                                            text: pgReproducaoEditAnimalReproducaoRow
+                                                                ?.inseminador),
+                                                    focusNode: _model
+                                                            .nomeInseminadorFocusNode ??=
+                                                        FocusNode(),
+                                                    idPropriedade: FFAppState()
+                                                        .propriedadeSelecionada
+                                                        .idPropriedade,
+                                                    validator: _model
+                                                        .nomeInseminadorTextControllerValidator
                                                         .asValidator(context),
                                                   ),
                                                 ].divide(const SizedBox(
