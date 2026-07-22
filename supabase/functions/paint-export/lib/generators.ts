@@ -50,6 +50,11 @@ export interface ExportContext {
   rebanhoRows?: any[];
   reproducaoRows?: any[];
   pesagemRows?: any[];
+  // Caches leves (só strings) que precisam sobreviver à liberação de
+  // rebanhoRows (feita após NASCIMENTO p/ caber na memória do worker).
+  // DESMAMA/ANO_SOBREANO consomem estes mapas DEPOIS dessa liberação.
+  loteNomePorA12?: Map<string, string>;
+  loteNomePorRebanhoId?: Map<string, string>;
   generationDate: string; // dd/mm/aaaa
   generationTime: string; // hh:mm:ss
   generationDateTime: Date;
