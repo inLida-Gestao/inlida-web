@@ -242,14 +242,12 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       }
       reb = filtrados.first;
     }
-    if (!isElegivelAvaliacaoPaint(t, reb)) {
-      erros.add({
-        'linha': linha,
-        'motivo':
-            'Animal não elegível para $t: status "${reb['status'] ?? ''}", categoria "${reb['categoria'] ?? ''}".',
-      });
-      continue;
-    }
+    // NÃO aplicamos o filtro de elegibilidade (categoria/status) na importação:
+    // a planilha PAINT traz avaliações HISTÓRICAS. Um animal hoje "Novilha"/
+    // "Vaca" era bezerro na desmama, e animais vendidos/mortos também têm
+    // avaliações antigas legítimas. A elegibilidade por categoria/status vale
+    // só para a DERIVAÇÃO automática (export "Com dados da fazenda"), não para
+    // dados explicitamente importados pelo usuário.
 
     // Confere a Data_Nascimento por ANO (não pelo dia): o PAINT e o inLida
     // divergem em ~1 dia em vários registros (ex.: 18/08 vs 19/08), o que não
