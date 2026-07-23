@@ -622,12 +622,16 @@ async function paintTableGenerator<T extends Record<string, unknown>>(
   table: string,
   mapper: (row: any, recno: number) => Record<string, unknown>,
   columns?: string,
+  onlyImportedPaintEvaluation = false,
 ): Promise<string> {
   const layout = LAYOUTS[layoutKey];
   const rows = await selectAll<any>(
     ctx.supa,
     table,
-    (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
+    (q) => onlyImportedPaintEvaluation
+      ? q.eq("id_propriedade", ctx.config.id_propriedade)
+        .eq("origem", "importacao_paint")
+      : q.eq("id_propriedade", ctx.config.id_propriedade),
     { orderColumn: "id", columns },
   );
   const lines: string[] = [];
@@ -700,7 +704,7 @@ async function genDesmama(ctx: ExportContext): Promise<string> {
     dsm_hora_alteracao: ctx.generationTime,
     dsm_enviar: "True ",
     dsm_recno: recno,
-  }));
+  }), undefined, true);
 }
 
 async function genAnoSobreano(ctx: ExportContext): Promise<string> {
@@ -731,7 +735,7 @@ async function genAnoSobreano(ctx: ExportContext): Promise<string> {
     sbr_hora_alteracao: ctx.generationTime,
     sbr_enviar: "True ",
     sbr_recno: recno,
-  }));
+  }), undefined, true);
 }
 
 async function genRah(ctx: ExportContext): Promise<string> {

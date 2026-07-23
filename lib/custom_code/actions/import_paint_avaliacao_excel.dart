@@ -270,6 +270,9 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       'id_propriedade': idPropriedade,
       'animal_a12': _a12DbValue(a12),
       'data': dataAv,
+      // Só uma avaliação importada pela planilha PAINT pode ser enviada nos
+      // arquivos DESMAMA.TXT e ANO_SOBREANO.TXT.
+      'origem': 'importacao_paint',
       'updated_at': DateTime.now().toIso8601String(),
     };
     num? pesoPesagem;

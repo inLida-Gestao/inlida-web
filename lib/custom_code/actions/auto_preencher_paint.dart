@@ -128,18 +128,6 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       'animal_a12,raca_codigo',
       {'id_propriedade': idPropriedade},
     );
-    final existDes = await _selectAllPaged(
-      client,
-      'paint_avaliacao_desmama',
-      'animal_a12,data',
-      {'id_propriedade': idPropriedade},
-    );
-    final existSob = await _selectAllPaged(
-      client,
-      'paint_avaliacao_sobreano',
-      'animal_a12,data',
-      {'id_propriedade': idPropriedade},
-    );
     final existRah = await _selectAllPaged(
       client,
       'paint_avaliacao_rah',
@@ -181,14 +169,6 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       {'idPropriedade': idPropriedade, 'deletado': 'NAO'},
       orderColumn: 'id',
     );
-    final pesagemRows = await _selectAllPaged(
-      client,
-      'historico_pesagens',
-      'id_propriedade,idRebanho,dataPesagem,peso,tipo',
-      {'id_propriedade': idPropriedade, 'deletado': 'NAO'},
-      orderColumn: 'id',
-    );
-
     // Index rebanho por idRebanho para joins manuais.
     final rebanhoById = <String, Map<String, dynamic>>{};
     for (final r in rebanhoRows) {
@@ -358,118 +338,9 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       }
     });
 
-    // ---------------- 6. AVALIAÇÃO DESMAMA ----------------
-    await exec('desmamas', () async {
-      final desExist =
-          existDes.map((e) => '${e['animal_a12']}|${e['data']}').toSet();
-      // Desmama é evento único por animal: se já existe avaliação de desmama
-      // (em qualquer data), não cria outra. dataDesmama/pesoDesmama podem ser
-      // corrigidos depois, e recriar em cada data nova duplicava a cada clique.
-      final desExistAnimal =
-          existDes.map((e) => (e['animal_a12'] ?? '').toString()).toSet();
-      final insertDes = <Map<String, dynamic>>[];
-      for (final r in rebanhoRows) {
-        if (!filtroDesmama(r, status: status)) continue;
-        if (!nascDentro(r)) continue;
-        final peso = r['pesoDesmama'];
-        final data = r['dataDesmama'];
-        if (peso == null || data == null) continue;
-        final a = a12Of(r);
-        if (a.isEmpty) continue;
-        if (desExistAnimal.contains(a)) continue;
-        final dataStr = parseDateIso(data);
-        if (dataStr == null) continue;
-        if (!avDentro(dataStr)) continue;
-        final key = '$a|$dataStr';
-        if (desExist.contains(key)) continue;
-        desExist.add(key);
-        desExistAnimal.add(a);
-        insertDes.add({
-          'id_propriedade': idPropriedade,
-          'animal_a12': a,
-          'data': dataStr,
-          'peso': peso,
-        });
-      }
-      if (insertDes.isNotEmpty) {
-        await _upsertIgnore(client, 'paint_avaliacao_desmama', insertDes,
-            'id_propriedade,animal_a12,data');
-        result['desmamas'] = insertDes.length;
-      }
-    });
-
-    // ---------------- 7. AVALIAÇÃO SOBREANO ----------------
-    await exec('sobreanos', () async {
-      final sobExist =
-          existSob.map((e) => '${e['animal_a12']}|${e['data']}').toSet();
-      // Animais que já têm alguma avaliação de sobreano — usado no fallback do
-      // rebanho (loop 2), que deriva de dataUltimaPesagem (campo móvel).
-      final sobExistAnimal =
-          existSob.map((e) => (e['animal_a12'] ?? '').toString()).toSet();
-      final insertSob = <Map<String, dynamic>>[];
-      for (final p in pesagemRows) {
-        final tipo = (p['tipo'] ?? '').toString();
-        final pesoP = p['peso'];
-        final dataP = p['dataPesagem'];
-        if (pesoP == null || dataP == null) continue;
-        final idReb = p['idRebanho']?.toString() ?? '';
-        final reb = rebanhoById[idReb];
-        if (reb == null) continue;
-        if (!filtroSobreano(reb, status: status)) continue;
-        if (!nascDentro(reb)) continue;
-        final dataStr = parseDateIso(dataP);
-        if (dataStr == null) continue;
-        // Classificação da fase de sobreano (tipo "sobre" OU idade na janela),
-        // unificada com o template Excel via pesagemEhSobreano (340–670 dias).
-        if (!pesagemEhSobreano(tipo, dataStr, parseDateIso(reb['dataNascimento']))) {
-          continue;
-        }
-        final a = a12Of(reb);
-        if (a.isEmpty) continue;
-        if (!avDentro(dataStr)) continue;
-        final key = '$a|$dataStr';
-        if (sobExist.contains(key)) continue;
-        sobExist.add(key);
-        sobExistAnimal.add(a);
-        insertSob.add({
-          'id_propriedade': idPropriedade,
-          'animal_a12': a,
-          'data': dataStr,
-          'peso': pesoP,
-        });
-      }
-      for (final reb in rebanhoRows) {
-        if (!filtroSobreano(reb, status: status)) continue;
-        if (!nascDentro(reb)) continue;
-        final peso = reb['pesoAtual'];
-        final data = reb['dataUltimaPesagem'];
-        if (peso == null || data == null) continue;
-        final a = a12Of(reb);
-        if (a.isEmpty) continue;
-        // Fallback (última pesagem do rebanho): só para animal que ainda não
-        // tem NENHUM sobreano — dataUltimaPesagem muda a cada pesagem e
-        // recriar em cada data nova acumulava avaliações a cada clique.
-        if (sobExistAnimal.contains(a)) continue;
-        final dataStr = parseDateIso(data);
-        if (dataStr == null) continue;
-        if (!avDentro(dataStr)) continue;
-        final key = '$a|$dataStr';
-        if (sobExist.contains(key)) continue;
-        sobExist.add(key);
-        sobExistAnimal.add(a);
-        insertSob.add({
-          'id_propriedade': idPropriedade,
-          'animal_a12': a,
-          'data': dataStr,
-          'peso': peso,
-        });
-      }
-      if (insertSob.isNotEmpty) {
-        await _upsertIgnore(client, 'paint_avaliacao_sobreano', insertSob,
-            'id_propriedade,animal_a12,data');
-        result['sobreanos'] = insertSob.length;
-      }
-    });
+    // Avaliações de desmama e sobreano não são derivadas do Inlida. Elas só
+    // existem após importação explícita da planilha PAINT, para que os TXT não
+    // transmitam evento de desmama/pesagem como se fosse avaliação genética.
 
     // ---------------- 8. AVALIAÇÃO RAH ----------------
     await exec('rahs', () async {

@@ -355,9 +355,9 @@ os dados. Os mecanismos são:
 Antes de importar, é possível abrir o modal de **Filtros** e informar intervalos:
 
 - **Data de nascimento (de/até)**: filtra os animais nas etapas por animal
-  (composição racial, desmama, sobreano, RAH e diagnóstico).
-- **Data de avaliação (de/até)**: filtra pelo evento/avaliação nas etapas de
-  desmama, sobreano, RAH e diagnóstico.
+  (composição racial, RAH e diagnóstico).
+- **Data de avaliação (de/até)**: filtra os eventos usados nas etapas RAH e
+  diagnóstico.
 
 Os cadastros de apoio (inseminadores, grupos de manejo, localidades, safras,
 avaliadores, regimes e biblioteca de touros) são **sempre importados na
@@ -373,16 +373,18 @@ grandes a processar apenas a janela de interesse.
 | 3 | Localidades | `paint_localidade` | só se vazio: cria 5 pastos `PASTO 01`–`PASTO 05` |
 | 4 | Safra atual | `paint_safra` | código `AA + letra do trimestre` (V/O/I/P) |
 | 5 | Composição racial | `paint_composicao_racial` | por animal, chave `A12 + raca_codigo`, índice `1.00` |
-| 6 | Avaliações de desmama | `paint_avaliacao_desmama` | bezerros com `pesoDesmama` e `dataDesmama` (só peso) |
-| 7 | Avaliações de sobreano | `paint_avaliacao_sobreano` | pesagens "sobre"/365–550 dias e peso atual |
+| 6 | Avaliações de desmama | — | não são criadas automaticamente; importar a planilha PAINT |
+| 7 | Avaliações de sobreano | — | não são criadas automaticamente; importar a planilha PAINT |
 | 8 | Avaliações de matrizes (RAH) | `paint_avaliacao_rah` | matrizes, peso atual e última pesagem |
 | 9 | Diagnósticos | `paint_diagnostico` | reprodução prenhe/vazia → `P`/`V`, safra atual |
 | 10 | Regimes alimentares | `paint_regime_alimentar` | só se vazio: PASTAGEM, SEMI-INTENSIVO, CONFINAMENTO |
 | 11 | Biblioteca de touros | `paint_biblioteca_touros` | rebanho categoria "reprod"/"touro", chave `A12` |
 
-Importante: o "Importar tudo" preenche apenas a **estrutura** (pesos, datas,
-diagnóstico P/V, vínculos). As **notas técnicas** (C/P/M/U, frame, aprumo,
-pigmentação, etc.) são lançadas depois, via planilha Excel ou pelas telas de
+Importante: o "Importar tudo" não cria avaliações de desmama ou sobreano e não
+envia dados de pesagem/desmama do Inlida para esses arquivos. As avaliações
+desse tipo, incluindo a data, são lançadas exclusivamente pela importação da
+planilha PAINT. As **notas técnicas** (C/P/M/U, frame, aprumo, pigmentação,
+etc.) são lançadas depois, via planilha Excel ou pelas telas de
 avaliação.
 
 Os **avaliadores não são importados automaticamente**. Por decisão do cliente,
