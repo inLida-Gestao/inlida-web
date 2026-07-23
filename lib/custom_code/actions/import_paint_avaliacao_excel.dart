@@ -114,10 +114,21 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
   // animais diferentes), então o índice guarda TODOS os candidatos; a
   // desambiguação por Data_Nascimento/Sexo da planilha acontece por linha.
   final byA12 = <String, List<Map<String, dynamic>>>{};
+  // Índice robusto por (dígitos do número + ano de nascimento). O A12 da
+  // planilha vem do PAINT e carrega programa (P/F/p) e série (460/JLK) que o
+  // nosso recálculo nem sempre reproduz — então o match estrito por A12 falha
+  // em massa. Este fallback identifica o animal pelo que é estável: os dígitos
+  // do número + o ano de nascimento (ex.: "1000 JLK" ≡ "1000"; "F460…" ≡
+  // "P460…"). Colisões (~1%) caem na desambiguação por Data_Nascimento/Sexo.
+  final byDigAno = <String, List<Map<String, dynamic>>>{};
   for (final r in rebanho) {
     final n = (r['numeroAnimal'] ?? '').toString().trim();
     if (n.isNotEmpty) {
       byNumero.putIfAbsent(n, () => <Map<String, dynamic>>[]).add(r);
+    }
+    final chaveFlex = _chaveDigAno(n, r['dataNascimento']);
+    if (chaveFlex.isNotEmpty) {
+      (byDigAno[chaveFlex] ??= <Map<String, dynamic>>[]).add(r);
     }
     final a12Rebanho = _a12Key(a12FromRebanho(r, cfg));
     if (a12Rebanho.isEmpty) continue;
@@ -169,7 +180,28 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       erros.add({'linha': linha, 'motivo': 'Data_Avaliacao inválida.'});
       continue;
     }
-    final candidatos = byA12[a12Key] ?? const <Map<String, dynamic>>[];
+    final nascCel = iNasc >= 0 ? parseDateIso(_celValue(row, iNasc)) : null;
+    final numCel = idx('numero_animal') >= 0
+        ? (_cel(row, idx('numero_animal')) ?? '')
+        : '';
+    var candidatos = byA12[a12Key] ?? const <Map<String, dynamic>>[];
+    if (candidatos.isEmpty) {
+      // Fallback: o A12 da planilha (PAINT) não bateu com o recálculo — casa
+      // pelo número (dígitos) + ano de nascimento, que independem de
+      // programa/série. Usa o ano da Data_Nascimento da planilha ou, se
+      // ausente, os 2 últimos dígitos do próprio A12 (posição do ano).
+      // nascCel é a data em ISO ("AAAA-MM-DD"); o ano são os 4 primeiros chars.
+      final anoFlex = (nascCel != null && nascCel.length >= 4)
+          ? nascCel.substring(2, 4)
+          : (a12Key.length >= 2 ? a12Key.substring(a12Key.length - 2) : '');
+      final chaveFlex = _chaveDigAno(numCel, nascCel);
+      final chaveFlexA12 = numCel.trim().isEmpty
+          ? ''
+          : '${_soDigitos(numCel)}|$anoFlex';
+      final flex = byDigAno[chaveFlex.isNotEmpty ? chaveFlex : chaveFlexA12] ??
+          const <Map<String, dynamic>>[];
+      candidatos = flex;
+    }
     if (candidatos.isEmpty) {
       erros.add({
         'linha': linha,
@@ -178,7 +210,6 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       });
       continue;
     }
-    final nascCel = iNasc >= 0 ? parseDateIso(_celValue(row, iNasc)) : null;
     Map<String, dynamic> reb;
     if (candidatos.length == 1) {
       reb = candidatos.first;
@@ -220,12 +251,15 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       continue;
     }
 
-    // Identificador único PAINT: A12 + número + data de nascimento. Quando a
-    // planilha trouxer a coluna preenchida, confere com o rebanho para evitar
-    // associar a avaliação ao animal errado.
+    // Confere a Data_Nascimento por ANO (não pelo dia): o PAINT e o inLida
+    // divergem em ~1 dia em vários registros (ex.: 18/08 vs 19/08), o que não
+    // significa animal errado. Só rejeita se o ano de nascimento diferir.
     if (nascCel != null) {
       final nascReb = parseDateIso(reb['dataNascimento']);
-      if (nascReb != null && nascCel != nascReb) {
+      if (nascReb != null &&
+          nascCel.length >= 4 &&
+          nascReb.length >= 4 &&
+          nascCel.substring(0, 4) != nascReb.substring(0, 4)) {
         erros.add({
           'linha': linha,
           'motivo':
@@ -235,14 +269,15 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       }
     }
 
+    // Confere o Numero_Animal por DÍGITOS: o número no rebanho pode trazer a
+    // sigla do registro (ex.: "1000 JLK") enquanto a planilha traz só "1000".
     final iNum = idx('numero_animal');
     if (iNum >= 0) {
       final num = _cel(row, iNum);
       if (num != null && num.isNotEmpty) {
-        final animaisMesmoNumero =
-            byNumero[num] ?? const <Map<String, dynamic>>[];
+        final numDig = _soDigitos(num);
         final numeroConfere =
-            (reb['numeroAnimal'] ?? '').toString().trim() == num;
+            _soDigitos((reb['numeroAnimal'] ?? '').toString()) == numDig;
         if (!numeroConfere) {
           erros.add({
             'linha': linha,
@@ -250,18 +285,6 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
                 'Numero_Animal $num não confere com o animal identificado pelo A12 $a12Key.',
           });
           continue;
-        }
-        if (animaisMesmoNumero.length > 1) {
-          final algumConfere = animaisMesmoNumero
-              .any((animal) => _a12Key(a12FromRebanho(animal, cfg)) == a12Key);
-          if (!algumConfere) {
-            erros.add({
-              'linha': linha,
-              'motivo':
-                  'Numero_Animal $num é duplicado na propriedade e não pôde ser associado ao A12 $a12Key.',
-            });
-            continue;
-          }
         }
       }
     }
@@ -644,4 +667,26 @@ String _a12DbValue(String raw) {
 String _a12Key(String? raw) {
   if (raw == null) return '';
   return _a12DbValue(raw).trim();
+}
+
+/// Só os dígitos (primeiros 5) do número do animal — ignora sigla de registro
+/// ("1000 JLK" → "1000") e qualquer separador.
+String _soDigitos(String? raw) {
+  final d = (raw ?? '').replaceAll(RegExp(r'\D'), '');
+  return d.length > 5 ? d.substring(0, 5) : d;
+}
+
+/// Chave robusta de identidade: dígitos do número + ano (2) de nascimento.
+/// Independe de programa (P/F/p) e série (460/JLK) do A12.
+String _chaveDigAno(String? numero, dynamic dataNascimento) {
+  final dig = _soDigitos(numero);
+  if (dig.isEmpty) return '';
+  DateTime? d;
+  if (dataNascimento is DateTime) {
+    d = dataNascimento;
+  } else if (dataNascimento != null) {
+    d = DateTime.tryParse(dataNascimento.toString());
+  }
+  if (d == null) return '';
+  return '$dig|${(d.year % 100).toString().padLeft(2, '0')}';
 }
