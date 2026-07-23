@@ -480,24 +480,32 @@ double? parseNota(dynamic v, {int min = 1, int max = 5}) {
   return n;
 }
 
+/// [incluirRemovidos]: quando true, traz também animais com `deletado='SIM'`.
+/// Usado na IMPORTAÇÃO de avaliações PAINT, para localizar o animal mesmo que
+/// ele não esteja mais na propriedade (vendido/morto) ou tenha sido removido —
+/// a avaliação histórica precisa ser importada de qualquer forma. O export
+/// mantém o padrão (só `deletado='NAO'`).
 Future<List<Map<String, dynamic>>> fetchRebanhoPaint(
-  String idPropriedade,
-) async {
+  String idPropriedade, {
+  bool incluirRemovidos = false,
+}) async {
   const page = 1000;
   var offset = 0;
   final all = <Map<String, dynamic>>[];
   while (true) {
-    final batch = await SupaFlow.client
+    var query = SupaFlow.client
         .from('rebanho')
         .select(
           'idRebanho,numeroAnimal,nome,chip,codRegistro,dataNascimento,sexo,'
           'categoria,status,dataDesmama,pesoDesmama,dataUltimaPesagem,'
-          'pesoAtual,raca',
+          'pesoAtual,raca,deletado',
         )
-        .eq('idPropriedade', idPropriedade)
-        .eq('deletado', 'NAO')
-        .order('id')
-        .range(offset, offset + page - 1);
+        .eq('idPropriedade', idPropriedade);
+    if (!incluirRemovidos) {
+      query = query.eq('deletado', 'NAO');
+    }
+    final batch =
+        await query.order('id').range(offset, offset + page - 1);
     if (batch.isEmpty) break;
     all.addAll(batch.cast<Map<String, dynamic>>());
     if (batch.length < page) break;

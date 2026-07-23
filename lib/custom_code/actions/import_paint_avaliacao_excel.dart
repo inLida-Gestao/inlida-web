@@ -108,7 +108,10 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
     return result;
   }
 
-  final rebanho = await fetchRebanhoPaint(idPropriedade);
+  // incluirRemovidos: localiza o animal mesmo se não estiver mais na
+  // propriedade (vendido/morto) ou tiver sido removido — a avaliação histórica
+  // precisa ser importada de qualquer forma.
+  final rebanho = await fetchRebanhoPaint(idPropriedade, incluirRemovidos: true);
   final byNumero = <String, List<Map<String, dynamic>>>{};
   // Um A12 pode colidir (mesmos dígitos do número + mesmo ano de nascimento em
   // animais diferentes), então o índice guarda TODOS os candidatos; a
@@ -209,6 +212,15 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
             'A12 $a12Key não pertence ao rebanho da propriedade ou não pôde ser calculado com a configuração PAINT atual.',
       });
       continue;
+    }
+    // Se a mesma chave casa um registro vivo e um removido (deletado='SIM'),
+    // prefere o vivo — os removidos só entram para preencher chaves que não
+    // têm nenhum registro ativo (evita ambiguidade nova por duplicatas).
+    if (candidatos.length > 1) {
+      final vivos = candidatos
+          .where((c) => (c['deletado'] ?? '').toString().trim() != 'SIM')
+          .toList();
+      if (vivos.isNotEmpty) candidatos = vivos;
     }
     Map<String, dynamic> reb;
     if (candidatos.length == 1) {
