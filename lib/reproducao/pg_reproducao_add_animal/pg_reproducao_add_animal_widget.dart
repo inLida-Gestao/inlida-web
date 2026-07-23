@@ -14,6 +14,7 @@ import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/index.dart';
+import '/reproducao/reproducao_form_validation.dart';
 import '/reproducao/reproducao_lote_utils.dart';
 import '/reproducao/reproducao_status_utils.dart';
 import 'package:flutter/material.dart';
@@ -3404,11 +3405,17 @@ class _PgReproducaoAddAnimalWidgetState
                                                 ),
                                           ),
                                           InseminadorAutocompleteField(
-                                            controller: _model.nomeInseminadorTextController ??= TextEditingController(),
-                                            focusNode: _model.nomeInseminadorFocusNode ??= FocusNode(),
-                                            idPropriedade:
-                                                FFAppState().propriedadeSelecionada.idPropriedade,
-                                            validator: _model.nomeInseminadorTextControllerValidator
+                                            controller: _model
+                                                    .nomeInseminadorTextController ??=
+                                                TextEditingController(),
+                                            focusNode: _model
+                                                    .nomeInseminadorFocusNode ??=
+                                                FocusNode(),
+                                            idPropriedade: FFAppState()
+                                                .propriedadeSelecionada
+                                                .idPropriedade,
+                                            validator: _model
+                                                .nomeInseminadorTextControllerValidator
                                                 .asValidator(context),
                                           ),
                                         ].divide(const SizedBox(height: 8.0)),
@@ -4865,6 +4872,29 @@ class _PgReproducaoAddAnimalWidgetState
                                         ),
                                         FFButtonWidget(
                                           onPressed: () async {
+                                            final erroMontaNatural =
+                                                validarCamposMontaNatural(
+                                              tipoReproducao:
+                                                  _model.tipoReproducao,
+                                              dataInicial: _model.datePicked3,
+                                              idReprodutor: FFAppState()
+                                                  .reprodutorSelecionado
+                                                  .idAnimal,
+                                            );
+                                            if (erroMontaNatural != null) {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content:
+                                                      Text(erroMontaNatural),
+                                                  backgroundColor:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .error,
+                                                ),
+                                              );
+                                              return;
+                                            }
                                             final idPropriedade = FFAppState()
                                                 .propriedadeSelecionada
                                                 .idPropriedade;

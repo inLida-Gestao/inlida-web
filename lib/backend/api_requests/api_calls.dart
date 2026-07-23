@@ -275,6 +275,8 @@ class BuscarRebanhoFiltrosCall {
     int? pLimite,
     int? pOffset,
     String? pPesquisa = '',
+    String? pOrdenar = '',
+    bool? pAsc,
   }) async {
     final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
 
@@ -287,6 +289,8 @@ class BuscarRebanhoFiltrosCall {
   "p_limite": $pLimite,
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
   "p_offset": $pOffset,
+  "p_ordenar": "${escapeStringForJson(pOrdenar)}",
+  "p_asc": ${pAsc ?? true},
   "p_origem": "${escapeStringForJson(pOrigem)}",
   "p_pesquisa": "${escapeStringForJson(pPesquisa)}",
   "p_raca": "${escapeStringForJson(pRaca)}",

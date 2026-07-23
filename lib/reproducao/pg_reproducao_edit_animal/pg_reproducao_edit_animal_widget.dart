@@ -13,6 +13,7 @@ import '/flutter_flow/form_field_controller.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
+import '/reproducao/reproducao_form_validation.dart';
 import '/reproducao/reproducao_lote_utils.dart';
 import '/reproducao/reproducao_status_utils.dart';
 import 'package:flutter/material.dart';
@@ -3914,11 +3915,19 @@ class _PgReproducaoEditAnimalWidgetState
                                                         ),
                                                   ),
                                                   InseminadorAutocompleteField(
-                                                    controller: _model.nomeInseminadorTextController ??= TextEditingController(text: pgReproducaoEditAnimalReproducaoRow?.inseminador),
-                                                    focusNode: _model.nomeInseminadorFocusNode ??= FocusNode(),
-                                                    idPropriedade:
-                                                        FFAppState().propriedadeSelecionada.idPropriedade,
-                                                    validator: _model.nomeInseminadorTextControllerValidator
+                                                    controller: _model
+                                                            .nomeInseminadorTextController ??=
+                                                        TextEditingController(
+                                                            text: pgReproducaoEditAnimalReproducaoRow
+                                                                ?.inseminador),
+                                                    focusNode: _model
+                                                            .nomeInseminadorFocusNode ??=
+                                                        FocusNode(),
+                                                    idPropriedade: FFAppState()
+                                                        .propriedadeSelecionada
+                                                        .idPropriedade,
+                                                    validator: _model
+                                                        .nomeInseminadorTextControllerValidator
                                                         .asValidator(context),
                                                   ),
                                                 ].divide(const SizedBox(
@@ -5549,6 +5558,34 @@ class _PgReproducaoEditAnimalWidgetState
                                                 ),
                                                 FFButtonWidget(
                                                   onPressed: () async {
+                                                    final erroMontaNatural =
+                                                        validarCamposMontaNatural(
+                                                      tipoReproducao:
+                                                          _model.tipoReproducao,
+                                                      dataInicial: _model
+                                                              .datePicked3 ??
+                                                          pgReproducaoEditAnimalReproducaoRow
+                                                              ?.dataInicial,
+                                                      idReprodutor: FFAppState()
+                                                          .reprodutorSelecionado
+                                                          .idAnimal,
+                                                    );
+                                                    if (erroMontaNatural !=
+                                                        null) {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                              erroMontaNatural),
+                                                          backgroundColor:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .error,
+                                                        ),
+                                                      );
+                                                      return;
+                                                    }
                                                     final idLoteSelecionado =
                                                         nonEmptyString(_model
                                                             .dropDownLoteValue);

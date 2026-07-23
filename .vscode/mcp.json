@@ -1,4 +1,12 @@
 {
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "supabase_access_token",
+      "description": "Supabase Personal Access Token",
+      "password": true
+    }
+  ],
   "servers": {
     "Figma MCP": {
       "command": "npx",
@@ -8,6 +16,15 @@
         "--figma-api-key=figd_-Vols0sajQzDkmDO7TiejLgINvZyHQ8Np7rf6Tzx",
         "--stdio"
       ]
+    },
+    "Supabase MCP": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "${input:supabase_access_token}"
+      ]
     }
-}
+  }
 }

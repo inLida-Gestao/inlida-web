@@ -266,14 +266,16 @@ class _MinhaContaWidgetState extends State<MinhaContaWidget> {
                                                     _model.apiResultgel =
                                                         await ExclusaoDeContaCall
                                                             .call(
-                                                      userId: minhaContaUsersRow
-                                                          ?.userID,
+                                                      userId: currentUserUid,
                                                       jwt: currentJwtToken,
                                                     );
 
-                                                    if ((_model.apiResultgel
-                                                            ?.succeeded ??
-                                                        true)) {
+                                                    if (_model.apiResultgel
+                                                          ?.succeeded ==
+                                                        true &&
+                                                      _model.apiResultgel
+                                                          ?.jsonBody ==
+                                                        true) {
                                                       GoRouter.of(context)
                                                           .prepareAuthEvent();
                                                       await authManager
@@ -286,6 +288,16 @@ class _MinhaContaWidgetState extends State<MinhaContaWidget> {
                                                               LoginWidget
                                                                   .routeName,
                                                               context.mounted);
+                                                    } else {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            'Não foi possível excluir sua conta. Código: ${_model.apiResultgel?.statusCode ?? 'sem resposta'}',
+                                                          ),
+                                                        ),
+                                                      );
                                                     }
                                                   }
 
