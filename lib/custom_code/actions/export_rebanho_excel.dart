@@ -39,6 +39,79 @@ DateTime? _parseDateForExcelExport(dynamic value) {
   return DateTime.tryParse(value.toString());
 }
 
+bool _isPesagemAtivaForRebanhoExport(Map<String, dynamic> row) =>
+    row['deletado']?.toString().trim().toUpperCase() != 'SIM';
+
+Map<String, dynamic> latestPesagemDatesByRebanhoForExport(
+  Iterable<Map<String, dynamic>> pesagens,
+) {
+  final latestRows = <String, Map<String, dynamic>>{};
+
+  for (final row in pesagens) {
+    final idRebanho = row['idRebanho']?.toString().trim() ?? '';
+    final date = _parseDateForExcelExport(row['dataPesagem']);
+    if (idRebanho.isEmpty ||
+        date == null ||
+        !_isPesagemAtivaForRebanhoExport(row)) {
+      continue;
+    }
+
+    final current = latestRows[idRebanho];
+    final currentDate = _parseDateForExcelExport(current?['dataPesagem']);
+    final rowId = int.tryParse(row['id']?.toString() ?? '') ?? 0;
+    final currentId = int.tryParse(current?['id']?.toString() ?? '') ?? 0;
+    if (currentDate == null ||
+        date.isAfter(currentDate) ||
+        (date.isAtSameMomentAs(currentDate) && rowId > currentId)) {
+      latestRows[idRebanho] = row;
+    }
+  }
+
+  return latestRows.map(
+    (idRebanho, row) => MapEntry(idRebanho, row['dataPesagem']),
+  );
+}
+
+Future<Map<String, dynamic>> _fetchLatestPesagemDatesForRebanhoExport(
+  Iterable<Map<String, dynamic>> rebanhoRows,
+) async {
+  final ids = rebanhoRows
+      .map((row) => row['idRebanho']?.toString().trim() ?? '')
+      .where((id) => id.isNotEmpty)
+      .toSet()
+      .toList();
+  const idChunkSize = 200;
+  const pageSize = 1000;
+  final latestDates = <String, dynamic>{};
+
+  for (var start = 0; start < ids.length; start += idChunkSize) {
+    final end =
+        start + idChunkSize > ids.length ? ids.length : start + idChunkSize;
+    final chunk = ids.sublist(start, end);
+    final pesagens = <Map<String, dynamic>>[];
+    var offset = 0;
+
+    while (true) {
+      final response = await SupaFlow.client
+          .from('historico_pesagens')
+          .select('id, idRebanho, dataPesagem, deletado')
+          .inFilter('idRebanho', chunk)
+          .or('deletado.is.null,deletado.neq.SIM')
+          .not('dataPesagem', 'is', null)
+          .order('dataPesagem', ascending: false)
+          .order('id', ascending: false)
+          .range(offset, offset + pageSize - 1);
+      pesagens.addAll(response.map(Map<String, dynamic>.from));
+      if (response.length < pageSize) break;
+      offset += pageSize;
+    }
+
+    latestDates.addAll(latestPesagemDatesByRebanhoForExport(pesagens));
+  }
+
+  return latestDates;
+}
+
 Future<bool> exportRebanhoExcel(String nameExcel, String idPropriedade) async {
   try {
     print('=== INÍCIO DA EXPORTAÇÃO ===');
@@ -107,6 +180,21 @@ Future<bool> exportRebanhoExcel(String nameExcel, String idPropriedade) async {
       print('AVISO: Nenhum registro encontrado para exportar');
       return false;
     }
+
+    final latestPesagemDates =
+        await _fetchLatestPesagemDatesForRebanhoExport(allData);
+    var correctedLatestDates = 0;
+    for (final row in allData) {
+      final idRebanho = row['idRebanho']?.toString().trim() ?? '';
+      if (!latestPesagemDates.containsKey(idRebanho)) continue;
+      final latestDate = latestPesagemDates[idRebanho];
+      if (row['dataUltimaPesagem'] != latestDate) {
+        row['dataUltimaPesagem'] = latestDate;
+        correctedLatestDates++;
+      }
+    }
+    print('Datas de última pesagem corrigidas pelo histórico: '
+        '$correctedLatestDates');
 
     print('Criando Excel...');
     var excel = Excel.createExcel();
