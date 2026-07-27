@@ -2426,39 +2426,6 @@ class ExclusaoDeContaCall {
   }
 }
 
-class AtualizarSenhaCall {
-  static Future<ApiCallResponse> call({
-    String? userToken = '',
-    String? email = '',
-    String? password = '',
-  }) async {
-    final ffApiRequestBody = '''
-{
-  "email": "${escapeStringForJson(email)}",
-  "password": "${escapeStringForJson(password)}"
-}''';
-    return ApiManager.instance.makeApiCall(
-      callName: 'Atualizar senha',
-      apiUrl: 'https://eqrtgsqnxxnfjjzlxpuj.supabase.co/auth/v1/user',
-      callType: ApiCallType.PUT,
-      headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization': 'Bearer $userToken',
-      },
-      params: {},
-      body: ffApiRequestBody,
-      bodyType: BodyType.JSON,
-      returnBody: true,
-      encodeBodyUtf8: false,
-      decodeUtf8: false,
-      cache: false,
-      isStreamingApi: false,
-      alwaysAllowBody: false,
-    );
-  }
-}
-
 class ImportRebanhosCall {
   static Future<ApiCallResponse> call({
     dynamic jsonRebanhoJson,

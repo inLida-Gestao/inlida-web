@@ -1,4 +1,3 @@
-import '/backend/api_requests/api_calls.dart';
 import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -23,9 +22,6 @@ class AlterarSenhaModel extends FlutterFlowModel<AlterarSenhaWidget> {
   TextEditingController? senha2TextController;
   late bool senha2Visibility;
   String? Function(BuildContext, String?)? senha2TextControllerValidator;
-  // Stores action output result for [Backend Call - API (Atualizar senha)] action in Button widget.
-  ApiCallResponse? apiResultqd3;
-
   @override
   void initState(BuildContext context) {
     headerModel = createModel(context, () => HeaderModel());
