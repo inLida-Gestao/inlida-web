@@ -1,12 +1,18 @@
 import '/backend/schema/structs/rebanho_d_t_struct.dart';
 
-List<String> loteAnimalIds(Iterable<RebanhoDTStruct> animais) {
-  final ids = <String>{};
-  for (final animal in animais) {
-    final id = animal.idRebanho.trim();
+List<String> normalizeLoteAnimalIds(Iterable<String?> ids) {
+  final normalized = <String>{};
+  for (final value in ids) {
+    final id = value?.trim() ?? '';
     if (id.isNotEmpty && id.toLowerCase() != 'null') {
-      ids.add(id);
+      normalized.add(id);
     }
   }
-  return ids.toList();
+  return normalized.toList()..sort();
+}
+
+List<String> loteAnimalIds(Iterable<RebanhoDTStruct> animais) {
+  return normalizeLoteAnimalIds(
+    animais.map((animal) => animal.idRebanho),
+  );
 }

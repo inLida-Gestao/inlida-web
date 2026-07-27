@@ -51,7 +51,6 @@ Future<List<dynamic>> parseCsvToJsonLotes(FFUploadedFile? csvFile) async {
       'id',
       'created_at',
       'id_propriedade',
-      'id_animais',
       'nome',
       'anotacoes',
       'ativo',

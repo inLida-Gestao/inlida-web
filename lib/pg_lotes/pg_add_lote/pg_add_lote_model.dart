@@ -48,6 +48,8 @@ class PgAddLoteModel extends FlutterFlowModel<PgAddLoteWidget> {
 
   int index = 0;
 
+  bool isSaving = false;
+
   ///  State fields for stateful widgets in this page.
 
   // Model for header component.
