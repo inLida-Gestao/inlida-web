@@ -55,6 +55,12 @@ export interface ExportContext {
   // DESMAMA/ANO_SOBREANO consomem estes mapas DEPOIS dessa liberação.
   loteNomePorA12?: Map<string, string>;
   loteNomePorRebanhoId?: Map<string, string>;
+  // Peso do inLida por (dígitos do número|ano) -> idRebanho e por
+  // (idRebanho|AAAA-MM-DD) -> peso. Usado por DESMAMA/ANO_SOBREANO para
+  // preencher o peso a partir da pesagem do rebanho quando a avaliação
+  // importada veio sem peso, casando pela DATA EXATA da avaliação.
+  idRebanhoPorDigAno?: Map<string, string>;
+  pesoPorRebanhoData?: Map<string, string>;
   generationDate: string; // dd/mm/aaaa
   generationTime: string; // hh:mm:ss
   generationDateTime: Date;
@@ -137,11 +143,100 @@ function loteNomeByA12(ctx: ExportContext): Map<string, string> {
   return map;
 }
 
-// Constrói os caches leves de lote enquanto rebanhoRows ainda está na memória.
-// Chamado pelo prefetch do index.ts, antes do loop de geração.
+// Normaliza uma data (Date ou string ISO/"AAAA-MM-DD...") para "AAAA-MM-DD".
+function dateKeyIso(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "";
+  if (value instanceof Date) {
+    if (isNaN(value.getTime())) return "";
+    return value.toISOString().slice(0, 10);
+  }
+  const s = String(value).trim();
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : "";
+}
+
+// Mapa (dígitos do número|ano-2) -> idRebanho. Chave robusta (independe de
+// programa/série do A12), memoizada no prefetch. Colisões (~1%) mantêm o
+// primeiro. Usada para ligar a avaliação (que guarda o A12 da planilha) ao
+// animal do rebanho e, daí, à pesagem do inLida.
+function idRebanhoByDigAno(ctx: ExportContext): Map<string, string> {
+  if (ctx.idRebanhoPorDigAno) return ctx.idRebanhoPorDigAno;
+  const map = new Map<string, string>();
+  for (const r of ctx.rebanhoRows ?? []) {
+    const dig = String(r.numeroAnimal ?? "").replace(/\D/g, "").slice(0, 5);
+    const nasc = dateKeyIso(r.dataNascimento);
+    if (!dig || !nasc || !r.idRebanho) continue;
+    const key = `${dig}|${nasc.slice(2, 4)}`;
+    if (!map.has(key)) map.set(key, String(r.idRebanho));
+  }
+  ctx.idRebanhoPorDigAno = map;
+  return map;
+}
+
+// Constrói os caches leves de lote/animal enquanto rebanhoRows ainda está na
+// memória. Chamado pelo prefetch do index.ts, antes do loop de geração.
 export function primeLoteCaches(ctx: ExportContext): void {
   loteNomeByA12(ctx);
   loteByRebanhoId(ctx);
+  idRebanhoByDigAno(ctx);
+}
+
+// (dig|ano) a partir do A12 da avaliação (formato espaçado "P460 1163 21"):
+// o número é o penúltimo token e o ano o último. Retorna "" se não der.
+function digAnoFromA12(a12: unknown): string {
+  const parts = String(a12 ?? "").trim().split(/\s+/).filter((x) => x !== "");
+  if (parts.length < 2) return "";
+  const dig = parts[parts.length - 2].replace(/\D/g, "").slice(0, 5);
+  const ano = parts[parts.length - 1].replace(/\D/g, "").slice(-2);
+  if (!dig || ano.length !== 2) return "";
+  return `${dig}|${ano}`;
+}
+
+// Mapa (idRebanho|AAAA-MM-DD) -> peso, a partir de historico_pesagens da
+// propriedade. Memoizado. Só leitura — não grava nada, não duplica.
+async function loadPesoPorRebanhoData(
+  ctx: ExportContext,
+): Promise<Map<string, string>> {
+  if (ctx.pesoPorRebanhoData) return ctx.pesoPorRebanhoData;
+  const map = new Map<string, string>();
+  const rows = await selectAll<any>(
+    ctx.supa,
+    "historico_pesagens",
+    (q) => q.eq("id_propriedade", ctx.config.id_propriedade)
+      .or("deletado.is.null,deletado.neq.SIM"),
+    { columns: "idRebanho,dataPesagem,peso", orderColumn: "id" },
+  );
+  for (const p of rows) {
+    const idReb = p.idRebanho != null ? String(p.idRebanho) : "";
+    const dk = dateKeyIso(p.dataPesagem);
+    if (!idReb || !dk) continue;
+    if (p.peso === null || p.peso === undefined || p.peso === "") continue;
+    const key = `${idReb}|${dk}`;
+    if (!map.has(key)) map.set(key, String(p.peso));
+  }
+  ctx.pesoPorRebanhoData = map;
+  return map;
+}
+
+// Peso da linha de avaliação: usa o peso importado (se veio na planilha);
+// senão, puxa a pesagem do inLida daquele animal EXATAMENTE na data da
+// avaliação (regra PAINT confirmada pela cliente). "" se não houver.
+function pesoAvaliacao(
+  ctx: ExportContext,
+  r: any,
+  pesoPorRebData: Map<string, string>,
+): unknown {
+  if (r.peso !== null && r.peso !== undefined && Number(r.peso) > 0) {
+    return r.peso;
+  }
+  const chave = digAnoFromA12(r.animal_a12);
+  if (!chave) return null;
+  const idReb = idRebanhoByDigAno(ctx).get(chave);
+  if (!idReb) return null;
+  const dk = dateKeyIso(r.data);
+  if (!dk) return null;
+  const peso = pesoPorRebData.get(`${idReb}|${dk}`);
+  return peso ?? null;
 }
 
 // grupo_manejo_codigo do registro OU, se vazio, o grupo derivado do lote do
@@ -680,12 +775,13 @@ async function genBaixa(ctx: ExportContext): Promise<string> {
 async function genDesmama(ctx: ExportContext): Promise<string> {
   const grupoByDescricao = await loadGrupoByDescricao(ctx);
   const loteA12 = loteNomeByA12(ctx);
+  const pesoPorRebData = await loadPesoPorRebanhoData(ctx);
   return paintTableGenerator(ctx, "DESMAMA", "paint_avaliacao_desmama", (r, recno) => ({
     dsm_parceiro: ctx.config.codigo_transmissao,
     dsm_animal_id: r.animal_a12,
     dsm_fazenda: ctx.config.codigo_fazenda,
     dsm_data: formatDate(r.data),
-    dsm_peso: formatNumeric(r.peso, 8, 2),
+    dsm_peso: formatNumeric(pesoAvaliacao(ctx, r, pesoPorRebData), 8, 2),
     dsm_nota_c: formatNumeric(r.nota_c, 8, 2),
     dsm_nota_p: formatNumeric(r.nota_p, 8, 2),
     dsm_nota_m: formatNumeric(r.nota_m, 8, 2),
@@ -710,12 +806,13 @@ async function genDesmama(ctx: ExportContext): Promise<string> {
 async function genAnoSobreano(ctx: ExportContext): Promise<string> {
   const grupoByDescricao = await loadGrupoByDescricao(ctx);
   const loteA12 = loteNomeByA12(ctx);
+  const pesoPorRebData = await loadPesoPorRebanhoData(ctx);
   return paintTableGenerator(ctx, "ANO_SOBREANO", "paint_avaliacao_sobreano", (r, recno) => ({
     sbr_parceiro: ctx.config.codigo_transmissao,
     sbr_animal_id: r.animal_a12,
     sbr_fazenda: ctx.config.codigo_fazenda,
     sbr_data: formatDate(r.data),
-    sbr_peso: formatNumeric(r.peso, 8, 2),
+    sbr_peso: formatNumeric(pesoAvaliacao(ctx, r, pesoPorRebData), 8, 2),
     sbr_nota_c: formatNumeric(r.nota_c, 8, 2),
     sbr_nota_p: formatNumeric(r.nota_p, 8, 2),
     sbr_nota_m: formatNumeric(r.nota_m, 8, 2),
