@@ -3275,19 +3275,6 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                               FFButtonWidget(
                                                 onPressed: () async {
                                                   if (_model.isSaving) return;
-                                                  if (_model.animaisDentroLote
-                                                      .isEmpty) {
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .showSnackBar(
-                                                      const SnackBar(
-                                                        content: Text(
-                                                          'Adicione ao menos um animal ao lote.',
-                                                        ),
-                                                      ),
-                                                    );
-                                                    return;
-                                                  }
 
                                                   _model.isSaving = true;
                                                   safeSetState(() {});

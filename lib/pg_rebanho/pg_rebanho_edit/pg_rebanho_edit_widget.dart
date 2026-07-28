@@ -6394,6 +6394,75 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         FFLocalizations.of(
                                                                 context)
                                                             .languageCode;
+                                                    final statusSelecionado = _model
+                                                            .dropDownStatusValueController
+                                                            ?.value ??
+                                                        _model
+                                                            .dropDownStatusValue;
+                                                    final dataMorteEfetiva =
+                                                        _model.datePicked7 ??
+                                                            pgRebanhoEditRebanhoRow
+                                                                ?.dataMorte;
+                                                    final motivoMorteSelecionado =
+                                                        _model.dropDownMotivoMorteValueController
+                                                                ?.value ??
+                                                            _model
+                                                                .dropDownMotivoMorteValue;
+                                                    if (statusSelecionado ==
+                                                            'Morto' &&
+                                                        dataMorteEfetiva ==
+                                                            null) {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            'Informe a data da morte antes de salvar.',
+                                                            style: TextStyle(
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .secondaryBackground,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                          ),
+                                                          backgroundColor:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .secondary,
+                                                        ),
+                                                      );
+                                                      return;
+                                                    }
+                                                    if (statusSelecionado ==
+                                                            'Morto' &&
+                                                        (motivoMorteSelecionado ??
+                                                                '')
+                                                            .isEmpty) {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            'Informe o motivo da morte antes de salvar.',
+                                                            style: TextStyle(
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .secondaryBackground,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                          ),
+                                                          backgroundColor:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .secondary,
+                                                        ),
+                                                      );
+                                                      return;
+                                                    }
                                                     final sexoSelecionado = _model
                                                             .dropDownSexoValueController
                                                             ?.value ??
@@ -6468,8 +6537,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                     if (!context.mounted) {
                                                       return;
                                                     }
-                                                    if (_model
-                                                            .dropDownStatusValue ==
+                                                    if (statusSelecionado ==
                                                         'Vendido') {
                                                       final dataVendaEfetiva =
                                                           _model.datePicked9 ??
@@ -6594,8 +6662,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                 effectiveDataDesmamaEdit),
                                                         'pesoDesmama':
                                                             pesoDesmamaParsedEdit,
-                                                        'status': _model
-                                                            .dropDownStatusValue,
+                                                        'status':
+                                                            statusSelecionado,
                                                         'origem': _model
                                                             .dropDownOrigemValue,
                                                         'anotacoes': _model
@@ -6675,12 +6743,16 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                 pgRebanhoEditRebanhoRow
                                                                     ?.movimentacaoSaida),
                                                         'data_morte': supaSerialize<
-                                                            DateTime>(_model
-                                                                .datePicked7 ??
-                                                            pgRebanhoEditRebanhoRow
-                                                                ?.dataMorte),
-                                                        'motivo_morte': _model
-                                                            .dropDownMotivoMorteValue,
+                                                                DateTime>(
+                                                            statusSelecionado ==
+                                                                    'Morto'
+                                                                ? dataMorteEfetiva
+                                                                : null),
+                                                        'motivo_morte':
+                                                            statusSelecionado ==
+                                                                    'Morto'
+                                                                ? motivoMorteSelecionado
+                                                                : null,
                                                         'categoria_matriz':
                                                             FFAppState()
                                                                 .matrizSelecionada
