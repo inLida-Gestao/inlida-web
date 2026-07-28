@@ -143,6 +143,19 @@ function loteNomeByA12(ctx: ExportContext): Map<string, string> {
   return map;
 }
 
+// Filtro de raça para ANIMAL.TXT e NASCIMENTO.TXT: só entram animais de raça
+// "Nelore" ou "Nelore PO" (regra confirmada pela cliente 2026-07-28). Qualquer
+// outra raça — ou raça em branco — fica de fora desses dois arquivos.
+function racaNeloreOuPo(raca: unknown): boolean {
+  const r = String(raca ?? "")
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ");
+  return r === "NELORE" || r === "NELORE PO";
+}
+
 // Normaliza uma data (Date ou string ISO/"AAAA-MM-DD...") para "AAAA-MM-DD".
 function dateKeyIso(value: unknown): string {
   if (value === null || value === undefined || value === "") return "";
@@ -376,6 +389,8 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
   const lines: string[] = [];
   let recno = 0;
   for (const r of rows) {
+    // Só Nelore / Nelore PO entram no ANIMAL.TXT (regra da cliente).
+    if (!racaNeloreOuPo(r.raca)) continue;
     recno += 1;
     const a12 = ctx.a12ByRebanhoId.get(String(r.idRebanho ?? "")) ??
       a12FromRebanho(ctx.config, r);
@@ -604,6 +619,8 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
   let recno = 0;
   for (const r of rows) {
     if (!r.rebanhoIdMatriz) continue;
+    // Só Nelore / Nelore PO entram no NASCIMENTO.TXT (regra da cliente).
+    if (!racaNeloreOuPo(r.raca)) continue;
     recno += 1;
     const a12Cria = ctx.a12ByRebanhoId.get(String(r.idRebanho)) ?? "";
     const matrizA12 = ctx.a12ByRebanhoId.get(String(r.rebanhoIdMatriz)) ?? "";
