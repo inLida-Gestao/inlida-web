@@ -29,4 +29,6 @@ export 'export_paint_resultados_excel.dart' show exportPaintResultadosExcel;
 export 'registrar_paint_excluido.dart' show registrarPaintExcluido;
 export 'resetar_dados_paint.dart' show resetarDadosPaint;
 export 'import_paint_animal_txt.dart' show importPaintAnimalTxt;
+export 'a12_oficial_csv.dart'
+    show exportarA12OficialCsv, importarA12OficialCsv;
 export 'paint_helpers.dart' show formatA12, PaintEstrategiaA12, parseEstrategiaA12;

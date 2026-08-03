@@ -40,23 +40,14 @@ create index if not exists paint_animal_a12_prop_a12_idx
 
 alter table public.paint_animal_a12 enable row level security;
 
+-- Policy permissiva para authenticated, MESMA convenção das outras 26 policies
+-- paint_* deste projeto (todas com qual=true). Uma policy restritiva aqui faria
+-- esta tabela ser a única invisível para o app, que lê com o JWT do usuário.
 drop policy if exists paint_animal_a12_rw on public.paint_animal_a12;
 create policy paint_animal_a12_rw on public.paint_animal_a12
   for all to authenticated
-  using (
-    id_propriedade in (
-      select up."idPropriedade" from public.users_propriedades up
-      where up.user_id = auth.uid()::text
-        and coalesce(up.deletado, 'NAO') = 'NAO'
-    )
-  )
-  with check (
-    id_propriedade in (
-      select up."idPropriedade" from public.users_propriedades up
-      where up.user_id = auth.uid()::text
-        and coalesce(up.deletado, 'NAO') = 'NAO'
-    )
-  );
+  using (true)
+  with check (true);
 
 grant select, insert, update, delete on public.paint_animal_a12 to authenticated;
 grant all on public.paint_animal_a12 to service_role;

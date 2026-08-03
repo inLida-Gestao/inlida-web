@@ -2261,6 +2261,85 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     }
   }
 
+  /// Baixa o CSV do A12 (calculado x oficial) para a cliente corrigir no Excel.
+  Future<void> _baixarA12Csv() async {
+    if (_idPropriedade.isEmpty) return;
+    final propId = _idPropriedade;
+    safeSetState(() {
+      _model.importandoA12Oficial = true;
+      _model.mensagemA12Oficial = null;
+    });
+    try {
+      final ok = await paint_actions.exportarA12OficialCsv(propId);
+      if (!_aindaMesmaPropriedade(propId)) return;
+      safeSetState(() {
+        _model.importandoA12Oficial = false;
+        _model.mensagemA12Oficial = ok
+            ? '✓ CSV baixado. Corrija a coluna A12_PAINT e reimporte com '
+                '"Importar CSV corrigido" — a chave é o animal, então reimportar '
+                'atualiza e não duplica.'
+            : '⚠ Não foi possível gerar o CSV (confira a configuração PAINT e '
+                'se a propriedade tem rebanho).';
+      });
+    } catch (e) {
+      if (!_aindaMesmaPropriedade(propId)) return;
+      safeSetState(() {
+        _model.importandoA12Oficial = false;
+        _model.mensagemA12Oficial = '⚠ Erro ao gerar o CSV: $e';
+      });
+    }
+  }
+
+  /// Reimporta o CSV editado (coluna A12_PAINT). Upsert por animal — não duplica.
+  Future<void> _importarA12Csv() async {
+    if (_idPropriedade.isEmpty) return;
+    final propId = _idPropriedade;
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv', 'txt'],
+      withData: true,
+    );
+    if (picked == null || picked.files.isEmpty) return;
+    final f = picked.files.first;
+    if (f.bytes == null) return;
+    safeSetState(() {
+      _model.importandoA12Oficial = true;
+      _model.mensagemA12Oficial = null;
+    });
+    try {
+      final r = await paint_actions.importarA12OficialCsv(
+        propId,
+        FFUploadedFile(name: f.name, bytes: f.bytes),
+      );
+      if (!_aindaMesmaPropriedade(propId)) return;
+      final erros = (r['erros'] as List?)?.cast<Map>() ?? const [];
+      final partes = <String>[
+        '✓ CSV aplicado: ${r['gravados']} A12 gravados '
+            '(${r['inseridos']} novos, ${r['atualizados']} atualizados) de '
+            '${r['total_linhas']} linhas.',
+        '• ${r['ignorados']} sem alteração (A12 igual ao calculado ou já gravado).',
+      ];
+      if (erros.isNotEmpty) {
+        final ex = erros.take(5).map((e) {
+          final l = e['linha']?.toString() ?? '?';
+          return 'Linha $l: ${e['motivo']}';
+        }).join('\n');
+        partes.add('⚠ ${erros.length} linha(s) com problema:\n$ex');
+      }
+      safeSetState(() {
+        _model.importandoA12Oficial = false;
+        _model.mensagemA12Oficial = partes.join('\n');
+      });
+      await _carregarStatus();
+    } catch (e) {
+      if (!_aindaMesmaPropriedade(propId)) return;
+      safeSetState(() {
+        _model.importandoA12Oficial = false;
+        _model.mensagemA12Oficial = '⚠ Erro ao importar o CSV: $e';
+      });
+    }
+  }
+
   Future<void> _importarExcel(String tipo) async {
     if (_idPropriedade.isEmpty) return;
     final picked = await FilePicker.platform.pickFiles(
@@ -2369,6 +2448,64 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
               borderSide: BorderSide(color: theme.primary),
               borderRadius: BorderRadius.circular(8),
             ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Ou corrija manualmente: baixe a planilha, ajuste a coluna '
+            'A12_PAINT e reimporte. A chave é o animal, então reimportar '
+            'atualiza — nunca duplica.',
+            style: theme.bodySmall,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              FFButtonWidget(
+                onPressed:
+                    (_model.importandoA12Oficial || _idPropriedade.isEmpty)
+                        ? null
+                        : _baixarA12Csv,
+                text: 'Baixar CSV do A12',
+                icon: const Icon(Icons.download, size: 16),
+                options: FFButtonOptions(
+                  height: 36,
+                  padding: const EdgeInsetsDirectional.fromSTEB(14, 0, 14, 0),
+                  color: theme.secondaryBackground,
+                  textStyle: theme.bodyMedium.override(
+                    fontFamily: 'Readex Pro',
+                    color: theme.primary,
+                    useGoogleFonts:
+                        GoogleFonts.asMap().containsKey('Readex Pro'),
+                  ),
+                  elevation: 0,
+                  borderSide: BorderSide(color: theme.primary),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              FFButtonWidget(
+                onPressed:
+                    (_model.importandoA12Oficial || _idPropriedade.isEmpty)
+                        ? null
+                        : _importarA12Csv,
+                text: 'Importar CSV corrigido',
+                icon: const Icon(Icons.upload, size: 16),
+                options: FFButtonOptions(
+                  height: 36,
+                  padding: const EdgeInsetsDirectional.fromSTEB(14, 0, 14, 0),
+                  color: theme.secondaryBackground,
+                  textStyle: theme.bodyMedium.override(
+                    fontFamily: 'Readex Pro',
+                    color: theme.primary,
+                    useGoogleFonts:
+                        GoogleFonts.asMap().containsKey('Readex Pro'),
+                  ),
+                  elevation: 0,
+                  borderSide: BorderSide(color: theme.primary),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ],
           ),
           if (_model.mensagemA12Oficial != null) ...[
             const SizedBox(height: 8),
