@@ -156,15 +156,20 @@ function racaNeloreOuPo(raca: unknown): boolean {
   return r === "NELORE" || r === "NELORE PO";
 }
 
-// Animal de s\u00eamen (reprodutor externo/dose) \u2014 n\u00e3o \u00e9 animal f\u00edsico do rebanho e
-// n\u00e3o pode aparecer no ANIMAL.TXT (regra confirmada pela cliente 2026-08-03).
-function statusSemen(status: unknown): boolean {
+// Status que N\u00c3O podem aparecer no ANIMAL.TXT (regras da cliente 2026-08-03):
+//  - "S\u00eamen": reprodutor externo/dose, n\u00e3o \u00e9 animal f\u00edsico do rebanho;
+//  - "Fora da propriedade": animal que n\u00e3o est\u00e1 mais no plantel.
+// (Vendido/Morto CONTINUAM no arquivo \u2014 a cliente quer o hist\u00f3rico deles.)
+const STATUS_FORA_ANIMAL_TXT = new Set(["SEMEN", "FORA DA PROPRIEDADE"]);
+
+function statusForaDoAnimalTxt(status: unknown): boolean {
   const s = String(status ?? "")
     .toUpperCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .trim();
-  return s === "SEMEN";
+    .trim()
+    .replace(/\s+/g, " ");
+  return STATUS_FORA_ANIMAL_TXT.has(s);
 }
 
 // Normaliza uma data (Date ou string ISO/"AAAA-MM-DD...") para "AAAA-MM-DD".
@@ -400,9 +405,9 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
   const lines: string[] = [];
   let recno = 0;
   for (const r of rows) {
-    // Só Nelore / Nelore PO entram no ANIMAL.TXT; animais de sêmen ficam de
-    // fora (regras da cliente).
-    if (!racaNeloreOuPo(r.raca) || statusSemen(r.status)) continue;
+    // Só Nelore / Nelore PO entram no ANIMAL.TXT; sêmen e "fora da propriedade"
+    // ficam de fora (regras da cliente).
+    if (!racaNeloreOuPo(r.raca) || statusForaDoAnimalTxt(r.status)) continue;
     recno += 1;
     const a12 = ctx.a12ByRebanhoId.get(String(r.idRebanho ?? "")) ??
       a12FromRebanho(ctx.config, r);
