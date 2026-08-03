@@ -156,6 +156,17 @@ function racaNeloreOuPo(raca: unknown): boolean {
   return r === "NELORE" || r === "NELORE PO";
 }
 
+// Animal de s\u00eamen (reprodutor externo/dose) \u2014 n\u00e3o \u00e9 animal f\u00edsico do rebanho e
+// n\u00e3o pode aparecer no ANIMAL.TXT (regra confirmada pela cliente 2026-08-03).
+function statusSemen(status: unknown): boolean {
+  const s = String(status ?? "")
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+  return s === "SEMEN";
+}
+
 // Normaliza uma data (Date ou string ISO/"AAAA-MM-DD...") para "AAAA-MM-DD".
 function dateKeyIso(value: unknown): string {
   if (value === null || value === undefined || value === "") return "";
@@ -389,8 +400,9 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
   const lines: string[] = [];
   let recno = 0;
   for (const r of rows) {
-    // Só Nelore / Nelore PO entram no ANIMAL.TXT (regra da cliente).
-    if (!racaNeloreOuPo(r.raca)) continue;
+    // Só Nelore / Nelore PO entram no ANIMAL.TXT; animais de sêmen ficam de
+    // fora (regras da cliente).
+    if (!racaNeloreOuPo(r.raca) || statusSemen(r.status)) continue;
     recno += 1;
     const a12 = ctx.a12ByRebanhoId.get(String(r.idRebanho ?? "")) ??
       a12FromRebanho(ctx.config, r);
