@@ -176,7 +176,14 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       if (id.isNotEmpty) rebanhoById[id] = r;
     }
 
-    String a12Of(Map<String, dynamic> r) => a12FromRebanho(r, paintCfg);
+    // A12 OFICIAL do PAINT tem precedência sobre o cálculo: fazendas antigas no
+    // PAINT têm A12 legado (ex.: programa 'F'/'p') que é a chave do animal lá.
+    // Sem isso, cada "Importar tudo do sistema" recriaria linhas com 'P' e
+    // duplicaria registros (as chaves únicas incluem animal_a12).
+    final a12Oficiais = await fetchA12OficialPorRebanho(idPropriedade);
+    String a12Of(Map<String, dynamic> r) =>
+        a12Oficiais[(r['idRebanho'] ?? '').toString().trim()] ??
+        a12FromRebanho(r, paintCfg);
 
     // Filtros opcionais por data — aplicados só às avaliações por animal.
     bool nascDentro(Map<String, dynamic> r) => dentroIntervaloData(

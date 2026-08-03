@@ -673,9 +673,31 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         return MapEntry(t, resp.count);
       });
       final entries = await Future.wait(futures);
+      // A12 oficial do PAINT: total e quantos divergem do cálculo automático.
+      var a12Total = 0;
+      var a12Div = 0;
+      try {
+        final t = await SupaFlow.client
+            .from('paint_animal_a12')
+            .select('id')
+            .eq('id_propriedade', propId)
+            .count(CountOption.exact);
+        a12Total = t.count;
+        final d = await SupaFlow.client
+            .from('paint_animal_a12')
+            .select('id')
+            .eq('id_propriedade', propId)
+            .eq('divergente', true)
+            .count(CountOption.exact);
+        a12Div = d.count;
+      } catch (_) {
+        // tabela pode não existir em ambientes antigos — ignora
+      }
       if (!_aindaMesmaPropriedade(propId)) return;
       safeSetState(() {
         _model.counts = Map.fromEntries(entries);
+        _model.a12OficialTotal = a12Total;
+        _model.a12OficialDivergentes = a12Div;
         _model.carregandoStatus = false;
       });
     } catch (e) {
@@ -879,6 +901,8 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                                 _cardStatus(context),
                                 const SizedBox(height: 16),
                                 _cardPlanilhasExcel(context),
+                                const SizedBox(height: 16),
+                                _cardA12Oficial(context),
                                 const SizedBox(height: 16),
                                 _cardCadastrosAuto(context),
                                 const SizedBox(height: 16),
@@ -2168,6 +2192,75 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     }
   }
 
+  /// Importa o ANIMAL.TXT que a fazenda já envia manualmente ao PAINT e grava
+  /// o A12 oficial de cada animal (paint_animal_a12). O export passa a usar
+  /// esses A12 — é assim que reproduzimos o histórico do PAINT (ex.: programa
+  /// 'F' ou 'p' minúsculo que não pode mais ser corrigido lá).
+  Future<void> _importarA12Oficial() async {
+    if (_idPropriedade.isEmpty) return;
+    final propId = _idPropriedade;
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['txt'],
+      withData: true,
+    );
+    if (picked == null || picked.files.isEmpty) return;
+    final f = picked.files.first;
+    if (f.bytes == null) return;
+    safeSetState(() {
+      _model.importandoA12Oficial = true;
+      _model.mensagemA12Oficial = null;
+    });
+    try {
+      final r = await paint_actions.importPaintAnimalTxt(
+        propId,
+        FFUploadedFile(name: f.name, bytes: f.bytes),
+        false,
+      );
+      if (!_aindaMesmaPropriedade(propId)) return;
+      final erros = (r['erros'] as List?)?.cast<Map>() ?? const [];
+      final naoEnc = (r['nao_encontrados'] as List?) ?? const [];
+      final ambiguos = (r['ambiguos'] as List?) ?? const [];
+      final partes = <String>[
+        '✓ A12 oficial: ${r['casados']} animais casados '
+            '(${r['inseridos']} novos, ${r['atualizados']} atualizados) de '
+            '${r['total_linhas']} linhas.',
+        '• ${r['divergentes']} divergem do cálculo automático (é o que o PAINT '
+            'já tem e passaremos a enviar).',
+      ];
+      if (((r['manual_preservados'] as int?) ?? 0) > 0) {
+        partes.add(
+            '• ${r['manual_preservados']} edições manuais preservadas.');
+      }
+      if (naoEnc.isNotEmpty) {
+        final ex = naoEnc.take(5).map((e) {
+          final m = e as Map;
+          return 'linha ${m['linha']}: A12 ${m['a12']} (nº ${m['numero']})';
+        }).join('\n');
+        partes.add('⚠ ${naoEnc.length} sem animal correspondente no inLida:\n$ex');
+      }
+      if (ambiguos.isNotEmpty) {
+        partes.add('⚠ ${ambiguos.length} ambíguos (mais de um animal casa) — '
+            'corrija o número/registro desses animais.');
+      }
+      if (erros.isNotEmpty) {
+        final ex = erros.take(3).map((e) => '${e['motivo']}').join('\n');
+        partes.add('⚠ ${erros.length} aviso(s):\n$ex');
+      }
+      safeSetState(() {
+        _model.importandoA12Oficial = false;
+        _model.mensagemA12Oficial = partes.join('\n');
+      });
+      await _carregarStatus();
+    } catch (e) {
+      if (!_aindaMesmaPropriedade(propId)) return;
+      safeSetState(() {
+        _model.importandoA12Oficial = false;
+        _model.mensagemA12Oficial = '⚠ Erro ao importar: $e';
+      });
+    }
+  }
+
   Future<void> _importarExcel(String tipo) async {
     if (_idPropriedade.isEmpty) return;
     final picked = await FilePicker.platform.pickFiles(
@@ -2219,6 +2312,76 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         _model.mensagemExcel = '⚠ Erro na importação: $e';
       });
     }
+  }
+
+  /// Card "A12 oficial do PAINT": importa o ANIMAL.TXT que a fazenda já envia
+  /// manualmente e mostra a cobertura. Sem linhas aqui, o A12 segue calculado.
+  Widget _cardA12Oficial(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final total = _model.a12OficialTotal;
+    final div = _model.a12OficialDivergentes;
+    return _card(
+      context,
+      titulo: 'A12 oficial do PAINT',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Fazendas que já enviavam ao PAINT manualmente têm o A12 (código do '
+            'animal) gravado lá do jeito antigo — às vezes com programa "F" ou '
+            '"p" minúsculo, que não dá mais para corrigir no PAINT. Importe o '
+            'ANIMAL.TXT do PAINT para que a exportação use exatamente esses '
+            'códigos; sem isso, o PAINT não reconhece o vínculo dos animais.',
+            style: theme.bodySmall,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            total == 0
+                ? 'Nenhum A12 oficial cadastrado — a exportação calcula o A12 '
+                    '(comportamento padrão, correto para fazendas novas no PAINT).'
+                : 'A12 oficial cadastrado para $total animal(is); '
+                    '$div divergem do cálculo automático.',
+            style: theme.bodyMedium.override(
+              fontFamily: 'Readex Pro',
+              fontWeight: FontWeight.w600,
+              useGoogleFonts: GoogleFonts.asMap().containsKey('Readex Pro'),
+            ),
+          ),
+          const SizedBox(height: 10),
+          FFButtonWidget(
+            onPressed: (_model.importandoA12Oficial || _idPropriedade.isEmpty)
+                ? null
+                : _importarA12Oficial,
+            text: _model.importandoA12Oficial
+                ? 'Importando ANIMAL.TXT...'
+                : 'Importar ANIMAL.TXT do PAINT',
+            icon: const Icon(Icons.upload_file, size: 16),
+            options: FFButtonOptions(
+              height: 40,
+              padding: const EdgeInsetsDirectional.fromSTEB(14, 0, 14, 0),
+              color: theme.secondaryBackground,
+              textStyle: theme.bodyMedium.override(
+                fontFamily: 'Readex Pro',
+                color: theme.primary,
+                useGoogleFonts: GoogleFonts.asMap().containsKey('Readex Pro'),
+              ),
+              elevation: 0,
+              borderSide: BorderSide(color: theme.primary),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          if (_model.mensagemA12Oficial != null) ...[
+            const SizedBox(height: 8),
+            SelectionArea(
+              child: Text(
+                _model.mensagemA12Oficial!,
+                style: theme.bodySmall,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _cardPlanilhasExcel(BuildContext context) {

@@ -56,6 +56,12 @@ class PgPaintModel extends FlutterFlowModel<PgPaintWidget> {
   bool resetandoPaint = false;
   String? mensagemReset;
 
+  // Import do ANIMAL.TXT do PAINT (A12 oficial por animal).
+  bool importandoA12Oficial = false;
+  String? mensagemA12Oficial;
+  int a12OficialTotal = 0;
+  int a12OficialDivergentes = 0;
+
   bool exportandoExcel = false;
   bool importandoExcel = false;
   String? mensagemExcel;

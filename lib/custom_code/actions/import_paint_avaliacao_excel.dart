@@ -112,6 +112,9 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
   // propriedade (vendido/morto) ou tiver sido removido — a avaliação histórica
   // precisa ser importada de qualquer forma.
   final rebanho = await fetchRebanhoPaint(idPropriedade, incluirRemovidos: true);
+  // A12 oficial do PAINT (quando a fazenda já tem histórico importado): a
+  // avaliação deve ser gravada com o MESMO A12 que o ANIMAL.TXT vai emitir.
+  final a12Oficiais = await fetchA12OficialPorRebanho(idPropriedade);
   final byNumero = <String, List<Map<String, dynamic>>>{};
   // Um A12 pode colidir (mesmos dígitos do número + mesmo ano de nascimento em
   // animais diferentes), então o índice guarda TODOS os candidatos; a
@@ -299,9 +302,14 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       }
     }
 
+    // Prefere o A12 oficial do animal: garante que avaliação e ANIMAL.TXT usem
+    // exatamente a mesma chave. Sem oficial, mantém o A12 da planilha (que já
+    // vem do PAINT).
+    final a12Gravar =
+        a12Oficiais[(reb['idRebanho'] ?? '').toString().trim()] ?? a12;
     Map<String, dynamic> payload = {
       'id_propriedade': idPropriedade,
-      'animal_a12': _a12DbValue(a12),
+      'animal_a12': _a12DbValue(a12Gravar),
       'data': dataAv,
       // Só uma avaliação importada pela planilha PAINT pode ser enviada nos
       // arquivos DESMAMA.TXT e ANO_SOBREANO.TXT.
@@ -392,7 +400,10 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       }
     }
 
-    final key = '$a12Key|$dataAv';
+    // A chave de dedup precisa usar o MESMO A12 que vai ser gravado (o oficial
+    // quando existe), senão a checagem olharia uma chave diferente da linha
+    // gravada e poderia duplicar / violar a unique (id_propriedade,a12,data).
+    final key = '${_a12Key(a12Gravar)}|$dataAv';
     if (importKeys.contains(key)) {
       erros.add({
         'linha': linha,

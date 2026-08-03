@@ -608,3 +608,110 @@ const listaTourosHeaders = [
   'RGD',
   'RGN',
 ];
+
+// ---------------------------------------------------------------------------
+// Identidade robusta do animal para casar dados vindos do PAINT.
+//
+// O A12 da planilha/arquivo do PAINT carrega o programa (P/p/F) e a série
+// (460/JLK) que o PAINT gravou — que o nosso recálculo nem sempre reproduz.
+// Já os DÍGITOS do número + o ANO de nascimento são estáveis, então servem de
+// chave de casamento. Compartilhado pelos imports de avaliação e de ANIMAL.TXT.
+// ---------------------------------------------------------------------------
+
+/// Só os dígitos (primeiros 5) do número do animal — ignora sigla de registro
+/// ("1000 JLK" -> "1000") e separadores.
+String paintSoDigitos(String? raw) {
+  final d = (raw ?? '').replaceAll(RegExp(r'\D'), '');
+  return d.length > 5 ? d.substring(0, 5) : d;
+}
+
+/// Chave "dígitos|ano2" a partir de número + data de nascimento (DateTime ou
+/// string ISO/'AAAA-MM-DD...'). Vazio quando não dá para formar a chave.
+String paintChaveDigAno(String? numero, dynamic dataNascimento) {
+  final dig = paintSoDigitos(numero);
+  if (dig.isEmpty) return '';
+  DateTime? d;
+  if (dataNascimento is DateTime) {
+    d = dataNascimento;
+  } else if (dataNascimento != null) {
+    final s = dataNascimento.toString();
+    d = DateTime.tryParse(s);
+    if (d == null) {
+      // 'dd/mm/aaaa' (formato dos TXT do PAINT)
+      final m = RegExp(r'^(\d{1,2})/(\d{1,2})/(\d{4})').firstMatch(s.trim());
+      if (m != null) {
+        d = DateTime(
+          int.parse(m.group(3)!),
+          int.parse(m.group(2)!),
+          int.parse(m.group(1)!),
+        );
+      }
+    }
+  }
+  if (d == null) return '';
+  return '$dig|${(d.year % 100).toString().padLeft(2, '0')}';
+}
+
+/// Decompõe um A12 já formado (Programa1+Série4+Animal5+Ano2). O `trim` de cada
+/// segmento resolve as duas estratégias ('compacto' e 'espacado'):
+///   "P460 1163 21" -> P / 460 / 1163 / 21
+/// Retorna null quando o A12 não é decomponível.
+Map<String, String>? paintPartesDoA12(String? a12) {
+  final raw = a12 ?? '';
+  if (raw.trim().isEmpty || raw.length > 12) return null;
+  final p = raw.padRight(12, ' ');
+  final ano = p.substring(10, 12);
+  if (!RegExp(r'^\d{2}$').hasMatch(ano)) return null;
+  return {
+    'programa': p.substring(0, 1),
+    'serie': p.substring(1, 5).trim(),
+    'animal': p.substring(5, 10).trim(),
+    'ano': ano,
+  };
+}
+
+/// Chave "dígitos|ano2" extraída de um A12 (posicional; fallback tokenizado).
+String paintChaveDigAnoDeA12(String? a12) {
+  final partes = paintPartesDoA12(a12);
+  if (partes != null) {
+    final dig = paintSoDigitos(partes['animal']);
+    if (dig.isNotEmpty) return '$dig|${partes['ano']}';
+  }
+  final toks =
+      (a12 ?? '').trim().split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
+  if (toks.length >= 2) {
+    final dig = paintSoDigitos(toks[toks.length - 2]);
+    final anoRaw = toks[toks.length - 1].replaceAll(RegExp(r'\D'), '');
+    if (dig.isNotEmpty && anoRaw.length >= 2) {
+      return '$dig|${anoRaw.substring(anoRaw.length - 2)}';
+    }
+  }
+  return '';
+}
+
+/// idRebanho -> A12 oficial do PAINT (paint_animal_a12). Vazio quando a
+/// propriedade não tem histórico manual importado.
+Future<Map<String, String>> fetchA12OficialPorRebanho(
+  String idPropriedade,
+) async {
+  final map = <String, String>{};
+  const page = 1000;
+  var offset = 0;
+  while (true) {
+    final batch = await SupaFlow.client
+        .from('paint_animal_a12')
+        .select('id_rebanho,a12')
+        .eq('id_propriedade', idPropriedade)
+        .range(offset, offset + page - 1);
+    for (final r in batch) {
+      final id = (r['id_rebanho'] ?? '').toString().trim();
+      // trimRight apenas: a caixa e os espaços internos do A12 são
+      // significativos ('p460 1163 21' != 'P460 1163 21').
+      final a12 = (r['a12'] ?? '').toString().trimRight();
+      if (id.isNotEmpty && a12.isNotEmpty) map[id] = a12;
+    }
+    if (batch.length < page) break;
+    offset += page;
+  }
+  return map;
+}

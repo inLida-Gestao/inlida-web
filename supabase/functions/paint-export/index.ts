@@ -120,6 +120,30 @@ const GENERATION_ORDER = [
 const REBANHO_EXPORT_COLUMNS =
   "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,tipo_registro,dataDesmama,pesoDesmama,status,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,loteNome,loteID,created_at,updated_at,dataAcao";
 
+/**
+ * Carrega o A12 OFICIAL do PAINT (paint_animal_a12) da propriedade. Fazendas
+ * que já enviavam os arquivos manualmente têm A12 legado no PAINT que não pode
+ * mais ser alterado lá (ex.: programa 'F' ou 'p' minúsculo) — e o A12 é a chave
+ * do animal. Tabela vazia = propriedade sem histórico manual: tudo segue
+ * calculado como antes.
+ */
+async function prefetchA12Oficial(ctx: ExportContext): Promise<void> {
+  const rows = await selectAll<Record<string, unknown>>(
+    ctx.supa,
+    "paint_animal_a12",
+    (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
+    { columns: "id_rebanho,a12", orderColumn: "id_rebanho" },
+  );
+  for (const r of rows) {
+    const id = String(r.id_rebanho ?? "").trim();
+    // trimEnd apenas: o padding à direita é do char(12); espaços internos e a
+    // CAIXA do programa ('p' vs 'P') são significativos e devem ser preservados.
+    const a12 = String(r.a12 ?? "").trimEnd();
+    if (id && a12) ctx.a12OficialByRebanhoId.set(id, a12);
+  }
+  console.log(`[paint-export] a12 oficial=${ctx.a12OficialByRebanhoId.size}`);
+}
+
 /** Carrega rebanho uma vez e monta cache A12 compartilhado pelos geradores. */
 async function prefetchRebanho(ctx: ExportContext): Promise<void> {
   if (ctx.rebanhoRows && ctx.rebanhoRows.length > 0) return;
@@ -131,7 +155,11 @@ async function prefetchRebanho(ctx: ExportContext): Promise<void> {
   );
   ctx.rebanhoRows = rows;
   for (const r of rows) {
-    const a12 = a12FromRebanho(ctx.config, r);
+    // A12 oficial do PAINT tem precedência sobre o cálculo: é a chave que o
+    // PAINT já possui para o animal. Isto se propaga para TODOS os consumidores
+    // de a12ByRebanhoId (ANIMAL, NASCIMENTO, COBERTURA, PESAGEM, pai/mãe...).
+    const a12 = ctx.a12OficialByRebanhoId.get(String(r.idRebanho ?? "").trim()) ??
+      a12FromRebanho(ctx.config, r);
     if (r.idRebanho) {
       ctx.a12ByRebanhoId.set(String(r.idRebanho), a12);
       ctx.numeroByRebanhoId.set(String(r.idRebanho), String(r.numeroAnimal ?? ""));
@@ -161,11 +189,15 @@ async function runExportJob(
       faz,
       a12ByRebanhoId: new Map(),
       numeroByRebanhoId: new Map(),
+      a12OficialByRebanhoId: new Map(),
       generationDate: formatDate(now),
       generationTime: formatTime(now),
       generationDateTime: now,
     };
 
+    // A12 oficial ANTES do rebanho: o prefetch do rebanho já aplica o override
+    // ao montar a12ByRebanhoId.
+    await prefetchA12Oficial(ctx);
     // Uma única carga do rebanho (evita duplicar ~10k linhas na validação).
     await prefetchRebanho(ctx);
     const skipHeavyValidation = (ctx.rebanhoRows?.length ?? 0) > 3000;

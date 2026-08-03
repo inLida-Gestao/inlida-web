@@ -37,12 +37,42 @@ Future<bool> registrarPaintBaixa(
   if (configRows.isEmpty) return false;
   final serieFazenda = configRows.first['serie_fazenda']?.toString() ?? '';
 
-  final a12 = formatA12(
-    programa: 'P',
-    serieFazenda: serieFazenda,
-    animal: numeroAnimal.trim(),
-    ano: dataNascimento.year,
-  );
+  // A12 OFICIAL do PAINT tem precedência: em fazendas com histórico manual, a
+  // chave do animal no PAINT é a legada (ex.: programa 'F'/'p'). Gravar 'P' aqui
+  // criaria uma baixa que o PAINT não associa ao animal.
+  String? a12Oficial;
+  try {
+    final rebRows = await SupaFlow.client
+        .from('rebanho')
+        .select('idRebanho')
+        .eq('id', rebanhoId)
+        .limit(1);
+    final idReb = rebRows.isEmpty
+        ? ''
+        : (rebRows.first['idRebanho'] ?? '').toString().trim();
+    if (idReb.isNotEmpty) {
+      final ofRows = await SupaFlow.client
+          .from('paint_animal_a12')
+          .select('a12')
+          .eq('id_propriedade', idPropriedade)
+          .eq('id_rebanho', idReb)
+          .limit(1);
+      if (ofRows.isNotEmpty) {
+        final v = (ofRows.first['a12'] ?? '').toString().trimRight();
+        if (v.isNotEmpty) a12Oficial = v;
+      }
+    }
+  } catch (_) {
+    // Sem A12 oficial disponível: segue com o cálculo padrão.
+  }
+
+  final a12 = a12Oficial ??
+      formatA12(
+        programa: 'P',
+        serieFazenda: serieFazenda,
+        animal: numeroAnimal.trim(),
+        ano: dataNascimento.year,
+      );
 
   try {
     final payload = {

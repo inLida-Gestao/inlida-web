@@ -114,6 +114,60 @@ export function a12FromRebanho(
 }
 
 // ---------------------------------------------------------------------------
+// Decomposição de um A12 já formado (usado quando o A12 vem do PAINT, não do
+// nosso cálculo — ver paint_animal_a12). O A12 é posicional:
+// Programa(1) + Série(4) + Animal(5) + Ano(2). Com a estratégia 'espacado' os
+// separadores caem DENTRO dos campos de série/animal, então o `trim` de cada
+// segmento devolve o valor certo nas duas estratégias:
+//   "P460 1163 21" -> P / 460 / 1163 / 21
+//   "pJLK 1043 21" -> p / JLK / 1043 / 21
+// ---------------------------------------------------------------------------
+export interface A12Partes {
+  programa: string;
+  serie: string;
+  animal: string;
+  ano: string;
+}
+
+export function partesDoA12(a12: unknown): A12Partes | null {
+  const raw = a12 === null || a12 === undefined ? "" : String(a12);
+  if (raw.trim() === "" || raw.length > 12) return null;
+  const p = raw.padEnd(12, " ");
+  const ano = p.slice(10, 12);
+  if (!/^\d{2}$/.test(ano)) return null;
+  return {
+    programa: p.slice(0, 1),
+    serie: p.slice(1, 5).trim(),
+    animal: p.slice(5, 10).trim(),
+    ano,
+  };
+}
+
+// Chaves "dig5|ano2" candidatas para casar um A12 (de qualquer origem) com o
+// animal do rebanho, ignorando programa e série. Tenta a leitura posicional e,
+// como rede, a tokenizada (A12 legado/espaçado com número deslocado).
+export function digAnoCandidates(a12: unknown): string[] {
+  const raw = a12 === null || a12 === undefined ? "" : String(a12);
+  if (raw.trim() === "") return [];
+  const out: string[] = [];
+  const push = (dig: string, ano: string) => {
+    const d = dig.replace(/\D/g, "").slice(0, 5);
+    if (d && /^\d{2}$/.test(ano)) {
+      const k = `${d}|${ano}`;
+      if (!out.includes(k)) out.push(k);
+    }
+  };
+  const partes = partesDoA12(raw);
+  if (partes) push(partes.animal, partes.ano);
+  // Fallback tokenizado: "<prog><serie> <numero> <ano>"
+  const toks = raw.trim().split(/\s+/).filter((t) => t !== "");
+  if (toks.length >= 2) {
+    push(toks[toks.length - 2], toks[toks.length - 1].replace(/\D/g, "").slice(-2));
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // Raça — tabela §11.1. Mapeamento unificado (espelho de mapRacaCodigo Dart).
 // ---------------------------------------------------------------------------
 const RACA_ALIASES: Array<[RegExp, string]> = [

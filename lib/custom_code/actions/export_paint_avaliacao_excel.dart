@@ -75,6 +75,12 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
   }
 
   final rebanho = await fetchRebanhoPaint(idPropriedade);
+  // A12 oficial do PAINT: o modelo entregue à cliente deve trazer a MESMA chave
+  // que o ANIMAL.TXT emite, senão a planilha volta com A12 divergente.
+  final a12Oficiais = await fetchA12OficialPorRebanho(idPropriedade);
+  String a12Do(Map<String, dynamic> r) =>
+      a12Oficiais[(r['idRebanho'] ?? '').toString().trim()] ??
+      a12FromRebanho(r, cfg);
 
   // Animais elegíveis por status/categoria (independente de datas).
   final elegiveis = rebanho.where(filtro).toList();
@@ -121,7 +127,7 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
     // (tipo "Atual"). Por não haver datas pré-preenchidas, o filtro de data de
     // avaliação não se aplica a este template.
     for (final r in comNascimento) {
-      final a12 = a12FromRebanho(r, cfg);
+      final a12 = a12Do(r);
       if (a12.isEmpty) continue;
       linhas.add([
         (r['numeroAnimal'] ?? '').toString(),
@@ -137,7 +143,7 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
     // matrizes / desmama: 1 linha por animal (comportamento inalterado).
     final selecionados = <_AnimalExport>[];
     for (final r in comNascimento) {
-      final a12 = a12FromRebanho(r, cfg);
+      final a12 = a12Do(r);
       if (a12.isEmpty) continue;
       final lista = preenchido
           ? (existentesPorA12[a12.trim()] ?? const <Map<String, dynamic>>[])
@@ -178,7 +184,7 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
       final numAnimal = (r['numeroAnimal'] ?? '').toString();
       final nasc = parseDateIso(r['dataNascimento']) ?? '';
       final sexo = sexoMF(r['sexo']);
-      final a12 = a12FromRebanho(r, cfg).trim();
+      final a12 = a12Do(r).trim();
       final dataAv = dataEfetivaAvaliacao(t, r, exist) ?? '';
 
       if (t == 'matrizes') {

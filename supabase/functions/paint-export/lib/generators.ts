@@ -15,9 +15,11 @@ import { selectAll } from "./sql.ts";
 import {
   a12FromRebanho,
   derivaSafraCodigo,
+  digAnoCandidates,
   extractAnimal5,
   extractBrinco5,
   grupoManejoFromLote,
+  partesDoA12,
   mapBaixaMotivo,
   mapCategoriaAnterior,
   mapCategoriaPaint,
@@ -61,6 +63,15 @@ export interface ExportContext {
   // importada veio sem peso, casando pela DATA EXATA da avaliação.
   idRebanhoPorDigAno?: Map<string, string>;
   pesoPorRebanhoData?: Map<string, string>;
+  // A12 OFICIAL do PAINT (tabela paint_animal_a12), por idRebanho. Fazendas que
+  // já enviavam ao PAINT manualmente têm A12 legado que não pode mudar (ex.:
+  // programa 'F' ou 'p' minúsculo). Vazio = propriedade sem histórico manual,
+  // e então tudo segue calculado como antes.
+  a12OficialByRebanhoId: Map<string, string>;
+  // "dig5|ano2" -> A12 final do animal. Canonicaliza os A12 ARMAZENADOS nas
+  // tabelas paint_* (avaliações, baixa, safra_x_animal...) para o mesmo valor
+  // emitido em ANIMAL.TXT, deixando o ZIP internamente consistente.
+  a12ByDigAno?: Map<string, string>;
   generationDate: string; // dd/mm/aaaa
   generationTime: string; // hh:mm:ss
   generationDateTime: Date;
@@ -202,12 +213,92 @@ function idRebanhoByDigAno(ctx: ExportContext): Map<string, string> {
   return map;
 }
 
+// Mapa "dig5|ano2" -> A12 final (oficial ou calculado) de cada animal do
+// rebanho. Chaves em COLISÃO (mais de um animal com mesmos dígitos+ano) são
+// descartadas: melhor não canonicalizar do que atribuir ao animal errado.
+function a12ByDigAno(ctx: ExportContext): Map<string, string> {
+  if (ctx.a12ByDigAno) return ctx.a12ByDigAno;
+  const map = new Map<string, string>();
+  const colididas = new Set<string>();
+  for (const r of ctx.rebanhoRows ?? []) {
+    const dig = String(r.numeroAnimal ?? "").replace(/\D/g, "").slice(0, 5);
+    const nasc = dateKeyIso(r.dataNascimento);
+    if (!dig || !nasc) continue;
+    const key = `${dig}|${nasc.slice(2, 4)}`;
+    const a12 = ctx.a12ByRebanhoId.get(String(r.idRebanho ?? "")) ?? "";
+    if (!a12.trim()) continue;
+    if (map.has(key) && map.get(key) !== a12) {
+      colididas.add(key);
+      continue;
+    }
+    map.set(key, a12);
+  }
+  for (const k of colididas) map.delete(k);
+  ctx.a12ByDigAno = map;
+  return map;
+}
+
 // Constrói os caches leves de lote/animal enquanto rebanhoRows ainda está na
 // memória. Chamado pelo prefetch do index.ts, antes do loop de geração.
 export function primeLoteCaches(ctx: ExportContext): void {
   loteNomeByA12(ctx);
   loteByRebanhoId(ctx);
   idRebanhoByDigAno(ctx);
+  a12ByDigAno(ctx);
+}
+
+// Programa / série / animal a emitir nos campos posicionais (ani_*/nas_*).
+// Quando o animal tem A12 OFICIAL do PAINT, esses campos são derivados do
+// próprio A12 — garantindo, por construção, que as posições 7-16 do ANIMAL.TXT
+// concordem com o A12 das posições 27-38. Sem A12 oficial, mantém exatamente o
+// comportamento anterior (config + cálculo).
+function camposPosicionais(
+  ctx: ExportContext,
+  r: any,
+  a12: string,
+): { programa: string; serie: string; animal: string } {
+  const temOficial = ctx.a12OficialByRebanhoId.has(String(r.idRebanho ?? "").trim());
+  const partes = temOficial ? partesDoA12(a12) : null;
+  return {
+    programa: partes?.programa ?? (ctx.config.programa ?? "P").toString().slice(0, 1),
+    serie: partes?.serie ?? resolveSerieA12(r, ctx.config),
+    animal: partes?.animal ?? extractAnimal5(r.numeroAnimal),
+  };
+}
+
+// Chaves de payload dos arquivos *_DELETE que contêm um A12 de animal.
+const A12_PAYLOAD_KEYS = [
+  "ani_A12",
+  "ani_pai",
+  "ani_mae",
+  "bai_animal_A12",
+  "cpr_animal_id",
+  "dsm_animal_id",
+  "sbr_animal_id",
+  "rah_animal_id",
+  "dgn_animal_id",
+  "sfa_animal_id",
+  "est_touro_a12",
+  "nas_animal_id",
+  "nas_animal_produto_id",
+  "nas_pai",
+  "cob_animal_id",
+  "cob_touro",
+  "trm_id",
+  "trm_ani_id",
+];
+
+// Traduz um A12 ARMAZENADO no banco para o A12 final do animal. Devolve o valor
+// original quando não há correspondência — nada regride.
+function a12Canon(ctx: ExportContext, raw: unknown): unknown {
+  const s = raw === null || raw === undefined ? "" : String(raw);
+  if (s.trim() === "") return raw;
+  const mapa = ctx.a12ByDigAno ?? a12ByDigAno(ctx);
+  for (const k of digAnoCandidates(s)) {
+    const oficial = mapa.get(k);
+    if (oficial) return oficial;
+  }
+  return raw;
 }
 
 // (dig|ano) a partir do A12 da avaliação (formato espaçado "P460 1163 21"):
@@ -364,14 +455,18 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
 
   const grupoByDescricao = await loadGrupoByDescricao(ctx);
   // Cache para uso em outros geradores (pode já vir preenchido no prefetch).
+  // Mesma regra do prefetch: A12 oficial do PAINT tem precedência.
   if (ctx.a12ByRebanhoId.size === 0) {
     for (const r of rows) {
-      const a12 = a12FromRebanho(ctx.config, r);
+      const a12 = ctx.a12OficialByRebanhoId.get(String(r.idRebanho ?? "").trim()) ??
+        a12FromRebanho(ctx.config, r);
       if (r.idRebanho) ctx.a12ByRebanhoId.set(String(r.idRebanho), a12);
       if (r.idRebanho) {
         ctx.numeroByRebanhoId.set(String(r.idRebanho), String(r.numeroAnimal ?? ""));
       }
     }
+    // rebanhoRows está carregado aqui; monta o mapa de canonicalização.
+    primeLoteCaches(ctx);
   }
 
   // Carrega últimas baixas para mapear sigla DC/VD/DE/MT.
@@ -415,11 +510,12 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
     const maeA12 = resolveParentA12(r.rebanhoIdMatriz);
     const categoria = mapCategoriaPaint(r);
     const rah = rahByA12.get(a12.trim());
+    const pos = camposPosicionais(ctx, r, a12);
     const row: Record<string, unknown> = {
       ani_parceiro: ctx.config.codigo_transmissao,
-      ani_programa: (ctx.config.programa ?? "P").toString().slice(0, 1),
-      ani_serie_fazenda: resolveSerieA12(r, ctx.config),
-      ani_animal: extractAnimal5(r.numeroAnimal),
+      ani_programa: pos.programa,
+      ani_serie_fazenda: pos.serie,
+      ani_animal: pos.animal,
       ani_data_nasc: formatDate(r.dataNascimento),
       ani_A12: a12,
       ani_A17: "", // 17 espaços (manual: "Preencher com espaços em branco")
@@ -483,7 +579,7 @@ async function genComposicaoRacial(ctx: ExportContext): Promise<string> {
       recno += 1;
       lines.push(buildLine(layout, {
         cpr_parceiro: ctx.config.codigo_transmissao,
-        cpr_animal_id: r.animal_a12,
+        cpr_animal_id: a12Canon(ctx, r.animal_a12),
         cpr_raca_id: r.raca_codigo,
         cpr_indice: formatNumeric(r.indice, 8, 6),
         cpr_fazenda: ctx.config.codigo_fazenda,
@@ -643,6 +739,7 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
     const matrizA12 = ctx.a12ByRebanhoId.get(String(r.rebanhoIdMatriz)) ?? "";
     const paiA12 = resolveParentA12(r.rebanhoIdReprodutor);
     const cob = coberturaByMatriz.get(String(r.rebanhoIdMatriz));
+    const posNas = camposPosicionais(ctx, r, a12Cria);
     lines.push(buildLine(layout, {
       nas_parceiro: ctx.config.codigo_transmissao,
       nas_safra_id: derivaSafraCodigo(r.dataNascimento),
@@ -650,9 +747,9 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
       nas_data_cob: cob ? formatDate(cob.data_inseminacao ?? cob.data_inicial) : "",
       nas_seq: "1",
       nas_fazenda: ctx.config.codigo_fazenda,
-      nas_seriefaz: resolveSerieA12(r, ctx.config),
-      nas_programa: (ctx.config.programa ?? "P").toString().slice(0, 1),
-      nas_animal: extractAnimal5(r.numeroAnimal),
+      nas_seriefaz: posNas.serie,
+      nas_programa: posNas.programa,
+      nas_animal: posNas.animal,
       nas_tpparto: "NORMAL",
       nas_animal_produto_id: a12Cria,
       nas_sexo: String(r.sexo ?? "").slice(0, 1).toUpperCase(),
@@ -736,7 +833,13 @@ async function genDelete(
 
   const lines: string[] = [];
   for (const r of rows ?? []) {
-    const payload = (r.payload ?? {}) as Record<string, unknown>;
+    const payload = { ...((r.payload ?? {}) as Record<string, unknown>) };
+    // O payload foi pré-montado no app (paint_delete_payload.dart) com o A12 da
+    // época; canonicaliza para o A12 oficial, senão o DELETE aponta para um
+    // animal que o PAINT não reconhece.
+    for (const k of A12_PAYLOAD_KEYS) {
+      if (k in payload) payload[k] = a12Canon(ctx, payload[k]);
+    }
     lines.push(buildLine(layout, payload));
   }
   return joinLines(lines);
@@ -790,9 +893,11 @@ async function genAvaliador(ctx: ExportContext): Promise<string> {
 async function genBaixa(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "BAIXA", "paint_baixa", (r, recno) => ({
     bai_parceiro: ctx.config.codigo_transmissao,
-    bai_animal_A12: r.animal_a12,
+    bai_animal_A12: a12Canon(ctx, r.animal_a12),
     bai_fazenda: fazendaField(ctx),
-    bai_animal: r.animal_a12 ? String(r.animal_a12).trim().slice(-5) : "",
+    bai_animal: r.animal_a12
+      ? String(a12Canon(ctx, r.animal_a12)).trim().slice(-5)
+      : "",
     bai_data_morte: formatDate(r.data_morte),
     bai_motivo: (r.motivo ?? "").toString().slice(0, 15),
     bai_preco: formatNumeric(r.preco ?? 0, 10, 2),
@@ -812,7 +917,7 @@ async function genDesmama(ctx: ExportContext): Promise<string> {
   const pesoPorRebData = await loadPesoPorRebanhoData(ctx);
   return paintTableGenerator(ctx, "DESMAMA", "paint_avaliacao_desmama", (r, recno) => ({
     dsm_parceiro: ctx.config.codigo_transmissao,
-    dsm_animal_id: r.animal_a12,
+    dsm_animal_id: a12Canon(ctx, r.animal_a12),
     dsm_fazenda: ctx.config.codigo_fazenda,
     dsm_data: formatDate(r.data),
     dsm_peso: formatNumeric(pesoAvaliacao(ctx, r, pesoPorRebData), 8, 2),
@@ -843,7 +948,7 @@ async function genAnoSobreano(ctx: ExportContext): Promise<string> {
   const pesoPorRebData = await loadPesoPorRebanhoData(ctx);
   return paintTableGenerator(ctx, "ANO_SOBREANO", "paint_avaliacao_sobreano", (r, recno) => ({
     sbr_parceiro: ctx.config.codigo_transmissao,
-    sbr_animal_id: r.animal_a12,
+    sbr_animal_id: a12Canon(ctx, r.animal_a12),
     sbr_fazenda: ctx.config.codigo_fazenda,
     sbr_data: formatDate(r.data),
     sbr_peso: formatNumeric(pesoAvaliacao(ctx, r, pesoPorRebData), 8, 2),
@@ -872,7 +977,7 @@ async function genAnoSobreano(ctx: ExportContext): Promise<string> {
 async function genRah(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "RAH", "paint_avaliacao_rah", (r, recno) => ({
     rah_parceiro: ctx.config.codigo_transmissao,
-    rah_animal_id: r.animal_a12,
+    rah_animal_id: a12Canon(ctx, r.animal_a12),
     rah_fazenda: fazendaField(ctx),
     rah_data: formatDate(r.data),
     rah_peso: formatNumeric(r.peso, 8, 2),
@@ -896,7 +1001,7 @@ async function genDiagnostico(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "DIAGNOSTICO", "paint_diagnostico", (r, recno) => ({
     dgn_parceiro: ctx.config.codigo_transmissao,
     dgn_safra_id: r.safra_codigo,
-    dgn_animal_id: r.animal_a12,
+    dgn_animal_id: a12Canon(ctx, r.animal_a12),
     dgn_data: formatDate(r.data),
     dgn_fazenda: ctx.config.codigo_fazenda,
     dgn_local_id: r.local_codigo ?? "",
@@ -1004,7 +1109,7 @@ async function genSafraXAnimal(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "SAFRA_X_ANIMAL", "paint_safra_x_animal", (r, recno) => ({
     sfa_parceiro: ctx.config.codigo_transmissao,
     sfa_safra_id: r.safra_codigo,
-    sfa_animal_id: r.animal_a12,
+    sfa_animal_id: a12Canon(ctx, r.animal_a12),
     sfa_fazenda: ctx.config.codigo_fazenda,
     sfa_local_id: r.local_codigo ?? "",
     sfa_grpmanejo_id: r.grupo_manejo_codigo ?? "",
@@ -1021,8 +1126,8 @@ async function genSafraXAnimal(ctx: ExportContext): Promise<string> {
 async function genTouroMultiplo(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "TOURO_MULTIPLO", "paint_touro_multiplo", (r, recno) => ({
     trm_parceiro: ctx.config.codigo_transmissao,
-    trm_id: r.multiplo_a12,
-    trm_ani_id: r.touro_a12,
+    trm_id: a12Canon(ctx, r.multiplo_a12),
+    trm_ani_id: a12Canon(ctx, r.touro_a12),
     trm_fazenda: ctx.config.codigo_fazenda,
     trm_data_inclusao: formatDate(r.created_at),
     trm_data_alteracao: formatDate(r.updated_at ?? r.created_at),
