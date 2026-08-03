@@ -1121,14 +1121,6 @@ class _PgReproducaoEditLoteWidgetState
                                                                           .day,
                                                                     );
                                                                   });
-                                                                } else if (_model
-                                                                        .datePicked1 !=
-                                                                    null) {
-                                                                  safeSetState(
-                                                                      () {
-                                                                    _model.datePicked1 =
-                                                                        getCurrentTimestamp;
-                                                                  });
                                                                 }
                                                                 safeSetState(
                                                                     () {
@@ -1820,14 +1812,6 @@ class _PgReproducaoEditLoteWidgetState
                                                                           .day,
                                                                     );
                                                                   });
-                                                                } else if (_model
-                                                                        .datePicked2 !=
-                                                                    null) {
-                                                                  safeSetState(
-                                                                      () {
-                                                                    _model.datePicked2 =
-                                                                        getCurrentTimestamp;
-                                                                  });
                                                                 }
                                                                 safeSetState(
                                                                     () {
@@ -1939,14 +1923,16 @@ class _PgReproducaoEditLoteWidgetState
                                                                       .secondaryText,
                                                                   size: 14.0,
                                                                 ),
-                                                                onPressed: (_model
-                                                                            .partidaSemen ==
-                                                                        1)
+                                                                onPressed: ((_model
+                                                                            .partidaSemen ??
+                                                                        1) <=
+                                                                    1)
                                                                     ? null
                                                                     : () async {
                                                                         _model.partidaSemen =
-                                                                            _model.partidaSemen! +
-                                                                                -1;
+                                                                            (_model.partidaSemen ??
+                                                                                    1) -
+                                                                                1;
                                                                         safeSetState(
                                                                             () {});
                                                                       },
@@ -2000,13 +1986,15 @@ class _PgReproducaoEditLoteWidgetState
                                                                       .secondaryText,
                                                                   size: 14.0,
                                                                 ),
-                                                                onPressed: (_model
-                                                                            .partidaSemen ==
-                                                                        5)
+                                                                onPressed: ((_model
+                                                                            .partidaSemen ??
+                                                                        1) >=
+                                                                    5)
                                                                     ? null
                                                                     : () async {
                                                                         _model.partidaSemen =
-                                                                            _model.partidaSemen! +
+                                                                            (_model.partidaSemen ??
+                                                                                    1) +
                                                                                 1;
                                                                         safeSetState(
                                                                             () {});
@@ -2343,14 +2331,6 @@ class _PgReproducaoEditLoteWidgetState
                                                                       datePicked3Date
                                                                           .day,
                                                                     );
-                                                                  });
-                                                                } else if (_model
-                                                                        .datePicked3 !=
-                                                                    null) {
-                                                                  safeSetState(
-                                                                      () {
-                                                                    _model.datePicked3 =
-                                                                        getCurrentTimestamp;
                                                                   });
                                                                 }
                                                                 safeSetState(
@@ -2696,14 +2676,6 @@ class _PgReproducaoEditLoteWidgetState
                                                                       datePicked4Date
                                                                           .day,
                                                                     );
-                                                                  });
-                                                                } else if (_model
-                                                                        .datePicked4 !=
-                                                                    null) {
-                                                                  safeSetState(
-                                                                      () {
-                                                                    _model.datePicked4 =
-                                                                        getCurrentTimestamp;
                                                                   });
                                                                 }
                                                                 safeSetState(
@@ -3570,14 +3542,6 @@ class _PgReproducaoEditLoteWidgetState
                                                                     datePicked5Date
                                                                         .day,
                                                                   );
-                                                                });
-                                                              } else if (_model
-                                                                      .datePicked5 !=
-                                                                  null) {
-                                                                safeSetState(
-                                                                    () {
-                                                                  _model.datePicked5 =
-                                                                      getCurrentTimestamp;
                                                                 });
                                                               }
                                                               safeSetState(() {

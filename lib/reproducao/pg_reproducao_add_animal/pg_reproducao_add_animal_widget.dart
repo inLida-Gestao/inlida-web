@@ -1460,13 +1460,6 @@ class _PgReproducaoAddAnimalWidgetState
                                                                   .day,
                                                             );
                                                           });
-                                                        } else if (_model
-                                                                .datePicked1 !=
-                                                            null) {
-                                                          safeSetState(() {
-                                                            _model.datePicked1 =
-                                                                getCurrentTimestamp;
-                                                          });
                                                         }
                                                         safeSetState(() {
                                                           _model.dataInseminacaoTextController
@@ -2235,13 +2228,6 @@ class _PgReproducaoAddAnimalWidgetState
                                                                   .day,
                                                             );
                                                           });
-                                                        } else if (_model
-                                                                .datePicked2 !=
-                                                            null) {
-                                                          safeSetState(() {
-                                                            _model.datePicked2 =
-                                                                getCurrentTimestamp;
-                                                          });
                                                         }
                                                         safeSetState(() {
                                                           _model.dataPartidaSemenTextController
@@ -2338,13 +2324,15 @@ class _PgReproducaoAddAnimalWidgetState
                                                           size: 14.0,
                                                         ),
                                                         onPressed:
-                                                            (_model.partidaSemen ==
+                                                            ((_model.partidaSemen ??
+                                                                        1) <=
                                                                     1)
                                                                 ? null
                                                                 : () async {
                                                                     _model.partidaSemen =
-                                                                        _model.partidaSemen! +
-                                                                            -1;
+                                                                        (_model.partidaSemen ??
+                                                                                1) -
+                                                                            1;
                                                                     safeSetState(
                                                                         () {});
                                                                   },
@@ -2397,12 +2385,14 @@ class _PgReproducaoAddAnimalWidgetState
                                                           size: 14.0,
                                                         ),
                                                         onPressed:
-                                                            (_model.partidaSemen ==
+                                                            ((_model.partidaSemen ??
+                                                                        1) >=
                                                                     5)
                                                                 ? null
                                                                 : () async {
                                                                     _model.partidaSemen =
-                                                                        _model.partidaSemen! +
+                                                                        (_model.partidaSemen ??
+                                                                                1) +
                                                                             1;
                                                                     safeSetState(
                                                                         () {});
@@ -2720,13 +2710,6 @@ class _PgReproducaoAddAnimalWidgetState
                                                               datePicked3Date
                                                                   .day,
                                                             );
-                                                          });
-                                                        } else if (_model
-                                                                .datePicked3 !=
-                                                            null) {
-                                                          safeSetState(() {
-                                                            _model.datePicked3 =
-                                                                getCurrentTimestamp;
                                                           });
                                                         }
                                                         safeSetState(() {
@@ -3051,13 +3034,6 @@ class _PgReproducaoAddAnimalWidgetState
                                                               datePicked4Date
                                                                   .day,
                                                             );
-                                                          });
-                                                        } else if (_model
-                                                                .datePicked4 !=
-                                                            null) {
-                                                          safeSetState(() {
-                                                            _model.datePicked4 =
-                                                                getCurrentTimestamp;
                                                           });
                                                         }
                                                         safeSetState(() {
@@ -3816,13 +3792,6 @@ class _PgReproducaoAddAnimalWidgetState
                                                             datePicked6Date.day,
                                                           );
                                                         });
-                                                      } else if (_model
-                                                              .datePicked6 !=
-                                                          null) {
-                                                        safeSetState(() {
-                                                          _model.datePicked6 =
-                                                              getCurrentTimestamp;
-                                                        });
                                                       }
                                                       safeSetState(() {
                                                         _model.dataStatusTextController
@@ -4446,12 +4415,6 @@ class _PgReproducaoAddAnimalWidgetState
                                                       datePicked5Date.day,
                                                     );
                                                   });
-                                                } else if (_model.datePicked5 !=
-                                                    null) {
-                                                  safeSetState(() {
-                                                    _model.datePicked5 =
-                                                        getCurrentTimestamp;
-                                                  });
                                                 }
                                                 safeSetState(() {
                                                   _model
@@ -4483,14 +4446,14 @@ class _PgReproducaoAddAnimalWidgetState
                                                 _model.datePicked1 != null) ||
                                             (_model.tipoReproducao ==
                                                     'Monta Natural' &&
-                                                _model.datePicked2 != null)))
+                                                _model.datePicked3 != null)))
                                       Builder(
                                         builder: (context) {
                                           final dataInsem =
                                               _model.tipoReproducao ==
                                                       'Inseminação'
                                                   ? _model.datePicked1!
-                                                  : _model.datePicked2!;
+                                                  : _model.datePicked3!;
                                           final dias = _model.datePicked5!
                                               .difference(dataInsem)
                                               .inDays;
@@ -5180,6 +5143,20 @@ class _PgReproducaoAddAnimalWidgetState
                                                 true;
                                             safeSetState(() {});
                                             safeSetState(() {
+                                              // Limpa o estado de datas/contadores para não
+                                              // vazar valores do registro recém-salvo para o
+                                              // próximo cadastro (a página continua na pilha).
+                                              _model.datePicked1 = null;
+                                              _model.datePicked2 = null;
+                                              _model.datePicked3 = null;
+                                              _model.datePicked4 = null;
+                                              _model.datePicked5 = null;
+                                              _model.datePicked6 = null;
+                                              _model.datePicked7 = null;
+                                              _model.partidaSemen = null;
+                                              _model.score = null;
+                                              _model.checkboxParidaValue =
+                                                  false;
                                               _model
                                                   .dropDownStatusValueController
                                                   ?.reset();

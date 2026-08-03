@@ -1188,13 +1188,6 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                                       .day,
                                                                 );
                                                               });
-                                                            } else if (_model
-                                                                    .datePicked1 !=
-                                                                null) {
-                                                              safeSetState(() {
-                                                                _model.datePicked1 =
-                                                                    getCurrentTimestamp;
-                                                              });
                                                             }
                                                             safeSetState(() {
                                                               _model.dataInseminacaoTextController
@@ -1850,13 +1843,6 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                                       .day,
                                                                 );
                                                               });
-                                                            } else if (_model
-                                                                    .datePicked2 !=
-                                                                null) {
-                                                              safeSetState(() {
-                                                                _model.datePicked2 =
-                                                                    getCurrentTimestamp;
-                                                              });
                                                             }
                                                             safeSetState(() {
                                                               _model.dataPartidaSemenTextController
@@ -1956,17 +1942,19 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                                   .secondaryText,
                                                               size: 14.0,
                                                             ),
-                                                            onPressed:
-                                                                (_model.partidaSemen ==
-                                                                        1)
-                                                                    ? null
-                                                                    : () async {
-                                                                        _model.partidaSemen =
-                                                                            _model.partidaSemen! +
-                                                                                -1;
-                                                                        safeSetState(
-                                                                            () {});
-                                                                      },
+                                                            onPressed: ((_model
+                                                                            .partidaSemen ??
+                                                                        1) <=
+                                                                    1)
+                                                                ? null
+                                                                : () async {
+                                                                    _model.partidaSemen =
+                                                                        (_model.partidaSemen ??
+                                                                                1) -
+                                                                            1;
+                                                                    safeSetState(
+                                                                        () {});
+                                                                  },
                                                           ),
                                                           Text(
                                                             valueOrDefault<
@@ -2017,17 +2005,19 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                                   .secondaryText,
                                                               size: 14.0,
                                                             ),
-                                                            onPressed:
-                                                                (_model.partidaSemen ==
-                                                                        5)
-                                                                    ? null
-                                                                    : () async {
-                                                                        _model.partidaSemen =
-                                                                            _model.partidaSemen! +
-                                                                                1;
-                                                                        safeSetState(
-                                                                            () {});
-                                                                      },
+                                                            onPressed: ((_model
+                                                                            .partidaSemen ??
+                                                                        1) >=
+                                                                    5)
+                                                                ? null
+                                                                : () async {
+                                                                    _model.partidaSemen =
+                                                                        (_model.partidaSemen ??
+                                                                                1) +
+                                                                            1;
+                                                                    safeSetState(
+                                                                        () {});
+                                                                  },
                                                           ),
                                                         ],
                                                       ),
@@ -2345,13 +2335,6 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                                   datePicked3Date
                                                                       .day,
                                                                 );
-                                                              });
-                                                            } else if (_model
-                                                                    .datePicked3 !=
-                                                                null) {
-                                                              safeSetState(() {
-                                                                _model.datePicked3 =
-                                                                    getCurrentTimestamp;
                                                               });
                                                             }
                                                             safeSetState(() {
@@ -2681,13 +2664,6 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                                   datePicked4Date
                                                                       .day,
                                                                 );
-                                                              });
-                                                            } else if (_model
-                                                                    .datePicked4 !=
-                                                                null) {
-                                                              safeSetState(() {
-                                                                _model.datePicked4 =
-                                                                    getCurrentTimestamp;
                                                               });
                                                             }
                                                             safeSetState(() {
@@ -3500,13 +3476,6 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                                     .day,
                                                               );
                                                             });
-                                                          } else if (_model
-                                                                  .datePicked6 !=
-                                                              null) {
-                                                            safeSetState(() {
-                                                              _model.datePicked6 =
-                                                                  getCurrentTimestamp;
-                                                            });
                                                           }
                                                           safeSetState(() {
                                                             _model.dataStatusTextController
@@ -4038,13 +4007,6 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                           datePicked5Date.day,
                                                         );
                                                       });
-                                                    } else if (_model
-                                                            .datePicked5 !=
-                                                        null) {
-                                                      safeSetState(() {
-                                                        _model.datePicked5 =
-                                                            getCurrentTimestamp;
-                                                      });
                                                     }
                                                     safeSetState(() {
                                                       _model
@@ -4078,7 +4040,7 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                         null) ||
                                                 (_model.tipoReproducao ==
                                                         'Monta Natural' &&
-                                                    _model.datePicked2 !=
+                                                    _model.datePicked3 !=
                                                         null)))
                                           Builder(
                                             builder: (context) {
@@ -4086,7 +4048,7 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                   _model.tipoReproducao ==
                                                           'Inseminação'
                                                       ? _model.datePicked1!
-                                                      : _model.datePicked2!;
+                                                      : _model.datePicked3!;
                                               final dias = _model.datePicked5!
                                                   .difference(dataInsem)
                                                   .inDays;
@@ -4877,6 +4839,16 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                     true;
                                                 safeSetState(() {});
                                                 safeSetState(() {
+                                                  // Limpa o estado de datas/contadores para não
+                                                  // vazar valores do lote recém-salvo para o
+                                                  // próximo cadastro (a página continua na pilha).
+                                                  _model.datePicked1 = null;
+                                                  _model.datePicked2 = null;
+                                                  _model.datePicked3 = null;
+                                                  _model.datePicked4 = null;
+                                                  _model.datePicked5 = null;
+                                                  _model.datePicked6 = null;
+                                                  _model.partidaSemen = null;
                                                   _model
                                                       .dropDownLoteValueController
                                                       ?.reset();
