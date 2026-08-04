@@ -42,6 +42,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
     'diagnosticos': 0,
     'regimes': 0,
     'biblioteca': 0,
+    'baixas': 0,
     'erro': 0,
     'mensagem': '',
     'falhas': <String>[],
@@ -165,7 +166,9 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       client,
       'rebanho',
       'idRebanho,idPropriedade,numeroAnimal,dataNascimento,raca,sexo,'
-          'categoria,status,dataDesmama,pesoDesmama,dataUltimaPesagem,pesoAtual',
+          'categoria,status,dataDesmama,pesoDesmama,dataUltimaPesagem,pesoAtual,'
+          // Necessárias para derivar as BAIXAS (venda/morte).
+          'dataVenda,data_morte,motivo_morte',
       {'idPropriedade': idPropriedade, 'deletado': 'NAO'},
       orderColumn: 'id',
     );
@@ -531,6 +534,75 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         await _upsertBatched(
             client, 'paint_biblioteca_touros', insertBib, 'a12');
         result['biblioteca'] = insertBib.length;
+      }
+    });
+
+    // ---------------- 11. BAIXAS (vendidos / mortos) ----------------
+    // A baixa só era gravada por registrar_paint_baixa, no momento em que o
+    // usuário troca o status na tela do animal. Animais que já estavam
+    // vendidos/mortos antes disso nunca entravam, e a tabela BAIXA saía vazia
+    // no ZIP (bug relatado pela cliente em 03/08/2026).
+    // Só Nelore/Nelore PO: a BAIXA referencia um animal do ANIMAL.TXT, que
+    // exclui as outras raças — uma baixa de Girolando apontaria para um animal
+    // que o PAINT não tem.
+    await exec('baixas', () async {
+      final existBaixas = await _selectAllPaged(
+        client,
+        'paint_baixa',
+        'animal_a12',
+        {'id_propriedade': idPropriedade},
+      );
+      final baixaExist = existBaixas
+          .map((e) => (e['animal_a12'] ?? '').toString().trim())
+          .where((a) => a.isNotEmpty)
+          .toSet();
+
+      final insertBaixas = <Map<String, dynamic>>[];
+      final baixaNovos = <String>{};
+      for (final r in rebanhoRows) {
+        if (!paintRacaNeloreOuPo(r['raca'])) continue;
+        final status = (r['status'] ?? '').toString().trim();
+        String? motivo;
+        String? dataBaixa;
+        if (status == 'Vendido') {
+          motivo = 'VENDA';
+          dataBaixa = parseDateIso(r['dataVenda']);
+        } else if (status == 'Morto') {
+          motivo = 'MORTE';
+          dataBaixa = parseDateIso(r['data_morte']);
+        }
+        if (motivo == null) continue;
+        if (!nascDentro(r)) continue;
+        if (!avDentro(dataBaixa)) continue;
+        final a = a12Of(r);
+        if (a.isEmpty) continue;
+        final chave = a.trim();
+        if (baixaExist.contains(chave)) continue;
+        if (!baixaNovos.add(chave)) continue;
+        insertBaixas.add({
+          'id_propriedade': idPropriedade,
+          'animal_a12': a,
+          // A coluna guarda a data da baixa: venda ou morte, conforme o motivo
+          // (mesma semântica de registrar_paint_baixa).
+          'data_morte': dataBaixa,
+          'motivo': motivo,
+          'obs': motivo == 'MORTE'
+              ? ((r['motivo_morte'] ?? '').toString().trim().isEmpty
+                  ? null
+                  : (r['motivo_morte']).toString().trim())
+              : null,
+        });
+      }
+      if (insertBaixas.isNotEmpty) {
+        // paint_baixa não tem unique constraint (só índice); a dedup por A12 já
+        // foi feita acima, então insert em lotes é seguro e idempotente.
+        const tam = 500;
+        for (var i = 0; i < insertBaixas.length; i += tam) {
+          final fim =
+              (i + tam < insertBaixas.length) ? i + tam : insertBaixas.length;
+          await client.from('paint_baixa').insert(insertBaixas.sublist(i, fim));
+        }
+        result['baixas'] = insertBaixas.length;
       }
     });
 

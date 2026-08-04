@@ -752,6 +752,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         if ((r['sobreanos'] ?? 0) > 0) '${r['sobreanos']} sobreanos',
         if ((r['rahs'] ?? 0) > 0) '${r['rahs']} RAH',
         if ((r['diagnosticos'] ?? 0) > 0) '${r['diagnosticos']} diagnósticos',
+        if ((r['baixas'] ?? 0) > 0) '${r['baixas']} baixas (vendas/mortes)',
       ];
       final falhas = (r['falhas'] as List?)?.cast<String>() ?? const [];
       final prefixoFiltro = _descricaoFiltroImport();
