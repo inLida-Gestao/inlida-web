@@ -8,6 +8,13 @@
 enum PaintEstrategiaA12 { compacto, espacado, ultimosDigitosNome }
 
 /// A12 = Programa(1) + SérieFazenda(4) + Animal(5) + Ano(2 dígitos).
+///
+/// Campo POSICIONAL de 12 chars, sem separadores: série e animal são
+/// justificados à ESQUERDA e a sobra vira espaço. Os "espaços" de
+/// 'P460 1163 21' são essa sobra, não separadores — confirmado nos A12 que o
+/// PAINT já tem ('P460 77   20', 'P460 222  20', 'F460 1163 21').
+/// Por isso `espacado` é só um apelido legado de `compacto`: concatenar com
+/// separadores desalinha o ano quando o número não tem exatamente 4 dígitos.
 String formatA12({
   required String programa,
   required String serieFazenda,
@@ -23,32 +30,17 @@ String formatA12({
 
   final y = (ano % 100).toString().padLeft(2, '0');
 
+  var aRaw = animal.trim();
   if (estrategia == PaintEstrategiaA12.ultimosDigitosNome) {
-    final digits = animal.replaceAll(RegExp(r'\D'), '');
-    final part = digits.length >= 6 ? digits.substring(digits.length - 6) : digits;
-    final raw = '$p$s$part$y';
-    return raw.length > 12 ? raw.substring(0, 12) : raw.padRight(12, ' ');
+    // O campo Animal tem 5 chars: pegar 6 dígitos empurrava o ano fora do A12.
+    final digits = aRaw.replaceAll(RegExp(r'\D'), '');
+    aRaw = digits.length > 5 ? digits.substring(digits.length - 5) : digits;
   }
 
-  final aRaw = animal;
-  // Campo Animal (5): identificação justificada à ESQUERDA, espaço sobra à
-  // direita (ex.: "4705 "). Manual A12 = Programa(1)+Série(4)+Animal(5)+Ano(2).
+  // Campo Animal (5): justificado à ESQUERDA, sobra de espaço à direita.
   final a = aRaw.length > 5
       ? aRaw.substring(0, 5)
       : aRaw + ' ' * (5 - aRaw.length);
-
-  if (estrategia == PaintEstrategiaA12.espacado) {
-    final serieTrim = s.trim();
-    // Reserva espaço para programa + série + 2 separadores + ano (2). O animal
-    // é truncado se necessário para nunca cortar o ano no final.
-    final espacoAnimal =
-        (12 - (p.length + serieTrim.length + 2 + y.length)).clamp(0, 5);
-    final animalTrim = a.trim().length > espacoAnimal
-        ? a.trim().substring(0, espacoAnimal)
-        : a.trim();
-    final raw = '$p$serieTrim $animalTrim $y';
-    return raw.length > 12 ? raw.substring(0, 12) : raw.padRight(12, ' ');
-  }
 
   return '$p$s$a$y';
 }

@@ -105,7 +105,18 @@ export function buildLine(layout: Field[], row: Record<string, unknown>): string
 
 export type EstrategiaA12 = "compacto" | "espacado" | "ultimos_digitos_nome";
 
-// A12 — Manual §7.1 + variantes observadas no sample 000460.
+// A12 — Manual §7.1. É um campo POSICIONAL de 12 chars, SEM separadores:
+//   Programa(1) + Série(4, justificada à esquerda) + Animal(5, à esquerda) + Ano(2)
+// Os "espaços" que aparecem em 'P460 1163 21' são a sobra da série ("460 ") e do
+// animal ("1163 ") — NÃO são separadores. Confirmado nos A12 que o próprio PAINT
+// tem da Cachoeira (paint_animal_a12), com número de 2, 3 e 4 dígitos:
+//   número 77   -> 'P460 77   20'
+//   número 222  -> 'P460 222  20'
+//   número 1163 -> 'F460 1163 21'
+// Por isso 'espacado' é apenas um APELIDO LEGADO de 'compacto': montar por
+// concatenação com separadores só coincide com o layout posicional quando a
+// série tem 3 chars e o número tem 4 dígitos, e desalinhava o ano (ou trunca o
+// número) em todos os outros casos.
 export function formatA12(opts: {
   programa?: string | null;
   serieFazenda: string;
@@ -124,29 +135,15 @@ export function formatA12(opts: {
 
   let animalPart = opts.animal.toString().trim();
   if (estrategia === "ultimos_digitos_nome") {
+    // O campo Animal tem 5 chars: pegar 6 dígitos empurrava o ano fora do A12.
     const digits = animalPart.replace(/\D/g, "");
-    animalPart = digits.length >= 6 ? digits.slice(-6) : digits;
-    return `${p}${serie4}${animalPart}${y}`.slice(0, 12).padEnd(12, " ");
+    animalPart = digits.length > 5 ? digits.slice(-5) : digits;
   }
 
-  const aRaw = animalPart;
-  // Campo Animal (5): identificação justificada à ESQUERDA, espaço sobra à
-  // direita (ex.: "4705 "). Manual A12 = Programa(1)+Série(4)+Animal(5)+Ano(2).
-  const a = aRaw.length > 5
-    ? aRaw.slice(0, 5)
-    : aRaw + " ".repeat(5 - aRaw.length);
-
-  if (estrategia === "espacado") {
-    const serieTrim = serie4.trim();
-    // Reserva espaço para programa + série + 2 separadores + ano (2). O animal
-    // é truncado se necessário para nunca cortar o ano no final.
-    const espacoAnimal = Math.max(
-      0,
-      12 - (p.length + serieTrim.length + 2 + y.length),
-    );
-    const animalTrim = a.trim().slice(0, espacoAnimal);
-    return `${p}${serieTrim} ${animalTrim} ${y}`.padEnd(12, " ").slice(0, 12);
-  }
+  // Campo Animal (5): justificado à ESQUERDA, sobra de espaço à direita.
+  const a = animalPart.length > 5
+    ? animalPart.slice(0, 5)
+    : animalPart + " ".repeat(5 - animalPart.length);
 
   return `${p}${serie4}${a}${y}`;
 }

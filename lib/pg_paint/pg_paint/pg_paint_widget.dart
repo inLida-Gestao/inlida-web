@@ -1152,15 +1152,15 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                         items: const [
                           DropdownMenuItem(
                             value: 'compacto',
-                            child: Text('Compacto (P+serie+animal)'),
+                            child: Text('Padrão (P + série + número + ano)'),
                           ),
                           DropdownMenuItem(
                             value: 'espacado',
-                            child: Text('Espaçado (sample 000460)'),
+                            child: Text('Espaçado (legado = padrão)'),
                           ),
                           DropdownMenuItem(
                             value: 'ultimos_digitos_nome',
-                            child: Text('Últimos 6 dígitos do nome'),
+                            child: Text('Últimos 5 dígitos do nome'),
                           ),
                         ],
                         onChanged: (v) => safeSetState(

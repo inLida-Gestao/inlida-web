@@ -109,3 +109,69 @@ Deno.test("categoria por evento e categoria anterior", () => {
   assertEquals(mapCategoriaAnterior("AD"), "AM");
   assertEquals(mapCategoriaAnterior("NV"), "AD");
 });
+
+// ---------------------------------------------------------------------------
+// A12 posicional: Programa(1) + Série(4, à esquerda) + Animal(5, à esquerda) +
+// Ano(2). Os casos abaixo são os A12 REAIS que o PAINT tem da Cachoeira
+// (paint_animal_a12) — travam o bug em que a estratégia 'espacado' montava o
+// A12 por concatenação com separadores e desalinhava o ano quando o número não
+// tinha exatamente 4 dígitos.
+// ---------------------------------------------------------------------------
+const configEspacado = {
+  serie_fazenda: "460",
+  serie_raca_po: "JLK",
+  programa: "P",
+  estrategia_a12: "espacado" as const,
+  campo_origem_animal: "numeroAnimal",
+};
+
+Deno.test("A12 tem sempre 12 chars com o ano nas posições 11-12", () => {
+  for (const numero of ["7", "10", "100", "1163", "12345", "JLK4705"]) {
+    const a12 = a12FromRebanho(configEspacado, {
+      numeroAnimal: numero,
+      dataNascimento: "2020-04-06",
+      raca: "NELORE",
+    });
+    assertEquals(a12.length, 12, `tamanho de "${a12}"`);
+    assertEquals(a12.slice(10, 12), "20", `ano de "${a12}"`);
+  }
+});
+
+Deno.test("A12 espaçado bate com o que o PAINT já tem (2, 3 e 4 dígitos)", () => {
+  const a12 = (numero: string, nasc: string) =>
+    a12FromRebanho(configEspacado, {
+      numeroAnimal: numero,
+      dataNascimento: nasc,
+      raca: "NELORE",
+    });
+  assertEquals(a12("77", "2020-01-10"), "P460 77   20");
+  assertEquals(a12("222", "2020-01-10"), "P460 222  20");
+  assertEquals(a12("1163", "2021-01-10"), "P460 1163 21");
+  // Print da cliente (06/04/2020 e 28/07/2020):
+  assertEquals(a12("10", "2020-04-06"), "P460 10   20");
+  assertEquals(a12("100", "2020-07-28"), "P460 100  20");
+});
+
+Deno.test("estratégia 'espacado' é apelido de 'compacto'", () => {
+  for (const numero of ["7", "77", "222", "1163", "12345"]) {
+    const animal = {
+      numeroAnimal: numero,
+      dataNascimento: "2021-05-05",
+      raca: "NELORE",
+    };
+    assertEquals(
+      a12FromRebanho(configEspacado, animal),
+      a12FromRebanho({ ...configEspacado, estrategia_a12: "compacto" }, animal),
+      `número ${numero}`,
+    );
+  }
+});
+
+Deno.test("A12 PO usa a série do registro sem perder o ano", () => {
+  const po = {
+    numeroAnimal: "JLK 305",
+    dataNascimento: "2023-02-01",
+    raca: "NELORE PO",
+  };
+  assertEquals(a12FromRebanho(configEspacado, po), "PJLK 305  23");
+});
