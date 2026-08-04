@@ -2775,6 +2775,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
               _CadastroChip(
                 label: 'Baixas',
                 tabela: 'paint_baixa',
+                routeName: 'pgPaintBaixa',
                 count: _count('paint_baixa'),
               ),
               _CadastroChip(
