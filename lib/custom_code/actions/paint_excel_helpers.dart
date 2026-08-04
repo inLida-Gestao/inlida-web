@@ -715,3 +715,12 @@ Future<Map<String, String>> fetchA12OficialPorRebanho(
   }
   return map;
 }
+
+/// Só Nelore / Nelore PO participam do PAINT (mesma regra do export nos
+/// arquivos ANIMAL.TXT e NASCIMENTO.TXT). Usado para descartar animais de outras
+/// raças ao casar dados vindos do PAINT — ex.: "3991" (Nelore) e "3991 G"
+/// (Girolando) têm os mesmos dígitos, data e sexo, e só a raça desempata.
+bool paintRacaNeloreOuPo(dynamic raca) {
+  final r = normalizePaintText(raca).replaceAll(RegExp(r'\s+'), ' ').trim();
+  return r == 'NELORE' || r == 'NELORE PO';
+}

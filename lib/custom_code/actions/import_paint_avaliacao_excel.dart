@@ -230,10 +230,16 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       reb = candidatos.first;
     } else {
       // A12 colidiu (mesmos dígitos do número + mesmo ano de nascimento em
-      // animais diferentes): usa a Data_Nascimento completa da planilha — e o
-      // Sexo como desempate — para achar o animal exato antes de desistir.
+      // animais diferentes). Primeiro descarta quem não é Nelore/Nelore PO:
+      // só essas raças vão para o PAINT, então um Girolando "3991 G" nunca é o
+      // animal da planilha — e ele colide com o Nelore "3991" em dígitos, data
+      // E sexo, casos em que nenhum outro desempate resolve.
       var filtrados = candidatos;
-      if (nascCel != null) {
+      final soNelore = filtrados.where((c) => paintRacaNeloreOuPo(c['raca'])).toList();
+      // Fallback: se o filtro zerar (planilha de propriedade sem raça cadastrada),
+      // segue com a lista original — nunca perde um casamento que funcionaria.
+      if (soNelore.isNotEmpty) filtrados = soNelore;
+      if (filtrados.length > 1 && nascCel != null) {
         filtrados = filtrados
             .where((c) => parseDateIso(c['dataNascimento']) == nascCel)
             .toList();
@@ -249,9 +255,9 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
         erros.add({
           'linha': linha,
           'motivo': 'A12 $a12Key é ambíguo: ${candidatos.length} animais da '
-              'propriedade geram o mesmo código e a Data_Nascimento/Sexo da '
-              'planilha não bastam para distinguir. Corrija o número de um '
-              'dos animais duplicados no rebanho.',
+              'propriedade geram o mesmo código e raça (Nelore/Nelore PO), '
+              'Data_Nascimento e Sexo não bastam para distinguir. Corrija o '
+              'número de um dos animais duplicados no rebanho.',
         });
         continue;
       }

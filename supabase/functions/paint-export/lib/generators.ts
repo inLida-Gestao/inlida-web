@@ -203,6 +203,10 @@ function idRebanhoByDigAno(ctx: ExportContext): Map<string, string> {
   if (ctx.idRebanhoPorDigAno) return ctx.idRebanhoPorDigAno;
   const map = new Map<string, string>();
   for (const r of ctx.rebanhoRows ?? []) {
+    // Não-Nelore não entra no ANIMAL.TXT, então não deve disputar a chave
+    // dígitos+ano: "3991 G" (Girolando) colidia com "3991" (Nelore) — mesma
+    // data e sexo — e bloqueava a resolução do animal certo.
+    if (!racaNeloreOuPo(r.raca)) continue;
     const dig = String(r.numeroAnimal ?? "").replace(/\D/g, "").slice(0, 5);
     const nasc = dateKeyIso(r.dataNascimento);
     if (!dig || !nasc || !r.idRebanho) continue;
@@ -221,6 +225,8 @@ function a12ByDigAno(ctx: ExportContext): Map<string, string> {
   const map = new Map<string, string>();
   const colididas = new Set<string>();
   for (const r of ctx.rebanhoRows ?? []) {
+    // Só Nelore/Nelore PO — mesma razão de idRebanhoByDigAno.
+    if (!racaNeloreOuPo(r.raca)) continue;
     const dig = String(r.numeroAnimal ?? "").replace(/\D/g, "").slice(0, 5);
     const nasc = dateKeyIso(r.dataNascimento);
     if (!dig || !nasc) continue;

@@ -179,8 +179,16 @@ Future<Map<String, dynamic>> importPaintAnimalTxt(
       continue;
     }
 
-    // Desempate: data de nascimento completa -> sexo -> nome
+    // Desempate: raça -> data de nascimento completa -> sexo -> nome.
+    // A raça vem primeiro porque só Nelore/Nelore PO vão ao PAINT: um Girolando
+    // "3991 G" colide com o Nelore "3991" em dígitos, data E sexo, e nenhum
+    // outro critério resolveria.
     var filtrados = candidatos;
+    if (filtrados.length > 1) {
+      final soNelore =
+          filtrados.where((c) => paintRacaNeloreOuPo(c['raca'])).toList();
+      if (soNelore.isNotEmpty) filtrados = soNelore;
+    }
     if (filtrados.length > 1) {
       final nascIso = parseDateIso(dataNascPaint);
       if (nascIso != null) {
