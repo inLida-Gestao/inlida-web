@@ -3,6 +3,28 @@ import 'package:in_lida_web/backend/schema/structs/rebanho_d_t_struct.dart';
 import 'package:in_lida_web/pg_lotes/lote_assignment_utils.dart';
 
 void main() {
+  test('oculta animais fora da propriedade sem filtro explícito', () {
+    final animais = filtrarAnimaisSelecionaveisParaLote([
+      RebanhoDTStruct(idRebanho: 'na-propriedade', status: 'Na propriedade'),
+      RebanhoDTStruct(idRebanho: 'fora', status: 'Fora da propriedade'),
+      RebanhoDTStruct(idRebanho: 'semen', status: 'Sêmen'),
+    ]);
+
+    expect(animais.map((animal) => animal.idRebanho), ['na-propriedade']);
+  });
+
+  test('permite animais fora da propriedade quando filtrados por status', () {
+    final animais = filtrarAnimaisSelecionaveisParaLote(
+      [
+        RebanhoDTStruct(idRebanho: 'fora', status: 'Fora da propriedade'),
+        RebanhoDTStruct(idRebanho: 'semen', status: 'Sêmen'),
+      ],
+      statusFiltro: 'Fora da propriedade',
+    );
+
+    expect(animais.map((animal) => animal.idRebanho), ['fora']);
+  });
+
   test('normaliza IDs recebidos da RPC e descarta null textual', () {
     final ids = normalizeLoteAnimalIds([
       ' animal-2 ',

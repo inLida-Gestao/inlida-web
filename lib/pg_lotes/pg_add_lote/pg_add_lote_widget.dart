@@ -102,7 +102,9 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
               pOrigem: FFAppState().filtroOrigem,
               pRaca: FFAppState().filtroRaca,
               pSexo: FFAppState().filtroSexo,
-              pStatus: 'Na propriedade',
+              pStatus: FFAppState().filtroStatusRebanho.isEmpty
+                  ? 'Na propriedade'
+                  : FFAppState().filtroStatusRebanho,
               pLimite: pageSize,
               pOffset: functions.calcDeslocamento(_model.pageNumAdd, pageSize),
               pPesquisa: _model.pesquisaTextController1.text,
@@ -1807,14 +1809,14 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                 (newValue) async {
                                                                               safeSetState(() => _model.checkboxValue1 = newValue!);
                                                                               if (newValue!) {
-                                                                                final todosAnimais = (pgAddLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') && (e.status != 'Fora da propriedade')).toList();
+                                                                                final todosAnimais = filtrarAnimaisSelecionaveisParaLote((pgAddLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls, statusFiltro: FFAppState().filtroStatusRebanho);
                                                                                 _model.animaisSelecionados = todosAnimais;
                                                                                 for (final item in todosAnimais) {
                                                                                   _model.checkboxValueMap2[item] = true;
                                                                                 }
                                                                                 safeSetState(() {});
                                                                               } else {
-                                                                                final todosAnimais = (pgAddLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') && (e.status != 'Fora da propriedade')).toList();
+                                                                                final todosAnimais = filtrarAnimaisSelecionaveisParaLote((pgAddLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls, statusFiltro: FFAppState().filtroStatusRebanho);
                                                                                 for (final item in todosAnimais) {
                                                                                   _model.animaisSelecionados.remove(item);
                                                                                   _model.checkboxValueMap2[item] = false;
@@ -1855,10 +1857,12 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                           Builder(
                                                                         builder:
                                                                             (context) {
-                                                                          final animais = (pgAddLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>)
-                                                                              .withoutNulls
-                                                                              .where((e) => (e.status != 'Sêmen') && (e.status != 'Fora da propriedade'))
-                                                                              .toList();
+                                                                          final animais =
+                                                                              filtrarAnimaisSelecionaveisParaLote(
+                                                                            (pgAddLoteBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls,
+                                                                            statusFiltro:
+                                                                                FFAppState().filtroStatusRebanho,
+                                                                          );
 
                                                                           return ListView
                                                                               .builder(
@@ -2080,8 +2084,9 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                                 FFAppState().filtroRaca,
                                                                             pSexo:
                                                                                 FFAppState().filtroSexo,
-                                                                            pStatus:
-                                                                                'Na propriedade',
+                                                                            pStatus: FFAppState().filtroStatusRebanho.isEmpty
+                                                                                ? 'Na propriedade'
+                                                                                : FFAppState().filtroStatusRebanho,
                                                                             pPesquisa:
                                                                                 _model.pesquisaTextController1.text,
                                                                           ),

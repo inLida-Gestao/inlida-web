@@ -218,7 +218,9 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
               pOrigem: FFAppState().filtroOrigem,
               pRaca: FFAppState().filtroRaca,
               pSexo: FFAppState().filtroSexo,
-              pStatus: 'Na propriedade',
+              pStatus: FFAppState().filtroStatusRebanho.isEmpty
+                  ? 'Na propriedade'
+                  : FFAppState().filtroStatusRebanho,
               pLimite: FFAppConstants.limit,
               pOffset: functions.calcDeslocamento(
                   _model.pageNumAdd, FFAppConstants.limit),
@@ -1985,7 +1987,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                     onChanged: (newValue) async {
                                                                                       safeSetState(() => _model.checkboxValue = newValue!);
                                                                                       if (newValue!) {
-                                                                                        final todosAnimais = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') && (e.status != 'Fora da propriedade')).where((e) => !(_model.animaisDentroLote.where((d) => d.idRebanho == e.idRebanho).toList().isNotEmpty)).toList();
+                                                                                        final todosAnimais = filtrarAnimaisSelecionaveisParaLote((containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls, statusFiltro: FFAppState().filtroStatusRebanho).where((e) => !(_model.animaisDentroLote.where((d) => d.idRebanho == e.idRebanho).toList().isNotEmpty)).toList();
                                                                                         for (final item in todosAnimais) {
                                                                                           if (!_model.animaisSelecionados.contains(item)) {
                                                                                             _model.addToAnimaisSelecionados(item);
@@ -1993,7 +1995,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                         }
                                                                                         safeSetState(() {});
                                                                                       } else {
-                                                                                        final todosAnimais = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') && (e.status != 'Fora da propriedade')).toList();
+                                                                                        final todosAnimais = filtrarAnimaisSelecionaveisParaLote((containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls, statusFiltro: FFAppState().filtroStatusRebanho);
                                                                                         for (final item in todosAnimais) {
                                                                                           _model.removeFromAnimaisSelecionados(item);
                                                                                         }
@@ -2025,7 +2027,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             Flexible(
                                                                               child: Builder(
                                                                                 builder: (context) {
-                                                                                  final animais = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') || (e.status != 'Fora da propriedade')).toList().toList();
+                                                                                  final animais = filtrarAnimaisSelecionaveisParaLote((containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls, statusFiltro: FFAppState().filtroStatusRebanho);
 
                                                                                   return ListView.builder(
                                                                                     padding: EdgeInsets.zero,
