@@ -11,6 +11,8 @@ import '/flutter_flow/form_field_controller.dart';
 import '/pg_rebanho/pp_filtro_rebanho/pp_filtro_rebanho_widget.dart';
 import '/pg_lotes/data/lote_repository.dart';
 import '/pg_lotes/lote_assignment_utils.dart';
+import '/pg_lotes/lote_ordenacao.dart';
+import '/pg_lotes/pp_ordenar_rebanho/pp_ordenar_rebanho_widget.dart';
 import 'dart:async';
 import '/actions/actions.dart' as action_blocks;
 import '/custom_code/widgets/index.dart' as custom_widgets;
@@ -108,6 +110,8 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
               pLimite: pageSize,
               pOffset: functions.calcDeslocamento(_model.pageNumAdd, pageSize),
               pPesquisa: _model.pesquisaTextController1.text,
+              pOrdenar: _model.ordenarFora,
+              pAsc: _model.ordenarForaAsc,
             )))
           .future,
       builder: (context, snapshot) {
@@ -1664,6 +1668,106 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                         ),
                                                                       ),
                                                                     ),
+                                                                    Builder(
+                                                                      builder:
+                                                                          (context) =>
+                                                                              FFButtonWidget(
+                                                                        onPressed:
+                                                                            () async {
+                                                                          final resultado =
+                                                                              await showDialog<OrdenacaoLote>(
+                                                                            context:
+                                                                                context,
+                                                                            builder:
+                                                                                (dialogContext) {
+                                                                              return Dialog(
+                                                                                elevation: 0,
+                                                                                insetPadding: EdgeInsets.zero,
+                                                                                backgroundColor: Colors.transparent,
+                                                                                alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
+                                                                                child: GestureDetector(
+                                                                                  onTap: () {
+                                                                                    FocusScope.of(dialogContext).unfocus();
+                                                                                    FocusManager.instance.primaryFocus?.unfocus();
+                                                                                  },
+                                                                                  child: PpOrdenarRebanhoWidget(
+                                                                                    campoAtual: _model.ordenarFora,
+                                                                                    ascAtual: _model.ordenarForaAsc,
+                                                                                  ),
+                                                                                ),
+                                                                              );
+                                                                            },
+                                                                          );
+                                                                          if (resultado ==
+                                                                              null) {
+                                                                            return;
+                                                                          }
+                                                                          _model.ordenarFora =
+                                                                              resultado.campo;
+                                                                          _model.ordenarForaAsc =
+                                                                              resultado.asc;
+                                                                          _model.pageNumAdd =
+                                                                              1;
+                                                                          safeSetState(
+                                                                              () {
+                                                                            _model.apiRequestCompleter =
+                                                                                null;
+                                                                          });
+                                                                        },
+                                                                        text:
+                                                                            rotuloOrdenacao(_model.ordenarFora,
+                                                                                _model.ordenarForaAsc),
+                                                                        icon:
+                                                                            const Icon(
+                                                                          Icons
+                                                                              .sort,
+                                                                          size:
+                                                                              15.0,
+                                                                        ),
+                                                                        options:
+                                                                            FFButtonOptions(
+                                                                          height:
+                                                                              40.0,
+                                                                          padding: const EdgeInsetsDirectional
+                                                                              .fromSTEB(
+                                                                              16.0,
+                                                                              0.0,
+                                                                              16.0,
+                                                                              0.0),
+                                                                          iconAlignment:
+                                                                              IconAlignment.end,
+                                                                          iconPadding: const EdgeInsetsDirectional
+                                                                              .fromSTEB(
+                                                                              0.0,
+                                                                              0.0,
+                                                                              0.0,
+                                                                              0.0),
+                                                                          color:
+                                                                              const Color(0x0028A365),
+                                                                          textStyle: FlutterFlowTheme.of(context)
+                                                                              .titleSmall
+                                                                              .override(
+                                                                                font: GoogleFonts.poppins(
+                                                                                  fontWeight: FontWeight.w500,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                ),
+                                                                                color: FlutterFlowTheme.of(context).icon,
+                                                                                letterSpacing: 0.0,
+                                                                                fontWeight: FontWeight.w500,
+                                                                                fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                              ),
+                                                                          elevation:
+                                                                              0.0,
+                                                                          borderSide:
+                                                                              BorderSide(
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).customColor12,
+                                                                          ),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(100.0),
+                                                                        ),
+                                                                      ),
+                                                                    ),
                                                                     Divider(
                                                                       height:
                                                                           0.0,
@@ -2700,6 +2804,101 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                         ),
                                                                       ),
                                                                     ),
+                                                                    Builder(
+                                                                      builder:
+                                                                          (context) =>
+                                                                              FFButtonWidget(
+                                                                        onPressed:
+                                                                            () async {
+                                                                          final resultado =
+                                                                              await showDialog<OrdenacaoLote>(
+                                                                            context:
+                                                                                context,
+                                                                            builder:
+                                                                                (dialogContext) {
+                                                                              return Dialog(
+                                                                                elevation: 0,
+                                                                                insetPadding: EdgeInsets.zero,
+                                                                                backgroundColor: Colors.transparent,
+                                                                                alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
+                                                                                child: GestureDetector(
+                                                                                  onTap: () {
+                                                                                    FocusScope.of(dialogContext).unfocus();
+                                                                                    FocusManager.instance.primaryFocus?.unfocus();
+                                                                                  },
+                                                                                  child: PpOrdenarRebanhoWidget(
+                                                                                    campoAtual: _model.ordenarDentro,
+                                                                                    ascAtual: _model.ordenarDentroAsc,
+                                                                                  ),
+                                                                                ),
+                                                                              );
+                                                                            },
+                                                                          );
+                                                                          if (resultado ==
+                                                                              null) {
+                                                                            return;
+                                                                          }
+                                                                          _model.ordenarDentro =
+                                                                              resultado.campo;
+                                                                          _model.ordenarDentroAsc =
+                                                                              resultado.asc;
+                                                                          safeSetState(
+                                                                              () {});
+                                                                        },
+                                                                        text:
+                                                                            rotuloOrdenacao(_model.ordenarDentro,
+                                                                                _model.ordenarDentroAsc),
+                                                                        icon:
+                                                                            const Icon(
+                                                                          Icons
+                                                                              .sort,
+                                                                          size:
+                                                                              15.0,
+                                                                        ),
+                                                                        options:
+                                                                            FFButtonOptions(
+                                                                          height:
+                                                                              40.0,
+                                                                          padding: const EdgeInsetsDirectional
+                                                                              .fromSTEB(
+                                                                              16.0,
+                                                                              0.0,
+                                                                              16.0,
+                                                                              0.0),
+                                                                          iconAlignment:
+                                                                              IconAlignment.end,
+                                                                          iconPadding: const EdgeInsetsDirectional
+                                                                              .fromSTEB(
+                                                                              0.0,
+                                                                              0.0,
+                                                                              0.0,
+                                                                              0.0),
+                                                                          color:
+                                                                              const Color(0x0028A365),
+                                                                          textStyle: FlutterFlowTheme.of(context)
+                                                                              .titleSmall
+                                                                              .override(
+                                                                                font: GoogleFonts.poppins(
+                                                                                  fontWeight: FontWeight.w500,
+                                                                                  fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                ),
+                                                                                color: FlutterFlowTheme.of(context).icon,
+                                                                                letterSpacing: 0.0,
+                                                                                fontWeight: FontWeight.w500,
+                                                                                fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                              ),
+                                                                          elevation:
+                                                                              0.0,
+                                                                          borderSide:
+                                                                              BorderSide(
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).customColor12,
+                                                                          ),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(100.0),
+                                                                        ),
+                                                                      ),
+                                                                    ),
                                                                     Divider(
                                                                       height:
                                                                           0.0,
@@ -2886,10 +3085,10 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                           Builder(
                                                                         builder:
                                                                             (context) {
-                                                                          final animais = _model
+                                                                          final animais = ordenarAnimaisLote(_model
                                                                               .animaisDentroLote
                                                                               .where((e) => ((_model.pesquisaTextController2.text == '') && (FFAppState().filtroCategoria == '') && (FFAppState().filtroSexo == '') && (FFAppState().filtroRaca == '') && (FFAppState().filtroOrigem == '') && (FFAppState().filtroStatusRebanho == '') && (FFAppState().filtroDataNacimentoDe == null) && (FFAppState().filtroDataNacimentoAte == null)) || ((e.numeroAnimal.contains(_model.pesquisaTextController2.text) || e.nome.toLowerCase().contains(_model.pesquisaTextController2.text.toLowerCase()) || e.chip.contains(_model.pesquisaTextController2.text)) && ((FFAppState().filtroSexo == '') || (e.sexo == FFAppState().filtroSexo)) && ((FFAppState().filtroCategoria == '') || (e.categoria == FFAppState().filtroCategoria)) && ((FFAppState().filtroRaca == '') || (e.raca == FFAppState().filtroRaca)) && ((FFAppState().filtroOrigem == '') || (e.origem == FFAppState().filtroOrigem)) && ((FFAppState().filtroStatusRebanho == '') || (e.status == FFAppState().filtroStatusRebanho)) && ((FFAppState().filtroDataNacimentoDe == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isBefore(FFAppState().filtroDataNacimentoDe!))) && ((FFAppState().filtroDataNacimentoAte == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isAfter(FFAppState().filtroDataNacimentoAte!)))))
-                                                                              .toList()
+                                                                              .toList(), _model.ordenarDentro, _model.ordenarDentroAsc)
                                                                               .take(_model.mostrarAdicionados)
                                                                               .toList();
 

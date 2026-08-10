@@ -15,6 +15,14 @@ class PgEditLoteModel extends FlutterFlowModel<PgEditLoteWidget> {
 
   int pageNumAdd = 1;
 
+  // Ordenação da lista "Animais fora do lote" (server-side).
+  String ordenarFora = '';
+  bool ordenarForaAsc = true;
+
+  // Ordenação da lista "Animais neste lote" (client-side).
+  String ordenarDentro = '';
+  bool ordenarDentroAsc = true;
+
   List<RebanhoDTStruct> animaisDentroLote = [];
   void addToAnimaisDentroLote(RebanhoDTStruct item) =>
       animaisDentroLote.add(item);
