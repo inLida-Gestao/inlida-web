@@ -1583,190 +1583,146 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                         ),
                                                                       ),
                                                                     ),
-                                                                    Builder(
-                                                                      builder:
-                                                                          (context) =>
-                                                                              FFButtonWidget(
-                                                                        onPressed:
-                                                                            () async {
-                                                                          await showDialog(
-                                                                            context:
-                                                                                context,
-                                                                            builder:
-                                                                                (dialogContext) {
-                                                                              return Dialog(
-                                                                                elevation: 0,
-                                                                                insetPadding: EdgeInsets.zero,
-                                                                                backgroundColor: Colors.transparent,
-                                                                                alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
-                                                                                child: GestureDetector(
-                                                                                  onTap: () {
-                                                                                    FocusScope.of(dialogContext).unfocus();
-                                                                                    FocusManager.instance.primaryFocus?.unfocus();
-                                                                                  },
-                                                                                  child: const PpFiltroRebanhoWidget(),
-                                                                                ),
+                                                                    Row(
+                                                                      mainAxisSize:
+                                                                          MainAxisSize
+                                                                              .min,
+                                                                      children: [
+                                                                        Builder(
+                                                                          builder:
+                                                                              (context) =>
+                                                                                  FFButtonWidget(
+                                                                            onPressed:
+                                                                                () async {
+                                                                              await showDialog(
+                                                                                context: context,
+                                                                                builder: (dialogContext) {
+                                                                                  return Dialog(
+                                                                                    elevation: 0,
+                                                                                    insetPadding: EdgeInsets.zero,
+                                                                                    backgroundColor: Colors.transparent,
+                                                                                    alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
+                                                                                    child: GestureDetector(
+                                                                                      onTap: () {
+                                                                                        FocusScope.of(dialogContext).unfocus();
+                                                                                        FocusManager.instance.primaryFocus?.unfocus();
+                                                                                      },
+                                                                                      child: const PpFiltroRebanhoWidget(),
+                                                                                    ),
+                                                                                  );
+                                                                                },
                                                                               );
+                                                                              safeSetState(() {
+                                                                                _model.apiRequestCompleter = null;
+                                                                              });
                                                                             },
-                                                                          );
-                                                                          safeSetState(
-                                                                              () {
-                                                                            _model.apiRequestCompleter =
-                                                                                null;
-                                                                          });
-                                                                        },
-                                                                        text:
-                                                                            'Filtrar',
-                                                                        icon:
-                                                                            const Icon(
-                                                                          Icons
-                                                                              .filter_list,
-                                                                          size:
-                                                                              15.0,
-                                                                        ),
-                                                                        options:
-                                                                            FFButtonOptions(
-                                                                          height:
-                                                                              40.0,
-                                                                          padding: const EdgeInsetsDirectional
-                                                                              .fromSTEB(
-                                                                              16.0,
-                                                                              0.0,
-                                                                              16.0,
-                                                                              0.0),
-                                                                          iconAlignment:
-                                                                              IconAlignment.end,
-                                                                          iconPadding: const EdgeInsetsDirectional
-                                                                              .fromSTEB(
-                                                                              0.0,
-                                                                              0.0,
-                                                                              0.0,
-                                                                              0.0),
-                                                                          color:
-                                                                              const Color(0x0028A365),
-                                                                          textStyle: FlutterFlowTheme.of(context)
-                                                                              .titleSmall
-                                                                              .override(
-                                                                                font: GoogleFonts.poppins(
-                                                                                  fontWeight: FontWeight.w500,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                                                                                ),
-                                                                                color: FlutterFlowTheme.of(context).icon,
-                                                                                letterSpacing: 0.0,
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                                                                              ),
-                                                                          elevation:
-                                                                              0.0,
-                                                                          borderSide:
-                                                                              BorderSide(
-                                                                            color:
-                                                                                FlutterFlowTheme.of(context).customColor12,
-                                                                          ),
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(100.0),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    Builder(
-                                                                      builder:
-                                                                          (context) =>
-                                                                              FFButtonWidget(
-                                                                        onPressed:
-                                                                            () async {
-                                                                          final resultado =
-                                                                              await showDialog<OrdenacaoLote>(
-                                                                            context:
-                                                                                context,
-                                                                            builder:
-                                                                                (dialogContext) {
-                                                                              return Dialog(
-                                                                                elevation: 0,
-                                                                                insetPadding: EdgeInsets.zero,
-                                                                                backgroundColor: Colors.transparent,
-                                                                                alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
-                                                                                child: GestureDetector(
-                                                                                  onTap: () {
-                                                                                    FocusScope.of(dialogContext).unfocus();
-                                                                                    FocusManager.instance.primaryFocus?.unfocus();
-                                                                                  },
-                                                                                  child: PpOrdenarRebanhoWidget(
-                                                                                    campoAtual: _model.ordenarFora,
-                                                                                    ascAtual: _model.ordenarForaAsc,
+                                                                            text:
+                                                                                'Filtrar',
+                                                                            icon:
+                                                                                const Icon(
+                                                                              Icons.filter_list,
+                                                                              size: 15.0,
+                                                                            ),
+                                                                            options:
+                                                                                FFButtonOptions(
+                                                                              height: 40.0,
+                                                                              padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                                              iconAlignment: IconAlignment.end,
+                                                                              iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                                                              color: const Color(0x0028A365),
+                                                                              textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                                    font: GoogleFonts.poppins(
+                                                                                      fontWeight: FontWeight.w500,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                    ),
+                                                                                    color: FlutterFlowTheme.of(context).icon,
+                                                                                    letterSpacing: 0.0,
+                                                                                    fontWeight: FontWeight.w500,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
                                                                                   ),
-                                                                                ),
-                                                                              );
-                                                                            },
-                                                                          );
-                                                                          if (resultado ==
-                                                                              null) {
-                                                                            return;
-                                                                          }
-                                                                          _model.ordenarFora =
-                                                                              resultado.campo;
-                                                                          _model.ordenarForaAsc =
-                                                                              resultado.asc;
-                                                                          _model.pageNumAdd =
-                                                                              1;
-                                                                          safeSetState(
-                                                                              () {
-                                                                            _model.apiRequestCompleter =
-                                                                                null;
-                                                                          });
-                                                                        },
-                                                                        text:
-                                                                            rotuloOrdenacao(_model.ordenarFora,
-                                                                                _model.ordenarForaAsc),
-                                                                        icon:
-                                                                            const Icon(
-                                                                          Icons
-                                                                              .sort,
-                                                                          size:
-                                                                              15.0,
-                                                                        ),
-                                                                        options:
-                                                                            FFButtonOptions(
-                                                                          height:
-                                                                              40.0,
-                                                                          padding: const EdgeInsetsDirectional
-                                                                              .fromSTEB(
-                                                                              16.0,
-                                                                              0.0,
-                                                                              16.0,
-                                                                              0.0),
-                                                                          iconAlignment:
-                                                                              IconAlignment.end,
-                                                                          iconPadding: const EdgeInsetsDirectional
-                                                                              .fromSTEB(
-                                                                              0.0,
-                                                                              0.0,
-                                                                              0.0,
-                                                                              0.0),
-                                                                          color:
-                                                                              const Color(0x0028A365),
-                                                                          textStyle: FlutterFlowTheme.of(context)
-                                                                              .titleSmall
-                                                                              .override(
-                                                                                font: GoogleFonts.poppins(
-                                                                                  fontWeight: FontWeight.w500,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                                                                                ),
-                                                                                color: FlutterFlowTheme.of(context).icon,
-                                                                                letterSpacing: 0.0,
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                              elevation: 0.0,
+                                                                              borderSide: BorderSide(
+                                                                                color: FlutterFlowTheme.of(context).customColor12,
                                                                               ),
-                                                                          elevation:
-                                                                              0.0,
-                                                                          borderSide:
-                                                                              BorderSide(
-                                                                            color:
-                                                                                FlutterFlowTheme.of(context).customColor12,
+                                                                              borderRadius: BorderRadius.circular(100.0),
+                                                                            ),
                                                                           ),
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(100.0),
                                                                         ),
-                                                                      ),
+                                                                        const SizedBox(
+                                                                            width:
+                                                                                8.0),
+                                                                        Builder(
+                                                                          builder:
+                                                                              (context) =>
+                                                                                  FFButtonWidget(
+                                                                            onPressed:
+                                                                                () async {
+                                                                              final resultado = await showDialog<OrdenacaoLote>(
+                                                                                context: context,
+                                                                                builder: (dialogContext) {
+                                                                                  return Dialog(
+                                                                                    elevation: 0,
+                                                                                    insetPadding: EdgeInsets.zero,
+                                                                                    backgroundColor: Colors.transparent,
+                                                                                    alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
+                                                                                    child: GestureDetector(
+                                                                                      onTap: () {
+                                                                                        FocusScope.of(dialogContext).unfocus();
+                                                                                        FocusManager.instance.primaryFocus?.unfocus();
+                                                                                      },
+                                                                                      child: PpOrdenarRebanhoWidget(
+                                                                                        campoAtual: _model.ordenarFora,
+                                                                                        ascAtual: _model.ordenarForaAsc,
+                                                                                      ),
+                                                                                    ),
+                                                                                  );
+                                                                                },
+                                                                              );
+                                                                              if (resultado ==
+                                                                                  null) {
+                                                                                return;
+                                                                              }
+                                                                              _model.ordenarFora = resultado.campo;
+                                                                              _model.ordenarForaAsc = resultado.asc;
+                                                                              _model.pageNumAdd = 1;
+                                                                              safeSetState(() {
+                                                                                _model.apiRequestCompleter = null;
+                                                                              });
+                                                                            },
+                                                                            text: rotuloOrdenacao(
+                                                                                _model.ordenarFora,
+                                                                                _model.ordenarForaAsc),
+                                                                            icon:
+                                                                                const Icon(
+                                                                              Icons.sort,
+                                                                              size: 15.0,
+                                                                            ),
+                                                                            options:
+                                                                                FFButtonOptions(
+                                                                              height: 40.0,
+                                                                              padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                                              iconAlignment: IconAlignment.end,
+                                                                              iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                                                              color: const Color(0x0028A365),
+                                                                              textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                                    font: GoogleFonts.poppins(
+                                                                                      fontWeight: FontWeight.w500,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                    ),
+                                                                                    color: FlutterFlowTheme.of(context).icon,
+                                                                                    letterSpacing: 0.0,
+                                                                                    fontWeight: FontWeight.w500,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                  ),
+                                                                              elevation: 0.0,
+                                                                              borderSide: BorderSide(
+                                                                                color: FlutterFlowTheme.of(context).customColor12,
+                                                                              ),
+                                                                              borderRadius: BorderRadius.circular(100.0),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
                                                                     ),
                                                                     Divider(
                                                                       height:
@@ -2719,185 +2675,143 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                                                                         ),
                                                                       ),
                                                                     ),
-                                                                    Builder(
-                                                                      builder:
-                                                                          (context) =>
-                                                                              FFButtonWidget(
-                                                                        onPressed:
-                                                                            () async {
-                                                                          await showDialog(
-                                                                            context:
-                                                                                context,
-                                                                            builder:
-                                                                                (dialogContext) {
-                                                                              return Dialog(
-                                                                                elevation: 0,
-                                                                                insetPadding: EdgeInsets.zero,
-                                                                                backgroundColor: Colors.transparent,
-                                                                                alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
-                                                                                child: GestureDetector(
-                                                                                  onTap: () {
-                                                                                    FocusScope.of(dialogContext).unfocus();
-                                                                                    FocusManager.instance.primaryFocus?.unfocus();
-                                                                                  },
-                                                                                  child: const PpFiltroRebanhoWidget(),
-                                                                                ),
+                                                                    Row(
+                                                                      mainAxisSize:
+                                                                          MainAxisSize
+                                                                              .min,
+                                                                      children: [
+                                                                        Builder(
+                                                                          builder:
+                                                                              (context) =>
+                                                                                  FFButtonWidget(
+                                                                            onPressed:
+                                                                                () async {
+                                                                              await showDialog(
+                                                                                context: context,
+                                                                                builder: (dialogContext) {
+                                                                                  return Dialog(
+                                                                                    elevation: 0,
+                                                                                    insetPadding: EdgeInsets.zero,
+                                                                                    backgroundColor: Colors.transparent,
+                                                                                    alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
+                                                                                    child: GestureDetector(
+                                                                                      onTap: () {
+                                                                                        FocusScope.of(dialogContext).unfocus();
+                                                                                        FocusManager.instance.primaryFocus?.unfocus();
+                                                                                      },
+                                                                                      child: const PpFiltroRebanhoWidget(),
+                                                                                    ),
+                                                                                  );
+                                                                                },
                                                                               );
+                                                                              safeSetState(() {
+                                                                                _model.apiRequestCompleter = null;
+                                                                              });
                                                                             },
-                                                                          );
-                                                                          safeSetState(
-                                                                              () {
-                                                                            _model.apiRequestCompleter =
-                                                                                null;
-                                                                          });
-                                                                        },
-                                                                        text:
-                                                                            'Filtrar',
-                                                                        icon:
-                                                                            const Icon(
-                                                                          Icons
-                                                                              .filter_list,
-                                                                          size:
-                                                                              15.0,
-                                                                        ),
-                                                                        options:
-                                                                            FFButtonOptions(
-                                                                          height:
-                                                                              40.0,
-                                                                          padding: const EdgeInsetsDirectional
-                                                                              .fromSTEB(
-                                                                              16.0,
-                                                                              0.0,
-                                                                              16.0,
-                                                                              0.0),
-                                                                          iconAlignment:
-                                                                              IconAlignment.end,
-                                                                          iconPadding: const EdgeInsetsDirectional
-                                                                              .fromSTEB(
-                                                                              0.0,
-                                                                              0.0,
-                                                                              0.0,
-                                                                              0.0),
-                                                                          color:
-                                                                              const Color(0x0028A365),
-                                                                          textStyle: FlutterFlowTheme.of(context)
-                                                                              .titleSmall
-                                                                              .override(
-                                                                                font: GoogleFonts.poppins(
-                                                                                  fontWeight: FontWeight.w500,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                                                                                ),
-                                                                                color: FlutterFlowTheme.of(context).icon,
-                                                                                letterSpacing: 0.0,
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                                                                              ),
-                                                                          elevation:
-                                                                              0.0,
-                                                                          borderSide:
-                                                                              BorderSide(
-                                                                            color:
-                                                                                FlutterFlowTheme.of(context).customColor12,
-                                                                          ),
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(100.0),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    Builder(
-                                                                      builder:
-                                                                          (context) =>
-                                                                              FFButtonWidget(
-                                                                        onPressed:
-                                                                            () async {
-                                                                          final resultado =
-                                                                              await showDialog<OrdenacaoLote>(
-                                                                            context:
-                                                                                context,
-                                                                            builder:
-                                                                                (dialogContext) {
-                                                                              return Dialog(
-                                                                                elevation: 0,
-                                                                                insetPadding: EdgeInsets.zero,
-                                                                                backgroundColor: Colors.transparent,
-                                                                                alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
-                                                                                child: GestureDetector(
-                                                                                  onTap: () {
-                                                                                    FocusScope.of(dialogContext).unfocus();
-                                                                                    FocusManager.instance.primaryFocus?.unfocus();
-                                                                                  },
-                                                                                  child: PpOrdenarRebanhoWidget(
-                                                                                    campoAtual: _model.ordenarDentro,
-                                                                                    ascAtual: _model.ordenarDentroAsc,
+                                                                            text:
+                                                                                'Filtrar',
+                                                                            icon:
+                                                                                const Icon(
+                                                                              Icons.filter_list,
+                                                                              size: 15.0,
+                                                                            ),
+                                                                            options:
+                                                                                FFButtonOptions(
+                                                                              height: 40.0,
+                                                                              padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                                              iconAlignment: IconAlignment.end,
+                                                                              iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                                                              color: const Color(0x0028A365),
+                                                                              textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                                    font: GoogleFonts.poppins(
+                                                                                      fontWeight: FontWeight.w500,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                    ),
+                                                                                    color: FlutterFlowTheme.of(context).icon,
+                                                                                    letterSpacing: 0.0,
+                                                                                    fontWeight: FontWeight.w500,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
                                                                                   ),
-                                                                                ),
-                                                                              );
-                                                                            },
-                                                                          );
-                                                                          if (resultado ==
-                                                                              null) {
-                                                                            return;
-                                                                          }
-                                                                          _model.ordenarDentro =
-                                                                              resultado.campo;
-                                                                          _model.ordenarDentroAsc =
-                                                                              resultado.asc;
-                                                                          safeSetState(
-                                                                              () {});
-                                                                        },
-                                                                        text:
-                                                                            rotuloOrdenacao(_model.ordenarDentro,
-                                                                                _model.ordenarDentroAsc),
-                                                                        icon:
-                                                                            const Icon(
-                                                                          Icons
-                                                                              .sort,
-                                                                          size:
-                                                                              15.0,
-                                                                        ),
-                                                                        options:
-                                                                            FFButtonOptions(
-                                                                          height:
-                                                                              40.0,
-                                                                          padding: const EdgeInsetsDirectional
-                                                                              .fromSTEB(
-                                                                              16.0,
-                                                                              0.0,
-                                                                              16.0,
-                                                                              0.0),
-                                                                          iconAlignment:
-                                                                              IconAlignment.end,
-                                                                          iconPadding: const EdgeInsetsDirectional
-                                                                              .fromSTEB(
-                                                                              0.0,
-                                                                              0.0,
-                                                                              0.0,
-                                                                              0.0),
-                                                                          color:
-                                                                              const Color(0x0028A365),
-                                                                          textStyle: FlutterFlowTheme.of(context)
-                                                                              .titleSmall
-                                                                              .override(
-                                                                                font: GoogleFonts.poppins(
-                                                                                  fontWeight: FontWeight.w500,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                                                                                ),
-                                                                                color: FlutterFlowTheme.of(context).icon,
-                                                                                letterSpacing: 0.0,
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                              elevation: 0.0,
+                                                                              borderSide: BorderSide(
+                                                                                color: FlutterFlowTheme.of(context).customColor12,
                                                                               ),
-                                                                          elevation:
-                                                                              0.0,
-                                                                          borderSide:
-                                                                              BorderSide(
-                                                                            color:
-                                                                                FlutterFlowTheme.of(context).customColor12,
+                                                                              borderRadius: BorderRadius.circular(100.0),
+                                                                            ),
                                                                           ),
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(100.0),
                                                                         ),
-                                                                      ),
+                                                                        const SizedBox(
+                                                                            width:
+                                                                                8.0),
+                                                                        Builder(
+                                                                          builder:
+                                                                              (context) =>
+                                                                                  FFButtonWidget(
+                                                                            onPressed:
+                                                                                () async {
+                                                                              final resultado = await showDialog<OrdenacaoLote>(
+                                                                                context: context,
+                                                                                builder: (dialogContext) {
+                                                                                  return Dialog(
+                                                                                    elevation: 0,
+                                                                                    insetPadding: EdgeInsets.zero,
+                                                                                    backgroundColor: Colors.transparent,
+                                                                                    alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
+                                                                                    child: GestureDetector(
+                                                                                      onTap: () {
+                                                                                        FocusScope.of(dialogContext).unfocus();
+                                                                                        FocusManager.instance.primaryFocus?.unfocus();
+                                                                                      },
+                                                                                      child: PpOrdenarRebanhoWidget(
+                                                                                        campoAtual: _model.ordenarDentro,
+                                                                                        ascAtual: _model.ordenarDentroAsc,
+                                                                                      ),
+                                                                                    ),
+                                                                                  );
+                                                                                },
+                                                                              );
+                                                                              if (resultado ==
+                                                                                  null) {
+                                                                                return;
+                                                                              }
+                                                                              _model.ordenarDentro = resultado.campo;
+                                                                              _model.ordenarDentroAsc = resultado.asc;
+                                                                              safeSetState(() {});
+                                                                            },
+                                                                            text: rotuloOrdenacao(
+                                                                                _model.ordenarDentro,
+                                                                                _model.ordenarDentroAsc),
+                                                                            icon:
+                                                                                const Icon(
+                                                                              Icons.sort,
+                                                                              size: 15.0,
+                                                                            ),
+                                                                            options:
+                                                                                FFButtonOptions(
+                                                                              height: 40.0,
+                                                                              padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                                              iconAlignment: IconAlignment.end,
+                                                                              iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                                                              color: const Color(0x0028A365),
+                                                                              textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                                    font: GoogleFonts.poppins(
+                                                                                      fontWeight: FontWeight.w500,
+                                                                                      fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                    ),
+                                                                                    color: FlutterFlowTheme.of(context).icon,
+                                                                                    letterSpacing: 0.0,
+                                                                                    fontWeight: FontWeight.w500,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                  ),
+                                                                              elevation: 0.0,
+                                                                              borderSide: BorderSide(
+                                                                                color: FlutterFlowTheme.of(context).customColor12,
+                                                                              ),
+                                                                              borderRadius: BorderRadius.circular(100.0),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
                                                                     ),
                                                                     Divider(
                                                                       height:
