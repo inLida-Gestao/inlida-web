@@ -245,6 +245,8 @@ class FFAppState extends ChangeNotifier {
     _filtroLoteId = '';
     _filtroDataNacimentoDe = null;
     _filtroDataNacimentoAte = null;
+    _filtroDataPesagemDe = null;
+    _filtroDataPesagemAte = null;
     _filtroStatusLote = '';
     _filtroDataCriacaoLoteDe = null;
     _filtroDataCriacaoLoteAte = null;
@@ -678,6 +680,18 @@ class FFAppState extends ChangeNotifier {
   DateTime? get filtroDataNacimentoAte => _filtroDataNacimentoAte;
   set filtroDataNacimentoAte(DateTime? value) {
     _filtroDataNacimentoAte = value;
+  }
+
+  DateTime? _filtroDataPesagemDe;
+  DateTime? get filtroDataPesagemDe => _filtroDataPesagemDe;
+  set filtroDataPesagemDe(DateTime? value) {
+    _filtroDataPesagemDe = value;
+  }
+
+  DateTime? _filtroDataPesagemAte;
+  DateTime? get filtroDataPesagemAte => _filtroDataPesagemAte;
+  set filtroDataPesagemAte(DateTime? value) {
+    _filtroDataPesagemAte = value;
   }
 
   String _filtroLoteId = '';
