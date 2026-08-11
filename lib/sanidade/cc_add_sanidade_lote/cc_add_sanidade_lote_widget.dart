@@ -834,7 +834,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
             FlutterFlowDropDown<String>(
               multiSelectController: _model.vacinaDropdownValueController ??=
                   FormListFieldController<String>(null),
-              options: FFAppState().vacinacao,
+              options: FFAppState().vacinacaoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.vacinaDropdownValue = val),
@@ -1023,7 +1023,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
               multiSelectController:
                   _model.antiparasitarioDropdownValueController ??=
                       FormListFieldController<String>(null),
-              options: FFAppState().antiparasitario,
+              options: FFAppState().antiparasitarioComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.antiparasitarioDropdownValue = val),
@@ -1212,7 +1212,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
               multiSelectController:
                   _model.tratamentoDropdownValueController ??=
                       FormListFieldController<String>(null),
-              options: FFAppState().tratamento,
+              options: FFAppState().tratamentoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.tratamentoDropdownValue = val),
@@ -1403,7 +1403,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
                   child: FlutterFlowDropDown<String>(
                     controller: _model.protocoloDropdownValueController ??=
                         FormFieldController<String>(null),
-                    options: FFAppState().protocoloReprodutivo,
+                    options: FFAppState().protocoloReprodutivoComOutros,
                     onChanged: (val) =>
                         setState(() => _model.protocoloDropdownValue = val),
                     hidesUnderline: true,

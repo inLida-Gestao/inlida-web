@@ -776,7 +776,7 @@ class _PgSanidadeAddLoteWidgetState extends State<PgSanidadeAddLoteWidget> {
             FlutterFlowDropDown<String>(
               controller: _model.vacinaDropdownValueController ??=
                   FormFieldController<String>(null),
-              options: FFAppState().vacinacao,
+              options: FFAppState().vacinacaoComOutros,
               onChanged: (val) =>
                   setState(() => _model.vacinaDropdownValue = val),
               width: double.infinity,
@@ -962,7 +962,7 @@ class _PgSanidadeAddLoteWidgetState extends State<PgSanidadeAddLoteWidget> {
             FlutterFlowDropDown<String>(
               controller: _model.antiparasitarioDropdownValueController ??=
                   FormFieldController<String>(null),
-              options: FFAppState().antiparasitario,
+              options: FFAppState().antiparasitarioComOutros,
               onChanged: (val) =>
                   setState(() => _model.antiparasitarioDropdownValue = val),
               width: double.infinity,
@@ -1148,7 +1148,7 @@ class _PgSanidadeAddLoteWidgetState extends State<PgSanidadeAddLoteWidget> {
             FlutterFlowDropDown<String>(
               controller: _model.tratamentoDropdownValueController ??=
                   FormFieldController<String>(null),
-              options: FFAppState().tratamento,
+              options: FFAppState().tratamentoComOutros,
               onChanged: (val) =>
                   setState(() => _model.tratamentoDropdownValue = val),
               width: double.infinity,
@@ -1334,7 +1334,7 @@ class _PgSanidadeAddLoteWidgetState extends State<PgSanidadeAddLoteWidget> {
             FlutterFlowDropDown<String>(
               controller: _model.protocoloDropdownValueController ??=
                   FormFieldController<String>(null),
-              options: FFAppState().protocoloReprodutivo,
+              options: FFAppState().protocoloReprodutivoComOutros,
               onChanged: (val) =>
                   setState(() => _model.protocoloDropdownValue = val),
               width: double.infinity,
