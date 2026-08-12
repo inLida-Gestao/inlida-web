@@ -227,20 +227,20 @@ List<RebanhoDTStruct>? rebanhoSortingFunction(
 ) {
   rebanhosSort.sort((a, b) {
     var comparison = switch (index) {
-      0 => _compareNumeroAnimal(a.numeroAnimal, b.numeroAnimal),
-      3 => _compareDateText(a.dataNascimento, b.dataNascimento),
-      _ => _compareNumeroAnimal(a.numeroAnimal, b.numeroAnimal),
+      0 => compareNumeroAnimal(a.numeroAnimal, b.numeroAnimal),
+      3 => compareDataTexto(a.dataNascimento, b.dataNascimento),
+      _ => compareNumeroAnimal(a.numeroAnimal, b.numeroAnimal),
     };
 
     if (comparison == 0 && index != 0) {
-      comparison = _compareNumeroAnimal(a.numeroAnimal, b.numeroAnimal);
+      comparison = compareNumeroAnimal(a.numeroAnimal, b.numeroAnimal);
     }
     return order ? comparison : -comparison;
   });
   return rebanhosSort;
 }
 
-int _compareNumeroAnimal(String a, String b) {
+int compareNumeroAnimal(String a, String b) {
   final aNumero = _primeiroNumero(a);
   final bNumero = _primeiroNumero(b);
 
@@ -263,7 +263,7 @@ int? _primeiroNumero(String value) {
   return match == null ? null : int.tryParse(match.group(0)!);
 }
 
-int _compareDateText(String a, String b) {
+int compareDataTexto(String a, String b) {
   final aDate = DateTime.tryParse(a);
   final bDate = DateTime.tryParse(b);
 

@@ -83,6 +83,7 @@ class FlutterFlowDropDown<T> extends StatefulWidget {
   final String? labelText;
   final TextStyle? labelTextStyle;
   final bool optionsHasValueKeys;
+
   /// Quando true (apenas seleção simples), mostra um botão para limpar o valor.
   final bool allowClear;
 
@@ -411,10 +412,10 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
         offset: widget.menuOffset ?? Offset.zero,
         maxHeight: _menuMaxHeight,
         padding: EdgeInsets.zero,
-        scrollbarTheme: ScrollbarThemeData(
-          thumbVisibility: const WidgetStatePropertyAll<bool>(true),
-          thickness: const WidgetStatePropertyAll<double>(6.0),
-          radius: const Radius.circular(3.0),
+        scrollbarTheme: const ScrollbarThemeData(
+          thumbVisibility: WidgetStatePropertyAll<bool>(true),
+          thickness: WidgetStatePropertyAll<double>(6.0),
+          radius: Radius.circular(3.0),
         ),
       ),
       onChanged: widget.disabled

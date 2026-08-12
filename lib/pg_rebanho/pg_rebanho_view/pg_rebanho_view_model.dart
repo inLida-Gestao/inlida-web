@@ -29,6 +29,16 @@ class PgRebanhoViewModel extends FlutterFlowModel<PgRebanhoViewWidget> {
 
   RebanhoRow? animalSelecionado;
 
+  // Ordenação da aba Crias (índice de coluna e direção).
+  int criasSortColumnIndex = 0;
+  bool criasSortAscending = true;
+
+  // Ordenação da aba Reproduções (índice de coluna e direção).
+  // Único par de campos: as tabelas de matriz (fêmea) e reprodutor (macho)
+  // nunca são exibidas ao mesmo tempo.
+  int reproducoesSortColumnIndex = 1;
+  bool reproducoesSortAscending = false;
+
   DateTime? gmdDataInicial;
 
   DateTime? gmdDataFinal;

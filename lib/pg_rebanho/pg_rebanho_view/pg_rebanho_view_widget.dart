@@ -16,6 +16,7 @@ import '/reproducao/reproducao_status_utils.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import '/flutter_flow/custom_functions.dart' as functions;
+import '/pg_rebanho/ficha_animal_ordenacao.dart';
 import '/index.dart';
 import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -25,15 +26,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'pg_rebanho_view_model.dart';
 export 'pg_rebanho_view_model.dart';
-
-/// Data de referência para ordenação e cálculos: IA usa [ReproducaoRow.dataInseminacao];
-/// monta natural usa [ReproducaoRow.dataInicial] (com fallback à IA).
-DateTime? _dataReferenciaReproducao(ReproducaoRow r) {
-  if (r.tipoReproducao == 'Inseminação') {
-    return r.dataInseminacao;
-  }
-  return r.dataInicial ?? r.dataInseminacao;
-}
 
 /// Mesma regra da lista global de Reprodução: data única para IA; intervalo inicial–final para monta.
 String _textoDataReproducaoFichaAnimal(BuildContext context, ReproducaoRow r) {
@@ -66,56 +58,6 @@ String _textoDataReproducaoFichaAnimal(BuildContext context, ReproducaoRow r) {
     )}',
     'S/D',
   );
-}
-
-/// Índices alinhados às [DataColumn2] da tabela de reproduções na ficha do animal.
-List<ReproducaoRow> _sortReproducoesFichaAnimal(
-  List<ReproducaoRow> source,
-  int columnIndex,
-  bool ascending,
-) {
-  final copy = List<ReproducaoRow>.from(source);
-  int dir(int c) => ascending ? c : -c;
-
-  int compare(ReproducaoRow a, ReproducaoRow b) {
-    switch (columnIndex) {
-      case 0:
-        return dir(
-          (a.tipoReproducao ?? '')
-              .toLowerCase()
-              .compareTo((b.tipoReproducao ?? '').toLowerCase()),
-        );
-      case 1:
-        final da = _dataReferenciaReproducao(a);
-        final db = _dataReferenciaReproducao(b);
-        if (da == null && db == null) {
-          return dir(a.createdAt.compareTo(b.createdAt));
-        }
-        if (da == null) return dir(1);
-        if (db == null) return dir(-1);
-        return dir(da.compareTo(db));
-      case 2:
-        return dir(
-          (a.statusReproducao ?? '').compareTo(b.statusReproducao ?? ''),
-        );
-      case 5:
-        final refA = _dataReferenciaReproducao(a);
-        final refB = _dataReferenciaReproducao(b);
-        final hasA = refA != null && a.dataParto != null;
-        final hasB = refB != null && b.dataParto != null;
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return dir(1);
-        if (!hasB) return dir(-1);
-        final ia = functions.diasEntreDatas(refA, a.dataParto!);
-        final ib = functions.diasEntreDatas(refB, b.dataParto!);
-        return dir(ia.compareTo(ib));
-      default:
-        return 0;
-    }
-  }
-
-  copy.sort(compare);
-  return copy;
 }
 
 class _GmdEvolutionPoint {
@@ -1501,6 +1443,21 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
       length: 5,
       initialIndex: 0,
     );
+
+    // Sincroniza o indicador visual de ordenação (seta no cabeçalho) com o
+    // estado inicial guardado no model para as abas Crias e Reproduções.
+    _model.paginatedDataTableController1.sortColumnIndex =
+        _model.criasSortColumnIndex;
+    _model.paginatedDataTableController1.sortAscending =
+        _model.criasSortAscending;
+    _model.paginatedDataTableController3.sortColumnIndex =
+        _model.reproducoesSortColumnIndex;
+    _model.paginatedDataTableController3.sortAscending =
+        _model.reproducoesSortAscending;
+    _model.paginatedDataTableController4.sortColumnIndex =
+        _model.reproducoesSortColumnIndex;
+    _model.paginatedDataTableController4.sortAscending =
+        _model.reproducoesSortAscending;
 
     _model.nomeAnimalFocusNode1 ??= FocusNode();
 
@@ -6157,11 +6114,20 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                   );
                                                                 }
 
+                                                                final criasOrdenadas =
+                                                                    ordenarCriasFichaAnimal(
+                                                                  crias,
+                                                                  _model
+                                                                      .criasSortColumnIndex,
+                                                                  _model
+                                                                      .criasSortAscending,
+                                                                );
+
                                                                 return FlutterFlowDataTable<
                                                                     AnimaisStruct>(
                                                                   controller: _model
                                                                       .paginatedDataTableController1,
-                                                                  data: crias,
+                                                                  data: criasOrdenadas,
                                                                   columnsBuilder:
                                                                       (onSortChanged) =>
                                                                           [
@@ -6212,8 +6178,6 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                               ),
                                                                         ),
                                                                       ),
-                                                                      onSort:
-                                                                          onSortChanged,
                                                                     ),
                                                                     DataColumn2(
                                                                       label: DefaultTextStyle
@@ -6237,8 +6201,6 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                               ),
                                                                         ),
                                                                       ),
-                                                                      onSort:
-                                                                          onSortChanged,
                                                                     ),
                                                                     DataColumn2(
                                                                       label: DefaultTextStyle
@@ -6262,6 +6224,8 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                               ),
                                                                         ),
                                                                       ),
+                                                                      onSort:
+                                                                          onSortChanged,
                                                                     ),
                                                                     DataColumn2(
                                                                       label: DefaultTextStyle
@@ -6285,8 +6249,6 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                               ),
                                                                         ),
                                                                       ),
-                                                                      onSort:
-                                                                          onSortChanged,
                                                                     ),
                                                                     DataColumn2(
                                                                       label: DefaultTextStyle
@@ -6623,6 +6585,17 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                             DataCell(c))
                                                                         .toList(),
                                                                   ),
+                                                                  onSortChanged:
+                                                                      (columnIndex,
+                                                                          ascending) {
+                                                                    safeSetState(
+                                                                        () {
+                                                                      _model.criasSortColumnIndex =
+                                                                          columnIndex;
+                                                                      _model.criasSortAscending =
+                                                                          ascending;
+                                                                    });
+                                                                  },
                                                                   emptyBuilder:
                                                                       () =>
                                                                           const Center(
@@ -7109,7 +7082,12 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                               Builder(
                                                                             builder:
                                                                                 (context) {
-                                                                              final reproducao = containerReproducaoRowList.where((e) => e.deletado == 'NAO').toList().sortedList(keyOf: (e) => e.createdAt, desc: true).toList();
+                                                                              final reproducaoBase = containerReproducaoRowList.where((e) => e.deletado == 'NAO').toList();
+                                                                              final reproducao = ordenarReproducoesFichaAnimal(
+                                                                                reproducaoBase,
+                                                                                _model.reproducoesSortColumnIndex,
+                                                                                _model.reproducoesSortAscending,
+                                                                              );
                                                                               if (reproducao.isEmpty) {
                                                                                 return const Center(
                                                                                   child: EmptyWidget(),
@@ -7217,6 +7195,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                       ),
                                                                                     ),
                                                                                     fixedWidth: 120.0,
+                                                                                    onSort: onSortChanged,
                                                                                   ),
                                                                                   DataColumn2(
                                                                                     label: DefaultTextStyle.merge(
@@ -7526,14 +7505,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                     ),
                                                                                     Builder(
                                                                                       builder: (context) {
-                                                                                        if (statusReproducaoPermitePrevisaoParto(reproducaoItem.statusReproducao) && ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null))) {
+                                                                                        if (statusReproducaoPermitePrevisaoParto(reproducaoItem.statusReproducao) && ((dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null))) {
                                                                                           return Text(
                                                                                             valueOrDefault<String>(
                                                                                               reproducaoItem.previsaoParto == null
                                                                                                   ? valueOrDefault<String>(
                                                                                                       dateTimeFormat(
                                                                                                         "d/M/y",
-                                                                                                        functions.dataMais295(_dataReferenciaReproducao(reproducaoItem)!),
+                                                                                                        functions.dataMais295(dataReferenciaReproducao(reproducaoItem)!),
                                                                                                         locale: FFLocalizations.of(context).languageCode,
                                                                                                       ),
                                                                                                       'S/D',
@@ -7580,10 +7559,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                       mainAxisAlignment: MainAxisAlignment.center,
                                                                                       crossAxisAlignment: CrossAxisAlignment.start,
                                                                                       children: [
-                                                                                        if ((_dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null))
+                                                                                        if ((dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null))
                                                                                           Text(
                                                                                             valueOrDefault<String>(
-                                                                                              functions.diasEntreDatas(_dataReferenciaReproducao(reproducaoItem)!, reproducaoItem.dataParto!).toString(),
+                                                                                              functions.diasEntreDatas(dataReferenciaReproducao(reproducaoItem)!, reproducaoItem.dataParto!).toString(),
                                                                                               '0',
                                                                                             ),
                                                                                             style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -7597,7 +7576,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                                   fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                                 ),
                                                                                           ),
-                                                                                        if (!((_dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null)))
+                                                                                        if (!((dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null)))
                                                                                           Text(
                                                                                             'Sem informação.',
                                                                                             style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -7658,15 +7637,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   ].map((c) => DataCell(c)).toList(),
                                                                                 ),
                                                                                 onSortChanged: (columnIndex, ascending) {
-                                                                                  final sorted = _sortReproducoesFichaAnimal(
-                                                                                    reproducao,
-                                                                                    columnIndex,
-                                                                                    ascending,
-                                                                                  );
-                                                                                  _model.paginatedDataTableController3.updateData(
-                                                                                    data: sorted,
-                                                                                    notify: true,
-                                                                                  );
+                                                                                  safeSetState(() {
+                                                                                    _model.reproducoesSortColumnIndex = columnIndex;
+                                                                                    _model.reproducoesSortAscending = ascending;
+                                                                                  });
                                                                                 },
                                                                                 emptyBuilder: () => const Center(
                                                                                   child: EmptyWidget(),
@@ -7760,7 +7734,12 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                               Builder(
                                                                             builder:
                                                                                 (context) {
-                                                                              final reproducao = containerReproducaoRowList.where((e) => e.deletado == 'NAO').toList().sortedList(keyOf: (e) => e.createdAt, desc: true).toList();
+                                                                              final reproducaoBase = containerReproducaoRowList.where((e) => e.deletado == 'NAO').toList();
+                                                                              final reproducao = ordenarReproducoesFichaAnimal(
+                                                                                reproducaoBase,
+                                                                                _model.reproducoesSortColumnIndex,
+                                                                                _model.reproducoesSortAscending,
+                                                                              );
                                                                               if (reproducao.isEmpty) {
                                                                                 return const Center(
                                                                                   child: EmptyWidget(),
@@ -7868,6 +7847,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                       ),
                                                                                     ),
                                                                                     fixedWidth: 120.0,
+                                                                                    onSort: onSortChanged,
                                                                                   ),
                                                                                   DataColumn2(
                                                                                     label: DefaultTextStyle.merge(
@@ -8177,14 +8157,14 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                     ),
                                                                                     Builder(
                                                                                       builder: (context) {
-                                                                                        if (statusReproducaoPermitePrevisaoParto(reproducaoItem.statusReproducao) && ((_dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null))) {
+                                                                                        if (statusReproducaoPermitePrevisaoParto(reproducaoItem.statusReproducao) && ((dataReferenciaReproducao(reproducaoItem) != null) || (reproducaoItem.previsaoParto != null))) {
                                                                                           return Text(
                                                                                             valueOrDefault<String>(
                                                                                               reproducaoItem.previsaoParto == null
                                                                                                   ? valueOrDefault<String>(
                                                                                                       dateTimeFormat(
                                                                                                         "d/M/y",
-                                                                                                        functions.dataMais295(_dataReferenciaReproducao(reproducaoItem)!),
+                                                                                                        functions.dataMais295(dataReferenciaReproducao(reproducaoItem)!),
                                                                                                         locale: FFLocalizations.of(context).languageCode,
                                                                                                       ),
                                                                                                       'S/D',
@@ -8231,10 +8211,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                       mainAxisAlignment: MainAxisAlignment.center,
                                                                                       crossAxisAlignment: CrossAxisAlignment.start,
                                                                                       children: [
-                                                                                        if ((_dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null))
+                                                                                        if ((dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null))
                                                                                           Text(
                                                                                             valueOrDefault<String>(
-                                                                                              functions.diasEntreDatas(_dataReferenciaReproducao(reproducaoItem)!, reproducaoItem.dataParto!).toString(),
+                                                                                              functions.diasEntreDatas(dataReferenciaReproducao(reproducaoItem)!, reproducaoItem.dataParto!).toString(),
                                                                                               '0',
                                                                                             ),
                                                                                             style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -8248,7 +8228,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                                   fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                                 ),
                                                                                           ),
-                                                                                        if (!((_dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null)))
+                                                                                        if (!((dataReferenciaReproducao(reproducaoItem) != null) && (reproducaoItem.dataParto != null)))
                                                                                           Text(
                                                                                             'Sem informação.',
                                                                                             style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -8309,15 +8289,10 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                   ].map((c) => DataCell(c)).toList(),
                                                                                 ),
                                                                                 onSortChanged: (columnIndex, ascending) {
-                                                                                  final sorted = _sortReproducoesFichaAnimal(
-                                                                                    reproducao,
-                                                                                    columnIndex,
-                                                                                    ascending,
-                                                                                  );
-                                                                                  _model.paginatedDataTableController4.updateData(
-                                                                                    data: sorted,
-                                                                                    notify: true,
-                                                                                  );
+                                                                                  safeSetState(() {
+                                                                                    _model.reproducoesSortColumnIndex = columnIndex;
+                                                                                    _model.reproducoesSortAscending = ascending;
+                                                                                  });
                                                                                 },
                                                                                 emptyBuilder: () => const Center(
                                                                                   child: EmptyWidget(),
