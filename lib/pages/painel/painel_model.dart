@@ -62,8 +62,8 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
   List<String> filtroLoteTaxaConcepcaoValues = [];
   List<String> filtroTouroTaxaConcepcaoValues = [];
   List<String> filtroInseminadorTaxaConcepcaoValues = [];
-  // Multi-select filter por protocolo de ressinc (exclusivo da Taxa de concepção).
-  List<String> filtroRessincTaxaConcepcaoValues = [];
+  // Multi-select filter por protocolo de ressinc, também compartilhado.
+  List<String> filtroRessincValues = [];
   // Single-select filter para Tipo de reprodução na Taxa de prenhez.
   // 'Todos' | 'Monta Natural' | 'Inseminação'
   String filtroTipoTaxaPrenhezValue = 'Todos';

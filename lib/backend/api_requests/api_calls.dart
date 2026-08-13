@@ -1892,6 +1892,7 @@ class TaxaPrenhez2GetCall {
     String? pInseminador = '',
     String? pIdRebanhoReprodutor = '',
     String? pTipoReproducao = '',
+    String? pRessinc = '',
   }) async {
     final baseUrl = SupabaseEdgeGroup.getBaseUrl();
 
@@ -1912,6 +1913,9 @@ class TaxaPrenhez2GetCall {
     }
     if (pTipoReproducao != null && pTipoReproducao.trim().isNotEmpty) {
       params['p_tipo_reproducao'] = pTipoReproducao.trim();
+    }
+    if (pRessinc != null && pRessinc.trim().isNotEmpty) {
+      params['p_ressinc'] = pRessinc.trim();
     }
 
     return ApiManager.instance.makeApiCall(

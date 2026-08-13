@@ -3702,11 +3702,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
                                                                   key: ValueKey(
-                                                                    'taxa_concepcao_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincTaxaConcepcaoValues.join(',')}',
+                                                                    'taxa_concepcao_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincValues.join(',')}',
                                                                   ),
                                                                   future: () {
                                                                     final taxaConcepcaoKey =
-                                                                        'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincTaxaConcepcaoValues.join(',')}';
+                                                                        'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincValues.join(',')}';
                                                                     if (_model
                                                                             .taxaConcepcaoFutureKey !=
                                                                         taxaConcepcaoKey) {
@@ -3732,7 +3732,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .filtroInseminadorTaxaConcepcaoValues
                                                                             .join(','),
                                                                         pRessinc: _model
-                                                                            .filtroRessincTaxaConcepcaoValues
+                                                                            .filtroRessincValues
                                                                             .join(','),
                                                                       );
                                                                     }
@@ -4017,39 +4017,25 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               ),
                                                                                             );
                                                                                           }
-                                                                                          // Protocolos gravados em reproducao.ressinc. 'NAO'/vazio = sem ressinc,
-                                                                                          // 'SIM' é legado (já excluído no backend) e 'null' é lixo de importação.
-                                                                                          const protocolosConhecidos = ['Tradicional', 'Precoce', 'Superprecoce'];
-                                                                                          int rankProtocolo(String valor) {
-                                                                                            final idx = protocolosConhecidos.indexOf(valor);
-                                                                                            return idx < 0 ? protocolosConhecidos.length : idx;
-                                                                                          }
-
-                                                                                          final protocolos = reproSnapshot.data!.map((e) => e.ressinc).withoutNulls.map((e) => e.trim()).where((e) => e.isNotEmpty && e != 'NAO' && e != 'SIM' && e.toLowerCase() != 'null').toList().unique((e) => e);
-                                                                                          protocolos.sort((a, b) {
-                                                                                            final porRank = rankProtocolo(a).compareTo(rankProtocolo(b));
-                                                                                            return porRank != 0 ? porRank : a.compareTo(b);
-                                                                                          });
+                                                                                          final protocolos = _protocolosRessincDisponiveis(reproSnapshot.data!);
                                                                                           if (protocolos.isEmpty) {
                                                                                             return const SizedBox.shrink();
                                                                                           }
-                                                                                          // '-' vem de importação por planilha: marca ressinc sem protocolo definido.
-                                                                                          final protocoloLabels = protocolos.map((e) => e == '-' ? 'Sem protocolo' : e).toList();
 
                                                                                           return _buildMultiFilterChip(
                                                                                             context,
                                                                                             label: 'Ressinc',
-                                                                                            selectedValues: _model.filtroRessincTaxaConcepcaoValues,
+                                                                                            selectedValues: _model.filtroRessincValues,
                                                                                             options: protocolos,
-                                                                                            optionLabels: protocoloLabels,
+                                                                                            optionLabels: _rotulosRessinc(protocolos),
                                                                                             onChanged: (vals) {
                                                                                               safeSetState(() {
-                                                                                                _model.filtroRessincTaxaConcepcaoValues = vals;
+                                                                                                _model.filtroRessincValues = vals;
                                                                                               });
                                                                                             },
                                                                                             onClear: () {
                                                                                               safeSetState(() {
-                                                                                                _model.filtroRessincTaxaConcepcaoValues = [];
+                                                                                                _model.filtroRessincValues = [];
                                                                                               });
                                                                                             },
                                                                                           );
@@ -4087,7 +4073,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               height: double.infinity,
                                                                                               child: custom_widgets.TaxaPrenhezChart(
                                                                                                 key: ValueKey(
-                                                                                                  'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincTaxaConcepcaoValues.join(',')}',
+                                                                                                  'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincValues.join(',')}',
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
@@ -4116,11 +4102,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
                                                                   key: ValueKey(
-                                                                    'taxa_prenhez2_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}',
+                                                                    'taxa_prenhez2_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincValues.join(',')}',
                                                                   ),
                                                                   future: () {
                                                                     final taxaPrenhez2Key =
-                                                                        'taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoTaxaPrenhezValue}';
+                                                                        'taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoTaxaPrenhezValue}_${_model.filtroRessincValues.join(',')}';
                                                                     if (_model
                                                                             .taxaPrenhez2FutureKey !=
                                                                         taxaPrenhez2Key) {
@@ -4151,6 +4137,9 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             ? ''
                                                                             : _model
                                                                                 .filtroTipoTaxaPrenhezValue,
+                                                                        pRessinc: _model
+                                                                            .filtroRessincValues
+                                                                            .join(','),
                                                                       );
                                                                     }
                                                                     return _model
@@ -4430,6 +4419,56 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           });
                                                                                         },
                                                                                       ),
+                                                                                      FutureBuilder<List<ReproducaoRow>>(
+                                                                                        key: ValueKey('ressinc_filtro_taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}'),
+                                                                                        future: ReproducaoTable().queryRows(
+                                                                                          queryFn: (q) => q
+                                                                                              .eqOrNull(
+                                                                                                'id_propriedade',
+                                                                                                FFAppState().propriedadeSelecionada.idPropriedade,
+                                                                                              )
+                                                                                              .eqOrNull(
+                                                                                                'deletado',
+                                                                                                'NAO',
+                                                                                              ),
+                                                                                        ),
+                                                                                        builder: (context, reproSnapshot) {
+                                                                                          if (!reproSnapshot.hasData) {
+                                                                                            return const SizedBox(
+                                                                                              height: 48.0,
+                                                                                              child: Center(
+                                                                                                child: SizedBox(
+                                                                                                  width: 20.0,
+                                                                                                  height: 20.0,
+                                                                                                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                                                                                                ),
+                                                                                              ),
+                                                                                            );
+                                                                                          }
+                                                                                          final protocolos = _protocolosRessincDisponiveis(reproSnapshot.data!);
+                                                                                          if (protocolos.isEmpty) {
+                                                                                            return const SizedBox.shrink();
+                                                                                          }
+
+                                                                                          return _buildMultiFilterChip(
+                                                                                            context,
+                                                                                            label: 'Ressinc',
+                                                                                            selectedValues: _model.filtroRessincValues,
+                                                                                            options: protocolos,
+                                                                                            optionLabels: _rotulosRessinc(protocolos),
+                                                                                            onChanged: (vals) {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroRessincValues = vals;
+                                                                                              });
+                                                                                            },
+                                                                                            onClear: () {
+                                                                                              safeSetState(() {
+                                                                                                _model.filtroRessincValues = [];
+                                                                                              });
+                                                                                            },
+                                                                                          );
+                                                                                        },
+                                                                                      ),
                                                                                     ],
                                                                                   ),
                                                                                 ),
@@ -4462,7 +4501,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               height: double.infinity,
                                                                                               child: custom_widgets.TaxaPrenhezChart(
                                                                                                 key: ValueKey(
-                                                                                                  'taxa_prenhez2_chart_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoTaxaPrenhezValue}',
+                                                                                                  'taxa_prenhez2_chart_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoTaxaPrenhezValue}_${_model.filtroRessincValues.join(',')}',
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
@@ -6097,6 +6136,39 @@ class _PainelWidgetState extends State<PainelWidget>
     final media = soma / count;
     return 'R\$ ${media.toStringAsFixed(2).replaceAll('.', ',')}';
   }
+
+  /// Protocolos distintos gravados em `reproducao.ressinc`, para as opções do
+  /// filtro de ressinc. Ficam de fora: vazio e 'NAO' (sem ressinc), o legado
+  /// 'SIM' (já excluído no backend) e a string 'null' (lixo de importação).
+  /// Ordena Tradicional → Precoce → Superprecoce e depois o restante (ex.: '-').
+  List<String> _protocolosRessincDisponiveis(List<ReproducaoRow> rows) {
+    const conhecidos = ['Tradicional', 'Precoce', 'Superprecoce'];
+    int rank(String valor) {
+      final idx = conhecidos.indexOf(valor);
+      return idx < 0 ? conhecidos.length : idx;
+    }
+
+    final protocolos = rows
+        .map((e) => e.ressinc)
+        .withoutNulls
+        .map((e) => e.trim())
+        .where((e) =>
+            e.isNotEmpty &&
+            e != 'NAO' &&
+            e != 'SIM' &&
+            e.toLowerCase() != 'null')
+        .toList()
+        .unique((e) => e);
+    protocolos.sort((a, b) {
+      final porRank = rank(a).compareTo(rank(b));
+      return porRank != 0 ? porRank : a.compareTo(b);
+    });
+    return protocolos;
+  }
+
+  /// '-' vem de importação por planilha: marca ressinc sem protocolo definido.
+  List<String> _rotulosRessinc(List<String> protocolos) =>
+      protocolos.map((e) => e == '-' ? 'Sem protocolo' : e).toList();
 
   Widget _buildTextBadge(BuildContext context, String text) {
     return Container(
