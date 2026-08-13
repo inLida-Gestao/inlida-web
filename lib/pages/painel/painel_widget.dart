@@ -3702,11 +3702,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
                                                                   key: ValueKey(
-                                                                    'taxa_concepcao_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincValues.join(',')}',
+                                                                    'taxa_concepcao_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincTaxaConcepcaoValues.join(',')}',
                                                                   ),
                                                                   future: () {
                                                                     final taxaConcepcaoKey =
-                                                                        'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincValues.join(',')}';
+                                                                        'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincTaxaConcepcaoValues.join(',')}';
                                                                     if (_model
                                                                             .taxaConcepcaoFutureKey !=
                                                                         taxaConcepcaoKey) {
@@ -3732,7 +3732,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             .filtroInseminadorTaxaConcepcaoValues
                                                                             .join(','),
                                                                         pRessinc: _model
-                                                                            .filtroRessincValues
+                                                                            .filtroRessincTaxaConcepcaoValues
                                                                             .join(','),
                                                                       );
                                                                     }
@@ -4025,17 +4025,17 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           return _buildMultiFilterChip(
                                                                                             context,
                                                                                             label: 'Ressinc',
-                                                                                            selectedValues: _model.filtroRessincValues,
+                                                                                            selectedValues: _model.filtroRessincTaxaConcepcaoValues,
                                                                                             options: opcoesRessinc,
                                                                                             optionLabels: _rotulosRessinc(opcoesRessinc),
                                                                                             onChanged: (vals) {
                                                                                               safeSetState(() {
-                                                                                                _model.filtroRessincValues = vals;
+                                                                                                _model.filtroRessincTaxaConcepcaoValues = vals;
                                                                                               });
                                                                                             },
                                                                                             onClear: () {
                                                                                               safeSetState(() {
-                                                                                                _model.filtroRessincValues = [];
+                                                                                                _model.filtroRessincTaxaConcepcaoValues = [];
                                                                                               });
                                                                                             },
                                                                                           );
@@ -4073,7 +4073,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               height: double.infinity,
                                                                                               child: custom_widgets.TaxaPrenhezChart(
                                                                                                 key: ValueKey(
-                                                                                                  'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincValues.join(',')}',
+                                                                                                  'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincTaxaConcepcaoValues.join(',')}',
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
@@ -4102,11 +4102,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
                                                                   key: ValueKey(
-                                                                    'taxa_prenhez2_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincValues.join(',')}',
+                                                                    'taxa_prenhez2_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincTaxaPrenhezValues.join(',')}',
                                                                   ),
                                                                   future: () {
                                                                     final taxaPrenhez2Key =
-                                                                        'taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoTaxaPrenhezValue}_${_model.filtroRessincValues.join(',')}';
+                                                                        'taxa_prenhez2_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoTaxaPrenhezValue}_${_model.filtroRessincTaxaPrenhezValues.join(',')}';
                                                                     if (_model
                                                                             .taxaPrenhez2FutureKey !=
                                                                         taxaPrenhez2Key) {
@@ -4138,7 +4138,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                             : _model
                                                                                 .filtroTipoTaxaPrenhezValue,
                                                                         pRessinc: _model
-                                                                            .filtroRessincValues
+                                                                            .filtroRessincTaxaPrenhezValues
                                                                             .join(','),
                                                                       );
                                                                     }
@@ -4453,17 +4453,17 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                           return _buildMultiFilterChip(
                                                                                             context,
                                                                                             label: 'Ressinc',
-                                                                                            selectedValues: _model.filtroRessincValues,
+                                                                                            selectedValues: _model.filtroRessincTaxaPrenhezValues,
                                                                                             options: opcoesRessinc,
                                                                                             optionLabels: _rotulosRessinc(opcoesRessinc),
                                                                                             onChanged: (vals) {
                                                                                               safeSetState(() {
-                                                                                                _model.filtroRessincValues = vals;
+                                                                                                _model.filtroRessincTaxaPrenhezValues = vals;
                                                                                               });
                                                                                             },
                                                                                             onClear: () {
                                                                                               safeSetState(() {
-                                                                                                _model.filtroRessincValues = [];
+                                                                                                _model.filtroRessincTaxaPrenhezValues = [];
                                                                                               });
                                                                                             },
                                                                                           );
@@ -4501,7 +4501,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               height: double.infinity,
                                                                                               child: custom_widgets.TaxaPrenhezChart(
                                                                                                 key: ValueKey(
-                                                                                                  'taxa_prenhez2_chart_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoTaxaPrenhezValue}_${_model.filtroRessincValues.join(',')}',
+                                                                                                  'taxa_prenhez2_chart_${FFAppState().propriedadeSelecionada.idPropriedade}_$dataInicioStr-${dataFimStr}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoTaxaPrenhezValue}_${_model.filtroRessincTaxaPrenhezValues.join(',')}',
                                                                                                 ),
                                                                                                 width: double.infinity,
                                                                                                 height: double.infinity,
