@@ -5,10 +5,18 @@
 -- Os valores sao os mesmos gravados na coluna reproducao.ressinc
 -- (Tradicional / Precoce / Superprecoce; '-' vem de importacao por planilha).
 -- O legado 'SIM' continua excluido pelo predicado global, como nas demais RPCs.
+--
+-- IMPORTANTE: esta migracao parte da definicao que estava EM PRODUCAO, que ja
+-- havia divergido das migrations versionadas. Em relacao ao arquivo
+-- 20260519164000, a versao viva adicionou:
+--   1. o CTE access_check com usuario_tem_acesso_propriedade(id_propriedade_param);
+--   2. o parametro p_tipo_reproducao (filtro single-value por protocolo).
+-- Ambos foram preservados aqui para nao regredir seguranca nem quebrar chamadas
+-- existentes; o novo p_ressinc (lista CSV, multi-selecao) e aplicado em conjunto.
 
--- A assinatura muda (7o parametro), entao removemos a versao antiga de 6 args
+-- A assinatura muda (8o parametro), entao removemos a versao de 7 args
 -- para evitar ambiguidade de overload no PostgREST.
-DROP FUNCTION IF EXISTS public.calcular_taxa_prenhez(text, text, text, text, text, text);
+DROP FUNCTION IF EXISTS public.calcular_taxa_prenhez(text, text, text, text, text, text, text);
 
 CREATE OR REPLACE FUNCTION public.calcular_taxa_prenhez(
   id_propriedade_param text,
@@ -17,6 +25,7 @@ CREATE OR REPLACE FUNCTION public.calcular_taxa_prenhez(
   p_lote_id text DEFAULT '',
   p_inseminador text DEFAULT '',
   p_id_rebanho_reprodutor text DEFAULT '',
+  p_tipo_reproducao text DEFAULT '',
   p_ressinc text DEFAULT ''
 )
 RETURNS TABLE (
@@ -28,7 +37,13 @@ RETURNS TABLE (
 LANGUAGE sql
 STABLE
 AS $function$
-WITH raw AS (
+WITH params AS (
+  SELECT nullif(lower(btrim(coalesce(p_tipo_reproducao, ''))), '') AS tipo_filter
+),
+access_check AS (
+  SELECT public.usuario_tem_acesso_propriedade(id_propriedade_param) AS ok
+),
+raw AS (
   SELECT
     rep.status_reproducao,
     lower(
@@ -39,11 +54,14 @@ WITH raw AS (
       )
     ) AS cat_l
   FROM public.reproducao rep
+  CROSS JOIN access_check ac
+  CROSS JOIN params prm
   LEFT JOIN public.rebanho rb
     ON rb."idRebanho" = rep.id_rebanho_matriz
     AND rb."idPropriedade" = id_propriedade_param
     AND rb.deletado = 'NAO'
-  WHERE rep.id_propriedade = id_propriedade_param
+  WHERE ac.ok
+    AND rep.id_propriedade = id_propriedade_param
     AND (rep.deletado IS NULL OR rep.deletado = 'NAO')
     AND (rep.ressinc IS NULL OR rep.ressinc <> 'SIM')
     AND rep.data_inseminacao IS NOT NULL
@@ -77,6 +95,18 @@ WITH raw AS (
           FROM unnest(string_to_array(p_id_rebanho_reprodutor, ',')) AS x
           WHERE trim(x) <> ''
         )
+      )
+    )
+    AND (
+      prm.tipo_filter IS NULL
+      OR prm.tipo_filter = 'todos'
+      OR (
+        prm.tipo_filter = 'ressinc'
+        AND lower(btrim(coalesce(rep.ressinc, ''))) IN ('tradicional', 'precoce', 'superprecoce')
+      )
+      OR (
+        prm.tipo_filter IN ('tradicional', 'precoce', 'superprecoce')
+        AND lower(btrim(coalesce(rep.ressinc, ''))) = prm.tipo_filter
       )
     )
     AND (
@@ -130,12 +160,12 @@ ORDER BY
   END;
 $function$;
 
-COMMENT ON FUNCTION public.calcular_taxa_prenhez(text, text, text, text, text, text, text) IS
-  'Taxa de concepcao por categoria: prenhes (status prenhe*) / eventos de reproducao com data_inseminacao no periodo. Filtro opcional p_ressinc: lista CSV de protocolos de ressinc (coluna reproducao.ressinc); vazio = sem filtro.';
+COMMENT ON FUNCTION public.calcular_taxa_prenhez(text, text, text, text, text, text, text, text) IS
+  'Taxa de concepcao por categoria: prenhes (status prenhe*) / eventos de reproducao com data_inseminacao no periodo. p_tipo_reproducao: filtro single-value por protocolo (ou ''ressinc'' para qualquer protocolo). p_ressinc: lista CSV de protocolos (multi-selecao do painel); vazio = sem filtro.';
 
-ALTER FUNCTION public.calcular_taxa_prenhez(text, text, text, text, text, text, text)
+ALTER FUNCTION public.calcular_taxa_prenhez(text, text, text, text, text, text, text, text)
   SECURITY DEFINER
   SET search_path = public;
 
-GRANT EXECUTE ON FUNCTION public.calcular_taxa_prenhez(text, text, text, text, text, text, text)
+GRANT EXECUTE ON FUNCTION public.calcular_taxa_prenhez(text, text, text, text, text, text, text, text)
   TO anon, authenticated, service_role;

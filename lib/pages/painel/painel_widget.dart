@@ -4017,15 +4017,15 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               ),
                                                                                             );
                                                                                           }
-                                                                                          // Protocolos gravados em reproducao.ressinc. 'NAO'/vazio = sem ressinc
-                                                                                          // e 'SIM' é legado (já excluído no backend), então ficam de fora.
+                                                                                          // Protocolos gravados em reproducao.ressinc. 'NAO'/vazio = sem ressinc,
+                                                                                          // 'SIM' é legado (já excluído no backend) e 'null' é lixo de importação.
                                                                                           const protocolosConhecidos = ['Tradicional', 'Precoce', 'Superprecoce'];
                                                                                           int rankProtocolo(String valor) {
                                                                                             final idx = protocolosConhecidos.indexOf(valor);
                                                                                             return idx < 0 ? protocolosConhecidos.length : idx;
                                                                                           }
 
-                                                                                          final protocolos = reproSnapshot.data!.map((e) => e.ressinc).withoutNulls.map((e) => e.trim()).where((e) => e.isNotEmpty && e != 'NAO' && e != 'SIM').toList().unique((e) => e);
+                                                                                          final protocolos = reproSnapshot.data!.map((e) => e.ressinc).withoutNulls.map((e) => e.trim()).where((e) => e.isNotEmpty && e != 'NAO' && e != 'SIM' && e.toLowerCase() != 'null').toList().unique((e) => e);
                                                                                           protocolos.sort((a, b) {
                                                                                             final porRank = rankProtocolo(a).compareTo(rankProtocolo(b));
                                                                                             return porRank != 0 ? porRank : a.compareTo(b);
