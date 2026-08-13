@@ -4017,8 +4017,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               ),
                                                                                             );
                                                                                           }
-                                                                                          final protocolos = _protocolosRessincDisponiveis(reproSnapshot.data!);
-                                                                                          if (protocolos.isEmpty) {
+                                                                                          final opcoesRessinc = _opcoesRessincDisponiveis(reproSnapshot.data!);
+                                                                                          if (opcoesRessinc.isEmpty) {
                                                                                             return const SizedBox.shrink();
                                                                                           }
 
@@ -4026,8 +4026,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             context,
                                                                                             label: 'Ressinc',
                                                                                             selectedValues: _model.filtroRessincValues,
-                                                                                            options: protocolos,
-                                                                                            optionLabels: _rotulosRessinc(protocolos),
+                                                                                            options: opcoesRessinc,
+                                                                                            optionLabels: _rotulosRessinc(opcoesRessinc),
                                                                                             onChanged: (vals) {
                                                                                               safeSetState(() {
                                                                                                 _model.filtroRessincValues = vals;
@@ -4445,8 +4445,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                               ),
                                                                                             );
                                                                                           }
-                                                                                          final protocolos = _protocolosRessincDisponiveis(reproSnapshot.data!);
-                                                                                          if (protocolos.isEmpty) {
+                                                                                          final opcoesRessinc = _opcoesRessincDisponiveis(reproSnapshot.data!);
+                                                                                          if (opcoesRessinc.isEmpty) {
                                                                                             return const SizedBox.shrink();
                                                                                           }
 
@@ -4454,8 +4454,8 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                                             context,
                                                                                             label: 'Ressinc',
                                                                                             selectedValues: _model.filtroRessincValues,
-                                                                                            options: protocolos,
-                                                                                            optionLabels: _rotulosRessinc(protocolos),
+                                                                                            options: opcoesRessinc,
+                                                                                            optionLabels: _rotulosRessinc(opcoesRessinc),
                                                                                             onChanged: (vals) {
                                                                                               safeSetState(() {
                                                                                                 _model.filtroRessincValues = vals;
@@ -6137,12 +6137,23 @@ class _PainelWidgetState extends State<PainelWidget>
     return 'R\$ ${media.toStringAsFixed(2).replaceAll('.', ',')}';
   }
 
-  /// Protocolos distintos gravados em `reproducao.ressinc`, para as opções do
-  /// filtro de ressinc. Ficam de fora: vazio e 'NAO' (sem ressinc), o legado
-  /// 'SIM' (já excluído no backend) e a string 'null' (lixo de importação).
-  /// Ordena Tradicional → Precoce → Superprecoce e depois o restante (ex.: '-').
-  List<String> _protocolosRessincDisponiveis(List<ReproducaoRow> rows) {
+  /// Opções do filtro de ressinc: os protocolos distintos gravados em
+  /// `reproducao.ressinc` (Tradicional → Precoce → Superprecoce, depois o
+  /// restante) e, no fim, o sentinela 'NAO' = "Sem ressinc", que o backend usa
+  /// para o recorte dos animais que não passaram por ressincronização.
+  ///
+  /// Ficam fora das opções de protocolo: vazio e 'NAO' (são "sem ressinc"), o
+  /// legado 'SIM' (já excluído no backend) e a string 'null' (lixo de
+  /// importação, contada como sem ressinc).
+  /// Devolve vazio quando a propriedade não tem nenhum protocolo — aí o chip
+  /// não faz sentido e é escondido.
+  List<String> _opcoesRessincDisponiveis(List<ReproducaoRow> rows) {
     const conhecidos = ['Tradicional', 'Precoce', 'Superprecoce'];
+    bool semRessinc(String? valor) {
+      final v = (valor ?? '').trim();
+      return v.isEmpty || v == 'NAO' || v.toLowerCase() == 'null';
+    }
+
     int rank(String valor) {
       final idx = conhecidos.indexOf(valor);
       return idx < 0 ? conhecidos.length : idx;
@@ -6150,25 +6161,27 @@ class _PainelWidgetState extends State<PainelWidget>
 
     final protocolos = rows
         .map((e) => e.ressinc)
-        .withoutNulls
-        .map((e) => e.trim())
-        .where((e) =>
-            e.isNotEmpty &&
-            e != 'NAO' &&
-            e != 'SIM' &&
-            e.toLowerCase() != 'null')
+        .where((e) => !semRessinc(e) && (e ?? '').trim() != 'SIM')
+        .map((e) => e!.trim())
         .toList()
         .unique((e) => e);
+    if (protocolos.isEmpty) return [];
     protocolos.sort((a, b) {
       final porRank = rank(a).compareTo(rank(b));
       return porRank != 0 ? porRank : a.compareTo(b);
     });
-    return protocolos;
+
+    final temSemRessinc = rows.any((e) => semRessinc(e.ressinc));
+    return [...protocolos, if (temSemRessinc) 'NAO'];
   }
 
-  /// '-' vem de importação por planilha: marca ressinc sem protocolo definido.
-  List<String> _rotulosRessinc(List<String> protocolos) =>
-      protocolos.map((e) => e == '-' ? 'Sem protocolo' : e).toList();
+  /// 'NAO' é o sentinela de "sem ressinc"; '-' vem de importação por planilha
+  /// (tem ressinc, mas sem protocolo definido).
+  List<String> _rotulosRessinc(List<String> opcoes) => opcoes.map((e) {
+        if (e == 'NAO') return 'Sem ressinc';
+        if (e == '-') return 'Ressinc (sem protocolo)';
+        return e;
+      }).toList();
 
   Widget _buildTextBadge(BuildContext context, String text) {
     return Container(
