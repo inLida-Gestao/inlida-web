@@ -249,6 +249,8 @@ class FFAppState extends ChangeNotifier {
     _filtroLoteId = '';
     _filtroDataNacimentoDe = null;
     _filtroDataNacimentoAte = null;
+    _filtroDataPesagemDe = null;
+    _filtroDataPesagemAte = null;
     _filtroStatusLote = '';
     _filtroDataCriacaoLoteDe = null;
     _filtroDataCriacaoLoteAte = null;
@@ -684,6 +686,18 @@ class FFAppState extends ChangeNotifier {
     _filtroDataNacimentoAte = value;
   }
 
+  DateTime? _filtroDataPesagemDe;
+  DateTime? get filtroDataPesagemDe => _filtroDataPesagemDe;
+  set filtroDataPesagemDe(DateTime? value) {
+    _filtroDataPesagemDe = value;
+  }
+
+  DateTime? _filtroDataPesagemAte;
+  DateTime? get filtroDataPesagemAte => _filtroDataPesagemAte;
+  set filtroDataPesagemAte(DateTime? value) {
+    _filtroDataPesagemAte = value;
+  }
+
   String _filtroLoteId = '';
   String get filtroLoteId => _filtroLoteId;
   set filtroLoteId(String value) {
@@ -1046,8 +1060,18 @@ class FFAppState extends ChangeNotifier {
     _filtroNascimentoSanidadeAte = value;
   }
 
+  /// Opção livre exibida no final dos dropdowns de sanidade, permitindo que o
+  /// usuário complemente a seleção pelo campo de texto "(outros)".
+  static const String kOpcaoOutros = 'Outros';
+
+  static List<String> _comOutros(List<String> options) =>
+      options.contains(kOpcaoOutros)
+          ? List<String>.from(options)
+          : <String>[...options, kOpcaoOutros];
+
   List<String> _vacinacao = _kVacinacaoOptions.toList();
   List<String> get vacinacao => _vacinacao;
+  List<String> get vacinacaoComOutros => _comOutros(_vacinacao);
   set vacinacao(List<String> value) {
     _vacinacao = value;
     prefs.setStringList('ff_vacinacao', value);
@@ -1083,6 +1107,7 @@ class FFAppState extends ChangeNotifier {
 
   List<String> _tratamento = _kTratamentoOptions.toList();
   List<String> get tratamento => _tratamento;
+  List<String> get tratamentoComOutros => _comOutros(_tratamento);
   set tratamento(List<String> value) {
     _tratamento = value;
     prefs.setStringList('ff_tratamento', value);
@@ -1118,6 +1143,7 @@ class FFAppState extends ChangeNotifier {
 
   List<String> _antiparasitario = _kAntiparasitarioOptions.toList();
   List<String> get antiparasitario => _antiparasitario;
+  List<String> get antiparasitarioComOutros => _comOutros(_antiparasitario);
   set antiparasitario(List<String> value) {
     _antiparasitario = value;
     prefs.setStringList('ff_antiparasitario', value);
@@ -1153,6 +1179,8 @@ class FFAppState extends ChangeNotifier {
 
   List<String> _protocoloReprodutivo = _kProtocoloReprodutivoOptions.toList();
   List<String> get protocoloReprodutivo => _protocoloReprodutivo;
+  List<String> get protocoloReprodutivoComOutros =>
+      _comOutros(_protocoloReprodutivo);
   set protocoloReprodutivo(List<String> value) {
     _protocoloReprodutivo = value;
     prefs.setStringList('ff_protocoloReprodutivo', value);

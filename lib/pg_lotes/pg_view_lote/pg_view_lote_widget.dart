@@ -94,11 +94,6 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
   bool _rebanhoLoteAtivo(RebanhoRow row) =>
       row.deletado?.trim().toUpperCase() != 'SIM';
 
-  bool _loteIdAusenteOuInvalido(String? value) {
-    final normalized = value?.trim().toLowerCase();
-    return normalized == null || normalized.isEmpty || normalized == 'null';
-  }
-
   DateTime? _parseLoteDate(String? value) {
     final trimmed = value?.trim();
     if (trimmed == null || trimmed.isEmpty) return null;
@@ -1059,7 +1054,7 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
         }));
   }
 
-  /// Carrega animais pelo vínculo atual. loteNome é fallback só para legado sem loteID.
+  /// Carrega animais pelo vínculo canônico em rebanho.loteID.
   Future<List<RebanhoDTStruct>> _loadAnimaisDoLote() async {
     if (widget.idLote == null || widget.idLote!.isEmpty) return [];
 
@@ -1092,31 +1087,6 @@ class _PgViewLoteWidgetState extends State<PgViewLoteWidget>
     );
     for (final row in byLoteID) {
       addIfNew(row);
-    }
-
-    final nomeLote = lote.nome;
-    if (nomeLote != null && nomeLote.trim().isNotEmpty) {
-      final byLoteNome = await RebanhoTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('loteNome', nomeLote.trim())
-            .eqOrNull('idPropriedade', idPropriedadeLote),
-        limit: 10000,
-      );
-      for (final row in byLoteNome) {
-        if (_loteIdAusenteOuInvalido(row.loteID)) {
-          addIfNew(row);
-        }
-      }
-
-      final byLoteIDAsName = await RebanhoTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('loteID', nomeLote.trim())
-            .eqOrNull('idPropriedade', idPropriedadeLote),
-        limit: 10000,
-      );
-      for (final row in byLoteIDAsName) {
-        addIfNew(row);
-      }
     }
 
     return list;

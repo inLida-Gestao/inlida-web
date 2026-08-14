@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:dropdown_button2/dropdown_button2.dart';
 
 import 'form_field_controller.dart';
@@ -81,6 +83,7 @@ class FlutterFlowDropDown<T> extends StatefulWidget {
   final String? labelText;
   final TextStyle? labelTextStyle;
   final bool optionsHasValueKeys;
+
   /// Quando true (apenas seleção simples), mostra um botão para limpar o valor.
   final bool allowClear;
 
@@ -89,6 +92,11 @@ class FlutterFlowDropDown<T> extends StatefulWidget {
 }
 
 class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
+  /// Altura maxima do menu quando nenhuma e informada. Evita que listas longas
+  /// estourem a viewport e fiquem com itens inacessiveis.
+  static const double _kDefaultMenuMaxHeight = 360.0;
+  static const double _kMinMenuMaxHeight = 180.0;
+
   bool get isMultiSelect => widget.isMultiSelect;
   FormFieldController<T?> get controller => widget.controller!;
   FormFieldController<List<T>?> get multiSelectController =>
@@ -360,6 +368,20 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
       )
       .toList();
 
+  /// Limita a altura do menu a metade da viewport (respeitando o teclado),
+  /// garantindo que a lista role e todos os itens fiquem acessiveis.
+  double get _menuMaxHeight {
+    if (widget.maxHeight != null) {
+      return widget.maxHeight!;
+    }
+    final availableHeight = MediaQuery.sizeOf(context).height -
+        MediaQuery.viewInsetsOf(context).vertical;
+    return math.max(
+      _kMinMenuMaxHeight,
+      math.min(_kDefaultMenuMaxHeight, availableHeight * 0.5),
+    );
+  }
+
   Widget _buildDropdown() {
     final overlayColor = WidgetStateProperty.resolveWith<Color?>((states) =>
         states.contains(WidgetState.focused) ? Colors.transparent : null);
@@ -388,8 +410,13 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
         ),
         isOverButton: widget.isOverButton,
         offset: widget.menuOffset ?? Offset.zero,
-        maxHeight: widget.maxHeight,
+        maxHeight: _menuMaxHeight,
         padding: EdgeInsets.zero,
+        scrollbarTheme: const ScrollbarThemeData(
+          thumbVisibility: WidgetStatePropertyAll<bool>(true),
+          thickness: WidgetStatePropertyAll<double>(6.0),
+          radius: Radius.circular(3.0),
+        ),
       ),
       onChanged: widget.disabled
           ? null

@@ -40,6 +40,8 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
     _model.pendingOrigem = FFAppState().filtroOrigem;
     _model.pendingDataNascimentoDe = FFAppState().filtroDataNacimentoDe;
     _model.pendingDataNascimentoAte = FFAppState().filtroDataNacimentoAte;
+    _model.pendingDataPesagemDe = FFAppState().filtroDataPesagemDe;
+    _model.pendingDataPesagemAte = FFAppState().filtroDataPesagemAte;
     _model.dropDownSexoValue = _model.pendingSexo;
     _model.dropDownStatusValue = _model.pendingStatus;
     _model.dropDownLoteValues =
@@ -50,6 +52,8 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
     _model.dropDownOrigemValue = _model.pendingOrigem;
     _model.datePickedDe = _model.pendingDataNascimentoDe;
     _model.datePickedAte = _model.pendingDataNascimentoAte;
+    _model.datePickedPesagemDe = _model.pendingDataPesagemDe;
+    _model.datePickedPesagemAte = _model.pendingDataPesagemAte;
     _model.lotesFuture = LotesTable().queryRows(
       queryFn: (q) => q
           .eqOrNull(
@@ -66,6 +70,10 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
     _model.dataNascimentoDeFocusNode ??= FocusNode();
     _model.dataNascimentoAteTextController ??= TextEditingController();
     _model.dataNascimentoAteFocusNode ??= FocusNode();
+    _model.dataPesagemDeTextController ??= TextEditingController();
+    _model.dataPesagemDeFocusNode ??= FocusNode();
+    _model.dataPesagemAteTextController ??= TextEditingController();
+    _model.dataPesagemAteFocusNode ??= FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {
           _model.dataNascimentoDeTextController?.text = valueOrDefault<String>(
@@ -84,6 +92,22 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
             ),
             'dd/mm/aaaa',
           );
+          _model.dataPesagemDeTextController?.text = valueOrDefault<String>(
+            dateTimeFormat(
+              "d/M/y",
+              _model.pendingDataPesagemDe,
+              locale: FFLocalizations.of(context).languageCode,
+            ),
+            'dd/mm/aaaa',
+          );
+          _model.dataPesagemAteTextController?.text = valueOrDefault<String>(
+            dateTimeFormat(
+              "d/M/y",
+              _model.pendingDataPesagemAte,
+              locale: FFLocalizations.of(context).languageCode,
+            ),
+            'dd/mm/aaaa',
+          );
         }));
   }
 
@@ -92,6 +116,173 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
     _model.maybeDispose();
 
     super.dispose();
+  }
+
+  Widget _buildDataPesagemField({
+    required String label,
+    required TextEditingController? controller,
+    required FocusNode? focusNode,
+    required String? Function(BuildContext, String?)? validator,
+    required DateTime? initialDate,
+    required void Function(DateTime picked) onDatePicked,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: FlutterFlowTheme.of(context).bodySmall.override(
+                font: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                  fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                ),
+                letterSpacing: 0.0,
+                fontWeight: FontWeight.w500,
+                fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+              ),
+        ),
+        Stack(
+          children: [
+            TextFormField(
+              controller: controller,
+              focusNode: focusNode,
+              autofocus: false,
+              readOnly: true,
+              obscureText: false,
+              decoration: InputDecoration(
+                isDense: false,
+                hintText: 'dd/mm/aaaa',
+                hintStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                      font: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                      ),
+                      color: const Color(0xFFBEBEBE),
+                      fontSize: 16.0,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w600,
+                      fontStyle:
+                          FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                    ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                    color: Color(0x00000000),
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                    color: Color(0x00000000),
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: FlutterFlowTheme.of(context).error,
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: FlutterFlowTheme.of(context).error,
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                filled: true,
+                fillColor: FlutterFlowTheme.of(context).customColor2,
+                suffixIcon: Icon(
+                  Icons.calendar_today,
+                  color: FlutterFlowTheme.of(context).secondaryText,
+                ),
+              ),
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    font: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontStyle:
+                          FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                    ),
+                    fontSize: 16.0,
+                    letterSpacing: 0.0,
+                    fontWeight: FontWeight.w600,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                  ),
+              cursorColor: FlutterFlowTheme.of(context).primaryText,
+              validator: validator.asValidator(context),
+            ),
+            InkWell(
+              splashColor: Colors.transparent,
+              focusColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: initialDate ?? getCurrentTimestamp,
+                  firstDate: DateTime(1900),
+                  lastDate: DateTime(2050),
+                  builder: (context, child) {
+                    return wrapInMaterialDatePickerTheme(
+                      context,
+                      child!,
+                      headerBackgroundColor:
+                          FlutterFlowTheme.of(context).primary,
+                      headerForegroundColor: FlutterFlowTheme.of(context).info,
+                      headerTextStyle:
+                          FlutterFlowTheme.of(context).headlineLarge.override(
+                                font: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .headlineLarge
+                                      .fontStyle,
+                                ),
+                                fontSize: 32.0,
+                                letterSpacing: 0.0,
+                                fontWeight: FontWeight.w600,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .headlineLarge
+                                    .fontStyle,
+                              ),
+                      pickerBackgroundColor:
+                          FlutterFlowTheme.of(context).secondaryBackground,
+                      pickerForegroundColor:
+                          FlutterFlowTheme.of(context).primaryText,
+                      selectedDateTimeBackgroundColor:
+                          FlutterFlowTheme.of(context).primary,
+                      selectedDateTimeForegroundColor:
+                          FlutterFlowTheme.of(context).info,
+                      actionButtonForegroundColor:
+                          FlutterFlowTheme.of(context).primaryText,
+                      iconSize: 24.0,
+                    );
+                  },
+                );
+
+                if (picked == null) {
+                  return;
+                }
+                safeSetState(() {
+                  onDatePicked(
+                    DateTime(picked.year, picked.month, picked.day),
+                  );
+                });
+              },
+              child: Container(
+                width: double.infinity,
+                height: 56.0,
+                decoration: const BoxDecoration(),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   @override
@@ -1045,6 +1236,94 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
+                              'Data da última pesagem',
+                              style: FlutterFlowTheme.of(context)
+                                  .bodyMedium
+                                  .override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    fontSize: 16.0,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                            ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildDataPesagemField(
+                                    label: 'De',
+                                    controller:
+                                        _model.dataPesagemDeTextController,
+                                    focusNode: _model.dataPesagemDeFocusNode,
+                                    validator: _model
+                                        .dataPesagemDeTextControllerValidator,
+                                    initialDate: _model.datePickedPesagemDe,
+                                    onDatePicked: (picked) {
+                                      _model.datePickedPesagemDe = picked;
+                                      _model.pendingDataPesagemDe = picked;
+                                      _model.dataPesagemDeTextController?.text =
+                                          valueOrDefault<String>(
+                                        dateTimeFormat(
+                                          "d/M/y",
+                                          picked,
+                                          locale: FFLocalizations.of(context)
+                                              .languageCode,
+                                        ),
+                                        'dd/mm/aaaa',
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12.0),
+                                Expanded(
+                                  child: _buildDataPesagemField(
+                                    label: 'Até',
+                                    controller:
+                                        _model.dataPesagemAteTextController,
+                                    focusNode: _model.dataPesagemAteFocusNode,
+                                    validator: _model
+                                        .dataPesagemAteTextControllerValidator,
+                                    initialDate: _model.datePickedPesagemAte,
+                                    onDatePicked: (picked) {
+                                      _model.datePickedPesagemAte = picked;
+                                      _model.pendingDataPesagemAte = picked;
+                                      _model.dataPesagemAteTextController
+                                          ?.text = valueOrDefault<String>(
+                                        dateTimeFormat(
+                                          "d/M/y",
+                                          picked,
+                                          locale: FFLocalizations.of(context)
+                                              .languageCode,
+                                        ),
+                                        'dd/mm/aaaa',
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ].divide(const SizedBox(height: 8.0)),
+                        ),
+                      ),
+                      const Expanded(child: SizedBox()),
+                    ].divide(const SizedBox(width: 24.0)),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
                               'Categorias',
                               style: FlutterFlowTheme.of(context)
                                   .bodyMedium
@@ -1380,6 +1659,8 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                           appState.filtroCategoria = '';
                           appState.filtroDataNacimentoDe = null;
                           appState.filtroDataNacimentoAte = null;
+                          appState.filtroDataPesagemDe = null;
+                          appState.filtroDataPesagemAte = null;
                           appState.filtroLoteId = '';
                           appState.filtroLoteNome = '';
                           appState.filtroRaca = '';
@@ -1390,12 +1671,16 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                             _model.pendingCategoria = '';
                             _model.pendingDataNascimentoDe = null;
                             _model.pendingDataNascimentoAte = null;
+                            _model.pendingDataPesagemDe = null;
+                            _model.pendingDataPesagemAte = null;
                             _model.pendingLoteId = '';
                             _model.pendingLoteNome = '';
                             _model.pendingRaca = '';
                             _model.pendingOrigem = '';
                             _model.datePickedDe = null;
                             _model.datePickedAte = null;
+                            _model.datePickedPesagemDe = null;
+                            _model.datePickedPesagemAte = null;
                             _model.dropDownSexoValueController?.reset();
                             _model.dropDownSexoValue = null;
                             _model.dropDownStatusValueController?.reset();
@@ -1425,6 +1710,26 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                               dateTimeFormat(
                                 "d/M/y",
                                 _model.pendingDataNascimentoAte,
+                                locale:
+                                    FFLocalizations.of(context).languageCode,
+                              ),
+                              'dd/mm/aaaa',
+                            );
+                            _model.dataPesagemDeTextController?.text =
+                                valueOrDefault<String>(
+                              dateTimeFormat(
+                                "d/M/y",
+                                _model.pendingDataPesagemDe,
+                                locale:
+                                    FFLocalizations.of(context).languageCode,
+                              ),
+                              'dd/mm/aaaa',
+                            );
+                            _model.dataPesagemAteTextController?.text =
+                                valueOrDefault<String>(
+                              dateTimeFormat(
+                                "d/M/y",
+                                _model.pendingDataPesagemAte,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),
@@ -1479,6 +1784,10 @@ class _PpFiltroRebanhoWidgetState extends State<PpFiltroRebanhoWidget> {
                               _model.pendingDataNascimentoDe;
                           appState.filtroDataNacimentoAte =
                               _model.pendingDataNascimentoAte;
+                          appState.filtroDataPesagemDe =
+                              _model.pendingDataPesagemDe;
+                          appState.filtroDataPesagemAte =
+                              _model.pendingDataPesagemAte;
                           appState.filtroLoteId = _model.pendingLoteId;
                           appState.filtroLoteNome = _model.pendingLoteNome;
                           appState.filtroRaca = _model.pendingRaca;

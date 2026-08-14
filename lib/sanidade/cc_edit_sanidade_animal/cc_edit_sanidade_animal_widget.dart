@@ -783,7 +783,7 @@ class _CcEditSanidadeAnimalWidgetState
             FlutterFlowDropDown<String>(
               multiSelectController: _model.vacinaDropdownValueController ??=
                   FormListFieldController<String>(_model.vacinaDropdownValue),
-              options: FFAppState().vacinacao,
+              options: FFAppState().vacinacaoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) {
                 if (widget.readOnly) return;
@@ -873,7 +873,7 @@ class _CcEditSanidadeAnimalWidgetState
                   _model.antiparasitarioDropdownValueController ??=
                       FormListFieldController<String>(
                           _model.antiparasitarioDropdownValue),
-              options: FFAppState().antiparasitario,
+              options: FFAppState().antiparasitarioComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) {
                 if (widget.readOnly) return;
@@ -963,7 +963,7 @@ class _CcEditSanidadeAnimalWidgetState
                   _model.tratamentoDropdownValueController ??=
                       FormListFieldController<String>(
                           _model.tratamentoDropdownValue),
-              options: FFAppState().tratamento,
+              options: FFAppState().tratamentoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) {
                 if (widget.readOnly) return;
@@ -1052,7 +1052,7 @@ class _CcEditSanidadeAnimalWidgetState
               multiSelectController: _model.protocoloDropdownValueController ??=
                   FormListFieldController<String>(
                       _model.protocoloDropdownValue),
-              options: FFAppState().protocoloReprodutivo,
+              options: FFAppState().protocoloReprodutivoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) {
                 if (widget.readOnly) return;

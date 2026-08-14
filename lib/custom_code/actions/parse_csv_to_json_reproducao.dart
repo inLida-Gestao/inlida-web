@@ -46,47 +46,7 @@ Future<List<dynamic>> parseCsvToJsonReproducao(FFUploadedFile? csvFile) async {
 
     if (rows.isEmpty) return [];
 
-    // 6. Colunas do banco (para fallback por posição quando CSV já vem exportado)
-    const dbColumnsInOrder = [
-      'id',
-      'created_at',
-      'id_propriedade',
-      'tipo_reproducao',
-      'id_rebanho_matriz',
-      'score_corporal',
-      'id_rebanho_reprodutor',
-      'data_inseminacao',
-      'data_partida_semen',
-      'partida_semen',
-      'previsao_parto',
-      'id_lote',
-      'data_inicial',
-      'data_final',
-      'status_reproducao',
-      'inseminador',
-      'anotacoes',
-      'id_reproducao',
-      'deletado',
-      'updated_at',
-      'categoria',
-      'numMatriz',
-      'nomeMatriz',
-      'nascimentoMatriz',
-      'numReprodutor',
-      'nomeReprodutor',
-      'nascimentoReprodutor',
-      'loteNome',
-      'data_status',
-      'racaMatriz',
-      'racaReprodutor',
-      'chipReprodutor',
-      'chipMatriz',
-      'ressinc',
-      'parida',
-      'data_parto',
-      'gnrh',
-      'cio',
-    ];
+    // 6. Colunas do banco (para reconhecer headers no formato de export/DB).
 
     const dbColumnSet = {
       'id',
@@ -217,41 +177,14 @@ Future<List<dynamic>> parseCsvToJsonReproducao(FFUploadedFile? csvFile) async {
       return out;
     }
 
-    // Fallback: CSV sem header (ou inesperado), por posição com a ordem do banco.
-    final out = <dynamic>[];
-    for (final row in rows.skip(1)) {
-      if (_isCsvRowEmpty(row)) continue;
-
-      final map = <String, dynamic>{};
-
-      for (var i = 0; i < dbColumnsInOrder.length; i++) {
-        final dbColumn = dbColumnsInOrder[i];
-        final raw = (i < row.length && row[i] != null) ? row[i].toString() : '';
-        final value = _cleanText(raw);
-        final cleaned =
-            _cleanCellToNull(value, dbColumn, numericDoubleColumns, numericIntColumns);
-
-        if (cleaned == null) {
-          map[dbColumn] = null;
-          continue;
-        }
-
-        if (dateColumns.contains(dbColumn)) {
-          map[dbColumn] = cleaned;
-        } else if (numericDoubleColumns.contains(dbColumn)) {
-          map[dbColumn] = _parseDoublePtBr(cleaned);
-        } else if (numericIntColumns.contains(dbColumn)) {
-          map[dbColumn] = _parseIntPtBr(cleaned);
-        } else {
-          map[dbColumn] = cleaned;
-        }
-      }
-
-      if (_isAllValuesMissing(map.values)) continue;
-      out.add(map);
-    }
-
-    return out;
+    // Sem header reconhecido: NÃO tentamos adivinhar por posição.
+    // Um CSV sem cabeçalho reconhecível é ambíguo demais (ordem de colunas
+    // não é garantida) e um mapeamento errado pode gravar datas/valores no
+    // campo errado (ex.: data_inseminacao caindo em data_partida_semen).
+    // Preferimos falhar de forma visível a corromper dados silenciosamente.
+    print(
+        'CSV sem cabeçalho reconhecido: importação abortada para evitar mapeamento incorreto de colunas.');
+    return [];
   } catch (e, stack) {
     print('Erro no processamento CSV: $e');
     print(stack);

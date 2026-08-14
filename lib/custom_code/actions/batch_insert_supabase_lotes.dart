@@ -57,7 +57,6 @@ Future<Map<String, dynamic>> batchInsertSupabaseLotes(
           data.remove('created_at');
           data.remove('updated_at');
           data.remove('deletado');
-          data.remove('id_animais');
 
           // Gerar id_reproducao único SOMENTE se não existir ou estiver vazio
           if (data['id_lote'] == null ||
@@ -126,7 +125,6 @@ Future<Map<String, dynamic>> batchInsertSupabaseLotes(
             data.remove('created_at');
             data.remove('updated_at');
             data.remove('deletado');
-            data.remove('id_animais');
 
             // Gerar id_reproducao único SOMENTE se não existir ou estiver vazio
             if (data['id_lote'] == null ||

@@ -4383,8 +4383,11 @@ class _PgRebanhoAddNascimentoWidgetState
                                                 if (_model.isSaving) {
                                                   return;
                                                 }
-                                                if ((_model.dropDownStatusValue ??
-                                                        '')
+                                                final statusSelecionado = _model
+                                                        .dropDownStatusValueController
+                                                        ?.value ??
+                                                    _model.dropDownStatusValue;
+                                                if ((statusSelecionado ?? '')
                                                     .isEmpty) {
                                                   await showDialog(
                                                     context: context,
@@ -4393,6 +4396,57 @@ class _PgRebanhoAddNascimentoWidgetState
                                                       return AlertDialog(
                                                         content: const Text(
                                                             'O campo status é obrigatório'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                    alertDialogContext),
+                                                            child: const Text(
+                                                                'Ok'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                  return;
+                                                }
+                                                if (statusSelecionado ==
+                                                        'Morto' &&
+                                                    _model.datePicked4 ==
+                                                        null) {
+                                                  await showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (alertDialogContext) {
+                                                      return AlertDialog(
+                                                        content: const Text(
+                                                            'Informe a data da morte antes de salvar.'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                    alertDialogContext),
+                                                            child: const Text(
+                                                                'Ok'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                  return;
+                                                }
+                                                if (statusSelecionado ==
+                                                        'Morto' &&
+                                                    (_model.dropDownMotivoMorteValue ??
+                                                            '')
+                                                        .isEmpty) {
+                                                  await showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (alertDialogContext) {
+                                                      return AlertDialog(
+                                                        content: const Text(
+                                                            'Informe o motivo da morte antes de salvar.'),
                                                         actions: [
                                                           TextButton(
                                                             onPressed: () =>
@@ -4464,8 +4518,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                                   'dataEntradaLote':
                                                       supaSerialize<DateTime>(
                                                           _model.datePicked2),
-                                                  'status': _model
-                                                      .dropDownStatusValue,
+                                                  'status': statusSelecionado,
                                                   'anotacoes': _model
                                                       .anotacoesTextController
                                                       .text,
@@ -4528,9 +4581,17 @@ class _PgRebanhoAddNascimentoWidgetState
                                                       .racaAnimal,
                                                   'data_morte':
                                                       supaSerialize<DateTime>(
-                                                          _model.datePicked4),
-                                                  'motivo_morte': _model
-                                                      .dropDownMotivoMorteValue,
+                                                          statusSelecionado ==
+                                                                  'Morto'
+                                                              ? _model
+                                                                  .datePicked4
+                                                              : null),
+                                                  'motivo_morte':
+                                                      statusSelecionado ==
+                                                              'Morto'
+                                                          ? _model
+                                                              .dropDownMotivoMorteValue
+                                                          : null,
                                                   'categoria_matriz':
                                                       FFAppState()
                                                           .matrizSelecionada

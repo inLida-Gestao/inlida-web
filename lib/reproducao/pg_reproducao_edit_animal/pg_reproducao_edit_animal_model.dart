@@ -16,7 +16,7 @@ class PgReproducaoEditAnimalModel
 
   double? score = 1.0;
 
-  int? partidaSemen = 1;
+  int? partidaSemen;
 
   bool parida = false;
 

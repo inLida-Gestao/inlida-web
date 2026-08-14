@@ -56,6 +56,7 @@ serve(async (req) => {
     const p_inseminador = url.searchParams.get("p_inseminador") ?? "";
     const p_id_rebanho_reprodutor = url.searchParams.get("p_id_rebanho_reprodutor") ?? "";
     const p_tipo_reproducao = url.searchParams.get("p_tipo_reproducao") ?? "";
+    const p_ressinc = url.searchParams.get("p_ressinc") ?? "";
 
     if (!id_propriedade || id_propriedade.trim() === "") {
       return badRequest("Parâmetro obrigatório: 'id_propriedade'.");
@@ -89,6 +90,7 @@ serve(async (req) => {
       p_inseminador: p_inseminador.trim() || "",
       p_id_rebanho_reprodutor: p_id_rebanho_reprodutor.trim() || "",
       p_tipo_reproducao: p_tipo_reproducao.trim() || "",
+      p_ressinc: p_ressinc.trim() || "",
     });
 
     if (error) {
