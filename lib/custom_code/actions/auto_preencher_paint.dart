@@ -264,7 +264,14 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         grpSet.add(norm);
         insertGrp.add({
           'id_propriedade': idPropriedade,
-          'codigo': _proximoCodigoLivre(grpCodigosUsados),
+          // Fazendas com histórico PAINT embutem o código do grupo no fim do
+          // nome do lote ("DESM M LOTE 01-G13" -> G13). Reusar esse código
+          // deixa o GRUPO_MANEJO.TXT fiel ao que o PAINT já conhece — mesma
+          // filosofia do A12 oficial. Usa o NOME COMPLETO do lote (a descrição
+          // é truncada a 20 chars e pode perder o sufixo). Sem sufixo, ou com
+          // o código já ocupado, cai no sequencial de sempre.
+          'codigo': _codigoGrupoDoNomeLote(nome, grpCodigosUsados) ??
+              _proximoCodigoLivre(grpCodigosUsados),
           'descricao': descrGravada,
         });
       }
@@ -619,6 +626,19 @@ Set<String> _codigosUsados(Iterable<dynamic> codigos) {
       .map((c) => (c ?? '').toString().trim())
       .where((c) => c.isNotEmpty)
       .toSet();
+}
+
+/// Código de grupo embutido no nome do lote ("DESM M LOTE 01-G13" -> "G13").
+/// Devolve null quando não há sufixo, o código não cabe no campo (4 chars) ou
+/// já está em uso por outro grupo.
+String? _codigoGrupoDoNomeLote(String nomeLote, Set<String> usados) {
+  final m = RegExp(r'[-\s](G\d{1,3})\s*$', caseSensitive: false)
+      .firstMatch(nomeLote.trim());
+  if (m == null) return null;
+  final codigo = m.group(1)!.toUpperCase();
+  if (codigo.length > 4 || usados.contains(codigo)) return null;
+  usados.add(codigo);
+  return codigo;
 }
 
 String _proximoCodigoLivre(Set<String> usados) {

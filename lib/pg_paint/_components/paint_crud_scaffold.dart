@@ -572,7 +572,14 @@ class _PaintCrudFormDialogState extends State<_PaintCrudFormDialog> {
     } catch (e) {
       safeSetState(() {
         _salvando = false;
-        _erro = 'Erro ao salvar: $e';
+        // 23505 = unique violation. Todas as tabelas do módulo têm unique por
+        // (id_propriedade, código/A12/...); a mensagem crua do Postgres assusta
+        // — traduz para o que o usuário consegue resolver.
+        _erro = (e is PostgrestException && e.code == '23505')
+            ? 'Já existe um registro com este código/valor. '
+                'Confira na lista (inclusive nas outras páginas) e use um '
+                'código diferente, ou edite o registro que já existe.'
+            : 'Erro ao salvar: $e';
       });
     }
   }
