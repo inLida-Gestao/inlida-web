@@ -31,9 +31,23 @@ bool isRacaPoPaint(String? raca) {
 }
 
 /// Sugere `PO` quando a raça indica PO e o tipo ainda não foi informado.
-/// Não sobrescreve seleção manual do usuário.
+/// Não sobrescreve seleção manual do usuário. Usar ao CARREGAR o formulário.
 String? sugerirTipoRegistroPorRaca(String? raca, String? tipoAtual) {
   final atual = (tipoAtual ?? '').trim();
   if (atual.isNotEmpty) return tipoAtual;
   return isRacaPoPaint(raca) ? 'PO' : tipoAtual;
+}
+
+/// Ajusta o tipo quando o usuário TROCA a raça no formulário:
+///  - raça virou PO e o campo está vazio -> sugere 'PO';
+///  - raça deixou de ser PO e o campo está 'PO' -> LIMPA (o 'PO' era a
+///    sugestão automática; mantê-lo faria o A12 continuar saindo com a série
+///    PO mesmo após trocar a raça — caso real da Cachoeira, animal nº 7).
+/// POI/CEIP/CL/LA/LA1 são sempre escolha manual e nunca são alterados.
+String? ajustarTipoRegistroAoTrocarRaca(String? novaRaca, String? tipoAtual) {
+  final atual = (tipoAtual ?? '').trim();
+  if (isRacaPoPaint(novaRaca)) {
+    return atual.isEmpty ? 'PO' : tipoAtual;
+  }
+  return atual == 'PO' ? null : tipoAtual;
 }

@@ -1976,7 +1976,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                   () {
                                                 _model.dropDownRacaValue = val;
                                                 final tipo =
-                                                    sugerirTipoRegistroPorRaca(
+                                                    ajustarTipoRegistroAoTrocarRaca(
                                                   val,
                                                   _model
                                                       .dropDownTipoRegistroValue,

@@ -1973,7 +1973,7 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                   _model.dropDownRacaValue =
                                                       val;
                                                   final tipo =
-                                                      sugerirTipoRegistroPorRaca(
+                                                      ajustarTipoRegistroAoTrocarRaca(
                                                     val,
                                                     _model
                                                         .dropDownTipoRegistroValue,

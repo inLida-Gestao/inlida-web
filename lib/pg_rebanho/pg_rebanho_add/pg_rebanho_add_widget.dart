@@ -2116,7 +2116,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                   _model.dropDownRacaValue =
                                                                       val;
                                                                   final tipo =
-                                                                      sugerirTipoRegistroPorRaca(
+                                                                      ajustarTipoRegistroAoTrocarRaca(
                                                                     val,
                                                                     _model
                                                                         .dropDownTipoRegistroValue,

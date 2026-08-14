@@ -2144,7 +2144,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                   _model.dropDownRacaValue =
                                                                       val;
                                                                   final tipo =
-                                                                      sugerirTipoRegistroPorRaca(
+                                                                      ajustarTipoRegistroAoTrocarRaca(
                                                                     val,
                                                                     _model
                                                                         .dropDownTipoRegistroValue,
