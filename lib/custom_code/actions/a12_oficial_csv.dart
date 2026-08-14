@@ -180,7 +180,7 @@ Future<Map<String, dynamic>> importarA12OficialCsv(
   while (true) {
     final lote = await SupaFlow.client
         .from('paint_animal_a12')
-        .select('id_rebanho,a12,origem')
+        .select('id,id_rebanho,a12,origem')
         .eq('id_propriedade', idProp)
         .range(offset, offset + pagina - 1);
     for (final r in lote) {
@@ -193,6 +193,7 @@ Future<Map<String, dynamic>> importarA12OficialCsv(
 
   final erros = <Map<String, dynamic>>[];
   final upserts = <Map<String, dynamic>>[];
+  final updates = <Map<String, dynamic>>[];
   final vistos = <String>{};
   var ignorados = 0;
   var inseridos = 0;
@@ -250,17 +251,25 @@ Future<Map<String, dynamic>> importarA12OficialCsv(
       continue;
     }
 
-    upserts.add({
+    final payload = {
       'id_propriedade': idProp,
       'id_rebanho': idReb,
       'a12': a12,
       'origem': 'manual',
       'divergente': calc.isEmpty ? true : calc != a12,
       'updated_at': DateTime.now().toIso8601String(),
-    });
+    };
+    // O postgrest-dart 2.4.2 DESCARTA o on_conflict em upsert de LISTA — o
+    // upsert virava INSERT puro e a reimportação sobre linhas existentes
+    // falhava com 409 (unique id_propriedade,id_rebanho). Mesma solução do
+    // import de avaliação: linha existente carrega o `id` (conflito resolvido
+    // pela PRIMARY KEY); linha nova vai em insert simples.
     if (anterior == null) {
+      upserts.add(payload);
       inseridos += 1;
     } else {
+      payload['id'] = anterior['id'];
+      updates.add(payload);
       atualizados += 1;
     }
   }
@@ -269,10 +278,9 @@ Future<Map<String, dynamic>> importarA12OficialCsv(
   for (var i = 0; i < upserts.length; i += tam) {
     final fim = (i + tam < upserts.length) ? i + tam : upserts.length;
     try {
-      await SupaFlow.client.from('paint_animal_a12').upsert(
-            upserts.sublist(i, fim),
-            onConflict: 'id_propriedade,id_rebanho',
-          );
+      await SupaFlow.client
+          .from('paint_animal_a12')
+          .insert(upserts.sublist(i, fim));
     } catch (e) {
       erros.add({
         'linha': 0,
@@ -280,8 +288,21 @@ Future<Map<String, dynamic>> importarA12OficialCsv(
       });
     }
   }
+  for (var i = 0; i < updates.length; i += tam) {
+    final fim = (i + tam < updates.length) ? i + tam : updates.length;
+    try {
+      await SupaFlow.client
+          .from('paint_animal_a12')
+          .upsert(updates.sublist(i, fim));
+    } catch (e) {
+      erros.add({
+        'linha': 0,
+        'motivo': 'Falha ao atualizar lote ${i ~/ tam + 1}: $e',
+      });
+    }
+  }
 
-  result['gravados'] = upserts.length;
+  result['gravados'] = upserts.length + updates.length;
   result['inseridos'] = inseridos;
   result['atualizados'] = atualizados;
   result['ignorados'] = ignorados;

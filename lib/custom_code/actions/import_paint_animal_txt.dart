@@ -117,6 +117,7 @@ Future<Map<String, dynamic>> importPaintAnimalTxt(
 
   final substituirManual = substituirEdicoesManuais ?? false;
   final upserts = <Map<String, dynamic>>[];
+  final updates = <Map<String, dynamic>>[];
   final naoEncontrados = <Map<String, dynamic>>[];
   final ambiguos = <Map<String, dynamic>>[];
   final erros = <Map<String, dynamic>>[];
@@ -269,7 +270,7 @@ Future<Map<String, dynamic>> importPaintAnimalTxt(
     final divergente = calculado.trimRight() != a12;
     if (divergente) divergentes += 1;
 
-    upserts.add({
+    final payload = {
       'id_propriedade': idProp,
       'id_rebanho': idRebanho,
       'a12': a12,
@@ -279,23 +280,30 @@ Future<Map<String, dynamic>> importPaintAnimalTxt(
       'nome_paint': nomePaint.isEmpty ? null : nomePaint,
       'divergente': divergente,
       'updated_at': DateTime.now().toIso8601String(),
-    });
+    };
+    // O postgrest-dart 2.4.2 DESCARTA o on_conflict em upsert de LISTA (ao
+    // montar o `columns=` ele perde o parâmetro) — o upsert virava INSERT puro
+    // e a reimportação estourava a unique (id_propriedade,id_rebanho) com 409.
+    // Mesma solução do import de avaliação: linha existente carrega o `id` e o
+    // conflito é resolvido pela PRIMARY KEY; linha nova vai em insert simples.
     if (anterior == null) {
+      upserts.add(payload);
       inseridos += 1;
     } else {
+      payload['id'] = anterior['id'];
+      updates.add(payload);
       atualizados += 1;
     }
   }
 
-  // Grava em lotes; upsert idempotente pela unique (id_propriedade, id_rebanho).
+  // Grava em lotes; idempotente pela unique (id_propriedade, id_rebanho).
   const tam = 500;
   for (var i = 0; i < upserts.length; i += tam) {
     final fim = (i + tam < upserts.length) ? i + tam : upserts.length;
     try {
-      await SupaFlow.client.from('paint_animal_a12').upsert(
-            upserts.sublist(i, fim),
-            onConflict: 'id_propriedade,id_rebanho',
-          );
+      await SupaFlow.client
+          .from('paint_animal_a12')
+          .insert(upserts.sublist(i, fim));
     } catch (e) {
       erros.add({
         'linha': 0,
@@ -303,8 +311,21 @@ Future<Map<String, dynamic>> importPaintAnimalTxt(
       });
     }
   }
+  for (var i = 0; i < updates.length; i += tam) {
+    final fim = (i + tam < updates.length) ? i + tam : updates.length;
+    try {
+      await SupaFlow.client
+          .from('paint_animal_a12')
+          .upsert(updates.sublist(i, fim));
+    } catch (e) {
+      erros.add({
+        'linha': 0,
+        'motivo': 'Falha ao atualizar lote ${i ~/ tam + 1}: $e',
+      });
+    }
+  }
 
-  result['casados'] = upserts.length;
+  result['casados'] = upserts.length + updates.length;
   result['inseridos'] = inseridos;
   result['atualizados'] = atualizados;
   result['divergentes'] = divergentes;
