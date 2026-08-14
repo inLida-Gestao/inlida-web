@@ -617,12 +617,24 @@ Future<Map<String, int>> _registrarPesagensImportadas({
     }
   }
 
-  const tam = 200;
+  // Lotes PEQUENOS: cada linha inserida dispara o trigger que recalcula a
+  // "última pesagem"/"peso atual" do animal no rebanho. Com 200 linhas o
+  // statement passava dos 8s do statement_timeout do PostgREST e caía com
+  // 57014 no meio da importação (visto em produção em 14/08). Se ainda assim
+  // um lote estourar, cai para linha a linha — cada insert vira um statement
+  // curto e o trigger roda uma vez só.
+  const tam = 25;
   for (var i = 0; i < inserts.length; i += tam) {
     final fim = (i + tam < inserts.length) ? i + tam : inserts.length;
-    await SupaFlow.client
-        .from('historico_pesagens')
-        .insert(inserts.sublist(i, fim));
+    final lote = inserts.sublist(i, fim);
+    try {
+      await SupaFlow.client.from('historico_pesagens').insert(lote);
+    } on PostgrestException catch (e) {
+      if (e.code != '57014') rethrow;
+      await _emLotesConcorrentes(lote, (registro) async {
+        await SupaFlow.client.from('historico_pesagens').insert(registro);
+      }, concorrencia: 4);
+    }
   }
   await _emLotesConcorrentes(updates, (u) async {
     await SupaFlow.client
