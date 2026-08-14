@@ -172,6 +172,11 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
   // gravação das avaliações (desmama → tipo 'Desmama'; sobreano → 'Atual').
   final pesagensPlanilha = <_PesagemPlanilha>[];
   final fichasPorRebanho = <String, Map<String, dynamic>>{};
+  // Linhas SEM peso na planilha: o peso é completado com a pesagem do inLida
+  // na data EXATA da avaliação (mesma regra do export). Sem isso a tabela fica
+  // com peso NULL enquanto o TXT sai preenchido — o export resolve na hora,
+  // mas quem consulta o banco não vê o peso.
+  final payloadsSemPeso = <MapEntry<String, Map<String, dynamic>>>[];
 
   for (var r = 1; r < sheet.rows.length; r++) {
     final row = sheet.rows[r];
@@ -368,6 +373,11 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
           'motivo': 'Aviso: Peso_kg inválido ("$pesoRaw") — avaliação '
               'importada, mas a pesagem não foi registrada no rebanho.',
         });
+      } else {
+        final idReb = (reb['idRebanho'] ?? '').toString().trim();
+        if (idReb.isNotEmpty) {
+          payloadsSemPeso.add(MapEntry('$idReb|$dataAv', payload));
+        }
       }
     } else {
       final c = parseNota(_celNum(row, idx('conformacao_c')));
@@ -403,6 +413,11 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
           'motivo': 'Aviso: Peso_kg inválido ("$pesoRaw") — avaliação '
               'importada, mas a pesagem não foi registrada no rebanho.',
         });
+      } else {
+        final idReb = (reb['idRebanho'] ?? '').toString().trim();
+        if (idReb.isNotEmpty) {
+          payloadsSemPeso.add(MapEntry('$idReb|$dataAv', payload));
+        }
       }
     }
 
@@ -442,6 +457,49 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
         fichasPorRebanho[idReb] = reb;
       }
     }
+  }
+
+  // Completa o peso das linhas que vieram sem Peso_kg com a pesagem do inLida
+  // na data EXATA da avaliação (regra do PAINT, a mesma que o export usa para
+  // preencher dsm_peso/sbr_peso). Materializar aqui deixa a tabela igual ao
+  // TXT; sem pesagem na data, o peso fica vazio nos dois.
+  if (payloadsSemPeso.isNotEmpty) {
+    final idRebs =
+        payloadsSemPeso.map((e) => e.key.split('|').first).toSet().toList();
+    final datas =
+        payloadsSemPeso.map((e) => e.key.split('|').last).toSet().toList();
+    final pesoPorRebData = <String, num>{};
+    const lotePesagem = 200;
+    for (var i = 0; i < idRebs.length; i += lotePesagem) {
+      final fim =
+          (i + lotePesagem < idRebs.length) ? i + lotePesagem : idRebs.length;
+      final rows = await SupaFlow.client
+          .from('historico_pesagens')
+          .select('idRebanho,dataPesagem,peso,id')
+          .eq('id_propriedade', idPropriedade)
+          .inFilter('idRebanho', idRebs.sublist(i, fim))
+          .inFilter('dataPesagem', datas)
+          .or('deletado.is.null,deletado.neq.SIM')
+          .order('id', ascending: true);
+      for (final p in rows) {
+        final peso = p['peso'];
+        final n = peso is num ? peso : num.tryParse('${peso ?? ''}');
+        if (n == null || n <= 0) continue;
+        final chave = '${(p['idRebanho'] ?? '').toString().trim()}'
+            '|${(p['dataPesagem'] ?? '').toString().substring(0, 10)}';
+        // Primeira pesagem (menor id) ganha, como no export.
+        pesoPorRebData.putIfAbsent(chave, () => n);
+      }
+    }
+    var completados = 0;
+    for (final e in payloadsSemPeso) {
+      final peso = pesoPorRebData[e.key];
+      if (peso != null) {
+        e.value['peso'] = peso;
+        completados++;
+      }
+    }
+    if (completados > 0) result['pesos_da_pesagem'] = completados;
   }
 
   const tam = 200;
