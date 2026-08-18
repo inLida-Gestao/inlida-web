@@ -2,7 +2,7 @@
 
 import '/backend/supabase/supabase.dart';
 import 'paint_helpers.dart';
-import 'paint_mappers.dart' show resolveSerieA12;
+import 'paint_mappers.dart' show extractAnimal5, resolveSerieA12;
 
 class PaintConfigExcel {
   final String codigoTransmissao;
@@ -71,9 +71,9 @@ String animalIdFromRebanho(Map<String, dynamic> r, PaintConfigExcel cfg) {
 
 String a12FromRebanho(Map<String, dynamic> r, PaintConfigExcel cfg) {
   final idRaw = animalIdFromRebanho(r, cfg);
-  // Sigla do registro (ex.: JLK) não entra na numeração — usa só os dígitos.
-  final digits = idRaw.replaceAll(RegExp(r'\D'), '');
-  final id = digits.isNotEmpty ? digits : idRaw;
+  // Mesma regra do export (paint_mappers.extractAnimal5): sigla de registro
+  // (JLK) não entra, mas código curto alfanumérico (T001/M001) é mantido.
+  final id = extractAnimal5(idRaw);
   final nasc = r['dataNascimento'];
   DateTime? d;
   if (nasc is String && nasc.isNotEmpty) {

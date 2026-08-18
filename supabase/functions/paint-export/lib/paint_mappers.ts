@@ -75,6 +75,19 @@ export function resolveSerieA12(
 // ---------------------------------------------------------------------------
 export function extractAnimal5(numero: unknown): string {
   const raw = asText(numero);
+  // Código curto alfanumérico SEM sigla de registro (ex.: T001, M001, G222):
+  // a letra FAZ PARTE da identificação no PAINT. Caso real da Cachoeira:
+  // 'T001' e 'M001' são touros DIFERENTES (mesmo nascimento 01/01/2021) que a
+  // regra "só dígitos" colidia no mesmo A12 'P460 001  21' — o PAINT os
+  // distingue como 'P460 T001 21' e 'P460 M001 21'. Sigla de registro (2-4
+  // letras seguidas de número, ex.: JLK4705) continua fora: ela vira a série.
+  if (
+    raw.length > 0 && raw.length <= 5 &&
+    /[A-Za-z]/.test(raw) && /\d/.test(raw) &&
+    !extractSerieRegistro(raw)
+  ) {
+    return raw;
+  }
   const digits = raw.replace(/\D/g, "");
   const base = digits.length > 0 ? digits : raw;
   return base.length > 5 ? base.slice(0, 5) : base;

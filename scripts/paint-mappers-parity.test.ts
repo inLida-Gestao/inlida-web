@@ -175,3 +175,23 @@ Deno.test("A12 PO usa a série do registro sem perder o ano", () => {
   };
   assertEquals(a12FromRebanho(configEspacado, po), "PJLK 305  23");
 });
+
+Deno.test("código curto alfanumérico mantém a letra (T001 vs M001 não colidem)", () => {
+  const cfg = { ...configEspacado, serie_fazenda: "460" };
+  const a12 = (numero: string) =>
+    a12FromRebanho(cfg, {
+      numeroAnimal: numero,
+      dataNascimento: "2021-01-01",
+      raca: "NELORE",
+    });
+  assertEquals(a12("T001"), "P460 T001 21");
+  assertEquals(a12("M001"), "P460 M001 21");
+  assertEquals(a12("G222"), "P460 G222 21");
+  // Sigla de registro (2-4 letras) continua fora do campo Animal:
+  assertEquals(extractAnimal5("JLK4705"), "4705");
+  assertEquals(extractAnimal5("JLK1"), "1");
+  // Sem letra ou acima de 5 chars: só dígitos, como sempre:
+  assertEquals(extractAnimal5("0001 A"), "0001");
+  assertEquals(extractAnimal5("ZEB8121"), "8121");
+  assertEquals(extractAnimal5("766913 TUL"), "76691");
+});

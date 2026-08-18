@@ -256,6 +256,22 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
               filtrados.where((c) => sexoMF(c['sexo']) == sexoCel).toList();
         }
       }
+      if (filtrados.length > 1) {
+        // Último desempate: o campo Animal do A12 (posições 6-10) VERBATIM
+        // contra o numeroAnimal. Resolve códigos alfanuméricos que colidem
+        // em dígitos+ano+data+sexo — caso real: touros 'T001' e 'M001'
+        // ('P460 T001 21' vs 'P460 M001 21', mesmo nascimento 01/01/2021).
+        final animalDoA12 =
+            (paintPartesDoA12(a12)?['animal'] ?? '').trim().toUpperCase();
+        if (animalDoA12.isNotEmpty) {
+          final exatos = filtrados
+              .where((c) =>
+                  (c['numeroAnimal'] ?? '').toString().trim().toUpperCase() ==
+                  animalDoA12)
+              .toList();
+          if (exatos.length == 1) filtrados = exatos;
+        }
+      }
       if (filtrados.length != 1) {
         erros.add({
           'linha': linha,

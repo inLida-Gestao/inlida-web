@@ -58,8 +58,21 @@ String resolveSerieA12(
 }
 
 /// Identificação do animal no A12 (5 chars). Sigla do registro (JLK) não entra.
+///
+/// Código curto alfanumérico SEM sigla de registro (ex.: T001, M001, G222) é
+/// mantido VERBATIM: a letra faz parte da identificação no PAINT. Caso real da
+/// Cachoeira: 'T001' e 'M001' são touros diferentes (mesmo nascimento) que a
+/// regra "só dígitos" colidia no mesmo A12 — o PAINT os distingue como
+/// 'P460 T001 21' e 'P460 M001 21'.
 String extractAnimal5(dynamic numero) {
   final raw = (numero ?? '').toString().trim();
+  if (raw.isNotEmpty &&
+      raw.length <= 5 &&
+      RegExp(r'[A-Za-z]').hasMatch(raw) &&
+      RegExp(r'\d').hasMatch(raw) &&
+      extractSerieRegistro(raw).isEmpty) {
+    return raw;
+  }
   final digits = raw.replaceAll(RegExp(r'\D'), '');
   final base = digits.isNotEmpty ? digits : raw;
   return base.length > 5 ? base.substring(0, 5) : base;
