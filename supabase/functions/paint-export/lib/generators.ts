@@ -202,6 +202,7 @@ function dateKeyIso(value: unknown): string {
 function idRebanhoByDigAno(ctx: ExportContext): Map<string, string> {
   if (ctx.idRebanhoPorDigAno) return ctx.idRebanhoPorDigAno;
   const map = new Map<string, string>();
+  const colididas = new Set<string>();
   for (const r of ctx.rebanhoRows ?? []) {
     // Não-Nelore não entra no ANIMAL.TXT, então não deve disputar a chave
     // dígitos+ano: "3991 G" (Girolando) colidia com "3991" (Nelore) — mesma
@@ -211,8 +212,16 @@ function idRebanhoByDigAno(ctx: ExportContext): Map<string, string> {
     const nasc = dateKeyIso(r.dataNascimento);
     if (!dig || !nasc || !r.idRebanho) continue;
     const key = `${dig}|${nasc.slice(2, 4)}`;
-    if (!map.has(key)) map.set(key, String(r.idRebanho));
+    // Chave colidida (ex.: touros T001 e M001, mesmos dígitos e ano) NÃO pode
+    // apontar para "o primeiro": pesoAvaliacao usaria a pesagem do animal
+    // errado. Melhor não resolver (campo sai em branco) do que resolver errado.
+    if (map.has(key)) {
+      colididas.add(key);
+      continue;
+    }
+    map.set(key, String(r.idRebanho));
   }
+  for (const key of colididas) map.delete(key);
   ctx.idRebanhoPorDigAno = map;
   return map;
 }

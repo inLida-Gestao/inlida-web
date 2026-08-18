@@ -215,6 +215,20 @@ Future<Map<String, dynamic>> importPaintAnimalTxt(
           .toList();
       if (f.isNotEmpty) filtrados = f;
     }
+    if (filtrados.length > 1 && numeroPaint.isNotEmpty) {
+      // Último desempate: número do PAINT (campo 12-16 do TXT) VERBATIM contra
+      // o numeroAnimal. Resolve códigos alfanuméricos que colidem em
+      // dígitos+ano+raça+data+sexo — caso real: touros 'T001' e 'M001' (mesmo
+      // nascimento 01/01/2021; o PAINT traz 'T001' no campo). Só resolve se
+      // exatamente UM candidato bater — empate segue para "ambiguos".
+      final alvo = numeroPaint.trim().toUpperCase();
+      final f = filtrados
+          .where((c) =>
+              (c['numeroAnimal'] ?? '').toString().trim().toUpperCase() ==
+              alvo)
+          .toList();
+      if (f.length == 1) filtrados = f;
+    }
     if (filtrados.length != 1) {
       if (ambiguos.length < 50) {
         ambiguos.add({

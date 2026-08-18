@@ -176,7 +176,11 @@ Deno.test("A12 PO usa a série do registro sem perder o ano", () => {
   assertEquals(a12FromRebanho(configEspacado, po), "PJLK 305  23");
 });
 
-Deno.test("código curto alfanumérico mantém a letra (T001 vs M001 não colidem)", () => {
+Deno.test("código curto alfanumérico segue só-dígitos (exceção = A12 oficial)", () => {
+  // Manter/derrubar a letra NÃO é derivável: o PAINT tem 'T001' como
+  // 'P460 T001 21' (letra fica) mas 'G222' como 'P460 222  20' (letra cai).
+  // A regra geral fica em só-dígitos; T001 é exceção registrada em
+  // paint_animal_a12 (A12 oficial), honrada com precedência pelo export.
   const cfg = { ...configEspacado, serie_fazenda: "460" };
   const a12 = (numero: string) =>
     a12FromRebanho(cfg, {
@@ -184,13 +188,10 @@ Deno.test("código curto alfanumérico mantém a letra (T001 vs M001 não colide
       dataNascimento: "2021-01-01",
       raca: "NELORE",
     });
-  assertEquals(a12("T001"), "P460 T001 21");
-  assertEquals(a12("M001"), "P460 M001 21");
-  assertEquals(a12("G222"), "P460 G222 21");
-  // Sigla de registro (2-4 letras) continua fora do campo Animal:
+  assertEquals(a12("T001"), "P460 001  21");
+  assertEquals(a12("G222"), "P460 222  21");
+  assertEquals(extractAnimal5("T001"), "001");
   assertEquals(extractAnimal5("JLK4705"), "4705");
-  assertEquals(extractAnimal5("JLK1"), "1");
-  // Sem letra ou acima de 5 chars: só dígitos, como sempre:
   assertEquals(extractAnimal5("0001 A"), "0001");
   assertEquals(extractAnimal5("ZEB8121"), "8121");
   assertEquals(extractAnimal5("766913 TUL"), "76691");
