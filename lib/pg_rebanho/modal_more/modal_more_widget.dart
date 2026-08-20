@@ -461,22 +461,38 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                   racaAnimal: _model.reprodutor?.firstOrNull?.raca,
                 );
                 safeSetState(() {});
-                unawaited(
-                  () async {
-                    await RebanhoTable().update(
-                      data: {
-                        'rebanhoIdMatriz':
-                            _model.matriz?.firstOrNull?.idRebanho,
-                        'rebanhoIdReprodutor':
-                            _model.reprodutor?.firstOrNull?.idRebanho,
-                      },
-                      matchingRows: (rows) => rows.eqOrNull(
-                        'id',
-                        widget.rebanhoId,
-                      ),
+                // Só grava o vínculo que FOI ENCONTRADO. As buscas acima casam
+                // matriz/reprodutor por número+data+raça; quando não acham
+                // (número corrigido, pai fora do rebanho, texto divergente),
+                // gravar o resultado vazio APAGAVA o vínculo do animal — e o
+                // vínculo é a fonte de verdade (é ele que alimenta o pai/mãe
+                // no PAINT e o trigger que propaga os dados do pai). Foi assim
+                // que 148 animais da Cachoeira ficaram com pai só como texto.
+                {
+                  final vinculos = <String, dynamic>{};
+                  final idMatriz = _model.matriz?.firstOrNull?.idRebanho;
+                  final idReprodutor =
+                      _model.reprodutor?.firstOrNull?.idRebanho;
+                  if (idMatriz != null && idMatriz.trim().isNotEmpty) {
+                    vinculos['rebanhoIdMatriz'] = idMatriz;
+                  }
+                  if (idReprodutor != null && idReprodutor.trim().isNotEmpty) {
+                    vinculos['rebanhoIdReprodutor'] = idReprodutor;
+                  }
+                  if (vinculos.isNotEmpty) {
+                    unawaited(
+                      () async {
+                        await RebanhoTable().update(
+                          data: vinculos,
+                          matchingRows: (rows) => rows.eqOrNull(
+                            'id',
+                            widget.rebanhoId,
+                          ),
+                        );
+                      }(),
                     );
-                  }(),
-                );
+                  }
+                }
 
                 if (!context.mounted) {
                   return;
