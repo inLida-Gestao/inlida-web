@@ -72,6 +72,13 @@ export interface ExportContext {
   // tabelas paint_* (avaliações, baixa, safra_x_animal...) para o mesmo valor
   // emitido em ANIMAL.TXT, deixando o ZIP internamente consistente.
   a12ByDigAno?: Map<string, string>;
+  // Identidades (A12 e chave "dig5|ano2") dos animais que NÃO entram no
+  // ANIMAL.TXT (raça ≠ Nelore/Nelore PO, status Sêmen / Fora da propriedade).
+  // Nenhum arquivo deve enviar registro PRÓPRIO desses animais — o PAINT
+  // receberia composição racial / avaliação / diagnóstico de um animal que não
+  // existe no ANIMAL.TXT e passaria a exibi-lo (bug reportado pela cliente).
+  // Referência a eles como PAI/MÃE/TOURO continua saindo (regra da cliente).
+  foraDoAnimalTxt?: { a12: Set<string>; digAno: Set<string> };
   generationDate: string; // dd/mm/aaaa
   generationTime: string; // hh:mm:ss
   generationDateTime: Date;
@@ -260,6 +267,54 @@ export function primeLoteCaches(ctx: ExportContext): void {
   loteByRebanhoId(ctx);
   idRebanhoByDigAno(ctx);
   a12ByDigAno(ctx);
+  identidadesForaDoAnimalTxt(ctx);
+}
+
+// Identidades dos animais que NÃO entram no ANIMAL.TXT. Montado no prefetch,
+// enquanto rebanhoRows ainda existe (é liberado após NASCIMENTO).
+function identidadesForaDoAnimalTxt(
+  ctx: ExportContext,
+): { a12: Set<string>; digAno: Set<string> } {
+  if (ctx.foraDoAnimalTxt) return ctx.foraDoAnimalTxt;
+  const a12 = new Set<string>();
+  const digAnoFora = new Set<string>();
+  const digAnoDentro = new Set<string>();
+  for (const r of ctx.rebanhoRows ?? []) {
+    const idReb = String(r.idRebanho ?? "").trim();
+    const dig = String(r.numeroAnimal ?? "").replace(/\D/g, "").slice(0, 5);
+    const nasc = dateKeyIso(r.dataNascimento);
+    const chave = dig && nasc ? `${dig}|${nasc.slice(2, 4)}` : "";
+    if (racaNeloreOuPo(r.raca) && !statusForaDoAnimalTxt(r.status)) {
+      if (chave) digAnoDentro.add(chave);
+      continue;
+    }
+    const a12Animal = (ctx.a12ByRebanhoId.get(idReb) ?? "").trim();
+    if (a12Animal) a12.add(a12Animal);
+    if (chave) digAnoFora.add(chave);
+  }
+  // Chave disputada (ex.: Girolando "3991 G" e Nelore "3991", mesmo ano): NÃO
+  // exclui pela chave — só o A12 exato decide, senão derrubaríamos o registro
+  // do animal elegível junto.
+  for (const k of digAnoDentro) digAnoFora.delete(k);
+  ctx.foraDoAnimalTxt = { a12, digAno: digAnoFora };
+  return ctx.foraDoAnimalTxt;
+}
+
+// O A12 armazenado pertence a um animal que não está no ANIMAL.TXT?
+// Conservador: só devolve true quando a identidade casa de forma inequívoca —
+// A12 desconhecido (histórico do PAINT sem animal no inLida) é preservado.
+function foraDoAnimalTxt(ctx: ExportContext, a12Armazenado: unknown): boolean {
+  const { a12, digAno } = identidadesForaDoAnimalTxt(ctx);
+  if (a12.size === 0 && digAno.size === 0) return false;
+  const bruto = String(a12Armazenado ?? "").trim();
+  if (!bruto) return false;
+  if (a12.has(bruto)) return true;
+  const canon = a12Canon(ctx, bruto).trim();
+  if (canon && a12.has(canon)) return true;
+  for (const chave of digAnoCandidates(bruto)) {
+    if (digAno.has(chave)) return true;
+  }
+  return false;
 }
 
 // Programa / série / animal a emitir nos campos posicionais (ani_*/nas_*).
@@ -591,6 +646,9 @@ async function genComposicaoRacial(ctx: ExportContext): Promise<string> {
   let recno = 0;
   if (rows.length > 0) {
     for (const r of rows) {
+      // Mesmo critério do paintTableGenerator: composição racial de animal que
+      // não está no ANIMAL.TXT faria o PAINT exibir o animal.
+      if (foraDoAnimalTxt(ctx, r.animal_a12)) continue;
       recno += 1;
       lines.push(buildLine(layout, {
         cpr_parceiro: ctx.config.codigo_transmissao,
@@ -608,6 +666,7 @@ async function genComposicaoRacial(ctx: ExportContext): Promise<string> {
   } else {
     // Fallback: gera 1 linha por animal cadastrado em rebanho com 100% NE.
     for (const a12 of ctx.a12ByRebanhoId.values()) {
+      if (foraDoAnimalTxt(ctx, a12)) continue;
       recno += 1;
       lines.push(buildLine(layout, {
         cpr_parceiro: ctx.config.codigo_transmissao,
@@ -883,9 +942,23 @@ async function paintTableGenerator<T extends Record<string, unknown>>(
   );
   const lines: string[] = [];
   let recno = 0;
+  let pulados = 0;
   for (const r of rows) {
+    // Registro PRÓPRIO de animal que não está no ANIMAL.TXT (raça ≠ Nelore/
+    // Nelore PO, Sêmen, Fora da propriedade) não pode ir: o PAINT passaria a
+    // exibir um animal que a fazenda não enviou. Cadastros sem animal_a12
+    // (avaliador, safra, localidade...) não são afetados.
+    if ("animal_a12" in r && foraDoAnimalTxt(ctx, r.animal_a12)) {
+      pulados += 1;
+      continue;
+    }
     recno += 1;
     lines.push(buildLine(layout, mapper(r, recno)));
+  }
+  if (pulados > 0) {
+    console.log(
+      `[paint-export] ${String(layoutKey)}: ${pulados} linha(s) de animal fora do ANIMAL.TXT ignorada(s)`,
+    );
   }
   return joinLines(lines);
 }
