@@ -1823,6 +1823,7 @@ class TaxaConcepcaoGetCall {
     String? pLoteId = '',
     String? pInseminador = '',
     String? pIdRebanhoReprodutor = '',
+    String? pTipoReproducao = '',
     String? pRessinc = '',
   }) async {
     final baseUrl = SupabaseEdgeGroup.getBaseUrl();
@@ -1841,6 +1842,9 @@ class TaxaConcepcaoGetCall {
     if (pIdRebanhoReprodutor != null &&
         pIdRebanhoReprodutor.trim().isNotEmpty) {
       params['p_id_rebanho_reprodutor'] = pIdRebanhoReprodutor.trim();
+    }
+    if (pTipoReproducao != null && pTipoReproducao.trim().isNotEmpty) {
+      params['p_tipo_reproducao'] = pTipoReproducao.trim();
     }
     if (pRessinc != null && pRessinc.trim().isNotEmpty) {
       params['p_ressinc'] = pRessinc.trim();

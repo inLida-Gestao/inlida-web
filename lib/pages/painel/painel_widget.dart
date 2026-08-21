@@ -3702,11 +3702,11 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                 child: FutureBuilder<
                                                                     ApiCallResponse>(
                                                                   key: ValueKey(
-                                                                    'taxa_concepcao_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincTaxaConcepcaoValues.join(',')}',
+                                                                    'taxa_concepcao_future_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoConcepcaoValue}_${_model.filtroRessincTaxaConcepcaoValues.join(',')}',
                                                                   ),
                                                                   future: () {
                                                                     final taxaConcepcaoKey =
-                                                                        'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroRessincTaxaConcepcaoValues.join(',')}';
+                                                                        'taxa_concepcao_${FFAppState().propriedadeSelecionada.idPropriedade}_${_model.dDInicioAnoValue}_${_model.dDInicioMesValue}_${_model.dDFimAnoValue}_${_model.dDFimMesValue}_${_model.filtroLoteTaxaConcepcaoValues.join(',')}_${_model.filtroTouroTaxaConcepcaoValues.join(',')}_${_model.filtroInseminadorTaxaConcepcaoValues.join(',')}_${_model.filtroTipoConcepcaoValue}_${_model.filtroRessincTaxaConcepcaoValues.join(',')}';
                                                                     if (_model
                                                                             .taxaConcepcaoFutureKey !=
                                                                         taxaConcepcaoKey) {
@@ -3731,6 +3731,12 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         pInseminador: _model
                                                                             .filtroInseminadorTaxaConcepcaoValues
                                                                             .join(','),
+                                                                        pTipoReproducao: _model
+                                                                                    .filtroTipoConcepcaoValue ==
+                                                                                'Todos'
+                                                                            ? ''
+                                                                            : _model
+                                                                                .filtroTipoConcepcaoValue,
                                                                         pRessinc: _model
                                                                             .filtroRessincTaxaConcepcaoValues
                                                                             .join(','),
@@ -4792,7 +4798,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               Row(
                                                                                 children: [
                                                                                   Text(
-                                                                                    'Partos por categoria no período',
+                                                                                    'Partos por categoria',
                                                                                     style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                           font: GoogleFonts.poppins(
                                                                                             fontWeight: FontWeight.w600,

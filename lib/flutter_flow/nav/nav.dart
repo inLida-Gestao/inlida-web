@@ -160,6 +160,14 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                   'rebanhoId',
                   ParamType.String,
                 ),
+            returnToLoteId: params.getParam(
+              'returnToLoteId',
+              ParamType.String,
+            ),
+            returnToLoteNome: params.getParam(
+              'returnToLoteNome',
+              ParamType.String,
+            ),
           ),
         ),
         FFRoute(
