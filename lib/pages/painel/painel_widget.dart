@@ -4688,7 +4688,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                               Row(
                                                                                 children: [
                                                                                   Text(
-                                                                                    'Partos por categoria no período',
+                                                                                    'Partos por categoria',
                                                                                     style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                           font: GoogleFonts.poppins(
                                                                                             fontWeight: FontWeight.w600,
