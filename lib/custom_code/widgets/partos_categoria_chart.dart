@@ -91,11 +91,6 @@ class _PartosCategoriaChartState extends State<PartosCategoriaChart> {
       width: w,
       height: h,
       child: SfCartesianChart(
-        title: const ChartTitle(
-          text: 'Partos por categoria no período',
-          alignment: ChartAlignment.center,
-          textStyle: TextStyle(fontWeight: FontWeight.bold),
-        ),
         legend: const Legend(
           isVisible: true,
           position: LegendPosition.top,
