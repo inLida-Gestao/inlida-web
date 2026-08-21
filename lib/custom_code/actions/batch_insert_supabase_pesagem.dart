@@ -691,6 +691,8 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
           idRebanho: idRebanho,
           tipo: tipo,
           peso: peso,
+          dataPesagemIso:
+              _convertDateFormat((row['dataPesagem'] ?? '').toString()),
         );
         idsRebanhoParaSincronizar.add(idRebanho);
         if (_isTipoPesagemAtual(tipo)) {
@@ -733,6 +735,7 @@ Future<void> _updateRebanhoAfterPesagem({
   required String idRebanho,
   required String? tipo,
   double? peso,
+  String? dataPesagemIso,
 }) async {
   if (peso == null) return;
 
@@ -744,6 +747,14 @@ Future<void> _updateRebanhoAfterPesagem({
       data['pesoNascimento'] = peso;
     } else if (tipoNorm == 'desmama') {
       data['pesoDesmama'] = peso;
+      // A pesagem de desmama É o evento de desmama: sem gravar a data aqui, a
+      // ficha ficava com peso e sem data, o gatilho de evolução de categoria
+      // (que observa dataDesmama) nunca disparava e o animal seguia como
+      // Bezerro/Bezerra. Não sobrescreve data já informada pelo usuário.
+      final dataIso = (dataPesagemIso ?? '').trim();
+      if (dataIso.isNotEmpty) {
+        data['dataDesmama'] = dataIso;
+      }
     }
 
     if (data.isNotEmpty) {
