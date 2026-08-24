@@ -739,7 +739,13 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
       final novos = [
         if ((r['inseminadores'] ?? 0) > 0)
           '${r['inseminadores']} inseminadores',
+        if ((r['inseminadores_nome_restaurado'] ?? 0) > 0)
+          '${r['inseminadores_nome_restaurado']} nomes de inseminador '
+              'restaurados (nome completo)',
         if ((r['grupos'] ?? 0) > 0) '${r['grupos']} grupos de manejo',
+        if ((r['grupos_descricao_restaurada'] ?? 0) > 0)
+          '${r['grupos_descricao_restaurada']} descrições de grupo '
+              'restauradas (nome completo do lote)',
         if ((r['localidades'] ?? 0) > 0) '${r['localidades']} localidades',
         if ((r['safras'] ?? 0) > 0) '${r['safras']} safra',
         if ((r['composicao'] ?? 0) > 0)

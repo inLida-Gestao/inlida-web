@@ -18,7 +18,9 @@ import {
   digAnoCandidates,
   extractAnimal5,
   extractBrinco5,
+  DESCRI_LEN,
   grupoManejoFromLote,
+  indexarPorDescricao,
   partesDoA12,
   mapBaixaMotivo,
   mapCategoriaAnterior,
@@ -26,6 +28,7 @@ import {
   mapRacaPaint,
   mapTipoCobertura,
   mapTipoRegistro,
+  resolverPorDescricao,
   resolveSerieA12,
 } from "./paint_mappers.ts";
 
@@ -93,9 +96,13 @@ function fazendaField(ctx: ExportContext): string {
   return cod.padStart(30, " ").slice(0, 30);
 }
 
-// Mapa descrição-do-lote (UPPER, 20 chars) -> código do grupo de manejo PAINT.
+// Mapa descrição-do-lote (UPPER) -> código do grupo de manejo PAINT.
 // O grupo é criado a partir dos lotes (paint_grupo_manejo.descricao = nome do
 // lote) e o animal liga-se ao lote por rebanho.loteNome (manual §8.4).
+// A descrição guarda o nome completo do lote, mas cadastros antigos ficaram
+// gravados truncados em 20 chars (limite anterior da coluna) — daí o índice
+// tolerante: sem ele o grupo sairia em branco em ANIMAL/NASCIMENTO/DESMAMA/
+// ANO_SOBREANO enquanto os dois formatos convivessem.
 async function loadGrupoByDescricao(ctx: ExportContext): Promise<Map<string, string>> {
   const grupos = await selectAll<any>(
     ctx.supa,
@@ -103,13 +110,7 @@ async function loadGrupoByDescricao(ctx: ExportContext): Promise<Map<string, str
     (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
     { columns: "codigo,descricao", orderColumn: "codigo" },
   );
-  const map = new Map<string, string>();
-  for (const g of grupos) {
-    const descr = String(g.descricao ?? "").trim().toUpperCase();
-    const cod = String(g.codigo ?? "").trim();
-    if (descr && cod) map.set(descr, cod);
-  }
-  return map;
+  return indexarPorDescricao(grupos, "descricao");
 }
 
 // Mapa nome-do-inseminador (UPPER) -> código PAINT. paint_inseminador é criado
@@ -122,13 +123,7 @@ async function loadInseminadorByNome(ctx: ExportContext): Promise<Map<string, st
     (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
     { columns: "codigo,nome", orderColumn: "codigo" },
   );
-  const map = new Map<string, string>();
-  for (const i of ins) {
-    const nome = String(i.nome ?? "").trim().toUpperCase();
-    const cod = String(i.codigo ?? "").trim();
-    if (nome && cod) map.set(nome, cod);
-  }
-  return map;
+  return indexarPorDescricao(ins, "nome");
 }
 
 // Mapa idRebanho -> loteNome (a partir do pre-fetch de rebanho em genAnimal).
@@ -750,9 +745,8 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
       cob_cat_touro: touroA12 ? "TT" : "",
       cob_doses: "",
       cob_partida: r.partida_semen ? String(r.partida_semen).slice(0, 6) : "",
-      cob_inseminador: (inseminadorByNome.get(
-        String(r.inseminador ?? "").trim().toUpperCase(),
-      ) ?? "").slice(0, 4),
+      cob_inseminador: resolverPorDescricao(inseminadorByNome, r.inseminador)
+          .slice(0, 4),
       cob_prevparto: formatDate(r.previsao_parto),
       cob_dtinirepasse: formatDate(r.data_inicial),
       cob_dtfimrepasse: formatDate(r.data_final),
@@ -1108,7 +1102,7 @@ async function genGrupoManejo(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "GRUPO_MANEJO", "paint_grupo_manejo", (r, recno) => ({
     grm_parceiro: ctx.config.codigo_transmissao,
     grm_id: r.codigo,
-    grm_descri: (r.descricao ?? "").toString().slice(0, 20),
+    grm_descri: (r.descricao ?? "").toString().slice(0, DESCRI_LEN),
     grm_fazenda: ctx.config.codigo_fazenda,
     grm_data_inclusao: formatDate(r.created_at),
     grm_data_alteracao: formatDate(r.updated_at ?? r.created_at),
@@ -1122,7 +1116,7 @@ async function genInseminador(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "INSEMINADOR", "paint_inseminador", (r, recno) => ({
     ins_parceiro: ctx.config.codigo_transmissao,
     ins_id: r.codigo,
-    ins_descri: (r.nome ?? "").toString().slice(0, 20),
+    ins_descri: (r.nome ?? "").toString().slice(0, DESCRI_LEN),
     ins_fazenda: fazendaField(ctx),
     ins_situacao: r.situacao ?? "ATIVO",
     ins_data_inclusao: formatDate(r.created_at),
@@ -1138,7 +1132,7 @@ async function genLocalidade(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "LOCALIDADE", "paint_localidade", (r, recno) => ({
     lde_parceiro: ctx.config.codigo_transmissao,
     lde_id: r.codigo,
-    lde_descri: (r.descricao ?? "").toString().slice(0, 20),
+    lde_descri: (r.descricao ?? "").toString().slice(0, DESCRI_LEN),
     lde_fazenda: ctx.config.codigo_fazenda,
     lde_tipo: "", // manual campo 005: exportar em branco
     // Coordenadas para avaliação genética (call Juliana). O layout não tem
@@ -1166,7 +1160,7 @@ async function genRegimeAlimentar(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "REGIME_ALIMENTAR", "paint_regime_alimentar", (r, recno) => ({
     rga_parceiro: ctx.config.codigo_transmissao,
     rga_id: r.codigo,
-    rga_descri: (r.descricao ?? "").toString().slice(0, 20),
+    rga_descri: (r.descricao ?? "").toString().slice(0, DESCRI_LEN),
     rga_fazenda: ctx.config.codigo_fazenda,
     rga_data_inclusao: formatDate(r.created_at),
     rga_data_alteracao: formatDate(r.updated_at ?? r.created_at),

@@ -11,7 +11,8 @@ class PaintLocalidadeWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return const PaintCrudScaffold(
       titulo: 'Localidades (pastos)',
-      subtitulo: 'Cadastro de pastos/locais usados nos eventos PAINT.',
+      subtitulo: 'Cadastro de pastos/locais usados nos eventos PAINT. O LOCALIDADE.TXT '
+          'leva só os 20 primeiros caracteres da descrição (limite do layout).',
       tableName: 'paint_localidade',
       orderBy: 'codigo',
       ascending: true,
@@ -22,12 +23,9 @@ class PaintLocalidadeWidget extends StatelessWidget {
       ],
       fields: [
         PaintField(key: 'codigo', label: 'Código', required: true, maxLength: 4),
-        PaintField(
-          key: 'descricao',
-          label: 'Descrição',
-          required: true,
-          maxLength: 20,
-        ),
+        // Sem maxLength: a coluna é `text` e o corte para os 20 chars de
+        // `lde_descri` acontece só na exportação.
+        PaintField(key: 'descricao', label: 'Descrição', required: true),
         PaintField(key: 'obs', label: 'Observação', maxLength: 40),
       ],
     );

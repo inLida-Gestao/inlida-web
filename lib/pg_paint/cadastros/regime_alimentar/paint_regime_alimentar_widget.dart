@@ -11,7 +11,9 @@ class PaintRegimeAlimentarWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return const PaintCrudScaffold(
       titulo: 'Regimes alimentares',
-      subtitulo: 'Tipos de regime alimentar associados aos grupos de manejo.',
+      subtitulo: 'Tipos de regime alimentar associados aos grupos de manejo. O '
+          'REGIME_ALIMENTAR.TXT leva só os 20 primeiros caracteres da descrição '
+          '(limite do layout PAINT).',
       tableName: 'paint_regime_alimentar',
       orderBy: 'codigo',
       ascending: true,
@@ -21,12 +23,9 @@ class PaintRegimeAlimentarWidget extends StatelessWidget {
       ],
       fields: [
         PaintField(key: 'codigo', label: 'Código', required: true, maxLength: 4),
-        PaintField(
-          key: 'descricao',
-          label: 'Descrição',
-          required: true,
-          maxLength: 20,
-        ),
+        // Sem maxLength: a coluna é `text` e o corte para os 20 chars de
+        // `rga_descri` acontece só na exportação.
+        PaintField(key: 'descricao', label: 'Descrição', required: true),
       ],
     );
   }

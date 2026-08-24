@@ -11,7 +11,8 @@ class PaintInseminadorWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return const PaintCrudScaffold(
       titulo: 'Inseminadores',
-      subtitulo: 'Profissionais habilitados para lançamento de IA.',
+      subtitulo: 'Profissionais habilitados para lançamento de IA. O INSEMINADOR.TXT '
+          'leva só os 20 primeiros caracteres do nome (limite do layout PAINT).',
       tableName: 'paint_inseminador',
       orderBy: 'codigo',
       ascending: true,
@@ -22,7 +23,9 @@ class PaintInseminadorWidget extends StatelessWidget {
       ],
       fields: [
         PaintField(key: 'codigo', label: 'Código', required: true, maxLength: 4),
-        PaintField(key: 'nome', label: 'Nome', required: true, maxLength: 20),
+        // Sem maxLength: a coluna é `text` e o corte para os 20 chars de
+        // `ins_descri` acontece só na exportação.
+        PaintField(key: 'nome', label: 'Nome', required: true),
         PaintField(
           key: 'situacao',
           label: 'Situação',

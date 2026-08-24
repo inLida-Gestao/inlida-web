@@ -102,7 +102,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
     final r1 = await Future.wait<dynamic>([
       client
           .from('paint_inseminador')
-          .select('codigo, nome')
+          .select('id, codigo, nome')
           .eq('id_propriedade', idPropriedade),
       client
           .from('paint_localidade')
@@ -199,29 +199,49 @@ Future<Map<String, dynamic>> autoPreencherPaint(
 
     // ---------------- 1. INSEMINADORES ----------------
     await exec('inseminadores', () async {
-      final insExistNomes = existIns
-          .map((e) => (e['nome'] ?? '').toString().trim().toUpperCase())
-          .toSet();
+      // Grava o nome COMPLETO; o corte para `ins_descri` C(20) é feito só na
+      // exportação. A comparação, porém, continua pelo prefixo de 20 — é o que
+      // o PAINT enxerga e o formato em que os cadastros antigos foram salvos
+      // (sem isso cada "Importar tudo" duplicaria o inseminador).
+      final insExistPorChave = <String, Map<String, dynamic>>{};
+      for (final i in existIns) {
+        final nome = (i['nome'] ?? '').toString().trim();
+        if (nome.isEmpty) continue;
+        insExistPorChave.putIfAbsent(_chaveDescricaoPaint(nome), () => i);
+      }
       final insCodigosUsados = _codigosUsados(existIns.map((e) => e['codigo']));
       final insertIns = <Map<String, dynamic>>[];
+      final restaurarIns = <Map<String, dynamic>>[];
       final insSet = <String>{};
       for (final r in reproRows) {
         final nome = (r['inseminador'] ?? '').toString().trim();
         if (nome.isEmpty) continue;
-        // Compara pelo MESMO valor que será gravado (truncado a 20): comparar
-        // o nome completo com a versão truncada já salva nunca casava, e cada
-        // clique em "Importar tudo" duplicava o cadastro com outro código.
-        final nomeGravado = nome.length > 20 ? nome.substring(0, 20) : nome;
-        final norm = nomeGravado.trim().toUpperCase();
-        if (insExistNomes.contains(norm)) continue;
-        if (insSet.contains(norm)) continue;
-        insSet.add(norm);
+        final chave = _chaveDescricaoPaint(nome);
+        final existente = insExistPorChave[chave];
+        if (existente != null) {
+          final atual = (existente['nome'] ?? '').toString().trim();
+          if (_ehTruncadoDe(atual, nome) && existente['id'] != null) {
+            restaurarIns.add({'id': existente['id'], 'nome': nome});
+            existente['nome'] = nome;
+          }
+          continue;
+        }
+        if (insSet.contains(chave)) continue;
+        insSet.add(chave);
         insertIns.add({
           'id_propriedade': idPropriedade,
           'codigo': _proximoCodigoLivre(insCodigosUsados),
-          'nome': nomeGravado,
+          'nome': nome,
           'situacao': 'ATIVO',
         });
+      }
+      for (final upd in restaurarIns) {
+        await client
+            .from('paint_inseminador')
+            .update({'nome': upd['nome']}).eq('id', upd['id']);
+      }
+      if (restaurarIns.isNotEmpty) {
+        result['inseminadores_nome_restaurado'] = restaurarIns.length;
       }
       if (insertIns.isNotEmpty) {
         result['inseminadores'] = await _upsertCodedRowsSafely(
@@ -241,39 +261,66 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       final gruposAtuais = await _selectAllPaged(
         client,
         'paint_grupo_manejo',
-        'codigo,descricao',
+        'id,codigo,descricao',
         {'id_propriedade': idPropriedade},
       );
-      final grpExistDesc = gruposAtuais
-          .map((e) => (e['descricao'] ?? '').toString().trim().toUpperCase())
-          .toSet();
+      // A descrição guarda o NOME COMPLETO do lote — o corte para os 20 chars
+      // do layout (grm_descri C(20)) é feito só na exportação. Mas a chave de
+      // comparação continua sendo o prefixo de 20, que é tudo o que o PAINT
+      // enxerga: dois lotes com os mesmos 20 primeiros chars são o mesmo grupo
+      // do ponto de vista do arquivo, e casar pelo prefixo também reencontra
+      // os cadastros antigos, gravados truncados (sem isso cada "Importar
+      // tudo" duplicaria o grupo com um código novo).
+      final grpExistPorChave = <String, Map<String, dynamic>>{};
+      for (final g in gruposAtuais) {
+        final descr = (g['descricao'] ?? '').toString().trim();
+        if (descr.isEmpty) continue;
+        grpExistPorChave.putIfAbsent(_chaveDescricaoPaint(descr), () => g);
+      }
       final grpCodigosUsados =
           _codigosUsados(gruposAtuais.map((e) => e['codigo']));
       final insertGrp = <Map<String, dynamic>>[];
+      final restaurarDescr = <Map<String, dynamic>>[];
       final grpSet = <String>{};
       for (final r in loteRows) {
         final nome = (r['nome'] ?? '').toString().trim();
         if (nome.isEmpty) continue;
-        // Compara pela descrição como será gravada (truncada a 20). Lotes com
-        // nome maior que 20 chars nunca casavam com a descrição truncada já
-        // salva e eram re-inseridos com código novo a cada "Importar tudo".
-        final descrGravada = nome.length > 20 ? nome.substring(0, 20) : nome;
-        final norm = descrGravada.trim().toUpperCase();
-        if (grpExistDesc.contains(norm)) continue;
-        if (grpSet.contains(norm)) continue;
-        grpSet.add(norm);
+        final chave = _chaveDescricaoPaint(nome);
+        final existente = grpExistPorChave[chave];
+        if (existente != null) {
+          // Cadastro gravado quando a coluna ainda era varchar(20): devolve o
+          // nome completo do lote, sem tocar no código que o PAINT já conhece.
+          final atual = (existente['descricao'] ?? '').toString().trim();
+          if (_ehTruncadoDe(atual, nome) && existente['id'] != null) {
+            restaurarDescr.add({
+              'id': existente['id'],
+              'descricao': nome,
+            });
+            existente['descricao'] = nome;
+          }
+          continue;
+        }
+        if (grpSet.contains(chave)) continue;
+        grpSet.add(chave);
         insertGrp.add({
           'id_propriedade': idPropriedade,
           // Fazendas com histórico PAINT embutem o código do grupo no fim do
           // nome do lote ("DESM M LOTE 01-G13" -> G13). Reusar esse código
           // deixa o GRUPO_MANEJO.TXT fiel ao que o PAINT já conhece — mesma
-          // filosofia do A12 oficial. Usa o NOME COMPLETO do lote (a descrição
-          // é truncada a 20 chars e pode perder o sufixo). Sem sufixo, ou com
-          // o código já ocupado, cai no sequencial de sempre.
+          // filosofia do A12 oficial. Sem sufixo, ou com o código já ocupado,
+          // cai no sequencial de sempre.
           'codigo': _codigoGrupoDoNomeLote(nome, grpCodigosUsados) ??
               _proximoCodigoLivre(grpCodigosUsados),
-          'descricao': descrGravada,
+          'descricao': nome,
         });
+      }
+      for (final upd in restaurarDescr) {
+        await client
+            .from('paint_grupo_manejo')
+            .update({'descricao': upd['descricao']}).eq('id', upd['id']);
+      }
+      if (restaurarDescr.isNotEmpty) {
+        result['grupos_descricao_restaurada'] = restaurarDescr.length;
       }
       if (insertGrp.isNotEmpty) {
         result['grupos'] = await _upsertCodedRowsSafely(
@@ -639,6 +686,23 @@ String? _codigoGrupoDoNomeLote(String nomeLote, Set<String> usados) {
   if (codigo.length > 4 || usados.contains(codigo)) return null;
   usados.add(codigo);
   return codigo;
+}
+
+/// Chave de comparação dos cadastros com descrição C(20) no layout PAINT
+/// (grupo de manejo, inseminador): os 20 primeiros chars em maiúsculo. É o que
+/// o PAINT enxerga, e o formato em que os cadastros anteriores ao alargamento
+/// das colunas estão gravados.
+String _chaveDescricaoPaint(String descricao) {
+  final n = descricao.trim().toUpperCase();
+  return n.length > 20 ? n.substring(0, 20) : n;
+}
+
+/// `atual` é exatamente o corte em 20 chars de `completo`? Só nesse caso vale
+/// restaurar a descrição — assim uma descrição editada à mão não é sobrescrita
+/// por um lote que apenas compartilha o mesmo prefixo.
+bool _ehTruncadoDe(String atual, String completo) {
+  if (atual.length != 20 || completo.length <= 20) return false;
+  return completo.substring(0, 20).toUpperCase() == atual.toUpperCase();
 }
 
 String _proximoCodigoLivre(Set<String> usados) {

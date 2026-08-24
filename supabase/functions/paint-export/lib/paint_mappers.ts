@@ -300,12 +300,47 @@ export function derivaSafraCodigo(data: unknown, tag = "P"): string {
   return `${safraAno}${tag}`;
 }
 
+// Largura dos campos de descrição C(20) do PAINT: `grm_descri`, `ins_descri`,
+// `lde_descri`, `rga_descri`. É o ÚNICO ponto onde esses textos precisam caber
+// em 20 chars — o cadastro e a coluna guardam o texto completo, e o corte
+// acontece só ao gerar o arquivo.
+export const DESCRI_LEN = 20;
+
+// Índice texto -> código tolerante a truncamento. Registra o texto completo e,
+// como fallback, o prefixo de 20 chars: cadastros criados antes do alargamento
+// das colunas foram gravados truncados, e é só isso que o PAINT enxerga.
+// O match exato tem prioridade — o prefixo só entra se ninguém o reivindicou.
+export function indexarPorDescricao(
+  linhas: Array<Record<string, unknown>>,
+  campoTexto: string,
+  campoCodigo = "codigo",
+): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const r of linhas) {
+    const texto = asText(r[campoTexto]).toUpperCase();
+    const cod = asText(r[campoCodigo]);
+    if (!texto || !cod) continue;
+    map.set(texto, cod);
+    const prefixo = texto.slice(0, DESCRI_LEN);
+    if (!map.has(prefixo)) map.set(prefixo, cod);
+  }
+  return map;
+}
+
+// Resolve um texto contra um índice de `indexarPorDescricao`.
+export function resolverPorDescricao(
+  map: Map<string, string>,
+  valor: unknown,
+): string {
+  const texto = asText(valor).toUpperCase();
+  if (!texto) return "";
+  return map.get(texto) ?? map.get(texto.slice(0, DESCRI_LEN)) ?? "";
+}
+
 // Grupo de manejo a partir do nome do lote — manual §8.4 (lote = grupo).
 export function grupoManejoFromLote(
   loteNome: unknown,
   grupoByDescricao: Map<string, string>,
 ): string {
-  const nome = asText(loteNome).toUpperCase().slice(0, 20);
-  if (!nome) return "";
-  return grupoByDescricao.get(nome) ?? "";
+  return resolverPorDescricao(grupoByDescricao, loteNome);
 }
