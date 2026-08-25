@@ -159,7 +159,7 @@ function loteNomeByA12(ctx: ExportContext): Map<string, string> {
 // Filtro de raça para ANIMAL.TXT e NASCIMENTO.TXT: só entram animais de raça
 // "Nelore" ou "Nelore PO" (regra confirmada pela cliente 2026-07-28). Qualquer
 // outra raça — ou raça em branco — fica de fora desses dois arquivos.
-function racaNeloreOuPo(raca: unknown): boolean {
+export function racaNeloreOuPo(raca: unknown): boolean {
   const r = String(raca ?? "")
     .toUpperCase()
     .normalize("NFD")
@@ -175,7 +175,7 @@ function racaNeloreOuPo(raca: unknown): boolean {
 // (Vendido/Morto CONTINUAM no arquivo \u2014 a cliente quer o hist\u00f3rico deles.)
 const STATUS_FORA_ANIMAL_TXT = new Set(["SEMEN", "FORA DA PROPRIEDADE"]);
 
-function statusForaDoAnimalTxt(status: unknown): boolean {
+export function statusForaDoAnimalTxt(status: unknown): boolean {
   const s = String(status ?? "")
     .toUpperCase()
     .normalize("NFD")

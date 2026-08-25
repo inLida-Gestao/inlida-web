@@ -15,7 +15,7 @@ import { encodeWin1252, formatDate, formatTime } from "./lib/fixed-width.ts";
 import { buildZipStore, type ZipEntry } from "./lib/zip-store.ts";
 import { selectAll } from "./lib/sql.ts";
 import { a12FromRebanho } from "./lib/paint_mappers.ts";
-import { validatePaintExport } from "./lib/validate.ts";
+import { validatePaintExport, validateRebanho } from "./lib/validate.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -201,12 +201,17 @@ async function runExportJob(
     // Uma única carga do rebanho (evita duplicar ~10k linhas na validação).
     await prefetchRebanho(ctx);
     const skipHeavyValidation = (ctx.rebanhoRows?.length ?? 0) > 3000;
-    // Só retém o rebanho para validação quando ela realmente vai rodar; caso
-    // contrário a referência manteria ~10k linhas presas na memória do worker
-    // durante toda a geração (contribui para WORKER_RESOURCE_LIMIT).
-    const rebanhoRowsForValidation = skipHeavyValidation
-      ? undefined
-      : ctx.rebanhoRows;
+    // Checagens que só dependem do rebanho rodam AGORA, enquanto as linhas
+    // ainda estão carregadas: o resultado é pequeno (contadores + até 10
+    // exemplos) e não prende ~10k linhas na memória do worker durante toda a
+    // geração (era o que contribuía para WORKER_RESOURCE_LIMIT). Antes elas
+    // eram omitidas junto com o resto em propriedades grandes — e é justamente
+    // onde moram os avisos de A12/genealogia, que somem em silêncio.
+    const rebanhoReport = validateRebanho(
+      ctx.rebanhoRows ?? [],
+      config,
+      ctx.a12ByRebanhoId,
+    );
 
     const zipEntries: ZipEntry[] = [];
     const zipNames = new Set<string>();
@@ -287,21 +292,30 @@ async function runExportJob(
     // omitimos por completo para economizar CPU/RAM no worker.
     let validacao: unknown = null;
     if (skipHeavyValidation) {
+      // Só as checagens das tabelas paint_* são omitidas (consulta paginada +
+      // CPU no worker). As do rebanho já foram calculadas no prefetch.
       validacao = {
-        erros: [],
-        avisos: [{
+        erros: rebanhoReport.erros,
+        avisos: [...rebanhoReport.avisos, {
           tabela: "GERAL",
-          regra: "Validação detalhada omitida (volume alto na propriedade)",
+          regra: "Checagens de desmama/sobreano/cobertura/baixa/composição " +
+            "omitidas (volume alto na propriedade)",
           qtd: 0,
           exemplos: [],
         }],
         geradoEm: new Date().toISOString(),
       };
-      console.log(`[paint-export] validação omitida job=${jobId} (volume alto)`);
+      console.log(
+        `[paint-export] validação parcial job=${jobId} (volume alto) ` +
+          `erros=${rebanhoReport.erros.length} avisos=${rebanhoReport.avisos.length}`,
+      );
     } else {
       try {
+        // Sem rebanhoRows de propósito: ctx.rebanhoRows é liberado após o
+        // NASCIMENTO para não segurar ~10k linhas no worker. A checagem de
+        // BAIXA recarrega o rebanho — só acontece abaixo de 3.000 animais.
         validacao = await validatePaintExport(supa, config, {
-          rebanhoRows: rebanhoRowsForValidation,
+          rebanhoReport,
           skipHeavyChecks: false,
         });
         const r = validacao as { erros: unknown[]; avisos: unknown[] };

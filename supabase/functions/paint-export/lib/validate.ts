@@ -16,6 +16,7 @@ import {
   isAnimalPO,
 } from "./paint_mappers.ts";
 import type { PaintConfig } from "./generators.ts";
+import { racaNeloreOuPo, statusForaDoAnimalTxt } from "./generators.ts";
 
 export interface ValidacaoItem {
   tabela: string;
@@ -44,32 +45,42 @@ export interface ValidatePaintExportOptions {
   rebanhoRows?: Record<string, unknown>[];
   /** Omite checagens pesadas quando o volume é alto (ex.: composição racial). */
   skipHeavyChecks?: boolean;
+  /**
+   * Resultado de `validateRebanho` já calculado pelo export (enquanto as linhas
+   * ainda estavam em memória). Passar isto evita recarregar ~10k linhas só para
+   * validar — o que reintroduziria a pressão de memória no worker.
+   */
+  rebanhoReport?: ValidacaoReport;
 }
 
-export async function validatePaintExport(
-  supa: SupabaseClient,
+/// Animal que aparece no ANIMAL.TXT (mesma regra de genAnimal).
+function entraNoAnimalTxt(r: Record<string, unknown>): boolean {
+  return racaNeloreOuPo(r.raca) && !statusForaDoAnimalTxt(r.status);
+}
+
+export const REBANHO_VALIDACAO_COLUMNS =
+  "idRebanho,numeroAnimal,nome,raca,tipo_registro,status,origem,codRegistro," +
+  "dataDesmama,dataNascimento,sexo,dataVenda,data_morte," +
+  "rebanhoIdMatriz,rebanhoIdReprodutor";
+
+/// Checagens que dependem SÓ do rebanho — sem consulta às tabelas paint_*.
+/// Separada de `validatePaintExport` para poder rodar em propriedades grandes,
+/// onde a validação pesada é omitida: aqui não há query nem retenção de memória
+/// extra (as linhas já estão carregadas no export), e é justamente onde moram
+/// os avisos de A12/genealogia, que somem em silêncio quando não são checados.
+/// `a12PorRebanho` é o A12 final por idRebanho (já com o A12 oficial aplicado);
+/// sem ele, recalcula pela regra padrão.
+export function validateRebanho(
+  rebanho: Record<string, unknown>[],
   config: PaintConfig,
-  options?: ValidatePaintExportOptions,
-): Promise<ValidacaoReport> {
-  const idProp = config.id_propriedade;
+  a12PorRebanho?: Map<string, string>,
+): ValidacaoReport {
   const erros: ValidacaoItem[] = [];
   const avisos: ValidacaoItem[] = [];
 
   // -------------------------------------------------------------------------
   // ANIMAL — PO precisa de tipo/brinco/raça; raça obrigatória para todos.
   // -------------------------------------------------------------------------
-  const rebanho = options?.rebanhoRows ?? await selectAll<any>(
-    supa,
-    "rebanho",
-    (q) => q.eq("idPropriedade", idProp).neq("deletado", "SIM"),
-    {
-      columns:
-        "idRebanho,numeroAnimal,nome,raca,tipo_registro,status,origem,codRegistro," +
-        "dataDesmama,dataNascimento,sexo,dataVenda,data_morte," +
-        "rebanhoIdMatriz,rebanhoIdReprodutor",
-      orderColumn: "idRebanho",
-    },
-  );
 
   // Brinco numérico é obrigatório para todos os animais (PO e não-PO): é a base
   // do segmento Animal do A12 (call PAINT). Tipo de registro é obrigatório para
@@ -105,13 +116,16 @@ export async function validatePaintExport(
     'A12 deve vir do código de registro (sêmen ou origem "Compra"), ' +
       "mas o código cadastrado não está no formato A12 de 12 posições",
   );
-  const a12PorRebanho = new Map<string, string>();
-  for (const r of rebanho) {
+  // A12 final do animal: o mapa do export (já com o A12 oficial) tem
+  // precedência; sem ele, recalcula pela regra padrão.
+  const a12Final = (r: Record<string, unknown>): string => {
     const id = String(r.idRebanho ?? "").trim();
+    const doMapa = id ? a12PorRebanho?.get(id) : undefined;
+    return (doMapa ?? a12FromRebanho(config, r)).trim();
+  };
+  for (const r of rebanho) {
     if (!exigeA12DoCodRegistro(r)) continue;
-    const a12 = a12DoCodRegistro(r);
-    if (id) a12PorRebanho.set(id, a12);
-    if (!a12) {
+    if (!a12DoCodRegistro(r)) {
       const cr = String(r.codRegistro ?? "").trim();
       add(
         semA12Registro,
@@ -146,7 +160,7 @@ export async function validatePaintExport(
     const parente = rebanhoPorId.get(id);
     // Pai fora do rebanho carregado (deletado) — não dá para avaliar aqui.
     if (!parente) continue;
-    const a12 = a12PorRebanho.get(id) ?? a12FromRebanho(config, parente);
+    const a12 = a12Final(parente);
     if (a12) continue;
     const cr = String(parente.codRegistro ?? "").trim();
     const nome = String(parente.nome ?? "").trim();
@@ -157,6 +171,69 @@ export async function validatePaintExport(
     );
   }
   if (paiSemA12.qtd) avisos.push(paiSemA12);
+
+  // -------------------------------------------------------------------------
+  // A12 repetido entre animais DIFERENTES. O A12 carrega só o ANO de
+  // nascimento, então a chave real é numeroAnimal + ano — dois animais com o
+  // mesmo brinco nascidos no mesmo ano colidem mesmo tendo data, sexo e
+  // histórico distintos. O A12 é a chave do animal no PAINT: a segunda linha
+  // sobrescreve a primeira e um dos dois some, junto com as avaliações que
+  // apontam para aquele A12. Não dá para desambiguar no arquivo (não há espaço
+  // para o dia) — a saída é de cadastro: apagar a cópia errada quando for o
+  // mesmo animal, ou dar A12 oficial/brinco distinto quando forem dois animais.
+  // -------------------------------------------------------------------------
+  const a12Repetido = item(
+    "ANIMAL",
+    "A12 repetido entre animais diferentes (o PAINT usa o A12 como chave: " +
+      "um dos dois é sobrescrito)",
+  );
+  const porA12 = new Map<string, Record<string, unknown>[]>();
+  for (const r of rebanho) {
+    if (!entraNoAnimalTxt(r)) continue;
+    const a12 = a12Final(r);
+    if (!a12) continue;
+    const lista = porA12.get(a12);
+    if (lista) lista.push(r);
+    else porA12.set(a12, [r]);
+  }
+  for (const [a12, animais] of porA12) {
+    if (animais.length < 2) continue;
+    const descr = animais
+      .map((r) =>
+        `${r.numeroAnimal ?? "?"} (${r.sexo ?? "sexo?"}, nasc. ${
+          String(r.dataNascimento ?? "?").slice(0, 10)
+        })`
+      )
+      .join(" x ");
+    add(a12Repetido, `"${a12}" -> ${descr}`);
+  }
+  if (a12Repetido.qtd) avisos.push(a12Repetido);
+  return { erros, avisos, geradoEm: new Date().toISOString() };
+}
+
+
+export async function validatePaintExport(
+  supa: SupabaseClient,
+  config: PaintConfig,
+  options?: ValidatePaintExportOptions,
+): Promise<ValidacaoReport> {
+  const idProp = config.id_propriedade;
+  const erros: ValidacaoItem[] = [];
+  const avisos: ValidacaoItem[] = [];
+
+  // As linhas do rebanho ainda são necessárias aqui para a checagem de BAIXA,
+  // que cruza status do animal com paint_baixa.
+  const rebanho = options?.rebanhoRows ?? await selectAll<Record<string, unknown>>(
+    supa,
+    "rebanho",
+    (q) => q.eq("idPropriedade", idProp).neq("deletado", "SIM"),
+    { columns: REBANHO_VALIDACAO_COLUMNS, orderColumn: "idRebanho" },
+  );
+  // Parte que depende só do rebanho: reaproveita a já calculada pelo export
+  // (evita refazer o trabalho) ou calcula agora, em uso avulso desta função.
+  const doRebanho = options?.rebanhoReport ?? validateRebanho(rebanho, config);
+  erros.push(...doRebanho.erros);
+  avisos.push(...doRebanho.avisos);
 
   // -------------------------------------------------------------------------
   // DESMAMA — obrigatórios A12, data, peso, C/P/M/U, grupo de manejo.
