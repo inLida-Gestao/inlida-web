@@ -69,7 +69,39 @@ String animalIdFromRebanho(Map<String, dynamic> r, PaintConfigExcel cfg) {
   }
 }
 
+/// O A12 deve vir do código de registro, e NÃO ser gerado, quando:
+///  - status "Sêmen": reprodutor externo/dose, não tem origem e o A12 dele é o
+///    do rebanho de origem — sempre obrigatório;
+///  - origem "Compra": o animal veio de outra fazenda com A12 já formado lá.
+/// Origem "Nascimento" (ou vazia) segue gerando o A12 da fazenda normalmente.
+/// Espelho de `exigeA12DoCodRegistro` em paint-export/lib/paint_mappers.ts.
+bool exigeA12DoCodRegistro(Map<String, dynamic> r) {
+  String norm(dynamic v) => (v ?? '')
+      .toString()
+      .toUpperCase()
+      .replaceAll(RegExp(r'[ÊË]'), 'E')
+      .replaceAll(RegExp(r'[ÁÀÂÃ]'), 'A')
+      .trim();
+  if (norm(r['status']) == 'SEMEN') return true;
+  return norm(r['origem']) == 'COMPRA';
+}
+
+/// Código de registro no formato A12 (12 posições terminando em 2 dígitos de
+/// ano). Cadastros que guardam o registro mesmo — "CEIP 01893/23",
+/// "RGD SABB367" — não são A12 e devolvem vazio: a geração automática fica
+/// bloqueada e a validação da exportação lista quem precisa de cadastro.
+String a12DoCodRegistro(Map<String, dynamic> r) {
+  final cr = (r['codRegistro'] ?? '').toString().trim();
+  if (cr.isEmpty || cr.length > 12) return '';
+  final ano = cr.padRight(12).substring(10, 12);
+  return RegExp(r'^\d{2}$').hasMatch(ano) ? cr : '';
+}
+
 String a12FromRebanho(Map<String, dynamic> r, PaintConfigExcel cfg) {
+  // Condição ANTERIOR à formação (regra da cliente 25/08/2026) — ver
+  // exigeA12DoCodRegistro. Vale independente do status.
+  if (exigeA12DoCodRegistro(r)) return a12DoCodRegistro(r);
+
   final idRaw = animalIdFromRebanho(r, cfg);
   // Mesma regra do export (paint_mappers.extractAnimal5): sigla de registro
   // (JLK) não entra, mas código curto alfanumérico (T001/M001) é mantido.
@@ -497,7 +529,8 @@ Future<List<Map<String, dynamic>>> fetchRebanhoPaint(
         .from('rebanho')
         .select(
           'idRebanho,numeroAnimal,nome,chip,codRegistro,dataNascimento,sexo,'
-          'categoria,status,dataDesmama,pesoDesmama,dataUltimaPesagem,'
+          // origem: decide se o A12 é gerado ou vem do código de registro.
+          'categoria,status,origem,dataDesmama,pesoDesmama,dataUltimaPesagem,'
           'pesoAtual,raca,deletado',
         )
         .eq('idPropriedade', idPropriedade);

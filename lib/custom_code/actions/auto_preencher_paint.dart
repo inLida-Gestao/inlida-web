@@ -167,6 +167,9 @@ Future<Map<String, dynamic>> autoPreencherPaint(
       'rebanho',
       'idRebanho,idPropriedade,numeroAnimal,dataNascimento,raca,sexo,'
           'categoria,status,dataDesmama,pesoDesmama,dataUltimaPesagem,pesoAtual,'
+          // origem + codRegistro: animal de compra e touro de sêmen tiram o A12
+          // do código de registro em vez de gerar (ver exigeA12DoCodRegistro).
+          'origem,codRegistro,'
           // Necessárias para derivar as BAIXAS (venda/morte).
           'dataVenda,data_morte,motivo_morte',
       {'idPropriedade': idPropriedade, 'deletado': 'NAO'},
@@ -381,6 +384,11 @@ Future<Map<String, dynamic>> autoPreencherPaint(
           .toSet();
       final insertComp = <Map<String, dynamic>>[];
       for (final r in rebanhoRows) {
+        // Só quem entra no ANIMAL.TXT: a composição racial referencia um animal
+        // de lá. Touro de sêmen e "fora da propriedade" passaram a ter A12
+        // (vem do código de registro), então sem esta guarda começariam a
+        // gerar composição racial de um animal que o PAINT não tem.
+        if (!_entraNoAnimalTxt(r)) continue;
         if (!nascDentro(r)) continue;
         final a = a12Of(r);
         if (a.isEmpty) continue;
@@ -666,6 +674,20 @@ Future<Map<String, dynamic>> autoPreencherPaint(
     result['mensagem'] = e.toString();
     return result;
   }
+}
+
+/// Animal que aparece no ANIMAL.TXT: Nelore/Nelore PO e status que não seja
+/// "Sêmen" nem "Fora da propriedade". Espelha `racaNeloreOuPo` +
+/// `statusForaDoAnimalTxt` de paint-export/lib/generators.ts.
+bool _entraNoAnimalTxt(Map<String, dynamic> r) {
+  if (!paintRacaNeloreOuPo(r['raca'])) return false;
+  final s = (r['status'] ?? '')
+      .toString()
+      .toUpperCase()
+      .replaceAll(RegExp(r'[ÊË]'), 'E')
+      .trim()
+      .replaceAll(RegExp(r'\s+'), ' ');
+  return s != 'SEMEN' && s != 'FORA DA PROPRIEDADE';
 }
 
 Set<String> _codigosUsados(Iterable<dynamic> codigos) {

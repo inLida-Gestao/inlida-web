@@ -95,10 +95,42 @@ export function extractBrinco5(numero: unknown): string {
 // ---------------------------------------------------------------------------
 // A12 — Programa(1) + Série(4) + Animal(5) + Ano(2). PO-aware.
 // ---------------------------------------------------------------------------
+function normalizaTexto(v: unknown): string {
+  return String(v ?? "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim().toUpperCase().replace(/\s+/g, " ");
+}
+
+// O A12 deve vir do código de registro, e NÃO ser gerado, quando:
+//  - status "Sêmen": reprodutor externo/dose, não tem origem e o A12 dele é o
+//    do rebanho de origem — sempre obrigatório;
+//  - origem "Compra": o animal veio de outra fazenda com A12 já formado lá.
+// Origem "Nascimento" (ou vazia) segue gerando o A12 da fazenda normalmente.
+export function exigeA12DoCodRegistro(animal: Record<string, unknown>): boolean {
+  if (normalizaTexto(animal.status) === "SEMEN") return true;
+  return normalizaTexto(animal.origem) === "COMPRA";
+}
+
+// Código de registro usado como A12, quando ele de fato tem a forma de um A12
+// (12 chars posicionais terminando em 2 dígitos de ano). Cadastros que guardam
+// o registro mesmo — "CEIP 01893/23", "RGD SABB367", "OK3652 (*) F" — não são
+// A12 e devolvem vazio: a geração automática fica bloqueada, e a validação da
+// exportação lista quem precisa de cadastro.
+export function a12DoCodRegistro(animal: Record<string, unknown>): string {
+  const cr = asText(animal.codRegistro);
+  return partesDoA12(cr) ? cr : "";
+}
+
 export function a12FromRebanho(
   config: PaintA12Config,
   animal: Record<string, unknown>,
 ): string {
+  // CONDIÇÃO ANTERIOR À FORMAÇÃO (regra da cliente 25/08/2026): animal que não
+  // nasceu aqui já tem A12 de outra fazenda, gravado no código de registro.
+  // Gerar um A12 da nossa série criaria um animal NOVO no PAINT em vez de
+  // referenciar o que já existe. Vale independente do status.
+  if (exigeA12DoCodRegistro(animal)) return a12DoCodRegistro(animal);
+
   const campo = config.campo_origem_animal ?? "numeroAnimal";
   let origem = asText(animal.numeroAnimal);
   if (campo === "nome") origem = asText(animal.nome) || origem;

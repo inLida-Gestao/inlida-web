@@ -468,11 +468,10 @@ async function genFazenda(ctx: ExportContext): Promise<string> {
   return joinLines([buildLine(layout, row)]);
 }
 
-// Resolve o A12 do pai/mãe (ani_pai / ani_mae / nas_pai). O A12 posicional
-// depende da data de nascimento; touros de SÊMEN (reprodutor externo) não têm
-// data e a12FromRebanho retorna vazio — deixando o campo em branco. Nesses
-// casos o A12 real do pai é o próprio código de registro (já é um A12 do PAINT,
-// 12 chars, ex.: "pPECA 458115"). Mesmo tratamento do cob_touro na cobertura.
+// Resolve o A12 do pai/mãe (ani_pai / ani_mae / nas_pai). A regra de onde o A12
+// vem — cálculo posicional, ou código de registro para sêmen/compra — mora em
+// a12FromRebanho e já está refletida em ctx.a12ByRebanhoId, que também respeita
+// o A12 oficial do PAINT. Aqui só resta traduzir idRebanho -> A12.
 // `allRows` deve ser o conjunto COMPLETO do rebanho (incluindo os de sêmen, que
 // não têm dataNascimento e são filtrados fora do NASCIMENTO).
 function makeParentA12Resolver(
@@ -486,15 +485,11 @@ function makeParentA12Resolver(
   return (idPai: unknown): string => {
     const key = idPai != null ? String(idPai) : "";
     if (!key) return "";
-    const computed = ctx.a12ByRebanhoId.get(key) ?? "";
+    const cached = ctx.a12ByRebanhoId.get(key);
+    if (cached) return cached;
+    // Pai fora do pre-fetch (ex.: deletado): recalcula pela mesma regra.
     const parent = rowByRebanhoId.get(key);
-    const statusNorm = String(parent?.status ?? "")
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-    const cr = String(parent?.codRegistro ?? "").trim();
-    // Pai de sêmen, ou qualquer pai cujo A12 posicional não pôde ser calculado:
-    // usa o código de registro quando já é um A12 do PAINT (12 chars).
-    if ((statusNorm === "semen" || !computed) && cr.length === 12) return cr;
-    return computed;
+    return parent ? a12FromRebanho(ctx.config, parent) : "";
   };
 }
 
@@ -512,7 +507,7 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
       .neq("deletado", "SIM"),
     {
       columns:
-        "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,tipo_registro,dataDesmama,pesoDesmama,status,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,loteNome,loteID,created_at,updated_at,dataAcao",
+        "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,tipo_registro,dataDesmama,pesoDesmama,status,origem,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,loteNome,loteID,created_at,updated_at,dataAcao",
       orderColumn: "id",
     },
   );
@@ -705,29 +700,18 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
   // Inseminador: reproducao guarda o nome; resolvemos para o código PAINT.
   const inseminadorByNome = await loadInseminadorByNome(ctx);
 
-  // Fallback do A12 do touro: reprodutores externos/de sêmen sem data de
-  // nascimento não têm A12 calculável (o A12 posicional depende do ano de
-  // nascimento). Quando o codRegistro do reprodutor JÁ é um A12 do PAINT
-  // (12 caracteres, ex.: "pPECA 458115"), usamos ele direto. Registros que não
-  // são A12 (ex.: "PECA4581") ou vazios ficam em branco: sem a data de
-  // nascimento, não há como montar um A12 válido apenas com o cadastro.
-  const codRegByReb = new Map<string, string>();
-  for (const a of (ctx.rebanhoRows ?? [])) {
-    if (a.idRebanho != null) {
-      codRegByReb.set(String(a.idRebanho), String(a.codRegistro ?? "").trim());
-    }
-  }
-
+  // A12 do touro: reprodutores externos/de sêmen não têm data de nascimento e
+  // portanto não têm A12 calculável (o A12 posicional depende do ano). O A12
+  // deles vem do codRegistro — regra aplicada em a12FromRebanho e já refletida
+  // em a12ByRebanhoId. Registros que não são A12 (ex.: "PECA4581") ou vazios
+  // ficam em branco e aparecem no relatório de validação como "A12 deve vir do
+  // código de registro".
   const lines: string[] = [];
   let recno = 0;
   for (const r of rows) {
     recno += 1;
     const matrizA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_matriz)) ?? "";
-    let touroA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_reprodutor)) ?? "";
-    if (!touroA12) {
-      const cr = codRegByReb.get(String(r.id_rebanho_reprodutor)) ?? "";
-      if (cr.length === 12) touroA12 = cr; // codRegistro já é o A12 do PAINT
-    }
+    const touroA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_reprodutor)) ?? "";
     const grpMatriz = grupoManejoFromLote(
       loteByReb.get(String(r.id_rebanho_matriz)),
       grupoByDescricao,

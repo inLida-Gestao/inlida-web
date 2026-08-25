@@ -9,7 +9,12 @@
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { selectAll } from "./sql.ts";
-import { isAnimalPO } from "./paint_mappers.ts";
+import {
+  a12DoCodRegistro,
+  a12FromRebanho,
+  exigeA12DoCodRegistro,
+  isAnimalPO,
+} from "./paint_mappers.ts";
 import type { PaintConfig } from "./generators.ts";
 
 export interface ValidacaoItem {
@@ -59,7 +64,9 @@ export async function validatePaintExport(
     (q) => q.eq("idPropriedade", idProp).neq("deletado", "SIM"),
     {
       columns:
-        "idRebanho,numeroAnimal,raca,tipo_registro,status,dataDesmama,dataNascimento,sexo,dataVenda,data_morte",
+        "idRebanho,numeroAnimal,nome,raca,tipo_registro,status,origem,codRegistro," +
+        "dataDesmama,dataNascimento,sexo,dataVenda,data_morte," +
+        "rebanhoIdMatriz,rebanhoIdReprodutor",
       orderColumn: "idRebanho",
     },
   );
@@ -86,6 +93,70 @@ export async function validatePaintExport(
   if (semBrinco.qtd) erros.push(semBrinco);
   if (semRaca.qtd) erros.push(semRaca);
   if (poSemTipo.qtd) avisos.push(poSemTipo);
+
+  // -------------------------------------------------------------------------
+  // A12 vindo do código de registro (sêmen / origem "Compra"). Nesses casos a
+  // geração automática é bloqueada de propósito: o animal já tem A12 na fazenda
+  // de origem. Se o código de registro não estiver no formato A12, o animal sai
+  // SEM A12 e some das referências — em silêncio, até aqui.
+  // -------------------------------------------------------------------------
+  const semA12Registro = item(
+    "ANIMAL",
+    'A12 deve vir do código de registro (sêmen ou origem "Compra"), ' +
+      "mas o código cadastrado não está no formato A12 de 12 posições",
+  );
+  const a12PorRebanho = new Map<string, string>();
+  for (const r of rebanho) {
+    const id = String(r.idRebanho ?? "").trim();
+    if (!exigeA12DoCodRegistro(r)) continue;
+    const a12 = a12DoCodRegistro(r);
+    if (id) a12PorRebanho.set(id, a12);
+    if (!a12) {
+      const cr = String(r.codRegistro ?? "").trim();
+      add(
+        semA12Registro,
+        `${r.numeroAnimal ?? r.idRebanho} (${cr || "sem código de registro"})`,
+      );
+    }
+  }
+  if (semA12Registro.qtd) avisos.push(semA12Registro);
+
+  // -------------------------------------------------------------------------
+  // Pai/mãe que não resolvem para um A12: o campo sai em branco no ANIMAL.TXT e
+  // no NASCIMENTO.TXT, e o PAINT perde a genealogia sem nenhum sinal. Conta por
+  // PAI/MÃE distinto (não por filho) — um reprodutor errado afeta centenas.
+  // -------------------------------------------------------------------------
+  const paiSemA12 = item(
+    "ANIMAL",
+    "Pai/mãe referenciado que não resolve para um A12 (genealogia sai em branco)",
+  );
+  const filhosPorParente = new Map<string, number>();
+  for (const r of rebanho) {
+    for (const campo of ["rebanhoIdReprodutor", "rebanhoIdMatriz"]) {
+      const id = String((r as Record<string, unknown>)[campo] ?? "").trim();
+      if (id) filhosPorParente.set(id, (filhosPorParente.get(id) ?? 0) + 1);
+    }
+  }
+  const rebanhoPorId = new Map<string, any>();
+  for (const r of rebanho) {
+    const id = String(r.idRebanho ?? "").trim();
+    if (id) rebanhoPorId.set(id, r);
+  }
+  for (const [id, filhos] of filhosPorParente) {
+    const parente = rebanhoPorId.get(id);
+    // Pai fora do rebanho carregado (deletado) — não dá para avaliar aqui.
+    if (!parente) continue;
+    const a12 = a12PorRebanho.get(id) ?? a12FromRebanho(config, parente);
+    if (a12) continue;
+    const cr = String(parente.codRegistro ?? "").trim();
+    const nome = String(parente.nome ?? "").trim();
+    const quem = nome ? `${parente.numeroAnimal ?? id} (${nome})` : `${parente.numeroAnimal ?? id}`;
+    add(
+      paiSemA12,
+      `${quem} — ${filhos} filho(s), código de registro "${cr || "vazio"}"`,
+    );
+  }
+  if (paiSemA12.qtd) avisos.push(paiSemA12);
 
   // -------------------------------------------------------------------------
   // DESMAMA — obrigatórios A12, data, peso, C/P/M/U, grupo de manejo.

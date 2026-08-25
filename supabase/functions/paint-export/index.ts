@@ -118,7 +118,7 @@ const GENERATION_ORDER = [
 ];
 
 const REBANHO_EXPORT_COLUMNS =
-  "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,tipo_registro,dataDesmama,pesoDesmama,status,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,loteNome,loteID,created_at,updated_at,dataAcao";
+  "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,tipo_registro,dataDesmama,pesoDesmama,status,origem,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,loteNome,loteID,created_at,updated_at,dataAcao";
 
 /**
  * Carrega o A12 OFICIAL do PAINT (paint_animal_a12) da propriedade. Fazendas
