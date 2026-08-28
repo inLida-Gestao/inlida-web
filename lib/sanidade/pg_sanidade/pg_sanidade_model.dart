@@ -5,6 +5,7 @@ import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
 import '/flutter_flow/flutter_flow_data_table.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/sanidade/sanidade_ordenacao.dart';
 import 'dart:async';
 import 'pg_sanidade_widget.dart' show PgSanidadeWidget;
 import 'package:flutter/material.dart';
@@ -40,6 +41,8 @@ class PgSanidadeModel extends FlutterFlowModel<PgSanidadeWidget> {
   int countTratamentos = 0;
 
   int countProtocolos = 0;
+
+  bool sanidadeSortAscending = false;
 
   ///  State fields for stateful widgets in this page.
 
@@ -77,6 +80,19 @@ class PgSanidadeModel extends FlutterFlowModel<PgSanidadeWidget> {
   // State field(s) for PaginatedDataTable widget.
   final paginatedDataTableController5 =
       FlutterFlowDataTableController<SanidadeStruct>();
+
+  void syncSanidadeSortControllers() {
+    for (final controller in [
+      paginatedDataTableController1,
+      paginatedDataTableController2,
+      paginatedDataTableController3,
+      paginatedDataTableController4,
+      paginatedDataTableController5,
+    ]) {
+      controller.sortColumnIndex = kSanidadeColData;
+      controller.sortAscending = sanidadeSortAscending;
+    }
+  }
 
   @override
   void initState(BuildContext context) {

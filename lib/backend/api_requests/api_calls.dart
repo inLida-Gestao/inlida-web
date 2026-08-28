@@ -617,6 +617,7 @@ class BuscarSanidadeFiltrosCall {
     String? pVacinacao = '',
     int? pLimite = 20,
     int? pOffset = 0,
+    bool? pOrdemDataAsc = false,
   }) async {
     final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
 
@@ -638,7 +639,8 @@ class BuscarSanidadeFiltrosCall {
   "p_antiparasitarios": "${escapeStringForJson(pAntiparasitarios)}",
   "p_vacinacao": "${escapeStringForJson(pVacinacao)}",
   "p_limite": $pLimite,
-  "p_offset": $pOffset
+  "p_offset": $pOffset,
+  "p_ordem_data_asc": $pOrdemDataAsc
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Buscar Sanidade Filtros',

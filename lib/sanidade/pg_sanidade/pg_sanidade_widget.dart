@@ -12,6 +12,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/sanidade/pp_filtro_sanidade/pp_filtro_sanidade_widget.dart';
 import '/sanidade/modal_add_sanidade/modal_add_sanidade_widget.dart';
 import '/sanidade/cc_edit_sanidade_animal/cc_edit_sanidade_animal_widget.dart';
+import '/sanidade/sanidade_ordenacao.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'dart:async';
@@ -69,6 +70,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
   void initState() {
     super.initState();
     _model = createModel(context, () => PgSanidadeModel());
+    _model.syncSanidadeSortControllers();
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -791,6 +793,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
         s.filtroNascimentoSanidadeAte != null;
   }
 
+  void _handleSanidadeSort(int columnIndex, bool ascending) {
+    if (columnIndex != kSanidadeColData) {
+      _model.syncSanidadeSortControllers();
+      return;
+    }
+
+    safeSetState(() {
+      _model.sanidadeSortAscending = ascending;
+      _model.pageNum = 1;
+      _model.apiRequestCompleter2 = null;
+      _model.syncSanidadeSortControllers();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -850,6 +866,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
               pLimite: FFAppConstants.limit,
               pOffset: functions.calcDeslocamento(
                   _model.pageNum, FFAppConstants.limit),
+              pOrdemDataAsc: _model.sanidadeSortAscending,
             )))
           .future,
       builder: (context, snapshot) {
@@ -2108,16 +2125,16 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = _sanidadeRowsFromResponseJson(
-                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                        .jsonBody)
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .sortedList(
-                                                                    keyOf: (e) =>
-                                                                        e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                ordenarSanidadesPorData(
+                                                              _sanidadeRowsFromResponseJson(
+                                                                      pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                          .jsonBody)
+                                                                  .where(
+                                                                      _passesMultiSelectFilters),
+                                                              _model
+                                                                  .sanidadeSortAscending,
+                                                            );
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -2135,6 +2152,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               controller: _model
                                                                   .paginatedDataTableController1,
                                                               data: sanidade,
+                                                              onSortChanged:
+                                                                  _handleSanidadeSort,
                                                               columnsBuilder:
                                                                   (onSortChanged) =>
                                                                       [
@@ -3004,19 +3023,18 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = _sanidadeRowsFromResponseJson(
-                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                        .jsonBody)
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where(
-                                                                    _rowQualifiesVacinaTab)
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) =>
-                                                                        e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                ordenarSanidadesPorData(
+                                                              _sanidadeRowsFromResponseJson(
+                                                                      pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                          .jsonBody)
+                                                                  .where(
+                                                                      _passesMultiSelectFilters)
+                                                                  .where(
+                                                                      _rowQualifiesVacinaTab),
+                                                              _model
+                                                                  .sanidadeSortAscending,
+                                                            );
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -3034,6 +3052,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               controller: _model
                                                                   .paginatedDataTableController2,
                                                               data: sanidade,
+                                                              onSortChanged:
+                                                                  _handleSanidadeSort,
                                                               columnsBuilder:
                                                                   (onSortChanged) =>
                                                                       [
@@ -3950,19 +3970,18 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = _sanidadeRowsFromResponseJson(
-                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                        .jsonBody)
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where(
-                                                                    _rowQualifiesAntiparasitarioTab)
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) =>
-                                                                        e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                ordenarSanidadesPorData(
+                                                              _sanidadeRowsFromResponseJson(
+                                                                      pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                          .jsonBody)
+                                                                  .where(
+                                                                      _passesMultiSelectFilters)
+                                                                  .where(
+                                                                      _rowQualifiesAntiparasitarioTab),
+                                                              _model
+                                                                  .sanidadeSortAscending,
+                                                            );
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -3980,6 +3999,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               controller: _model
                                                                   .paginatedDataTableController3,
                                                               data: sanidade,
+                                                              onSortChanged:
+                                                                  _handleSanidadeSort,
                                                               columnsBuilder:
                                                                   (onSortChanged) =>
                                                                       [
@@ -4896,19 +4917,18 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = _sanidadeRowsFromResponseJson(
-                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                        .jsonBody)
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where(
-                                                                    _rowQualifiesTratamentoTab)
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) =>
-                                                                        e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                ordenarSanidadesPorData(
+                                                              _sanidadeRowsFromResponseJson(
+                                                                      pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                          .jsonBody)
+                                                                  .where(
+                                                                      _passesMultiSelectFilters)
+                                                                  .where(
+                                                                      _rowQualifiesTratamentoTab),
+                                                              _model
+                                                                  .sanidadeSortAscending,
+                                                            );
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -4926,6 +4946,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               controller: _model
                                                                   .paginatedDataTableController4,
                                                               data: sanidade,
+                                                              onSortChanged:
+                                                                  _handleSanidadeSort,
                                                               columnsBuilder:
                                                                   (onSortChanged) =>
                                                                       [
@@ -5842,19 +5864,18 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = _sanidadeRowsFromResponseJson(
-                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                        .jsonBody)
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where(
-                                                                    _rowQualifiesProtocoloTab)
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) =>
-                                                                        e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                ordenarSanidadesPorData(
+                                                              _sanidadeRowsFromResponseJson(
+                                                                      pgSanidadeBuscarSanidadeFiltrosResponse
+                                                                          .jsonBody)
+                                                                  .where(
+                                                                      _passesMultiSelectFilters)
+                                                                  .where(
+                                                                      _rowQualifiesProtocoloTab),
+                                                              _model
+                                                                  .sanidadeSortAscending,
+                                                            );
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -5872,6 +5893,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               controller: _model
                                                                   .paginatedDataTableController5,
                                                               data: sanidade,
+                                                              onSortChanged:
+                                                                  _handleSanidadeSort,
                                                               columnsBuilder:
                                                                   (onSortChanged) =>
                                                                       [
