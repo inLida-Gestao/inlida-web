@@ -4419,6 +4419,12 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                   );
                                                 });
 
+                                                FFAppState()
+                                                        .matrizSelecionada =
+                                                    AnimalSelecionadoStruct();
+                                                FFAppState()
+                                                        .reprodutorSelecionado =
+                                                    AnimalSelecionadoStruct();
                                                 context.pushNamed(
                                                     PgReproducaoWidget
                                                         .routeName);
@@ -4953,6 +4959,12 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                       ?.clear();
                                                 });
 
+                                                FFAppState()
+                                                        .matrizSelecionada =
+                                                    AnimalSelecionadoStruct();
+                                                FFAppState()
+                                                        .reprodutorSelecionado =
+                                                    AnimalSelecionadoStruct();
                                                 context.pushNamed(
                                                     PgReproducaoWidget
                                                         .routeName);

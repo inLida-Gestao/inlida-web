@@ -767,9 +767,9 @@ class _PgReproducaoWidgetState extends State<PgReproducaoWidget> {
                                                 s.filtroIDMatriz = '';
                                                 s.filtroIDReprodutor = '';
                                                 s.filtroLoteNome = '';
-                                                s.matrizSelecionada =
+                                                s.filtroMatrizSelecionada =
                                                     AnimalSelecionadoStruct();
-                                                s.reprodutorSelecionado =
+                                                s.filtroReprodutorSelecionado =
                                                     AnimalSelecionadoStruct();
                                                 s.refreshReproducao = true;
                                                 safeSetState(() {});

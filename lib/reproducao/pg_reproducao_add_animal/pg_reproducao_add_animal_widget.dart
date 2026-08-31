@@ -4776,6 +4776,11 @@ class _PgReproducaoAddAnimalWidgetState
                                               );
                                             });
 
+                                            FFAppState().matrizSelecionada =
+                                                AnimalSelecionadoStruct();
+                                            FFAppState()
+                                                    .reprodutorSelecionado =
+                                                AnimalSelecionadoStruct();
                                             context.pushNamed(
                                                 PgReproducaoWidget.routeName);
                                           },
@@ -5245,6 +5250,11 @@ class _PgReproducaoAddAnimalWidgetState
                                               );
                                             });
 
+                                            FFAppState().matrizSelecionada =
+                                                AnimalSelecionadoStruct();
+                                            FFAppState()
+                                                    .reprodutorSelecionado =
+                                                AnimalSelecionadoStruct();
                                             context.pushNamed(
                                                 PgReproducaoWidget.routeName);
                                           },

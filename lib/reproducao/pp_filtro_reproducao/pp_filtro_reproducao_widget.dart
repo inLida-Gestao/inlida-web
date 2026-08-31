@@ -51,6 +51,16 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
     _model.dataDiagnosticoAteTextController ??= TextEditingController();
     _model.dataDiagnosticoAteFocusNode ??= FocusNode();
 
+    final appState = FFAppState();
+    _model.datePickedReproDe = appState.filtroDataReproducaoDe;
+    _model.datePickedReproAte = appState.filtroDataReproducaoAte;
+    _model.datePickedPartoDe = appState.filtroDataPartoDe;
+    _model.datePickedPartoAte = appState.filtroDataPartoAte;
+    _model.datePickedDiagDe = appState.filtroDataDiagnosticoDe;
+    _model.datePickedDiagAte = appState.filtroDataDiagnosticoAte;
+    _model.matrizFiltroSelecionada = appState.filtroMatrizSelecionada;
+    _model.reprodutorFiltroSelecionado = appState.filtroReprodutorSelecionado;
+
     _model.lotesFuture ??= LotesTable().queryRows(
       queryFn: (q) => q
           .eqOrNull(
@@ -135,6 +145,23 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
     super.dispose();
   }
 
+  String _animalFilterLabel(AnimalSelecionadoStruct animal) {
+    final numero = animal.numAnimal.trim();
+    final nome = animal.nomeAnimal.trim();
+    final nascimento = animal.dataNascAnimal.trim();
+    final nascimentoLabel = nascimento.isEmpty || nascimento == 'null'
+        ? 'N/A'
+        : dateTimeFormat(
+            'd/M/y',
+            functions.converterParaData(nascimento),
+            locale: FFLocalizations.of(context).languageCode,
+          );
+
+    return '${numero.isEmpty || numero == 'null' ? 'S/N' : numero} • '
+        '${nome.isEmpty || nome == 'null' ? 'S/N' : nome} • '
+        '${nascimentoLabel.isEmpty ? 'N/A' : nascimentoLabel}';
+  }
+
   Widget _buildDiagnosticoFilter() {
     const diagnosticoOptions = [
       'Não diagnosticado',
@@ -174,9 +201,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
           options: diagnosticoOptions,
           onMultiSelectChanged: (val) async {
             safeSetState(() => _model.dDDiagnosticoValue = val ?? []);
-            FFAppState().filtroStatusReproducao =
-                List<String>.from(_model.dDDiagnosticoValue ?? []);
-            safeSetState(() {});
           },
           height: 56.0,
           textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -585,10 +609,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                               .languageCode,
                                                     );
                                                   });
-                                                  FFAppState()
-                                                          .filtroDataReproducaoDe =
-                                                      _model.datePickedReproDe;
-                                                  safeSetState(() {});
                                                 },
                                                 child: Container(
                                                   width: double.infinity,
@@ -866,10 +886,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                               .languageCode,
                                                     );
                                                   });
-                                                  FFAppState()
-                                                          .filtroDataReproducaoAte =
-                                                      _model.datePickedReproAte;
-                                                  safeSetState(() {});
                                                 },
                                                 child: Container(
                                                   width: double.infinity,
@@ -1179,10 +1195,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                               .languageCode,
                                                     );
                                                   });
-                                                  FFAppState()
-                                                          .filtroDataPartoDe =
-                                                      _model.datePickedPartoDe;
-                                                  safeSetState(() {});
                                                 },
                                                 child: Container(
                                                   width: double.infinity,
@@ -1460,10 +1472,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                               .languageCode,
                                                     );
                                                   });
-                                                  FFAppState()
-                                                          .filtroDataPartoAte =
-                                                      _model.datePickedPartoAte;
-                                                  safeSetState(() {});
                                                 },
                                                 child: Container(
                                                   width: double.infinity,
@@ -1778,10 +1786,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                               .languageCode,
                                                     );
                                                   });
-                                                  FFAppState()
-                                                          .filtroDataDiagnosticoDe =
-                                                      _model.datePickedDiagDe;
-                                                  safeSetState(() {});
                                                 },
                                                 child: Container(
                                                   width: double.infinity,
@@ -2059,10 +2063,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                               .languageCode,
                                                     );
                                                   });
-                                                  FFAppState()
-                                                          .filtroDataDiagnosticoAte =
-                                                      _model.datePickedDiagAte;
-                                                  safeSetState(() {});
                                                 },
                                                 child: Container(
                                                   width: double.infinity,
@@ -2135,9 +2135,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                       onChanged: (val) async {
                                         safeSetState(() =>
                                             _model.dDCatRebanhoValue = val);
-                                        FFAppState().filtroCategoriaRepro =
-                                            _model.dDCatRebanhoValue!;
-                                        safeSetState(() {});
                                       },
                                       height: 56.0,
                                       textStyle: FlutterFlowTheme.of(context)
@@ -2226,9 +2223,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                       onChanged: (val) async {
                                         safeSetState(() =>
                                             _model.dDTipoReproducaoValue = val);
-                                        FFAppState().filtroTipoReproducao =
-                                            _model.dDTipoReproducaoValue!;
-                                        safeSetState(() {});
                                       },
                                       height: 56.0,
                                       textStyle: FlutterFlowTheme.of(context)
@@ -2337,16 +2331,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                         onChanged: (val) async {
                                           safeSetState(() =>
                                               _model.dropDownLoteValue = val);
-                                          FFAppState().filtroLoteNome =
-                                              containerLotesRowList
-                                                      .where((e) =>
-                                                          e.idLote ==
-                                                          _model
-                                                              .dropDownLoteValue)
-                                                      .map((e) => e.nome)
-                                                      .firstOrNull ??
-                                                  '';
-                                          safeSetState(() {});
                                         },
                                         height: 56.0,
                                         textStyle: FlutterFlowTheme.of(context)
@@ -2439,10 +2423,6 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                             safeSetState(() => _model
                                                     .dropDownInseminadorValue =
                                                 val);
-                                            FFAppState().filtroInseminador =
-                                                _model
-                                                    .dropDownInseminadorValue!;
-                                            safeSetState(() {});
                                           },
                                           height: 56.0,
                                           textStyle: FlutterFlowTheme.of(
@@ -2535,6 +2515,13 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                 highlightColor:
                                                     Colors.transparent,
                                                 onTap: () async {
+                                                  final selecaoCadastro =
+                                                      FFAppState()
+                                                          .matrizSelecionada;
+                                                  FFAppState()
+                                                          .matrizSelecionada =
+                                                      _model
+                                                          .matrizFiltroSelecionada;
                                                   await showDialog(
                                                     barrierColor:
                                                         Colors.transparent,
@@ -2563,6 +2550,16 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                       );
                                                     },
                                                   );
+                                                  final selecaoFiltro =
+                                                      FFAppState()
+                                                          .matrizSelecionada;
+                                                  FFAppState()
+                                                          .matrizSelecionada =
+                                                      selecaoCadastro;
+                                                  safeSetState(() {
+                                                    _model.matrizFiltroSelecionada =
+                                                        selecaoFiltro;
+                                                  });
                                                 },
                                                 child: Container(
                                                   width: double.infinity,
@@ -2588,64 +2585,10 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                               .spaceBetween,
                                                       children: [
                                                         Text(
-                                                          '${valueOrDefault<String>(
-                                                            FFAppState()
-                                                                        .matrizSelecionada
-                                                                        .numAnimal ==
-                                                                    'null'
-                                                                ? 'S/N'
-                                                                : valueOrDefault<
-                                                                    String>(
-                                                                    FFAppState()
-                                                                        .matrizSelecionada
-                                                                        .numAnimal,
-                                                                    'S/N',
-                                                                  ),
-                                                            'S/N',
-                                                          )} • ${valueOrDefault<String>(
-                                                            FFAppState()
-                                                                        .matrizSelecionada
-                                                                        .nomeAnimal ==
-                                                                    'null'
-                                                                ? 'S/N'
-                                                                : valueOrDefault<
-                                                                    String>(
-                                                                    FFAppState()
-                                                                        .matrizSelecionada
-                                                                        .nomeAnimal,
-                                                                    'S/N',
-                                                                  ),
-                                                            'S/N',
-                                                          )} • ${valueOrDefault<String>(
-                                                            () {
-                                                              if (FFAppState()
-                                                                      .matrizSelecionada
-                                                                      .dataNascAnimal ==
-                                                                  'null') {
-                                                                return 'N/A';
-                                                              } else if (FFAppState()
-                                                                      .matrizSelecionada
-                                                                      .dataNascAnimal ==
-                                                                  '') {
-                                                                return 'N/A';
-                                                              } else {
-                                                                return valueOrDefault<
-                                                                    String>(
-                                                                  dateTimeFormat(
-                                                                    "d/M/y",
-                                                                    functions.converterParaData(FFAppState()
-                                                                        .matrizSelecionada
-                                                                        .dataNascAnimal),
-                                                                    locale: FFLocalizations.of(
-                                                                            context)
-                                                                        .languageCode,
-                                                                  ),
-                                                                  'N/A',
-                                                                );
-                                                              }
-                                                            }(),
-                                                            'N/A',
-                                                          )}',
+                                                          _animalFilterLabel(
+                                                            _model
+                                                                .matrizFiltroSelecionada,
+                                                          ),
                                                           style: FlutterFlowTheme
                                                                   .of(context)
                                                               .bodyMedium
@@ -2687,8 +2630,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                               ),
                                             ),
                                           ),
-                                          if (FFAppState()
-                                                  .matrizSelecionada
+                                          if (_model.matrizFiltroSelecionada
                                                   .numAnimal !=
                                               '')
                                             InkWell(
@@ -2698,9 +2640,10 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                               highlightColor:
                                                   Colors.transparent,
                                               onTap: () async {
-                                                FFAppState().matrizSelecionada =
-                                                    AnimalSelecionadoStruct();
-                                                safeSetState(() {});
+                                                safeSetState(() {
+                                                  _model.matrizFiltroSelecionada =
+                                                      AnimalSelecionadoStruct();
+                                                });
                                               },
                                               child: Icon(
                                                 Icons.close,
@@ -2754,6 +2697,13 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                 highlightColor:
                                                     Colors.transparent,
                                                 onTap: () async {
+                                                  final selecaoCadastro =
+                                                      FFAppState()
+                                                          .reprodutorSelecionado;
+                                                  FFAppState()
+                                                          .reprodutorSelecionado =
+                                                      _model
+                                                          .reprodutorFiltroSelecionado;
                                                   await showDialog(
                                                     barrierColor:
                                                         Colors.transparent,
@@ -2782,6 +2732,16 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                       );
                                                     },
                                                   );
+                                                  final selecaoFiltro =
+                                                      FFAppState()
+                                                          .reprodutorSelecionado;
+                                                  FFAppState()
+                                                          .reprodutorSelecionado =
+                                                      selecaoCadastro;
+                                                  safeSetState(() {
+                                                    _model.reprodutorFiltroSelecionado =
+                                                        selecaoFiltro;
+                                                  });
                                                 },
                                                 child: Container(
                                                   width: double.infinity,
@@ -2807,64 +2767,10 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                                               .spaceBetween,
                                                       children: [
                                                         Text(
-                                                          '${valueOrDefault<String>(
-                                                            FFAppState()
-                                                                        .reprodutorSelecionado
-                                                                        .numAnimal ==
-                                                                    'null'
-                                                                ? 'S/N'
-                                                                : valueOrDefault<
-                                                                    String>(
-                                                                    FFAppState()
-                                                                        .reprodutorSelecionado
-                                                                        .numAnimal,
-                                                                    'S/N',
-                                                                  ),
-                                                            'S/N',
-                                                          )} • ${valueOrDefault<String>(
-                                                            FFAppState()
-                                                                        .reprodutorSelecionado
-                                                                        .nomeAnimal ==
-                                                                    'null'
-                                                                ? 'S/N'
-                                                                : valueOrDefault<
-                                                                    String>(
-                                                                    FFAppState()
-                                                                        .reprodutorSelecionado
-                                                                        .nomeAnimal,
-                                                                    'S/N',
-                                                                  ),
-                                                            'S/N',
-                                                          )} • ${valueOrDefault<String>(
-                                                            () {
-                                                              if (FFAppState()
-                                                                      .reprodutorSelecionado
-                                                                      .dataNascAnimal ==
-                                                                  'null') {
-                                                                return 'N/A';
-                                                              } else if (FFAppState()
-                                                                      .reprodutorSelecionado
-                                                                      .dataNascAnimal ==
-                                                                  '') {
-                                                                return 'N/A';
-                                                              } else {
-                                                                return valueOrDefault<
-                                                                    String>(
-                                                                  dateTimeFormat(
-                                                                    "d/M/y",
-                                                                    functions.converterParaData(FFAppState()
-                                                                        .reprodutorSelecionado
-                                                                        .dataNascAnimal),
-                                                                    locale: FFLocalizations.of(
-                                                                            context)
-                                                                        .languageCode,
-                                                                  ),
-                                                                  'N/A',
-                                                                );
-                                                              }
-                                                            }(),
-                                                            'N/A',
-                                                          )}',
+                                                          _animalFilterLabel(
+                                                            _model
+                                                                .reprodutorFiltroSelecionado,
+                                                          ),
                                                           style: FlutterFlowTheme
                                                                   .of(context)
                                                               .bodyMedium
@@ -2906,8 +2812,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                               ),
                                             ),
                                           ),
-                                          if (FFAppState()
-                                                  .reprodutorSelecionado
+                                          if (_model.reprodutorFiltroSelecionado
                                                   .numAnimal !=
                                               '')
                                             InkWell(
@@ -2917,10 +2822,10 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                               highlightColor:
                                                   Colors.transparent,
                                               onTap: () async {
-                                                FFAppState()
-                                                        .reprodutorSelecionado =
-                                                    AnimalSelecionadoStruct();
-                                                safeSetState(() {});
+                                                safeSetState(() {
+                                                  _model.reprodutorFiltroSelecionado =
+                                                      AnimalSelecionadoStruct();
+                                                });
                                               },
                                               child: Icon(
                                                 Icons.close,
@@ -2948,25 +2853,35 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                     children: [
                       FFButtonWidget(
                         onPressed: () async {
-                          FFAppState().filtroDataReproducaoDe = null;
-                          FFAppState().filtroDataReproducaoAte = null;
-                          FFAppState().filtroDataPartoDe = null;
-                          FFAppState().filtroDataPartoAte = null;
-                          FFAppState().filtroDataDiagnosticoDe = null;
-                          FFAppState().filtroDataDiagnosticoAte = null;
-                          FFAppState().filtroStatusReproducao = [];
-                          FFAppState().filtroCategoriaRepro = '';
-                          FFAppState().filtroTipoReproducao = '';
-                          FFAppState().filtroLoteNome = '';
-                          FFAppState().filtroInseminador = '';
-                          FFAppState().filtroIDMatriz = '';
-                          FFAppState().filtroIDReprodutor = '';
-                          FFAppState().matrizSelecionada =
+                          final appState = FFAppState();
+                          appState.filtroDataReproducaoDe = null;
+                          appState.filtroDataReproducaoAte = null;
+                          appState.filtroDataPartoDe = null;
+                          appState.filtroDataPartoAte = null;
+                          appState.filtroDataDiagnosticoDe = null;
+                          appState.filtroDataDiagnosticoAte = null;
+                          appState.filtroStatusReproducao = [];
+                          appState.filtroCategoriaRepro = '';
+                          appState.filtroTipoReproducao = '';
+                          appState.filtroLoteNome = '';
+                          appState.filtroInseminador = '';
+                          appState.filtroIDMatriz = '';
+                          appState.filtroIDReprodutor = '';
+                          appState.filtroMatrizSelecionada =
                               AnimalSelecionadoStruct();
-                          FFAppState().reprodutorSelecionado =
+                          appState.filtroReprodutorSelecionado =
                               AnimalSelecionadoStruct();
-                          safeSetState(() {});
                           safeSetState(() {
+                            _model.datePickedReproDe = null;
+                            _model.datePickedReproAte = null;
+                            _model.datePickedPartoDe = null;
+                            _model.datePickedPartoAte = null;
+                            _model.datePickedDiagDe = null;
+                            _model.datePickedDiagAte = null;
+                            _model.matrizFiltroSelecionada =
+                                AnimalSelecionadoStruct();
+                            _model.reprodutorFiltroSelecionado =
+                                AnimalSelecionadoStruct();
                             _model.dDCatRebanhoValueController?.reset();
                             _model.dDCatRebanhoValue = null;
                             _model.dDDiagnosticoValueController?.value = [];
@@ -2983,7 +2898,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                 valueOrDefault<String>(
                               dateTimeFormat(
                                 "d/M/y",
-                                FFAppState().filtroDataReproducaoDe,
+                                _model.datePickedReproDe,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),
@@ -2993,7 +2908,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                 valueOrDefault<String>(
                               dateTimeFormat(
                                 "d/M/y",
-                                FFAppState().filtroDataReproducaoAte,
+                                _model.datePickedReproAte,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),
@@ -3004,7 +2919,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                 valueOrDefault<String>(
                               dateTimeFormat(
                                 "d/M/y",
-                                FFAppState().filtroDataPartoDe,
+                                _model.datePickedPartoDe,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),
@@ -3014,7 +2929,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                 valueOrDefault<String>(
                               dateTimeFormat(
                                 "d/M/y",
-                                FFAppState().filtroDataPartoAte,
+                                _model.datePickedPartoAte,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),
@@ -3025,7 +2940,7 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                 valueOrDefault<String>(
                               dateTimeFormat(
                                 "d/M/y",
-                                FFAppState().filtroDataDiagnosticoDe,
+                                _model.datePickedDiagDe,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),
@@ -3035,14 +2950,14 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                                 valueOrDefault<String>(
                               dateTimeFormat(
                                 "d/M/y",
-                                FFAppState().filtroDataDiagnosticoAte,
+                                _model.datePickedDiagAte,
                                 locale:
                                     FFLocalizations.of(context).languageCode,
                               ),
                               'dd/mm/aaaa',
                             );
                           });
-                          FFAppState().refreshReproducao = true;
+                          appState.refreshReproducao = true;
                           safeSetState(() {});
                           Navigator.pop(context);
                         },
@@ -3083,13 +2998,43 @@ class _PpFiltroReproducaoWidgetState extends State<PpFiltroReproducaoWidget> {
                       ),
                       FFButtonWidget(
                         onPressed: () async {
-                          FFAppState().filtroIDMatriz =
-                              FFAppState().matrizSelecionada.idAnimal.trim();
-                          FFAppState().filtroIDReprodutor = FFAppState()
-                              .reprodutorSelecionado
-                              .idAnimal
+                          final appState = FFAppState();
+                          appState.filtroDataReproducaoDe =
+                              _model.datePickedReproDe;
+                          appState.filtroDataReproducaoAte =
+                              _model.datePickedReproAte;
+                          appState.filtroDataPartoDe = _model.datePickedPartoDe;
+                          appState.filtroDataPartoAte =
+                              _model.datePickedPartoAte;
+                          appState.filtroDataDiagnosticoDe =
+                              _model.datePickedDiagDe;
+                          appState.filtroDataDiagnosticoAte =
+                              _model.datePickedDiagAte;
+                          appState.filtroStatusReproducao = List<String>.from(
+                            _model.dDDiagnosticoValue ?? const [],
+                          );
+                          appState.filtroCategoriaRepro =
+                              _model.dDCatRebanhoValue ?? '';
+                          appState.filtroTipoReproducao =
+                              _model.dDTipoReproducaoValue ?? '';
+                          appState.filtroLoteNome = containerLotesRowList
+                                  .where((lote) =>
+                                      lote.idLote == _model.dropDownLoteValue)
+                                  .map((lote) => lote.nome)
+                                  .firstOrNull ??
+                              '';
+                          appState.filtroInseminador =
+                              _model.dropDownInseminadorValue ?? '';
+                          appState.filtroMatrizSelecionada =
+                              _model.matrizFiltroSelecionada;
+                          appState.filtroReprodutorSelecionado =
+                              _model.reprodutorFiltroSelecionado;
+                          appState.filtroIDMatriz =
+                              _model.matrizFiltroSelecionada.idAnimal.trim();
+                          appState.filtroIDReprodutor = _model
+                              .reprodutorFiltroSelecionado.idAnimal
                               .trim();
-                          FFAppState().refreshReproducao = true;
+                          appState.refreshReproducao = true;
                           safeSetState(() {});
                           Navigator.pop(context);
                         },

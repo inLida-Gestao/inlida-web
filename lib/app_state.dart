@@ -289,6 +289,8 @@ class FFAppState extends ChangeNotifier {
     // deve vazar para a lista de reprodução após troca de propriedade.
     _matrizSelecionada = AnimalSelecionadoStruct();
     _reprodutorSelecionado = AnimalSelecionadoStruct();
+    _filtroMatrizSelecionada = AnimalSelecionadoStruct();
+    _filtroReprodutorSelecionado = AnimalSelecionadoStruct();
 
     // 3. Setar TODAS as flags de refresh (usando campos privados
     // para evitar o notifyListeners extra do setter de refreshReproducao)
@@ -1305,6 +1307,21 @@ class FFAppState extends ChangeNotifier {
       Function(AnimalSelecionadoStruct) updateFn) {
     updateFn(_reprodutorSelecionado);
     notifyListeners();
+  }
+
+  AnimalSelecionadoStruct _filtroMatrizSelecionada = AnimalSelecionadoStruct();
+  AnimalSelecionadoStruct get filtroMatrizSelecionada =>
+      _filtroMatrizSelecionada;
+  set filtroMatrizSelecionada(AnimalSelecionadoStruct value) {
+    _filtroMatrizSelecionada = value;
+  }
+
+  AnimalSelecionadoStruct _filtroReprodutorSelecionado =
+      AnimalSelecionadoStruct();
+  AnimalSelecionadoStruct get filtroReprodutorSelecionado =>
+      _filtroReprodutorSelecionado;
+  set filtroReprodutorSelecionado(AnimalSelecionadoStruct value) {
+    _filtroReprodutorSelecionado = value;
   }
 
   bool _visibilidadeGraficoPrincipal = false;
