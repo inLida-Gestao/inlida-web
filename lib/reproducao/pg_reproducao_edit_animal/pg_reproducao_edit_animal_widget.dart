@@ -2703,15 +2703,13 @@ class _PgReproducaoEditAnimalWidgetState
                                                                       .secondaryText,
                                                                   size: 14.0,
                                                                 ),
-                                                                onPressed: ((_model
-                                                                            .partidaSemen ??
-                                                                        1) <=
-                                                                    1)
+                                                                onPressed: ((_model.partidaSemen ??
+                                                                            1) <=
+                                                                        1)
                                                                     ? null
                                                                     : () async {
                                                                         _model.partidaSemen =
-                                                                            (_model.partidaSemen ??
-                                                                                    1) -
+                                                                            (_model.partidaSemen ?? 1) -
                                                                                 1;
                                                                         safeSetState(
                                                                             () {});
@@ -2766,15 +2764,13 @@ class _PgReproducaoEditAnimalWidgetState
                                                                       .secondaryText,
                                                                   size: 14.0,
                                                                 ),
-                                                                onPressed: ((_model
-                                                                            .partidaSemen ??
-                                                                        1) >=
-                                                                    5)
+                                                                onPressed: ((_model.partidaSemen ??
+                                                                            1) >=
+                                                                        5)
                                                                     ? null
                                                                     : () async {
                                                                         _model.partidaSemen =
-                                                                            (_model.partidaSemen ??
-                                                                                    1) +
+                                                                            (_model.partidaSemen ?? 1) +
                                                                                 1;
                                                                         safeSetState(
                                                                             () {});
@@ -5756,6 +5752,11 @@ class _PgReproducaoEditAnimalWidgetState
                                                                   .tipoReproducao,
                                                           'score_corporal':
                                                               _model.score,
+                                                          'data_inseminacao':
+                                                              null,
+                                                          'data_partida_semen':
+                                                              null,
+                                                          'partida_semen': null,
                                                           'data_inicial': supaSerialize<
                                                               DateTime>(_model
                                                                   .datePicked3 ??

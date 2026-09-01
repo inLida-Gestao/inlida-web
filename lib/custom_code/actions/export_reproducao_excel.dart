@@ -16,6 +16,23 @@ String? _nonEmptyExportText(dynamic value) {
   return text;
 }
 
+bool isMontaNaturalReproducaoExport(dynamic value) {
+  return value?.toString().trim().toLowerCase() == 'monta natural';
+}
+
+dynamic valorReproducaoParaExportacao(
+  Map<String, dynamic> row,
+  String sourceKey,
+) {
+  if (isMontaNaturalReproducaoExport(row['tipo_reproducao']) &&
+      (sourceKey == 'data_inseminacao' ||
+          sourceKey == 'data_partida_semen' ||
+          sourceKey == 'partida_semen')) {
+    return null;
+  }
+  return row[sourceKey];
+}
+
 Future<Map<String, String>> _buscarNomesLotesPorIdReproducaoExport(
   String idPropriedade,
 ) async {
@@ -199,7 +216,10 @@ Future<bool> exportReproducaoExcel(
       for (var colIndex = 0; colIndex < headers.length; colIndex++) {
         final header = headers[colIndex];
         final sourceKey = template[header]!;
-        var value = allData[rowIndex][sourceKey];
+        final value = valorReproducaoParaExportacao(
+          allData[rowIndex],
+          sourceKey,
+        );
         String columnName = header;
 
         try {

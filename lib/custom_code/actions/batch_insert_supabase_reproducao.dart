@@ -324,6 +324,22 @@ double? _parseDoubleSafe(dynamic value) {
   return double.tryParse(normalized);
 }
 
+bool isMontaNaturalReproducao(dynamic value) {
+  return value?.toString().trim().toLowerCase() == 'monta natural';
+}
+
+Map<String, dynamic> normalizarCamposSemenMontaNatural(
+  Map<String, dynamic> data,
+) {
+  final normalized = Map<String, dynamic>.from(data);
+  if (isMontaNaturalReproducao(normalized['tipo_reproducao'])) {
+    normalized['data_inseminacao'] = null;
+    normalized['data_partida_semen'] = null;
+    normalized['partida_semen'] = null;
+  }
+  return normalized;
+}
+
 Map<String, dynamic> _prepareReproducaoRecord(
   Map<String, dynamic> record,
   String idPropriedade,
@@ -359,6 +375,11 @@ Map<String, dynamic> _prepareReproducaoRecord(
       cleanData[key] = value is String ? _fixEncoding(value) : value;
     }
   });
+
+  final normalizedData = normalizarCamposSemenMontaNatural(cleanData);
+  cleanData
+    ..clear()
+    ..addAll(normalizedData);
 
   // Campo parida: default
   cleanData['parida'] ??= 'NAO';
