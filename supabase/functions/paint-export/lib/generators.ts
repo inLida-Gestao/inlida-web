@@ -769,18 +769,57 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
 
   const grupoByDescricao = await loadGrupoByDescricao(ctx);
 
-  // Cobertura por matriz (data da cobertura + previsão de parto). reproducaoRows
-  // é limpo após COBERTURA, então re-consultamos enxuto.
+  // O registro do PAINT é o PARTO, não a cria: a chave é safra + matriz +
+  // data da cobertura + sequência (posições 7-34 do layout). Por isso a cria só
+  // entra quando existe uma cobertura com PARTO CONFIRMADO cuja data bate
+  // EXATAMENTE com o nascimento dela — regra da cliente (25/08/2026): data
+  // diferente significa cadastro errado, não parto confirmado. Sem cobertura
+  // não há chave válida, e a linha não deve existir.
+  //
+  // Antes daqui, guardávamos UMA cobertura por matriz e repetíamos a mesma data
+  // em todas as crias dela (vaca com 6 coberturas e 4 crias saía com a mesma
+  // data nas quatro).
   const reproRows = await selectAll<any>(
     ctx.supa,
     "reproducao",
-    (q) => q.eq("id_propriedade", ctx.config.id_propriedade).neq("deletado", "SIM"),
-    { columns: "id_rebanho_matriz,data_inseminacao,data_inicial,previsao_parto", orderColumn: "id_rebanho_matriz" },
+    (q) => q.eq("id_propriedade", ctx.config.id_propriedade)
+      .neq("deletado", "SIM").eq("parida", "SIM"),
+    {
+      columns:
+        "id_rebanho_matriz,data_parto,data_inseminacao,data_inicial,previsao_parto",
+      orderColumn: "id_rebanho_matriz",
+    },
   );
-  const coberturaByMatriz = new Map<string, any>();
+  // "matriz|AAAA-MM-DD do parto" -> cobertura. Cinco matrizes têm dois partos
+  // confirmados na mesma data (cadastro duplicado); a primeira vence, de forma
+  // estável, para o A12 do PAINT não trocar de registro entre exportações.
+  const partoPorMatrizData = new Map<string, any>();
   for (const c of reproRows) {
-    const key = String(c.id_rebanho_matriz ?? "");
-    if (key) coberturaByMatriz.set(key, c); // última cobertura da matriz
+    const matriz = String(c.id_rebanho_matriz ?? "");
+    const dataParto = dateKeyIso(c.data_parto);
+    // Sem data de cobertura a chave do registro sai incompleta.
+    if (!matriz || !dataParto || !(c.data_inseminacao ?? c.data_inicial)) continue;
+    const chave = `${matriz}|${dataParto}`;
+    if (!partoPorMatrizData.has(chave)) partoPorMatrizData.set(chave, c);
+  }
+
+  // Crias do MESMO parto (matriz + data), ordenadas pelo número do animal: dão
+  // a sequência (nas_seq) e dizem se o parto foi gemelar. Sem isso, gêmeas
+  // saíam como dois registros de chave idêntica e um sobrescrevia o outro.
+  const criasPorParto = new Map<string, any[]>();
+  for (const r of rows) {
+    if (!r.rebanhoIdMatriz || !racaNeloreOuPo(r.raca)) continue;
+    const chave = `${String(r.rebanhoIdMatriz)}|${dateKeyIso(r.dataNascimento)}`;
+    const lista = criasPorParto.get(chave);
+    if (lista) lista.push(r);
+    else criasPorParto.set(chave, [r]);
+  }
+  for (const lista of criasPorParto.values()) {
+    lista.sort((a, b) =>
+      String(a.numeroAnimal ?? "").localeCompare(String(b.numeroAnimal ?? ""), "pt-BR", {
+        numeric: true,
+      }) || String(a.idRebanho ?? "").localeCompare(String(b.idRebanho ?? ""))
+    );
   }
 
   const lines: string[] = [];
@@ -789,23 +828,31 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
     if (!r.rebanhoIdMatriz) continue;
     // Só Nelore / Nelore PO entram no NASCIMENTO.TXT (regra da cliente).
     if (!racaNeloreOuPo(r.raca)) continue;
+    const chaveParto = `${String(r.rebanhoIdMatriz)}|${dateKeyIso(r.dataNascimento)}`;
+    const cob = partoPorMatrizData.get(chaveParto);
+    // Sem parto confirmado batendo a data, a cria não gera registro.
+    if (!cob) continue;
+    const irmaos = criasPorParto.get(chaveParto) ?? [r];
+    const seq = irmaos.findIndex((x) => x.idRebanho === r.idRebanho) + 1;
     recno += 1;
     const a12Cria = ctx.a12ByRebanhoId.get(String(r.idRebanho)) ?? "";
     const matrizA12 = ctx.a12ByRebanhoId.get(String(r.rebanhoIdMatriz)) ?? "";
     const paiA12 = resolveParentA12(r.rebanhoIdReprodutor);
-    const cob = coberturaByMatriz.get(String(r.rebanhoIdMatriz));
     const posNas = camposPosicionais(ctx, r, a12Cria);
     lines.push(buildLine(layout, {
       nas_parceiro: ctx.config.codigo_transmissao,
-      nas_safra_id: derivaSafraCodigo(r.dataNascimento),
+      nas_safra_id: derivaSafraCodigo(cob.data_parto),
       nas_animal_id: matrizA12,
-      nas_data_cob: cob ? formatDate(cob.data_inseminacao ?? cob.data_inicial) : "",
-      nas_seq: "1",
+      nas_data_cob: formatDate(cob.data_inseminacao ?? cob.data_inicial),
+      // Sequência da cria dentro do parto: gêmeas viram 1 e 2. Com "1" fixo as
+      // duas linhas tinham chave idêntica e uma sobrescrevia a outra no PAINT.
+      nas_seq: String(seq).slice(0, 1),
       nas_fazenda: ctx.config.codigo_fazenda,
       nas_seriefaz: posNas.serie,
       nas_programa: posNas.programa,
       nas_animal: posNas.animal,
-      nas_tpparto: "NORMAL",
+      // Mais de uma cria da mesma vaca no mesmo parto (regra da cliente).
+      nas_tpparto: irmaos.length > 1 ? "GEMELAR" : "NORMAL",
       nas_animal_produto_id: a12Cria,
       nas_sexo: String(r.sexo ?? "").slice(0, 1).toUpperCase(),
       nas_tipo: mapTipoRegistro(r),
@@ -816,12 +863,15 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
       nas_descri: (r.nome ?? "").toString().slice(0, 30),
       nas_brinco: extractBrinco5(r.numeroAnimal),
       nas_raca: mapRacaPaint(r.raca),
-      nas_data_nasc: formatDate(r.dataNascimento),
+      // A data do parto confirmado. Como a cria só entra quando a data bate
+      // exatamente com a da ficha, o valor é o mesmo — mas a fonte declarada
+      // é a reprodução, que é o que a cliente definiu.
+      nas_data_nasc: formatDate(cob.data_parto),
       nas_rgn: "",
       nas_rgd: (r.codRegistro ?? "").toString().slice(0, 15),
       nas_pai: paiA12,
       nas_categoria: mapCategoriaPaint(r),
-      nas_prevparto: cob ? formatDate(cob.previsao_parto) : "",
+      nas_prevparto: formatDate(cob.previsao_parto),
       nas_regime_alimentar: "",
       nas_grupo_manejo: grupoManejoFromLote(r.loteNome, grupoByDescricao),
       nas_local: "",
