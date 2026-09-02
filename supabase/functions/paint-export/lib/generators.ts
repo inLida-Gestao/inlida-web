@@ -507,7 +507,7 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
       .neq("deletado", "SIM"),
     {
       columns:
-        "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,tipo_registro,dataDesmama,pesoDesmama,status,origem,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,loteNome,loteID,created_at,updated_at,dataAcao",
+        "id,idRebanho,numeroAnimal,chip,codRegistro,nome,sexo,categoria,dataNascimento,pesoNascimento,raca,tipo_registro,porte,dataDesmama,pesoDesmama,status,origem,dataVenda,data_morte,motivo_morte,rebanhoIdMatriz,rebanhoIdReprodutor,anotacoes,loteNome,loteID,created_at,updated_at,dataAcao",
       orderColumn: "id",
     },
   );
@@ -720,7 +720,10 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
       cob_parceiro: ctx.config.codigo_transmissao,
       cob_safra_id: derivaSafraCodigo(r.data_inseminacao ?? r.data_inicial),
       cob_animal_id: matrizA12,
-      cob_data: formatDate(r.data_inseminacao),
+      // Monta natural não tem data de inseminação: a data da cobertura é a
+      // data inicial do repasse. Mesmo fallback que cob_safra_id já fazia
+      // (reportado pela cliente em 25/08/2026: coluna saía vazia).
+      cob_data: formatDate(r.data_inseminacao ?? r.data_inicial),
       cob_fazenda: ctx.config.codigo_fazenda,
       cob_tipo: mapTipoCobertura(r.tipo_reproducao),
       cob_periodo: "M",
@@ -807,7 +810,9 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
       nas_sexo: String(r.sexo ?? "").slice(0, 1).toUpperCase(),
       nas_tipo: mapTipoRegistro(r),
       nas_peso: formatNumeric(r.pesoNascimento, 8, 2),
-      nas_tamanho: "",
+      // Porte do animal na ficha do inLida (G/M/P) — o layout reserva 1
+      // caractere. Nunca chegou a ser preenchido (reportado em 25/08/2026).
+      nas_tamanho: (r.porte ?? "").toString().trim().slice(0, 1).toUpperCase(),
       nas_descri: (r.nome ?? "").toString().slice(0, 30),
       nas_brinco: extractBrinco5(r.numeroAnimal),
       nas_raca: mapRacaPaint(r.raca),
