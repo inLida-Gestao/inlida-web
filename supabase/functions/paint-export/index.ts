@@ -15,7 +15,11 @@ import { encodeWin1252, formatDate, formatTime } from "./lib/fixed-width.ts";
 import { buildZipStore, type ZipEntry } from "./lib/zip-store.ts";
 import { selectAll } from "./lib/sql.ts";
 import { a12FromRebanho } from "./lib/paint_mappers.ts";
-import { validatePaintExport, validateRebanho } from "./lib/validate.ts";
+import {
+  validateAvaliacoesSemGrupo,
+  validatePaintExport,
+  validateRebanho,
+} from "./lib/validate.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -293,10 +297,18 @@ async function runExportJob(
     let validacao: unknown = null;
     if (skipHeavyValidation) {
       // Só as checagens das tabelas paint_* são omitidas (consulta paginada +
-      // CPU no worker). As do rebanho já foram calculadas no prefetch.
+      // CPU no worker). As do rebanho já foram calculadas no prefetch, e a de
+      // avaliação sem grupo é uma consulta filtrada barata que roda sempre —
+      // sem ela, o campo em branco no TXT não teria como ser percebido.
+      let semGrupo: Awaited<ReturnType<typeof validateAvaliacoesSemGrupo>> = [];
+      try {
+        semGrupo = await validateAvaliacoesSemGrupo(supa, config.id_propriedade);
+      } catch (e) {
+        console.error(`[paint-export] checagem de grupo falhou: ${e}`);
+      }
       validacao = {
         erros: rebanhoReport.erros,
-        avisos: [...rebanhoReport.avisos, {
+        avisos: [...rebanhoReport.avisos, ...semGrupo, {
           tabela: "GERAL",
           regra: "Checagens de desmama/sobreano/cobertura/baixa/composição " +
             "omitidas (volume alto na propriedade)",

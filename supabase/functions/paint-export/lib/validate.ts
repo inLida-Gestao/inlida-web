@@ -40,6 +40,44 @@ function add(it: ValidacaoItem, exemplo: string) {
   if (it.exemplos.length < 10) it.exemplos.push(exemplo);
 }
 
+
+/// Avaliações sem grupo de manejo gravado. Consulta FILTRADA (traz só as
+/// pendentes, poucas dezenas), então roda mesmo em propriedade grande, onde as
+/// checagens pesadas são omitidas — a exportação deixa o campo em branco de
+/// propósito, e sem este aviso ninguém fica sabendo que falta preencher.
+export async function validateAvaliacoesSemGrupo(
+  supa: SupabaseClient,
+  idProp: string,
+): Promise<ValidacaoItem[]> {
+  const itens: ValidacaoItem[] = [];
+  const tabelas: Array<[string, string]> = [
+    ["DESMAMA", "paint_avaliacao_desmama"],
+    ["ANO_SOBREANO", "paint_avaliacao_sobreano"],
+  ];
+  for (const [rotulo, tabela] of tabelas) {
+    const { data } = await supa
+      .from(tabela)
+      .select("animal_a12,data")
+      .eq("id_propriedade", idProp)
+      .is("grupo_manejo_codigo", null)
+      .order("data", { ascending: false })
+      .limit(500);
+    const linhas = data ?? [];
+    if (linhas.length === 0) continue;
+    const it = item(
+      rotulo,
+      "Avaliação sem grupo de manejo: o campo sai em branco no TXT até " +
+        "alguém preencher pela tela (a planilha PAINT não traz o grupo)",
+    );
+    for (const r of linhas) {
+      add(it, `${String(r.animal_a12 ?? "").trim()} — ${String(r.data ?? "")}`);
+    }
+    it.qtd = linhas.length;
+    itens.push(it);
+  }
+  return itens;
+}
+
 export interface ValidatePaintExportOptions {
   /** Evita segunda consulta paginada ao rebanho (já carregado no export). */
   rebanhoRows?: Record<string, unknown>[];
@@ -234,6 +272,7 @@ export async function validatePaintExport(
   const doRebanho = options?.rebanhoReport ?? validateRebanho(rebanho, config);
   erros.push(...doRebanho.erros);
   avisos.push(...doRebanho.avisos);
+  avisos.push(...await validateAvaliacoesSemGrupo(supa, idProp));
 
   // -------------------------------------------------------------------------
   // DESMAMA — obrigatórios A12, data, peso, C/P/M/U, grupo de manejo.
