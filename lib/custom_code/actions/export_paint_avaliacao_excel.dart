@@ -18,9 +18,9 @@ enum PaintExportStatus {
   vazio,
 }
 
-/// Exporta template Excel PAINT de avaliações ou lista de touros.
-/// [tipo]: matrizes | desmama | sobreano | lista_touros
-/// [modo]: vazio | preenchido (ignorado para lista_touros)
+/// Exporta template Excel PAINT de avaliações, lista de touros ou coberturas.
+/// [tipo]: matrizes | desmama | sobreano | lista_touros | cobertura
+/// [modo]: vazio | preenchido (ignorado para lista_touros e cobertura)
 ///
 /// Filtros opcionais (reunião 01/06 — evitar baixar grandes volumes, ex.:
 /// Cachoeira ~1.400 registros): intervalo de data de nascimento e, no modo
@@ -34,6 +34,7 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
   DateTime? dataAvaliacaoDe,
   DateTime? dataAvaliacaoAte,
   String? status,
+  String? tipoReproducao,
 }) async {
   if (idPropriedade.isEmpty) return PaintExportStatus.configIncompleta;
   final t = tipo.toLowerCase().trim();
@@ -42,6 +43,19 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
 
   if (t == 'lista_touros') {
     return _exportListaTouros(idPropriedade, preenchido);
+  }
+
+  // A planilha de cobertura sai de `reproducao`, não do rebanho, então não passa
+  // pelo pipeline de elegibilidade/nascimento/avaliação abaixo. Mesmo desvio que
+  // a lista de touros faz. Reusa o intervalo de data de avaliação como data da
+  // cobertura, e não tem modo "vazio": sem a lista não há o que preencher.
+  if (t == 'cobertura') {
+    return _exportCoberturaPeriodo(
+      idPropriedade,
+      dataAvaliacaoDe,
+      dataAvaliacaoAte,
+      tipoReproducao,
+    );
   }
 
   final cfg = await loadPaintConfig(idPropriedade);
@@ -306,4 +320,130 @@ Future<PaintExportStatus> _exportListaTouros(
       preenchido ? 'LISTA_TOUROS_PAINT_preenchido' : 'LISTA_TOUROS_PAINT';
   await download(Stream.fromIterable(bytes), '$nome.xlsx');
   return PaintExportStatus.ok;
+}
+
+
+/// Planilha de período da cobertura: traz as coberturas da propriedade para a
+/// cliente marcar Manhã ou Tarde e reimportar. Alimenta `cob_periodo` (C(1),
+/// posição 65) no COBERTURA.TXT, que até 09/2026 saía "M" fixo para todas.
+///
+/// A coluna `id_reproducao` é a chave da volta. Não usamos (A12, data) como as
+/// outras planilhas porque a mesma vaca pode ter duas coberturas na mesma data,
+/// e dois animais diferentes podem compartilhar o mesmo A12.
+Future<PaintExportStatus> _exportCoberturaPeriodo(
+  String idPropriedade,
+  DateTime? dataDe,
+  DateTime? dataAte,
+  String? tipoReproducao,
+) async {
+  // Coberturas com a matriz vinculada. Só Nelore/Nelore PO: são as que entram no
+  // COBERTURA.TXT, então marcar período de outra raça não teria efeito.
+  final linhas = <Map<String, dynamic>>[];
+  const pagina = 1000;
+  var offset = 0;
+  while (true) {
+    final lote = await SupaFlow.client
+        .from('reproducao')
+        .select(
+          'id_reproducao,tipo_reproducao,data_inseminacao,data_inicial,'
+          'inseminador,id_rebanho_matriz,id_rebanho_reprodutor',
+        )
+        .eq('id_propriedade', idPropriedade)
+        .neq('deletado', 'SIM')
+        .order('id')
+        .range(offset, offset + pagina - 1);
+    linhas.addAll(lote.cast<Map<String, dynamic>>());
+    if (lote.length < pagina) break;
+    offset += pagina;
+  }
+  if (linhas.isEmpty) return PaintExportStatus.semElegiveis;
+
+  // Rebanho indexado por idRebanho, para nome/número da matriz e do touro.
+  final rebanho = await fetchRebanhoPaint(idPropriedade);
+  final porId = <String, Map<String, dynamic>>{};
+  for (final r in rebanho) {
+    final id = (r['idRebanho'] ?? '').toString().trim();
+    if (id.isNotEmpty) porId[id] = r;
+  }
+
+  // Períodos já gravados, para a planilha voltar preenchida com o que existe.
+  final jaSalvos = <String, String>{};
+  final salvos = await SupaFlow.client
+      .from('paint_cobertura_periodo')
+      .select('id_reproducao,periodo')
+      .eq('id_propriedade', idPropriedade);
+  for (final r in salvos) {
+    jaSalvos[(r['id_reproducao'] ?? '').toString().trim()] =
+        (r['periodo'] ?? '').toString();
+  }
+
+  final tipoFiltro = normalizePaintText(tipoReproducao ?? '');
+  final dados = <List<String>>[];
+  for (final rp in linhas) {
+    final matriz = porId[(rp['id_rebanho_matriz'] ?? '').toString().trim()];
+    if (matriz == null) continue;
+    if (!paintRacaNeloreOuPo(matriz['raca'])) continue;
+
+    final dataIso =
+        parseDateIso(rp['data_inseminacao']) ?? parseDateIso(rp['data_inicial']);
+    if (dataIso == null) continue;
+    if (!dentroIntervaloData(dataIso, dataDe, dataAte)) continue;
+
+    // Filtro de tipo: vazio traz tudo. "INSEMINACAO" casa com Inseminação e
+    // IATF; a comparação é normalizada porque o cadastro tem grafias diferentes
+    // ("Monta Natural" e "Monta natural" convivem no banco).
+    final tipoLinha = normalizePaintText(rp['tipo_reproducao']);
+    if (tipoFiltro.isNotEmpty && !tipoLinha.contains(tipoFiltro)) continue;
+
+    final touro = porId[(rp['id_rebanho_reprodutor'] ?? '').toString().trim()];
+    dados.add([
+      (rp['id_reproducao'] ?? '').toString(),
+      (matriz['numeroAnimal'] ?? '').toString(),
+      (matriz['nome'] ?? '').toString(),
+      dataIso,
+      (rp['tipo_reproducao'] ?? '').toString(),
+      (touro?['numeroAnimal'] ?? '').toString(),
+      (touro?['nome'] ?? '').toString(),
+      (rp['inseminador'] ?? '').toString(),
+      _periodoRotulo(jaSalvos[(rp['id_reproducao'] ?? '').toString().trim()]),
+    ]);
+  }
+  if (dados.isEmpty) return PaintExportStatus.semAvaliacao;
+
+  dados.sort((a, b) {
+    final porData = b[3].compareTo(a[3]);
+    return porData != 0 ? porData : a[1].compareTo(b[1]);
+  });
+
+  final excel = Excel.createExcel();
+  final sheet = excel.tables[excel.tables.keys.first]!;
+  for (var c = 0; c < coberturaHeaders.length; c++) {
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0)).value =
+        TextCellValue(coberturaHeaders[c]);
+  }
+  for (var r = 0; r < dados.length; r++) {
+    for (var c = 0; c < dados[r].length; c++) {
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1))
+          .value = TextCellValue(dados[r][c]);
+    }
+  }
+
+  final bytes = excel.encode();
+  if (bytes == null) return PaintExportStatus.vazio;
+  await download(
+      Stream.fromIterable(bytes), 'PAINT_Cobertura_Periodo.xlsx');
+  return PaintExportStatus.ok;
+}
+
+/// MANHA/TARDE do banco -> rótulo amigável na planilha.
+String _periodoRotulo(String? valor) {
+  switch (normalizePaintText(valor ?? '')) {
+    case 'MANHA':
+      return 'Manhã';
+    case 'TARDE':
+      return 'Tarde';
+    default:
+      return '';
+  }
 }

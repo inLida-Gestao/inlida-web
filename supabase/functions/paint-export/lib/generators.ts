@@ -690,7 +690,7 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
       .neq("deletado", "SIM"),
     {
       columns:
-        "id,id_rebanho_matriz,id_rebanho_reprodutor,data_inseminacao,data_inicial,data_final,tipo_reproducao,partida_semen,previsao_parto,inseminador,anotacoes,created_at,updated_at",
+        "id,id_reproducao,id_rebanho_matriz,id_rebanho_reprodutor,data_inseminacao,data_inicial,data_final,tipo_reproducao,partida_semen,previsao_parto,inseminador,anotacoes,created_at,updated_at",
       orderColumn: "id",
     },
   );
@@ -709,9 +709,31 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
   // em a12ByRebanhoId. Registros que não são A12 (ex.: "PECA4581") ou vazios
   // ficam em branco e aparecem no relatório de validação como "A12 deve vir do
   // código de registro".
+  // Turno da cobertura, preenchido pela cliente na planilha de cobertura do
+  // módulo PAINT. Sem registro, `cob_periodo` sai EM BRANCO — até 09/2026 saía
+  // "M" fixo para todas as linhas, um chute. Regra da cliente: melhor faltar a
+  // informação do que mandar informação errada.
+  const periodoPorReproducao = new Map<string, string>();
+  {
+    const periodos = await selectAll<any>(
+      ctx.supa,
+      "paint_cobertura_periodo",
+      (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
+      { columns: "id_reproducao,periodo", orderColumn: "id_reproducao" },
+    );
+    for (const p of periodos) {
+      const id = String(p.id_reproducao ?? "").trim();
+      const v = String(p.periodo ?? "").trim().toUpperCase();
+      if (id && (v === "MANHA" || v === "TARDE")) {
+        periodoPorReproducao.set(id, v === "MANHA" ? "M" : "T");
+      }
+    }
+  }
+
   const lines: string[] = [];
   let recno = 0;
   let semMatriz = 0;
+  let matrizForaDoAnimalTxt = 0;
   for (const r of rows) {
     const matrizA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_matriz)) ?? "";
     // A chave do registro é parceiro + safra + MATRIZ + data (posições 1-33).
@@ -723,6 +745,15 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
     // uma cobertura que o PAINT não consegue atribuir a nenhum animal.
     if (!matrizA12) {
       semMatriz += 1;
+      continue;
+    }
+    // Só matriz que está no ANIMAL.TXT: a cobertura referencia o animal de lá.
+    // COBERTURA e PESAGEM eram os dois únicos geradores sem esse filtro — os
+    // demais o aplicam direto (racaNeloreOuPo) ou via paintTableGenerator.
+    // Reportado pela cliente em 04/09/2026: coberturas de matriz Girolando
+    // estavam indo para o arquivo. A raça do TOURO não importa aqui.
+    if (foraDoAnimalTxt(ctx, matrizA12)) {
+      matrizForaDoAnimalTxt += 1;
       continue;
     }
     recno += 1;
@@ -741,7 +772,7 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
       cob_data: formatDate(r.data_inseminacao ?? r.data_inicial),
       cob_fazenda: ctx.config.codigo_fazenda,
       cob_tipo: mapTipoCobertura(r.tipo_reproducao),
-      cob_periodo: "M",
+      cob_periodo: periodoPorReproducao.get(String(r.id_reproducao ?? "").trim()) ?? "",
       cob_touro: touroA12,
       // Categoria do TOURO (não da matriz). Touro de monta/IA → TT.
       cob_cat_touro: touroA12 ? "TT" : "",
@@ -765,6 +796,11 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
   if (semMatriz > 0) {
     console.log(
       `[paint-export] COBERTURA: ${semMatriz} linha(s) sem matriz ignorada(s)`,
+    );
+  }
+  if (matrizForaDoAnimalTxt > 0) {
+    console.log(
+      `[paint-export] COBERTURA: ${matrizForaDoAnimalTxt} linha(s) de matriz fora do ANIMAL.TXT ignorada(s)`,
     );
   }
   return joinLines(lines);
@@ -1301,10 +1337,18 @@ async function genPesagem(ctx: ExportContext): Promise<string> {
     }
     ctx.pesagemRows = rows;
   }
+  let foraDoTxt = 0;
   for (const r of rows) {
-    recno += 1;
     const a12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho)) ?? "";
     if (!a12) continue;
+    // Mesma regra da COBERTURA: pesagem de animal que não está no ANIMAL.TXT
+    // (raça fora do PAINT, sêmen, fora da propriedade) faria o PAINT exibir um
+    // animal que a fazenda não enviou. Eram 559 registros na Cachoeira.
+    if (foraDoAnimalTxt(ctx, a12)) {
+      foraDoTxt += 1;
+      continue;
+    }
+    recno += 1;
     lines.push(buildLine(layout, {
       pes_parceiro: ctx.config.codigo_transmissao,
       pes_animal_id: a12,
@@ -1323,6 +1367,11 @@ async function genPesagem(ctx: ExportContext): Promise<string> {
       pes_safra_id: derivaSafraCodigo(r.data_pesagem ?? r.data),
       pes_frame: "",
     }));
+  }
+  if (foraDoTxt > 0) {
+    console.log(
+      `[paint-export] PESAGEM: ${foraDoTxt} linha(s) de animal fora do ANIMAL.TXT ignorada(s)`,
+    );
   }
   return joinLines(lines);
 }

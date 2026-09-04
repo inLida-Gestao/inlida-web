@@ -52,6 +52,14 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
   }
 
   final t = (tipo ?? '').toLowerCase().trim();
+
+  // A planilha de cobertura não tem A12 nem notas técnicas: a chave é o
+  // id_reproducao e o único dado é Manhã/Tarde. Desvia antes do pipeline de
+  // avaliações, que é todo construído em torno de (A12, data).
+  if (t == 'cobertura') {
+    return _importCoberturaPeriodo(idPropriedade, arquivo!, result);
+  }
+
   final table = t == 'matrizes'
       ? 'paint_avaliacao_rah'
       : t == 'desmama'
@@ -63,7 +71,7 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
     result['erros'] = [
       {
         'linha': 0,
-        'motivo': 'Tipo inválido: use matrizes, desmama ou sobreano.'
+        'motivo': 'Tipo inválido: use matrizes, desmama, sobreano ou cobertura.'
       },
     ];
     return result;
@@ -806,4 +814,160 @@ String _chaveDigAno(String? numero, dynamic dataNascimento) {
   }
   if (d == null) return '';
   return '$dig|${(d.year % 100).toString().padLeft(2, '0')}';
+}
+
+/// Importa a planilha de período da cobertura. Só duas colunas importam:
+/// `id_reproducao` (a chave) e `Periodo` (Manhã ou Tarde). Linha em branco no
+/// período é ignorada em silêncio — é o caso normal de quem preencheu só parte
+/// da planilha; valor diferente vira erro com o número da linha.
+Future<Map<String, dynamic>> _importCoberturaPeriodo(
+  String idPropriedade,
+  FFUploadedFile arquivo,
+  Map<String, dynamic> result,
+) async {
+  final excel = Excel.decodeBytes(arquivo.bytes!.toList());
+  if (excel.tables.isEmpty) {
+    result['erros'] = [
+      {'linha': 0, 'motivo': 'Planilha sem abas.'},
+    ];
+    return result;
+  }
+  final sheet = excel.tables[excel.tables.keys.first]!;
+  if (sheet.rows.length < 2) {
+    result['erros'] = [
+      {'linha': 0, 'motivo': 'Planilha sem linhas de dados.'},
+    ];
+    return result;
+  }
+
+  final cabecalho = sheet.rows.first
+      .map((c) => normalizePaintHeader(c?.value?.toString() ?? ''))
+      .toList();
+  int idx(String name) => cabecalho.indexOf(normalizePaintHeader(name));
+  final iId = idx('id_reproducao');
+  final iPeriodo = idx('periodo');
+  if (iId < 0 || iPeriodo < 0) {
+    result['erros'] = [
+      {
+        'linha': 1,
+        'motivo': 'Colunas id_reproducao e Periodo são obrigatórias. '
+            'Baixe o modelo pelo botão "Com dados da fazenda".'
+      },
+    ];
+    return result;
+  }
+
+  // Reprodutções válidas da propriedade: impede gravar período para um id que
+  // não existe ou que é de outra fazenda.
+  final validos = <String>{};
+  const pagina = 1000;
+  var offset = 0;
+  while (true) {
+    final lote = await SupaFlow.client
+        .from('reproducao')
+        .select('id_reproducao')
+        .eq('id_propriedade', idPropriedade)
+        .neq('deletado', 'SIM')
+        .order('id')
+        .range(offset, offset + pagina - 1);
+    for (final r in lote) {
+      validos.add((r['id_reproducao'] ?? '').toString().trim());
+    }
+    if (lote.length < pagina) break;
+    offset += pagina;
+  }
+
+  // Já gravados, para separar insert de update (mesmo esquema das avaliações:
+  // o postgrest-dart descarta on_conflict em upsert de lista, então o update
+  // precisa carregar o id da PK).
+  final existentes = <String, String>{};
+  final salvos = await SupaFlow.client
+      .from('paint_cobertura_periodo')
+      .select('id,id_reproducao')
+      .eq('id_propriedade', idPropriedade);
+  for (final r in salvos) {
+    existentes[(r['id_reproducao'] ?? '').toString().trim()] =
+        (r['id'] ?? '').toString();
+  }
+
+  final erros = <Map<String, dynamic>>[];
+  final inserts = <Map<String, dynamic>>[];
+  final updates = <Map<String, dynamic>>[];
+  final vistos = <String>{};
+
+  for (var r = 1; r < sheet.rows.length; r++) {
+    final linha = r + 1;
+    final row = sheet.rows[r];
+    final idRep = _cel(row, iId) ?? '';
+    final periodoBruto = _cel(row, iPeriodo) ?? '';
+    if (idRep.isEmpty && periodoBruto.isEmpty) continue;
+    if (idRep.isEmpty) {
+      erros.add({'linha': linha, 'motivo': 'id_reproducao vazio.'});
+      continue;
+    }
+    // Sem período preenchido não há o que gravar. Não é erro: é a maior parte
+    // da planilha enquanto a cliente preenche aos poucos.
+    if (periodoBruto.isEmpty) continue;
+
+    final periodo = normalizePaintText(periodoBruto);
+    final valor = periodo.startsWith('MANHA')
+        ? 'MANHA'
+        : periodo.startsWith('TARDE')
+            ? 'TARDE'
+            : null;
+    if (valor == null) {
+      erros.add({
+        'linha': linha,
+        'motivo': 'Periodo "$periodoBruto" inválido: use Manhã ou Tarde.'
+      });
+      continue;
+    }
+    if (!validos.contains(idRep)) {
+      erros.add({
+        'linha': linha,
+        'motivo': 'Cobertura $idRep não encontrada nesta propriedade.'
+      });
+      continue;
+    }
+    if (!vistos.add(idRep)) {
+      erros.add({
+        'linha': linha,
+        'motivo': 'Cobertura $idRep repetida na planilha — 1ª linha mantida.'
+      });
+      continue;
+    }
+
+    final payload = <String, dynamic>{
+      'id_propriedade': idPropriedade,
+      'id_reproducao': idRep,
+      'periodo': valor,
+      'origem': 'importacao_paint',
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    if (existentes.containsKey(idRep)) {
+      payload['id'] = existentes[idRep];
+      updates.add(payload);
+    } else {
+      inserts.add(payload);
+    }
+  }
+
+  const lote = 200;
+  for (var i = 0; i < inserts.length; i += lote) {
+    final fim = (i + lote < inserts.length) ? i + lote : inserts.length;
+    await SupaFlow.client
+        .from('paint_cobertura_periodo')
+        .insert(inserts.sublist(i, fim));
+  }
+  for (var i = 0; i < updates.length; i += lote) {
+    final fim = (i + lote < updates.length) ? i + lote : updates.length;
+    await SupaFlow.client
+        .from('paint_cobertura_periodo')
+        .upsert(updates.sublist(i, fim));
+  }
+
+  result['inseridos'] = inserts.length;
+  result['atualizados'] = updates.length;
+  result['erros'] = erros;
+  return result;
 }

@@ -1571,6 +1571,172 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
     );
   }
 
+  /// Filtros da planilha de cobertura: tipo de reprodução e data da cobertura.
+  /// Não reusa `_abrirFiltros` porque os filtros são de reprodução, não de
+  /// animal — não há status de rebanho nem data de nascimento aqui.
+  Future<void> _abrirFiltrosCobertura({
+    required String? tipoRepro,
+    required DateTime? de,
+    required DateTime? ate,
+    required void Function(String? tipoRepro, DateTime? de, DateTime? ate)
+        onAplicar,
+  }) async {
+    final theme = FlutterFlowTheme.of(context);
+    String? tTipo = tipoRepro;
+    DateTime? tDe = de;
+    DateTime? tAte = ate;
+    const opcoesTipo = ['Inseminação', 'Monta natural', 'Repasse'];
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setLocal) {
+            return Dialog(
+              insetPadding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Container(
+                width: 460,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.filter_alt, color: theme.primary, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text('Filtros — Cobertura',
+                              style: theme.titleMedium),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 20),
+                          splashRadius: 18,
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Em branco considera todas as coberturas.',
+                      style: theme.bodySmall.override(
+                        fontFamily: 'Readex Pro',
+                        color: theme.secondaryText,
+                        useGoogleFonts:
+                            GoogleFonts.asMap().containsKey('Readex Pro'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Tipo de reprodução',
+                      style: theme.bodySmall.override(
+                        fontFamily: 'Readex Pro',
+                        fontWeight: FontWeight.w600,
+                        useGoogleFonts:
+                            GoogleFonts.asMap().containsKey('Readex Pro'),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String?>(
+                      value: tTipo,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: theme.secondaryBackground,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: theme.alternate),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      hint: const Text('Todos os tipos'),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('Todos os tipos'),
+                        ),
+                        ...opcoesTipo.map(
+                          (s) => DropdownMenuItem<String?>(
+                            value: s,
+                            child: Text(s),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) => setLocal(() => tTipo = v),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        _campoData(
+                          label: 'Cobertura de',
+                          valor: tDe,
+                          onChanged: (d) => setLocal(() => tDe = d),
+                        ),
+                        _campoData(
+                          label: 'Cobertura até',
+                          valor: tAte,
+                          onChanged: (d) => setLocal(() => tAte = d),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () => setLocal(() {
+                            tTipo = null;
+                            tDe = null;
+                            tAte = null;
+                          }),
+                          icon: const Icon(Icons.clear_all, size: 16),
+                          label: const Text('Limpar'),
+                          style: TextButton.styleFrom(
+                              foregroundColor: theme.primary),
+                        ),
+                        FFButtonWidget(
+                          onPressed: () {
+                            onAplicar(tTipo, tDe, tAte);
+                            Navigator.of(dialogContext).pop();
+                          },
+                          text: 'Aplicar',
+                          options: FFButtonOptions(
+                            width: 120,
+                            height: 40,
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                20, 0, 20, 0),
+                            color: theme.primary,
+                            textStyle: theme.titleSmall.override(
+                              fontFamily: 'Readex Pro',
+                              color: Colors.white,
+                              useGoogleFonts:
+                                  GoogleFonts.asMap().containsKey('Readex Pro'),
+                            ),
+                            elevation: 0,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _cardStatus(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final cfgOk = _configCompleta;
@@ -2165,6 +2331,7 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
         dataAvaliacaoDe: preenchido ? _model.excelAvDe[tipo] : null,
         dataAvaliacaoAte: preenchido ? _model.excelAvAte[tipo] : null,
         status: _model.excelStatus[tipo],
+        tipoReproducao: _model.excelTipoRepro[tipo],
       );
       safeSetState(() {
         _model.exportandoExcel = false;
@@ -2543,12 +2710,18 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
             style: theme.bodySmall,
           ),
           const SizedBox(height: 12),
-          ...['matrizes', 'desmama', 'sobreano'].map((tipo) {
+          ...['matrizes', 'desmama', 'sobreano', 'cobertura'].map((tipo) {
             final label = tipo == 'matrizes'
                 ? 'Matrizes (R/F/A/P)'
                 : tipo == 'desmama'
                     ? 'Desmama'
-                    : 'Sobreano';
+                    : tipo == 'sobreano'
+                        ? 'Sobreano'
+                        : 'Cobertura (manhã/tarde)';
+            // A planilha de cobertura sai da reprodução, não do rebanho: não há
+            // modelo vazio (sem a lista de coberturas não há o que preencher),
+            // nem filtro de nascimento ou status do animal.
+            final ehCobertura = tipo == 'cobertura';
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Column(
@@ -2561,54 +2734,77 @@ class _PgPaintWidgetState extends State<PgPaintWidget> {
                     runSpacing: 8,
                     children: [
                       _botaoFiltro(
-                        ativos: _contaFiltros(
-                          _model.excelNascDe[tipo],
-                          _model.excelNascAte[tipo],
-                          _model.excelAvDe[tipo],
-                          _model.excelAvAte[tipo],
-                          _model.excelStatus[tipo],
-                        ),
+                        ativos: ehCobertura
+                            ? _contaFiltros(
+                                null,
+                                null,
+                                _model.excelAvDe[tipo],
+                                _model.excelAvAte[tipo],
+                                _model.excelTipoRepro[tipo],
+                              )
+                            : _contaFiltros(
+                                _model.excelNascDe[tipo],
+                                _model.excelNascAte[tipo],
+                                _model.excelAvDe[tipo],
+                                _model.excelAvAte[tipo],
+                                _model.excelStatus[tipo],
+                              ),
                         onPressed: busy
                             ? null
-                            : () => _abrirFiltros(
-                                  titulo: 'Filtros — $label',
-                                  status: _model.excelStatus[tipo],
-                                  nascDe: _model.excelNascDe[tipo],
-                                  nascAte: _model.excelNascAte[tipo],
-                                  avDe: _model.excelAvDe[tipo],
-                                  avAte: _model.excelAvAte[tipo],
-                                  onAplicar: (st, nd, na, ad, aa) =>
-                                      safeSetState(() {
-                                    _model.excelStatus[tipo] = st;
-                                    _model.excelNascDe[tipo] = nd;
-                                    _model.excelNascAte[tipo] = na;
-                                    _model.excelAvDe[tipo] = ad;
-                                    _model.excelAvAte[tipo] = aa;
-                                  }),
-                                ),
+                            : () => ehCobertura
+                                ? _abrirFiltrosCobertura(
+                                    tipoRepro: _model.excelTipoRepro[tipo],
+                                    de: _model.excelAvDe[tipo],
+                                    ate: _model.excelAvAte[tipo],
+                                    onAplicar: (tr, de, ate) =>
+                                        safeSetState(() {
+                                      _model.excelTipoRepro[tipo] = tr;
+                                      _model.excelAvDe[tipo] = de;
+                                      _model.excelAvAte[tipo] = ate;
+                                    }),
+                                  )
+                                : _abrirFiltros(
+                                    titulo: 'Filtros — $label',
+                                    status: _model.excelStatus[tipo],
+                                    nascDe: _model.excelNascDe[tipo],
+                                    nascAte: _model.excelNascAte[tipo],
+                                    avDe: _model.excelAvDe[tipo],
+                                    avAte: _model.excelAvAte[tipo],
+                                    onAplicar: (st, nd, na, ad, aa) =>
+                                        safeSetState(() {
+                                      _model.excelStatus[tipo] = st;
+                                      _model.excelNascDe[tipo] = nd;
+                                      _model.excelNascAte[tipo] = na;
+                                      _model.excelAvDe[tipo] = ad;
+                                      _model.excelAvAte[tipo] = aa;
+                                    }),
+                                  ),
                       ),
-                      FFButtonWidget(
-                        onPressed:
-                            busy ? null : () => _exportarExcel(tipo, 'vazio'),
-                        text: 'Modelo vazio',
-                        options: FFButtonOptions(
-                          height: 36,
-                          padding: const EdgeInsetsDirectional.fromSTEB(
-                              12, 0, 12, 0),
-                          color: theme.secondaryBackground,
-                          textStyle: theme.bodySmall.override(
-                            fontFamily: 'Readex Pro',
-                            color: theme.primary,
+                      if (!ehCobertura)
+                        FFButtonWidget(
+                          onPressed:
+                              busy ? null : () => _exportarExcel(tipo, 'vazio'),
+                          text: 'Modelo vazio',
+                          options: FFButtonOptions(
+                            height: 36,
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                12, 0, 12, 0),
+                            color: theme.secondaryBackground,
+                            textStyle: theme.bodySmall.override(
+                              fontFamily: 'Readex Pro',
+                              color: theme.primary,
+                            ),
+                            borderSide: BorderSide(color: theme.primary),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          borderSide: BorderSide(color: theme.primary),
-                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
                       FFButtonWidget(
                         onPressed: busy
                             ? null
                             : () => _exportarExcel(tipo, 'preenchido'),
-                        text: 'Com dados da fazenda',
+                        text: ehCobertura
+                            ? 'Baixar coberturas'
+                            : 'Com dados da fazenda',
                         options: FFButtonOptions(
                           height: 36,
                           padding: const EdgeInsetsDirectional.fromSTEB(

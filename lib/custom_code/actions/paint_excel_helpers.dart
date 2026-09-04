@@ -630,6 +630,22 @@ const sobreanoHeaders = [
   'Peso_kg',
 ];
 
+/// Cabeçalho da planilha de período da cobertura. `id_reproducao` é técnico e
+/// é a chave que o import usa para casar de volta — não renomear nem apagar.
+/// Nenhum cabeçalho pode conter "Data" além do de data mesmo: o exportador
+/// tipa a célula como data quando o nome contém essa palavra.
+const coberturaHeaders = [
+  'id_reproducao',
+  'Matriz',
+  'Nome_Matriz',
+  'Data_Cobertura',
+  'Tipo',
+  'Touro',
+  'Nome_Touro',
+  'Inseminador',
+  'Periodo',
+];
+
 const listaTourosHeaders = [
   'A12',
   'NOME_PAINT',

@@ -80,26 +80,40 @@ class PgPaintModel extends FlutterFlowModel<PgPaintWidget> {
     'matrizes': null,
     'desmama': null,
     'sobreano': null,
+    'cobertura': null,
   };
   final Map<String, DateTime?> excelNascAte = {
     'matrizes': null,
     'desmama': null,
     'sobreano': null,
+    'cobertura': null,
   };
   final Map<String, DateTime?> excelAvDe = {
     'matrizes': null,
     'desmama': null,
     'sobreano': null,
+    'cobertura': null,
   };
   final Map<String, DateTime?> excelAvAte = {
     'matrizes': null,
     'desmama': null,
     'sobreano': null,
+    'cobertura': null,
   };
   final Map<String, String?> excelStatus = {
     'matrizes': 'Na propriedade',
     'desmama': 'Na propriedade',
     'sobreano': 'Na propriedade',
+    // Cobertura filtra a reprodução, não o animal: o status do rebanho não se
+    // aplica. Fica nulo para o contador de filtros não marcar um filtro que a
+    // planilha ignora.
+    'cobertura': null,
+  };
+
+  /// Tipo de reprodução da planilha de cobertura. Só essa planilha usa, por
+  /// isso um mapa próprio em vez de mais uma chave nos de cima.
+  final Map<String, String?> excelTipoRepro = {
+    'cobertura': 'Inseminação',
   };
 
   @override
