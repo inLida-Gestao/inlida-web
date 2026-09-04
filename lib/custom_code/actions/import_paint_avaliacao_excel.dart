@@ -843,7 +843,19 @@ Future<Map<String, dynamic>> _importCoberturaPeriodo(
   final cabecalho = sheet.rows.first
       .map((c) => normalizePaintHeader(c?.value?.toString() ?? ''))
       .toList();
-  int idx(String name) => cabecalho.indexOf(normalizePaintHeader(name));
+  // Busca tolerante a acento: `normalizePaintHeader` não remove acentos, e
+  // "Período" é a grafia natural em português — quem reescrever o cabeçalho
+  // assim não pode ver a importação falhar por isso.
+  int idx(String name) {
+    final direto = cabecalho.indexOf(normalizePaintHeader(name));
+    if (direto >= 0) return direto;
+    final alvo = normalizePaintText(name);
+    for (var i = 0; i < cabecalho.length; i++) {
+      if (normalizePaintText(cabecalho[i]) == alvo) return i;
+    }
+    return -1;
+  }
+
   final iId = idx('id_reproducao');
   final iPeriodo = idx('periodo');
   if (iId < 0 || iPeriodo < 0) {
