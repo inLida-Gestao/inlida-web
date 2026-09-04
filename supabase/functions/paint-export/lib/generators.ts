@@ -711,9 +711,21 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
   // código de registro".
   const lines: string[] = [];
   let recno = 0;
+  let semMatriz = 0;
   for (const r of rows) {
-    recno += 1;
     const matrizA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_matriz)) ?? "";
+    // A chave do registro é parceiro + safra + MATRIZ + data (posições 1-33).
+    // Sem a matriz o PAINT não tem como identificar a cobertura, e a linha
+    // entraria com chave incompleta — mesma regra já aplicada ao NASCIMENTO.
+    // Acontece quando a vaca foi apagada do rebanho (a exclusão no inLida não
+    // apaga as reproduções dela) ou quando a cobertura foi lançada sem vaca.
+    // Regra da cliente (04/09/2026): melhor faltar informação do que mandar
+    // uma cobertura que o PAINT não consegue atribuir a nenhum animal.
+    if (!matrizA12) {
+      semMatriz += 1;
+      continue;
+    }
+    recno += 1;
     const touroA12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho_reprodutor)) ?? "";
     const grpMatriz = grupoManejoFromLote(
       loteByReb.get(String(r.id_rebanho_matriz)),
@@ -749,6 +761,11 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
       cob_enviar: "True ",
       cob_recno: recno,
     }));
+  }
+  if (semMatriz > 0) {
+    console.log(
+      `[paint-export] COBERTURA: ${semMatriz} linha(s) sem matriz ignorada(s)`,
+    );
   }
   return joinLines(lines);
 }
