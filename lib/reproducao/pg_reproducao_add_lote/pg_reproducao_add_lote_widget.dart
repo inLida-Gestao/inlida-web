@@ -15,6 +15,7 @@ import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/index.dart';
 import '/reproducao/reproducao_form_validation.dart';
+import '/reproducao/reproducao_lote_utils.dart';
 import '/reproducao/reproducao_status_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -184,6 +185,11 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                       );
                     }
                     List<LotesRow> containerLotesRowList = snapshot.data!;
+                    final lotesSelecionaveis = containerLotesRowList
+                        .where((lote) =>
+                            nonEmptyString(lote.idLote) != null &&
+                            nonEmptyString(lote.nome) != null)
+                        .toList();
 
                     return Container(
                       width: double.infinity,
@@ -561,10 +567,15 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                           FormFieldController<
                                                               String>(null),
                                                       options:
-                                                          containerLotesRowList
-                                                              .map(
-                                                                  (e) => e.nome)
+                                                          lotesSelecionaveis
+                                                              .map((e) =>
+                                                                  e.idLote)
                                                               .withoutNulls
+                                                              .toList(),
+                                                      optionLabels:
+                                                          lotesSelecionaveis
+                                                              .map((e) =>
+                                                                  e.nome!)
                                                               .toList(),
                                                       onChanged: (val) =>
                                                           safeSetState(() =>
@@ -1942,19 +1953,18 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                                   .secondaryText,
                                                               size: 14.0,
                                                             ),
-                                                            onPressed: ((_model
-                                                                            .partidaSemen ??
-                                                                        1) <=
-                                                                    1)
-                                                                ? null
-                                                                : () async {
-                                                                    _model.partidaSemen =
-                                                                        (_model.partidaSemen ??
-                                                                                1) -
-                                                                            1;
-                                                                    safeSetState(
-                                                                        () {});
-                                                                  },
+                                                            onPressed:
+                                                                ((_model.partidaSemen ??
+                                                                            1) <=
+                                                                        1)
+                                                                    ? null
+                                                                    : () async {
+                                                                        _model.partidaSemen =
+                                                                            (_model.partidaSemen ?? 1) -
+                                                                                1;
+                                                                        safeSetState(
+                                                                            () {});
+                                                                      },
                                                           ),
                                                           Text(
                                                             valueOrDefault<
@@ -2005,19 +2015,18 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                                   .secondaryText,
                                                               size: 14.0,
                                                             ),
-                                                            onPressed: ((_model
-                                                                            .partidaSemen ??
-                                                                        1) >=
-                                                                    5)
-                                                                ? null
-                                                                : () async {
-                                                                    _model.partidaSemen =
-                                                                        (_model.partidaSemen ??
-                                                                                1) +
-                                                                            1;
-                                                                    safeSetState(
-                                                                        () {});
-                                                                  },
+                                                            onPressed:
+                                                                ((_model.partidaSemen ??
+                                                                            1) >=
+                                                                        5)
+                                                                    ? null
+                                                                    : () async {
+                                                                        _model.partidaSemen =
+                                                                            (_model.partidaSemen ?? 1) +
+                                                                                1;
+                                                                        safeSetState(
+                                                                            () {});
+                                                                      },
                                                           ),
                                                         ],
                                                       ),
@@ -4419,8 +4428,7 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                   );
                                                 });
 
-                                                FFAppState()
-                                                        .matrizSelecionada =
+                                                FFAppState().matrizSelecionada =
                                                     AnimalSelecionadoStruct();
                                                 FFAppState()
                                                         .reprodutorSelecionado =
@@ -4488,6 +4496,35 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                             ),
                                             FFButtonWidget(
                                               onPressed: () async {
+                                                final idPropriedade =
+                                                    nonEmptyString(FFAppState()
+                                                        .propriedadeSelecionada
+                                                        .idPropriedade);
+                                                final idLoteSelecionado =
+                                                    nonEmptyString(_model
+                                                        .dropDownLoteValue);
+                                                final loteSelecionado =
+                                                    lotesSelecionaveis
+                                                        .where((lote) =>
+                                                            lote.idLote ==
+                                                            idLoteSelecionado)
+                                                        .firstOrNull;
+                                                if (idPropriedade == null ||
+                                                    idLoteSelecionado == null ||
+                                                    loteSelecionado == null) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                      content: const Text(
+                                                          'Selecione um lote válido.'),
+                                                      backgroundColor:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .error,
+                                                    ),
+                                                  );
+                                                  return;
+                                                }
                                                 final erroMontaNatural =
                                                     validarCamposMontaNatural(
                                                   tipoReproducao:
@@ -4513,21 +4550,45 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                   return;
                                                 }
                                                 _model.rebanhoLote =
-                                                    await RebanhoTable()
-                                                        .queryRows(
-                                                  queryFn: (q) => q
-                                                      .eqOrNull(
-                                                        'loteNome',
-                                                        _model
-                                                            .dropDownLoteValue,
-                                                      )
-                                                      .eqOrNull(
-                                                        'sexo',
-                                                        'Fêmea',
-                                                      ),
+                                                    filtrarMatrizesDoLoteParaReproducao(
+                                                  rebanho: await RebanhoTable()
+                                                      .queryRows(
+                                                    queryFn: (q) => q
+                                                        .eqOrNull(
+                                                          'loteID',
+                                                          idLoteSelecionado,
+                                                        )
+                                                        .eqOrNull(
+                                                          'idPropriedade',
+                                                          idPropriedade,
+                                                        )
+                                                        .eqOrNull(
+                                                          'sexo',
+                                                          'Fêmea',
+                                                        ),
+                                                    limit: 10000,
+                                                  ),
+                                                  idPropriedade: idPropriedade,
+                                                  idLote: idLoteSelecionado,
                                                 );
+                                                if (!context.mounted) {
+                                                  return;
+                                                }
                                                 if (_model
-                                                    .rebanhoLote!.isNotEmpty) {
+                                                    .rebanhoLote!.isEmpty) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                      content: const Text(
+                                                          'O lote selecionado não possui matrizes ativas.'),
+                                                      backgroundColor:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .error,
+                                                    ),
+                                                  );
+                                                  return;
+                                                } else {
                                                   _model.indexRebanhosLote = 0;
                                                   safeSetState(() {});
                                                   while (
@@ -4539,14 +4600,12 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                       await ReproducaoTable()
                                                           .insert({
                                                         'id_propriedade':
-                                                            FFAppState()
-                                                                .propriedadeSelecionada
-                                                                .idPropriedade,
+                                                            idPropriedade,
                                                         'tipo_reproducao':
                                                             _model
                                                                 .tipoReproducao,
-                                                        'id_lote': _model
-                                                            .dropDownLoteValue,
+                                                        'id_lote':
+                                                            idLoteSelecionado,
                                                         'data_inseminacao':
                                                             supaSerialize<
                                                                     DateTime>(
@@ -4637,14 +4696,8 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                                 _model
                                                                     .datePicked4),
                                                         'loteNome':
-                                                            containerLotesRowList
-                                                                .where((e) =>
-                                                                    e.idLote ==
-                                                                    _model
-                                                                        .dropDownLoteValue)
-                                                                .toList()
-                                                                .firstOrNull
-                                                                ?.nome,
+                                                            loteSelecionado
+                                                                .nome,
                                                         'id_rebanho_matriz': _model
                                                             .rebanhoLote
                                                             ?.elementAtOrNull(_model
@@ -4710,14 +4763,12 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                       await ReproducaoTable()
                                                           .insert({
                                                         'id_propriedade':
-                                                            FFAppState()
-                                                                .propriedadeSelecionada
-                                                                .idPropriedade,
+                                                            idPropriedade,
                                                         'tipo_reproducao':
                                                             _model
                                                                 .tipoReproducao,
-                                                        'id_lote': _model
-                                                            .dropDownLoteValue,
+                                                        'id_lote':
+                                                            idLoteSelecionado,
                                                         'status_reproducao': _model
                                                             .dropDownStatusValue,
                                                         'previsao_parto':
@@ -4789,14 +4840,8 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                                 _model
                                                                     .datePicked4),
                                                         'loteNome':
-                                                            containerLotesRowList
-                                                                .where((e) =>
-                                                                    e.idLote ==
-                                                                    _model
-                                                                        .dropDownLoteValue)
-                                                                .toList()
-                                                                .firstOrNull
-                                                                ?.nome,
+                                                            loteSelecionado
+                                                                .nome,
                                                         'racaReprodutor':
                                                             FFAppState()
                                                                 .reprodutorSelecionado
@@ -4839,8 +4884,14 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                     safeSetState(() {});
                                                   }
                                                 }
+                                                if (!context.mounted) {
+                                                  return;
+                                                }
                                                 await action_blocks
                                                     .countReproducoes(context);
+                                                if (!context.mounted) {
+                                                  return;
+                                                }
                                                 FFAppState().refreshReproducao =
                                                     true;
                                                 safeSetState(() {});
@@ -4959,8 +5010,7 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                       ?.clear();
                                                 });
 
-                                                FFAppState()
-                                                        .matrizSelecionada =
+                                                FFAppState().matrizSelecionada =
                                                     AnimalSelecionadoStruct();
                                                 FFAppState()
                                                         .reprodutorSelecionado =

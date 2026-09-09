@@ -43,3 +43,26 @@ Future<RebanhoRow?> buscarMatrizComLote({
   );
   return rows.firstOrNull;
 }
+
+List<RebanhoRow> filtrarMatrizesDoLoteParaReproducao({
+  required Iterable<RebanhoRow> rebanho,
+  required String idPropriedade,
+  required String idLote,
+}) {
+  final propriedade = nonEmptyString(idPropriedade);
+  final lote = nonEmptyString(idLote);
+  if (propriedade == null || lote == null) {
+    return [];
+  }
+
+  final idsAdicionados = <String>{};
+  return rebanho.where((animal) {
+    final idAnimal = nonEmptyString(animal.idRebanho);
+    return idAnimal != null &&
+        idsAdicionados.add(idAnimal) &&
+        nonEmptyString(animal.idPropriedade) == propriedade &&
+        nonEmptyString(animal.loteID) == lote &&
+        animal.sexo?.trim().toLowerCase() == 'fêmea' &&
+        animal.deletado?.trim().toUpperCase() != 'SIM';
+  }).toList();
+}
