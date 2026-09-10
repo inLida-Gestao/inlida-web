@@ -535,9 +535,25 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
     final fim = (i + tam < inserts.length) ? i + tam : inserts.length;
     await SupaFlow.client.from(table).insert(inserts.sublist(i, fim));
   }
-  for (var i = 0; i < updates.length; i += tam) {
-    final fim = (i + tam < updates.length) ? i + tam : updates.length;
-    await SupaFlow.client.from(table).upsert(updates.sublist(i, fim));
+  // Os updates vão agrupados por CONJUNTO DE COLUNAS, e não em lotes de 200 na
+  // ordem da planilha. Motivo: no upsert de lista o postgrest monta `columns=`
+  // com a UNIÃO das chaves do lote e manda `defaultToNull`, então uma linha sem
+  // Perimetro_Escrotal_PE viajando junto de outra com o campo preenchido
+  // gravaria nota_ce = NULL na primeira — apagando um valor que já estava no
+  // banco e que a planilha nem se propôs a mexer. Vale para todo campo
+  // opcional (nota_t, nota_ce, obs, peso). Com um lote por assinatura, o
+  // `columns=` fica igual às chaves que a linha realmente traz e o
+  // ON CONFLICT DO UPDATE não toca no resto.
+  final updatesPorColunas = <String, List<Map<String, dynamic>>>{};
+  for (final u in updates) {
+    final assinatura = (u.keys.toList()..sort()).join(',');
+    (updatesPorColunas[assinatura] ??= []).add(u);
+  }
+  for (final grupo in updatesPorColunas.values) {
+    for (var i = 0; i < grupo.length; i += tam) {
+      final fim = (i + tam < grupo.length) ? i + tam : grupo.length;
+      await SupaFlow.client.from(table).upsert(grupo.sublist(i, fim));
+    }
   }
 
   // Só depois de as avaliações gravarem com sucesso, alimenta o peso no
