@@ -224,6 +224,7 @@ Future<PaintExportStatus> exportPaintAvaliacaoExcel(
           exist?['nota_p'] ?? '',
           exist?['nota_m'] ?? '',
           exist?['nota_u'] ?? '',
+          exist?['nota_ce'] ?? '',
           exist?['obs'] ?? '',
           exist?['peso'] ?? r['pesoDesmama'] ?? '',
         ]);

@@ -388,6 +388,7 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       payload['nota_p'] = p;
       payload['nota_m'] = m;
       payload['nota_u'] = u;
+      _lerPerimetroEscrotal(row, idx, linha, payload, erros);
       final obs = normalizarAnotacao(_cel(row, idx('anotacao')));
       if (obs != null) payload['obs'] = obs;
       final pesoRaw = _celValue(row, idx('peso_kg'));
@@ -426,8 +427,7 @@ Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
       payload['nota_m'] = m;
       payload['nota_u'] = u;
       if (temp != null) payload['nota_t'] = temp;
-      final pe = parseNota(_celNum(row, idx('perimetro_escrotal_pe')));
-      if (pe != null) payload['nota_ce'] = pe;
+      _lerPerimetroEscrotal(row, idx, linha, payload, erros);
       final obs = normalizarAnotacao(_cel(row, idx('anotacao')));
       if (obs != null) payload['obs'] = obs;
       final pesoRaw = _celValue(row, idx('peso_kg'));
@@ -710,6 +710,45 @@ Future<void> _emLotesConcorrentes<T>(
   }
 }
 
+/// Lê `Perimetro_Escrotal_PE` para `nota_ce` (desmama e sobreano).
+///
+/// O nome da coluna engana: CE é MEDIDA em centímetros, não nota de 1 a 5. Até
+/// 10/09/2026 esta leitura passava por `parseNota`, que devolve null fora de
+/// 1..5 — ou seja, jogava fora em silêncio praticamente todo CE real (o rebanho
+/// da Cachoeira vai de 15 a 39 cm) e o campo saía vazio no TXT. Por isso aqui
+/// não há `parseNota`: vale qualquer número que caiba em numeric(4,2), e valor
+/// preenchido que não caiba vira aviso em vez de sumir.
+void _lerPerimetroEscrotal(
+  List<dynamic> row,
+  int Function(String) idx,
+  int linha,
+  Map<String, dynamic> payload,
+  List<Map<String, dynamic>> erros,
+) {
+  final coluna = idx('perimetro_escrotal_pe');
+  final bruto = _celValue(row, coluna);
+  final pe = _celNum(row, coluna);
+  if (pe != null && pe > 0 && pe < 100) {
+    payload['nota_ce'] = pe.toDouble();
+    if (pe < 10) {
+      erros.add({
+        'linha': linha,
+        'motivo': 'Aviso: Perimetro_Escrotal_PE = $pe — importado assim mesmo, '
+            'mas confira: o valor é a medida em cm (ex.: 32), não uma nota.',
+      });
+    }
+    return;
+  }
+  if (!_isBlankValue(bruto)) {
+    erros.add({
+      'linha': linha,
+      'motivo': 'Aviso: Perimetro_Escrotal_PE inválido ("$bruto") — avaliação '
+          'importada, mas sem o perímetro escrotal. Use a medida em cm '
+          '(ex.: 32).',
+    });
+  }
+}
+
 List<int> _technicalIndexesFor(String tipo, int Function(String) idx) {
   if (tipo == 'matrizes') {
     return [
@@ -725,6 +764,7 @@ List<int> _technicalIndexesFor(String tipo, int Function(String) idx) {
       idx('precocidade_p'),
       idx('musculatura_m'),
       idx('umbigo_u'),
+      idx('perimetro_escrotal_pe'),
       idx('anotacao'),
     ];
   }

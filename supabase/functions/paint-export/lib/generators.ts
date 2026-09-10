@@ -1102,7 +1102,10 @@ async function genDesmama(ctx: ExportContext): Promise<string> {
     dsm_nota_u: formatNumeric(r.nota_u, 8, 2),
     dsm_situacao_desclassifica1: r.situacao_desclass1 ?? "",
     dsm_situacao_desclassifica2: r.situacao_desclass2 ?? "",
-    dsm_nota_ce: "", // só sobreano
+    // Perímetro escrotal em cm. Fica em branco quando ninguém mediu na
+    // desmama — que era o estado de 100% das linhas até 10/09/2026, quando a
+    // coluna passou a existir na tabela e na planilha.
+    dsm_nota_ce: formatNumeric(r.nota_ce, 8, 2),
     dsm_nota_a: "",
     dsm_regime_alimentar_animal: r.regime_alimentar_codigo ?? "",
     dsm_grupo_manejo: grupoManejoAvaliacao(r),

@@ -610,6 +610,7 @@ const desmamaHeaders = [
   'Precocidade_P',
   'Musculatura_M',
   'Umbigo_U',
+  'Perimetro_Escrotal_PE',
   'Anotacao',
   'Peso_kg',
 ];

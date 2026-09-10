@@ -194,9 +194,35 @@ export function validateRebanho(
     const id = String(r.idRebanho ?? "").trim();
     if (id) rebanhoPorId.set(id, r);
   }
+  // Pai/mãe cujo idRebanho não está no rebanho carregado: o animal foi apagado
+  // no inLida (que não propaga a exclusão para os filhos) ou está cadastrado em
+  // outra propriedade. Nos dois casos ele não entra no ANIMAL.TXT, então citar
+  // o A12 dele criaria referência a um animal não declarado — a exportação
+  // deixa o campo em branco de propósito. Aqui o aviso é por FILHO, e não por
+  // parente como no item acima: o parente sumiu da tela, quem a Gabi consegue
+  // achar e corrigir é o filho.
+  const parenteForaDoRebanho = item(
+    "ANIMAL",
+    "Pai/mãe apagado ou de outra propriedade (genealogia sai em branco)",
+  );
+  for (const r of rebanho) {
+    for (const [campo, rotulo] of [
+      ["rebanhoIdMatriz", "mãe"],
+      ["rebanhoIdReprodutor", "pai"],
+    ] as const) {
+      const id = String((r as Record<string, unknown>)[campo] ?? "").trim();
+      if (!id || rebanhoPorId.has(id)) continue;
+      add(
+        parenteForaDoRebanho,
+        `${r.numeroAnimal ?? r.idRebanho} — ${rotulo} não está mais no rebanho`,
+      );
+    }
+  }
+  if (parenteForaDoRebanho.qtd) avisos.push(parenteForaDoRebanho);
+
   for (const [id, filhos] of filhosPorParente) {
     const parente = rebanhoPorId.get(id);
-    // Pai fora do rebanho carregado (deletado) — não dá para avaliar aqui.
+    // Parente fora do rebanho carregado: tratado no aviso acima, por filho.
     if (!parente) continue;
     const a12 = a12Final(parente);
     if (a12) continue;
