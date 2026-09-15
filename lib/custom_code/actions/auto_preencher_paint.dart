@@ -513,12 +513,14 @@ Future<Map<String, dynamic>> autoPreencherPaint(
           if (safrasExistentes.contains(cod)) continue;
           final ano = int.tryParse(cod.substring(0, cod.length - 1));
           if (ano == null) continue;
+          // O código nomeia a safra pelo ano em que ela TERMINA (2026P =
+          // 01/06/2025 a 31/05/2026), mesma convenção de derivaSafraCodigo.
           novasSafras.add({
             'id_propriedade': idPropriedade,
             'codigo': cod,
             'descricao': 'Safra $cod',
-            'data_inicio': '$ano-06-01',
-            'data_final': '${ano + 1}-05-31',
+            'data_inicio': '${ano - 1}-06-01',
+            'data_final': '$ano-05-31',
             'concluida': false,
           });
         }

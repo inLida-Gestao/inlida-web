@@ -1,0 +1,52 @@
+-- Safra passa a ser nomeada pelo ano em que TERMINA.
+--
+-- A safra reprodutiva vai de 01/06 a 31/05. O código usava o ano de INÍCIO
+-- (uma cobertura de julho/2025 virava "2025P"), mas o PAINT nomeia pelo ano de
+-- FIM: 2026P = 01/06/2025 a 31/05/2026. A cliente corrigiu o cadastro de
+-- safras à mão para conseguir mandar os TXT, e com isso o banco e o código
+-- ficaram provadamente inconsistentes: a janela de 2025P no cadastro
+-- (01/06/2024 a 31/05/2025) não contém julho/2025, que o código carimbava
+-- como 2025P.
+--
+-- Corrigido em derivaSafraCodigo (Dart e TypeScript) e na criação automática
+-- de safras do auto_preencher_paint. Isso resolve os campos CALCULADOS na
+-- exportação — cob_safra_id, nas_safra_id e pes_safra_id.
+--
+-- ---------------------------------------------------------------------------
+-- BACKFILL — NÃO aplicado nesta migration.
+--
+-- `paint_diagnostico.safra_codigo` é GRAVADO, não calculado na exportação, e
+-- todas as linhas estão na convenção antiga. Sem o backfill, DIAGNOSTICO.TXT
+-- continua um ano atrás dos outros arquivos. Medido em 15/09/2026, só a
+-- Cachoeira tem config PAINT:
+--
+--   2014P->2015P      4      2021P->2022P   1.411
+--   2017P->2018P     87      2022P->2023P   1.200
+--   2018P->2019P    730      2023P->2024P   1.418
+--   2019P->2020P  1.084      2024P->2025P   1.433
+--   2020P->2021P  1.577      2025P->2026P   1.060
+--                            2026P->2027P     316
+--   total: 10.320 linhas
+--
+-- Todas as safras de destino já existem no cadastro, MENOS 2027P, que precisa
+-- ser criada antes (01/06/2026 a 31/05/2027).
+--
+-- Fica de fora porque é escrita em lote em produção e porque a convenção vem
+-- da palavra da cliente, não de documento — confirmar com ela antes. O comando:
+--
+--   insert into public.paint_safra
+--     (id_propriedade, codigo, descricao, data_inicio, data_final, concluida)
+--   values ('u7chcvxq1cxzss762oyi','2027P','Safra 2027P',
+--           '2026-06-01','2027-05-31', false)
+--   on conflict (id_propriedade, codigo) do nothing;
+--
+--   update public.paint_diagnostico
+--      set safra_codigo = (case when extract(month from data) <= 5
+--                               then extract(year from data)
+--                               else extract(year from data) + 1 end)::int::text
+--                         || right(btrim(safra_codigo), 1)
+--    where id_propriedade = 'u7chcvxq1cxzss762oyi'
+--      and btrim(safra_codigo) <> '';
+--
+-- Rodar os dois na mesma transação: o update viola a FK de safra_codigo se
+-- 2027P não existir.

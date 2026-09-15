@@ -49,12 +49,35 @@ export function extractSerieRegistro(numero: unknown): string {
   return match ? match[1] : "";
 }
 
+// Valor que já é um A12 inteiro: programa(1) + série(4) + animal(5) + ano(2).
+// Exige alfanumérico ou espaço em tudo, para não confundir com registro de
+// associação ("CEIP 0189/23" também tem 12 chars e termina em 2 dígitos, mas a
+// barra denuncia que não é A12).
+const A12_INTEIRO = /^[A-Z][A-Z0-9 ]{9}[0-9]{2}$/;
+
+// Série lida POSICIONALMENTE de um campo que já guarda o A12 inteiro.
+//
+// Só vale para `codRegistro`. `numeroAnimal` é brinco de manejo, texto livre, e
+// cai no formato por coincidência — "IP B6553 F19" e "PO BONY 2455" têm 12
+// chars e terminam em 2 dígitos, e a leitura posicional devolveria "P B6" e
+// "O BO".
+export function serieDeA12Inteiro(valor: unknown): string {
+  const raw = asText(valor).toUpperCase();
+  if (!raw || raw.length > 12) return "";
+  const p = raw.padEnd(12, " ");
+  if (!A12_INTEIRO.test(p)) return "";
+  return p.slice(1, 5).trim();
+}
+
 export function resolveSeriePoFromAnimal(animal: Record<string, unknown>): string {
-  for (const key of ["numeroAnimal", "codRegistro"] as const) {
-    const serie = extractSerieRegistro(animal[key]);
-    if (serie) return serie;
-  }
-  return "";
+  const doNumero = extractSerieRegistro(animal["numeroAnimal"]);
+  if (doNumero) return doNumero;
+  // O codRegistro dos PO da Cachoeira guarda o A12 inteiro ("PJLK 2251 26").
+  // Aí a primeira letra é o PROGRAMA, e a regex de sigla devolvia "PJLK",
+  // gerando o A12 "PPJLK2251 26" — programa duplicado.
+  const posicional = serieDeA12Inteiro(animal["codRegistro"]);
+  if (posicional) return posicional;
+  return extractSerieRegistro(animal["codRegistro"]);
 }
 
 export function resolveSerieA12(
@@ -328,7 +351,12 @@ export function derivaSafraCodigo(data: unknown, tag = "P"): string {
   if (isNaN(d.getTime())) return "";
   const m = d.getUTCMonth() + 1;
   const y = d.getUTCFullYear();
-  const safraAno = m <= 5 ? y - 1 : y;
+  // A safra vai de 01/06 a 31/05 e é nomeada pelo ano em que TERMINA, que é a
+  // convenção do PAINT: 2026P = 01/06/2025 a 31/05/2026. Até 15/09/2026 isto
+  // usava o ano de INÍCIO, e cob_safra_id / nas_safra_id / pes_safra_id
+  // apontavam para uma safra cuja janela não continha a data do próprio
+  // registro.
+  const safraAno = m <= 5 ? y : y + 1;
   return `${safraAno}${tag}`;
 }
 

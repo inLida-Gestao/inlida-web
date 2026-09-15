@@ -272,6 +272,7 @@ function identidadesForaDoAnimalTxt(
 ): { a12: Set<string>; digAno: Set<string> } {
   if (ctx.foraDoAnimalTxt) return ctx.foraDoAnimalTxt;
   const a12 = new Set<string>();
+  const a12Dentro = new Set<string>();
   const digAnoFora = new Set<string>();
   const digAnoDentro = new Set<string>();
   for (const r of ctx.rebanhoRows ?? []) {
@@ -279,18 +280,27 @@ function identidadesForaDoAnimalTxt(
     const dig = String(r.numeroAnimal ?? "").replace(/\D/g, "").slice(0, 5);
     const nasc = dateKeyIso(r.dataNascimento);
     const chave = dig && nasc ? `${dig}|${nasc.slice(2, 4)}` : "";
+    const a12Animal = (ctx.a12ByRebanhoId.get(idReb) ?? "").trim();
     if (racaNeloreOuPo(r.raca) && !statusForaDoAnimalTxt(r.status)) {
       if (chave) digAnoDentro.add(chave);
+      if (a12Animal) a12Dentro.add(a12Animal);
       continue;
     }
-    const a12Animal = (ctx.a12ByRebanhoId.get(idReb) ?? "").trim();
     if (a12Animal) a12.add(a12Animal);
     if (chave) digAnoFora.add(chave);
   }
-  // Chave disputada (ex.: Girolando "3991 G" e Nelore "3991", mesmo ano): NÃO
-  // exclui pela chave — só o A12 exato decide, senão derrubaríamos o registro
-  // do animal elegível junto.
+  // Identidade disputada (ex.: Girolando "3991 G" e Nelore "3991", mesmo ano):
+  // NÃO exclui, senão derrubaríamos o registro do animal elegível junto.
+  //
+  // Vale para as DUAS chaves. O A12 também colide, e com mais frequência do
+  // que parece: a sigla não entra no campo Animal, então "1796 G" (Girolando,
+  // fora da propriedade) e "1796" (Nelore, na propriedade) nascidos no mesmo
+  // ano geram o MESMO "P460 1796 22". Sem esta subtração, a avaliação do
+  // Nelore era descartada por causa do Girolando — 148 linhas na Cachoeira,
+  // espalhadas por desmama, sobreano, matrizes, composição racial, diagnóstico
+  // e baixa.
   for (const k of digAnoDentro) digAnoFora.delete(k);
+  for (const a of a12Dentro) a12.delete(a);
   ctx.foraDoAnimalTxt = { a12, digAno: digAnoFora };
   return ctx.foraDoAnimalTxt;
 }

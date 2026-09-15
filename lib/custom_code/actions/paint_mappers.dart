@@ -33,13 +33,36 @@ String extractSerieRegistro(dynamic numero) {
   return match?.group(1) ?? '';
 }
 
+/// Valor que já é um A12 inteiro: programa(1) + série(4) + animal(5) + ano(2).
+/// Exige alfanumérico ou espaço em tudo, para não confundir com registro de
+/// associação ("CEIP 0189/23" também tem 12 chars e termina em 2 dígitos, mas
+/// a barra denuncia que não é A12).
+final _a12Inteiro = RegExp(r'^[A-Z][A-Z0-9 ]{9}[0-9]{2}$');
+
+/// Série lida POSICIONALMENTE de um campo que já guarda o A12 inteiro.
+///
+/// Só vale para `codRegistro`. `numeroAnimal` é brinco de manejo, texto livre,
+/// e cai no formato por coincidência — "IP B6553 F19" e "PO BONY 2455" têm 12
+/// chars e terminam em 2 dígitos, e leitura posicional devolveria "P B6" e
+/// "O BO".
+String serieDeA12Inteiro(dynamic valor) {
+  final raw = (valor ?? '').toString().trim().toUpperCase();
+  if (raw.isEmpty || raw.length > 12) return '';
+  final p = raw.padRight(12, ' ');
+  if (!_a12Inteiro.hasMatch(p)) return '';
+  return p.substring(1, 5).trim();
+}
+
 /// Série PO inferida dos dados do animal (numeroAnimal, depois codRegistro).
 String resolveSeriePoFromAnimal(Map<String, dynamic> animal) {
-  for (final field in ['numeroAnimal', 'codRegistro']) {
-    final serie = extractSerieRegistro(animal[field]);
-    if (serie.isNotEmpty) return serie;
-  }
-  return '';
+  final doNumero = extractSerieRegistro(animal['numeroAnimal']);
+  if (doNumero.isNotEmpty) return doNumero;
+  // O codRegistro dos PO da Cachoeira guarda o A12 inteiro ("PJLK 2251 26").
+  // Aí a primeira letra é o PROGRAMA, e a regex de sigla devolvia "PJLK",
+  // gerando o A12 "PPJLK2251 26" — programa duplicado.
+  final posicional = serieDeA12Inteiro(animal['codRegistro']);
+  if (posicional.isNotEmpty) return posicional;
+  return extractSerieRegistro(animal['codRegistro']);
 }
 
 /// Série usada no A12. PO: animal → config (serieRacaPo) → série fazenda;
@@ -199,6 +222,10 @@ String derivaSafraCodigo(dynamic data, {String tag = 'P'}) {
     d = DateTime.tryParse(data.toString());
   }
   if (d == null) return '';
-  final safraAno = d.month <= 5 ? d.year - 1 : d.year;
+  // A safra vai de 01/06 a 31/05 e é nomeada pelo ano em que TERMINA, que é a
+  // convenção do PAINT: 2026P = 01/06/2025 a 31/05/2026. Até 15/09/2026 isto
+  // usava o ano de INÍCIO, e ficava um ano atrás do cadastro de safras — a
+  // cliente corrigiu a tabela à mão para poder mandar os TXT.
+  final safraAno = d.month <= 5 ? d.year : d.year + 1;
   return '$safraAno$tag';
 }
