@@ -7,6 +7,7 @@ import '/flutter_flow/form_field_controller.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/pg_rebanho/categoria_rebanho_utils.dart';
+import '/pg_rebanho/origem_compra_utils.dart';
 import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
 import 'package:flutter/material.dart';
@@ -3947,10 +3948,19 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                                       null),
                                               options:
                                                   FFAppState().origemRebanho,
-                                              onChanged: (val) => safeSetState(
-                                                  () => _model
-                                                          .dropDownOrigemValue =
-                                                      val),
+                                              onChanged: (val) =>
+                                                  safeSetState(() {
+                                                _model.dropDownOrigemValue =
+                                                    val;
+                                                if (!origemPermiteDadosCompra(
+                                                    val)) {
+                                                  _model.datePicked5 = null;
+                                                  _model.dataAcaoTextController
+                                                      ?.clear();
+                                                  FFAppState().valueDouble =
+                                                      0.0;
+                                                }
+                                              }),
                                               height: 56.0,
                                               textStyle: FlutterFlowTheme.of(
                                                       context)
@@ -4869,9 +4879,16 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                     .firstOrNull
                                     ?.nome,
                                 'tipo': 'animal',
-                                'dataAcao':
-                                    supaSerialize<DateTime>(_model.datePicked5),
-                                'valorCompra': FFAppState().valueDouble,
+                                'dataAcao': supaSerialize<DateTime>(
+                                  normalizarDataCompra(
+                                    _model.dropDownOrigemValue,
+                                    _model.datePicked5,
+                                  ),
+                                ),
+                                'valorCompra': normalizarValorCompra(
+                                  _model.dropDownOrigemValue,
+                                  FFAppState().valueDouble,
+                                ),
                                 'dataUltimaPesagem': null,
                                 'nomeConcat':
                                     '${_model.numAnimalTextController.text} • ${_model.nomeAnimalTextController.text} • ${dateTimeFormat(
