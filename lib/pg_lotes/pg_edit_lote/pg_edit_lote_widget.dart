@@ -10,10 +10,12 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/pg_rebanho/pp_filtro_rebanho/pp_filtro_rebanho_widget.dart';
+import '/pg_lotes/data/lote_repository.dart';
+import '/pg_lotes/lote_assignment_utils.dart';
+import '/pg_lotes/lote_ordenacao.dart';
+import '/pg_lotes/pp_ordenar_rebanho/pp_ordenar_rebanho_widget.dart';
 import 'dart:async';
 import '/actions/actions.dart' as action_blocks;
-import '/custom_code/actions/remover_animal_de_lote_anterior.dart'
-    show removerAnimalDeLoteAnterior;
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
@@ -54,11 +56,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
   bool _rebanhoLoteAtivo(RebanhoRow row) =>
       row.deletado?.trim().toUpperCase() != 'SIM';
 
-  bool _loteIdAusenteOuInvalido(String? value) {
-    final normalized = value?.trim().toLowerCase();
-    return normalized == null || normalized.isEmpty || normalized == 'null';
-  }
-
   @override
   void initState() {
     super.initState();
@@ -90,6 +87,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
         _model.addToAnimaisSelecionados(struct);
         _model.addToAnimaisDentroLote(struct);
       }
+      _model.composicaoInicialIds = loteAnimalIds(animaisStructs);
       safeSetState(() {});
 
       _model.disposeRefreshListener =
@@ -120,8 +118,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
-  /// Alinhado a [PgViewLoteWidget._loadAnimaisDoLote].
-  /// Carrega animais pelo vínculo atual. loteNome é fallback só para legado sem loteID.
+  /// Carrega animais pelo vínculo canônico em rebanho.loteID.
   Future<List<RebanhoDTStruct>> _loadAnimaisDoLoteParaEdicao() async {
     if (widget.idLote == null || widget.idLote!.isEmpty) return [];
     final lote = _model.loteEdit?.firstOrNull;
@@ -148,31 +145,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
     );
     for (final row in byLoteID) {
       addIfNew(row);
-    }
-
-    final nomeLote = lote.nome;
-    if (nomeLote != null && nomeLote.trim().isNotEmpty) {
-      final byLoteNome = await RebanhoTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('loteNome', nomeLote.trim())
-            .eqOrNull('idPropriedade', idPropriedadeLote),
-        limit: 10000,
-      );
-      for (final row in byLoteNome) {
-        if (_loteIdAusenteOuInvalido(row.loteID)) {
-          addIfNew(row);
-        }
-      }
-
-      final byLoteIDAsName = await RebanhoTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('loteID', nomeLote.trim())
-            .eqOrNull('idPropriedade', idPropriedadeLote),
-        limit: 10000,
-      );
-      for (final row in byLoteIDAsName) {
-        addIfNew(row);
-      }
     }
 
     return list;
@@ -248,11 +220,15 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
               pOrigem: FFAppState().filtroOrigem,
               pRaca: FFAppState().filtroRaca,
               pSexo: FFAppState().filtroSexo,
-              pStatus: 'Na propriedade',
+              pStatus: FFAppState().filtroStatusRebanho.isEmpty
+                  ? 'Na propriedade'
+                  : FFAppState().filtroStatusRebanho,
               pLimite: FFAppConstants.limit,
               pOffset: functions.calcDeslocamento(
                   _model.pageNumAdd, FFAppConstants.limit),
               pPesquisa: _model.pesquisaTextController.text,
+              pOrdenar: _model.ordenarFora,
+              pAsc: _model.ordenarForaAsc,
             )))
           .future,
       builder: (context, snapshot) {
@@ -398,6 +374,8 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                           FFAppConstants.limit),
                                       pPesquisa:
                                           _model.pesquisaTextController.text,
+                                      pOrdenar: _model.ordenarFora,
+                                      pAsc: _model.ordenarForaAsc,
                                     ),
                                     builder: (context, snapshot) {
                                       // Customize what your widget looks like when it's loading.
@@ -1487,7 +1465,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             Container(
                                                                               child: Builder(
                                                                                 builder: (context) {
-                                                                                  final animais = _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimentoDe == null) && (_model.filtroRightDataNacimentoAte == null) && (_model.filtroRightLoteNome == '')) || ((e.numeroAnimal.contains(_model.pesquisaDentroTextController.text) || e.nome.toLowerCase().contains(_model.pesquisaDentroTextController.text.toLowerCase()) || e.chip.contains(_model.pesquisaDentroTextController.text)) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimentoDe == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isBefore(_model.filtroRightDataNacimentoDe!))) && ((_model.filtroRightDataNacimentoAte == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isAfter(_model.filtroRightDataNacimentoAte!))) && ((_model.filtroRightLoteNome == '') || (e.loteNome == _model.filtroRightLoteNome)))).toList().take(4).toList();
+                                                                                  final animais = ordenarAnimaisLote(_model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimentoDe == null) && (_model.filtroRightDataNacimentoAte == null) && (_model.filtroRightLoteNome == '')) || ((e.numeroAnimal.contains(_model.pesquisaDentroTextController.text) || e.nome.toLowerCase().contains(_model.pesquisaDentroTextController.text.toLowerCase()) || e.chip.contains(_model.pesquisaDentroTextController.text)) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimentoDe == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isBefore(_model.filtroRightDataNacimentoDe!))) && ((_model.filtroRightDataNacimentoAte == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isAfter(_model.filtroRightDataNacimentoAte!))) && ((_model.filtroRightLoteNome == '') || (e.loteNome == _model.filtroRightLoteNome)))).toList(), _model.ordenarDentro, _model.ordenarDentroAsc).take(4).toList();
 
                                                                                   return ListView.builder(
                                                                                     padding: EdgeInsets.zero,
@@ -1852,58 +1830,125 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                 ),
                                                                               ),
                                                                             ),
-                                                                            Builder(
-                                                                              builder: (context) => FFButtonWidget(
-                                                                                onPressed: () async {
-                                                                                  await showDialog(
-                                                                                    context: context,
-                                                                                    builder: (dialogContext) {
-                                                                                      return Dialog(
-                                                                                        elevation: 0,
-                                                                                        insetPadding: EdgeInsets.zero,
-                                                                                        backgroundColor: Colors.transparent,
-                                                                                        alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
-                                                                                        child: GestureDetector(
-                                                                                          onTap: () {
-                                                                                            FocusScope.of(dialogContext).unfocus();
-                                                                                            FocusManager.instance.primaryFocus?.unfocus();
-                                                                                          },
-                                                                                          child: const PpFiltroRebanhoWidget(),
-                                                                                        ),
+                                                                            Row(
+                                                                              mainAxisSize: MainAxisSize.min,
+                                                                              children: [
+                                                                                Builder(
+                                                                                  builder: (context) => FFButtonWidget(
+                                                                                    onPressed: () async {
+                                                                                      await showDialog(
+                                                                                        context: context,
+                                                                                        builder: (dialogContext) {
+                                                                                          return Dialog(
+                                                                                            elevation: 0,
+                                                                                            insetPadding: EdgeInsets.zero,
+                                                                                            backgroundColor: Colors.transparent,
+                                                                                            alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
+                                                                                            child: GestureDetector(
+                                                                                              onTap: () {
+                                                                                                FocusScope.of(dialogContext).unfocus();
+                                                                                                FocusManager.instance.primaryFocus?.unfocus();
+                                                                                              },
+                                                                                              child: const PpFiltroRebanhoWidget(),
+                                                                                            ),
+                                                                                          );
+                                                                                        },
                                                                                       );
+                                                                                      _model.pageNumAdd = 1;
+                                                                                      safeSetState(() => _model.apiRequestCompleter = null);
                                                                                     },
-                                                                                  );
-                                                                                  _model.pageNumAdd = 1;
-                                                                                  safeSetState(() => _model.apiRequestCompleter = null);
-                                                                                },
-                                                                                text: 'Filtrar',
-                                                                                icon: const Icon(
-                                                                                  Icons.filter_list,
-                                                                                  size: 15.0,
-                                                                                ),
-                                                                                options: FFButtonOptions(
-                                                                                  height: 40.0,
-                                                                                  padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                                                                                  iconAlignment: IconAlignment.end,
-                                                                                  iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                                                                                  color: const Color(0x0028A365),
-                                                                                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                                                                                        font: GoogleFonts.poppins(
-                                                                                          fontWeight: FontWeight.w500,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                                                                                        ),
-                                                                                        color: FlutterFlowTheme.of(context).icon,
-                                                                                        letterSpacing: 0.0,
-                                                                                        fontWeight: FontWeight.w500,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                    text: 'Filtrar',
+                                                                                    icon: const Icon(
+                                                                                      Icons.filter_list,
+                                                                                      size: 15.0,
+                                                                                    ),
+                                                                                    options: FFButtonOptions(
+                                                                                      height: 40.0,
+                                                                                      padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                                                      iconAlignment: IconAlignment.end,
+                                                                                      iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                                                                      color: const Color(0x0028A365),
+                                                                                      textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w500,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                            ),
+                                                                                            color: FlutterFlowTheme.of(context).icon,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w500,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                          ),
+                                                                                      elevation: 0.0,
+                                                                                      borderSide: BorderSide(
+                                                                                        color: FlutterFlowTheme.of(context).customColor12,
                                                                                       ),
-                                                                                  elevation: 0.0,
-                                                                                  borderSide: BorderSide(
-                                                                                    color: FlutterFlowTheme.of(context).customColor12,
+                                                                                      borderRadius: BorderRadius.circular(100.0),
+                                                                                    ),
                                                                                   ),
-                                                                                  borderRadius: BorderRadius.circular(100.0),
                                                                                 ),
-                                                                              ),
+                                                                                const SizedBox(width: 8.0),
+                                                                                Builder(
+                                                                                  builder: (context) => FFButtonWidget(
+                                                                                    onPressed: () async {
+                                                                                      final resultado = await showDialog<OrdenacaoLote>(
+                                                                                        context: context,
+                                                                                        builder: (dialogContext) {
+                                                                                          return Dialog(
+                                                                                            elevation: 0,
+                                                                                            insetPadding: EdgeInsets.zero,
+                                                                                            backgroundColor: Colors.transparent,
+                                                                                            alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
+                                                                                            child: GestureDetector(
+                                                                                              onTap: () {
+                                                                                                FocusScope.of(dialogContext).unfocus();
+                                                                                                FocusManager.instance.primaryFocus?.unfocus();
+                                                                                              },
+                                                                                              child: PpOrdenarRebanhoWidget(
+                                                                                                campoAtual: _model.ordenarFora,
+                                                                                                ascAtual: _model.ordenarForaAsc,
+                                                                                              ),
+                                                                                            ),
+                                                                                          );
+                                                                                        },
+                                                                                      );
+                                                                                      if (resultado == null) {
+                                                                                        return;
+                                                                                      }
+                                                                                      _model.ordenarFora = resultado.campo;
+                                                                                      _model.ordenarForaAsc = resultado.asc;
+                                                                                      _model.pageNumAdd = 1;
+                                                                                      safeSetState(() => _model.apiRequestCompleter = null);
+                                                                                    },
+                                                                                    text: rotuloOrdenacao(_model.ordenarFora, _model.ordenarForaAsc),
+                                                                                    icon: const Icon(
+                                                                                      Icons.sort,
+                                                                                      size: 15.0,
+                                                                                    ),
+                                                                                    options: FFButtonOptions(
+                                                                                      height: 40.0,
+                                                                                      padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                                                      iconAlignment: IconAlignment.end,
+                                                                                      iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                                                                      color: const Color(0x0028A365),
+                                                                                      textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w500,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                            ),
+                                                                                            color: FlutterFlowTheme.of(context).icon,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w500,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                          ),
+                                                                                      elevation: 0.0,
+                                                                                      borderSide: BorderSide(
+                                                                                        color: FlutterFlowTheme.of(context).customColor12,
+                                                                                      ),
+                                                                                      borderRadius: BorderRadius.circular(100.0),
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ],
                                                                             ),
                                                                             Divider(
                                                                               height: 0.0,
@@ -2015,7 +2060,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                     onChanged: (newValue) async {
                                                                                       safeSetState(() => _model.checkboxValue = newValue!);
                                                                                       if (newValue!) {
-                                                                                        final todosAnimais = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') && (e.status != 'Fora da propriedade')).where((e) => !(_model.animaisDentroLote.where((d) => d.idRebanho == e.idRebanho).toList().isNotEmpty)).toList();
+                                                                                        final todosAnimais = filtrarAnimaisSelecionaveisParaLote((containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls, statusFiltro: FFAppState().filtroStatusRebanho).where((e) => !(_model.animaisDentroLote.where((d) => d.idRebanho == e.idRebanho).toList().isNotEmpty)).toList();
                                                                                         for (final item in todosAnimais) {
                                                                                           if (!_model.animaisSelecionados.contains(item)) {
                                                                                             _model.addToAnimaisSelecionados(item);
@@ -2023,7 +2068,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                         }
                                                                                         safeSetState(() {});
                                                                                       } else {
-                                                                                        final todosAnimais = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') && (e.status != 'Fora da propriedade')).toList();
+                                                                                        final todosAnimais = filtrarAnimaisSelecionaveisParaLote((containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls, statusFiltro: FFAppState().filtroStatusRebanho);
                                                                                         for (final item in todosAnimais) {
                                                                                           _model.removeFromAnimaisSelecionados(item);
                                                                                         }
@@ -2055,7 +2100,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             Flexible(
                                                                               child: Builder(
                                                                                 builder: (context) {
-                                                                                  final animais = (containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls.where((e) => (e.status != 'Sêmen') || (e.status != 'Fora da propriedade')).toList().toList();
+                                                                                  final animais = filtrarAnimaisSelecionaveisParaLote((containerAnimaisForaBuscarRebanhoFiltrosResponse.jsonBody.toList().map<RebanhoDTStruct?>(RebanhoDTStruct.maybeFromMap).toList() as Iterable<RebanhoDTStruct?>).withoutNulls, statusFiltro: FFAppState().filtroStatusRebanho);
 
                                                                                   return ListView.builder(
                                                                                     padding: EdgeInsets.zero,
@@ -2593,12 +2638,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             return;
                                                                           }
 
-                                                                          final idProp = FFAppState()
-                                                                              .propriedadeSelecionada
-                                                                              .idPropriedade;
-                                                                          final destNome = _model.nomeLoteTextController.text.trim().isNotEmpty
-                                                                              ? _model.nomeLoteTextController.text.trim()
-                                                                              : (containerLotesRow?.nome ?? widget.loteNome ?? '').trim();
                                                                           final destId =
                                                                               (containerLotesRow?.idLote ?? widget.idLote ?? '').trim();
 
@@ -2606,7 +2645,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                               .animaisSelecionados
                                                                               .where((a) => functions.animalEstaEmOutroLote(
                                                                                     a,
-                                                                                    nomeLoteDestino: destNome.isEmpty ? null : destNome,
                                                                                     idLoteDestino: destId.isEmpty ? null : destId,
                                                                                   ))
                                                                               .toList();
@@ -2626,7 +2664,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                       title: const Text('Animal em outro lote'),
                                                                                       content: SingleChildScrollView(
                                                                                         child: Text(
-                                                                                          'Os animais abaixo já estão cadastrados em outro lote:\n\n$linhas\n\nDeseja removê-los do lote anterior para adicionar a este lote?',
+                                                                                          'Os animais abaixo já estão cadastrados em outro lote:\n\n$linhas\n\nEles serão movidos ao novo lote quando você salvar.',
                                                                                         ),
                                                                                       ),
                                                                                       actions: [
@@ -2646,16 +2684,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
 
                                                                             if (!aceitou) {
                                                                               return;
-                                                                            }
-
-                                                                            for (final a
-                                                                                in conflitos) {
-                                                                              await removerAnimalDeLoteAnterior(
-                                                                                idPropriedade: idProp,
-                                                                                idRebanho: a.idRebanho,
-                                                                                loteNomeHint: a.loteNome.trim().isNotEmpty && a.loteNome.trim().toLowerCase() != 'null' ? a.loteNome.trim() : null,
-                                                                                loteIdHint: a.loteID.trim().isNotEmpty && a.loteID.trim().toLowerCase() != 'null' ? a.loteID.trim() : null,
-                                                                              );
                                                                             }
                                                                           }
 
@@ -2877,97 +2905,163 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                 ),
                                                                               ),
                                                                             ),
-                                                                            Builder(
-                                                                              builder: (context) => FFButtonWidget(
-                                                                                onPressed: () async {
-                                                                                  // Save left-side global filter state
-                                                                                  final savedSexo = FFAppState().filtroSexo;
-                                                                                  final savedCategoria = FFAppState().filtroCategoria;
-                                                                                  final savedRaca = FFAppState().filtroRaca;
-                                                                                  final savedOrigem = FFAppState().filtroOrigem;
-                                                                                  final savedStatus = FFAppState().filtroStatusRebanho;
-                                                                                  final savedDataDe = FFAppState().filtroDataNacimentoDe;
-                                                                                  final savedDataAte = FFAppState().filtroDataNacimentoAte;
-                                                                                  final savedLoteId = FFAppState().filtroLoteId;
-                                                                                  final savedLoteNome = FFAppState().filtroLoteNome;
-                                                                                  // Pre-set global state with right-side values
-                                                                                  FFAppState().filtroSexo = _model.filtroRightSexo;
-                                                                                  FFAppState().filtroCategoria = _model.filtroRightCategoria;
-                                                                                  FFAppState().filtroRaca = _model.filtroRightRaca;
-                                                                                  FFAppState().filtroOrigem = _model.filtroRightOrigem;
-                                                                                  FFAppState().filtroStatusRebanho = _model.filtroRightStatusRebanho;
-                                                                                  FFAppState().filtroDataNacimentoDe = _model.filtroRightDataNacimentoDe;
-                                                                                  FFAppState().filtroDataNacimentoAte = _model.filtroRightDataNacimentoAte;
-                                                                                  FFAppState().filtroLoteId = _model.filtroRightLoteId;
-                                                                                  FFAppState().filtroLoteNome = _model.filtroRightLoteNome;
-                                                                                  await showDialog(
-                                                                                    context: context,
-                                                                                    builder: (dialogContext) {
-                                                                                      return Dialog(
-                                                                                        elevation: 0,
-                                                                                        insetPadding: EdgeInsets.zero,
-                                                                                        backgroundColor: Colors.transparent,
-                                                                                        alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
-                                                                                        child: GestureDetector(
-                                                                                          onTap: () {
-                                                                                            FocusScope.of(dialogContext).unfocus();
-                                                                                            FocusManager.instance.primaryFocus?.unfocus();
-                                                                                          },
-                                                                                          child: const PpFiltroRebanhoWidget(),
-                                                                                        ),
+                                                                            Row(
+                                                                              mainAxisSize: MainAxisSize.min,
+                                                                              children: [
+                                                                                Builder(
+                                                                                  builder: (context) => FFButtonWidget(
+                                                                                    onPressed: () async {
+                                                                                      // Save left-side global filter state
+                                                                                      final savedSexo = FFAppState().filtroSexo;
+                                                                                      final savedCategoria = FFAppState().filtroCategoria;
+                                                                                      final savedRaca = FFAppState().filtroRaca;
+                                                                                      final savedOrigem = FFAppState().filtroOrigem;
+                                                                                      final savedStatus = FFAppState().filtroStatusRebanho;
+                                                                                      final savedDataDe = FFAppState().filtroDataNacimentoDe;
+                                                                                      final savedDataAte = FFAppState().filtroDataNacimentoAte;
+                                                                                      final savedLoteId = FFAppState().filtroLoteId;
+                                                                                      final savedLoteNome = FFAppState().filtroLoteNome;
+                                                                                      // Pre-set global state with right-side values
+                                                                                      FFAppState().filtroSexo = _model.filtroRightSexo;
+                                                                                      FFAppState().filtroCategoria = _model.filtroRightCategoria;
+                                                                                      FFAppState().filtroRaca = _model.filtroRightRaca;
+                                                                                      FFAppState().filtroOrigem = _model.filtroRightOrigem;
+                                                                                      FFAppState().filtroStatusRebanho = _model.filtroRightStatusRebanho;
+                                                                                      FFAppState().filtroDataNacimentoDe = _model.filtroRightDataNacimentoDe;
+                                                                                      FFAppState().filtroDataNacimentoAte = _model.filtroRightDataNacimentoAte;
+                                                                                      FFAppState().filtroLoteId = _model.filtroRightLoteId;
+                                                                                      FFAppState().filtroLoteNome = _model.filtroRightLoteNome;
+                                                                                      await showDialog(
+                                                                                        context: context,
+                                                                                        builder: (dialogContext) {
+                                                                                          return Dialog(
+                                                                                            elevation: 0,
+                                                                                            insetPadding: EdgeInsets.zero,
+                                                                                            backgroundColor: Colors.transparent,
+                                                                                            alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
+                                                                                            child: GestureDetector(
+                                                                                              onTap: () {
+                                                                                                FocusScope.of(dialogContext).unfocus();
+                                                                                                FocusManager.instance.primaryFocus?.unfocus();
+                                                                                              },
+                                                                                              child: const PpFiltroRebanhoWidget(),
+                                                                                            ),
+                                                                                          );
+                                                                                        },
                                                                                       );
+                                                                                      // Capture new values into local right-side state
+                                                                                      _model.filtroRightSexo = FFAppState().filtroSexo;
+                                                                                      _model.filtroRightCategoria = FFAppState().filtroCategoria;
+                                                                                      _model.filtroRightRaca = FFAppState().filtroRaca;
+                                                                                      _model.filtroRightOrigem = FFAppState().filtroOrigem;
+                                                                                      _model.filtroRightStatusRebanho = FFAppState().filtroStatusRebanho;
+                                                                                      _model.filtroRightDataNacimentoDe = FFAppState().filtroDataNacimentoDe;
+                                                                                      _model.filtroRightDataNacimentoAte = FFAppState().filtroDataNacimentoAte;
+                                                                                      _model.filtroRightLoteId = FFAppState().filtroLoteId;
+                                                                                      _model.filtroRightLoteNome = FFAppState().filtroLoteNome;
+                                                                                      // Restore left-side global filter state
+                                                                                      FFAppState().filtroSexo = savedSexo;
+                                                                                      FFAppState().filtroCategoria = savedCategoria;
+                                                                                      FFAppState().filtroRaca = savedRaca;
+                                                                                      FFAppState().filtroOrigem = savedOrigem;
+                                                                                      FFAppState().filtroStatusRebanho = savedStatus;
+                                                                                      FFAppState().filtroDataNacimentoDe = savedDataDe;
+                                                                                      FFAppState().filtroDataNacimentoAte = savedDataAte;
+                                                                                      FFAppState().filtroLoteId = savedLoteId;
+                                                                                      FFAppState().filtroLoteNome = savedLoteNome;
+                                                                                      safeSetState(() {});
                                                                                     },
-                                                                                  );
-                                                                                  // Capture new values into local right-side state
-                                                                                  _model.filtroRightSexo = FFAppState().filtroSexo;
-                                                                                  _model.filtroRightCategoria = FFAppState().filtroCategoria;
-                                                                                  _model.filtroRightRaca = FFAppState().filtroRaca;
-                                                                                  _model.filtroRightOrigem = FFAppState().filtroOrigem;
-                                                                                  _model.filtroRightStatusRebanho = FFAppState().filtroStatusRebanho;
-                                                                                  _model.filtroRightDataNacimentoDe = FFAppState().filtroDataNacimentoDe;
-                                                                                  _model.filtroRightDataNacimentoAte = FFAppState().filtroDataNacimentoAte;
-                                                                                  _model.filtroRightLoteId = FFAppState().filtroLoteId;
-                                                                                  _model.filtroRightLoteNome = FFAppState().filtroLoteNome;
-                                                                                  // Restore left-side global filter state
-                                                                                  FFAppState().filtroSexo = savedSexo;
-                                                                                  FFAppState().filtroCategoria = savedCategoria;
-                                                                                  FFAppState().filtroRaca = savedRaca;
-                                                                                  FFAppState().filtroOrigem = savedOrigem;
-                                                                                  FFAppState().filtroStatusRebanho = savedStatus;
-                                                                                  FFAppState().filtroDataNacimentoDe = savedDataDe;
-                                                                                  FFAppState().filtroDataNacimentoAte = savedDataAte;
-                                                                                  FFAppState().filtroLoteId = savedLoteId;
-                                                                                  FFAppState().filtroLoteNome = savedLoteNome;
-                                                                                  safeSetState(() {});
-                                                                                },
-                                                                                text: 'Filtrar',
-                                                                                icon: const Icon(
-                                                                                  Icons.filter_list,
-                                                                                  size: 15.0,
-                                                                                ),
-                                                                                options: FFButtonOptions(
-                                                                                  height: 40.0,
-                                                                                  padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                                                                                  iconAlignment: IconAlignment.end,
-                                                                                  iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                                                                                  color: const Color(0x0028A365),
-                                                                                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                                                                                        font: GoogleFonts.poppins(
-                                                                                          fontWeight: FontWeight.w500,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
-                                                                                        ),
-                                                                                        color: FlutterFlowTheme.of(context).icon,
-                                                                                        letterSpacing: 0.0,
-                                                                                        fontWeight: FontWeight.w500,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                    text: 'Filtrar',
+                                                                                    icon: const Icon(
+                                                                                      Icons.filter_list,
+                                                                                      size: 15.0,
+                                                                                    ),
+                                                                                    options: FFButtonOptions(
+                                                                                      height: 40.0,
+                                                                                      padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                                                      iconAlignment: IconAlignment.end,
+                                                                                      iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                                                                      color: const Color(0x0028A365),
+                                                                                      textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w500,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                            ),
+                                                                                            color: FlutterFlowTheme.of(context).icon,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w500,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                          ),
+                                                                                      elevation: 0.0,
+                                                                                      borderSide: BorderSide(
+                                                                                        color: FlutterFlowTheme.of(context).customColor12,
                                                                                       ),
-                                                                                  elevation: 0.0,
-                                                                                  borderSide: BorderSide(
-                                                                                    color: FlutterFlowTheme.of(context).customColor12,
+                                                                                      borderRadius: BorderRadius.circular(100.0),
+                                                                                    ),
                                                                                   ),
-                                                                                  borderRadius: BorderRadius.circular(100.0),
                                                                                 ),
-                                                                              ),
+                                                                                const SizedBox(width: 8.0),
+                                                                                Builder(
+                                                                                  builder: (context) => FFButtonWidget(
+                                                                                    onPressed: () async {
+                                                                                      final resultado = await showDialog<OrdenacaoLote>(
+                                                                                        context: context,
+                                                                                        builder: (dialogContext) {
+                                                                                          return Dialog(
+                                                                                            elevation: 0,
+                                                                                            insetPadding: EdgeInsets.zero,
+                                                                                            backgroundColor: Colors.transparent,
+                                                                                            alignment: const AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
+                                                                                            child: GestureDetector(
+                                                                                              onTap: () {
+                                                                                                FocusScope.of(dialogContext).unfocus();
+                                                                                                FocusManager.instance.primaryFocus?.unfocus();
+                                                                                              },
+                                                                                              child: PpOrdenarRebanhoWidget(
+                                                                                                campoAtual: _model.ordenarDentro,
+                                                                                                ascAtual: _model.ordenarDentroAsc,
+                                                                                              ),
+                                                                                            ),
+                                                                                          );
+                                                                                        },
+                                                                                      );
+                                                                                      if (resultado == null) {
+                                                                                        return;
+                                                                                      }
+                                                                                      _model.ordenarDentro = resultado.campo;
+                                                                                      _model.ordenarDentroAsc = resultado.asc;
+                                                                                      safeSetState(() {});
+                                                                                    },
+                                                                                    text: rotuloOrdenacao(_model.ordenarDentro, _model.ordenarDentroAsc),
+                                                                                    icon: const Icon(
+                                                                                      Icons.sort,
+                                                                                      size: 15.0,
+                                                                                    ),
+                                                                                    options: FFButtonOptions(
+                                                                                      height: 40.0,
+                                                                                      padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                                                                                      iconAlignment: IconAlignment.end,
+                                                                                      iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                                                                      color: const Color(0x0028A365),
+                                                                                      textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                                            font: GoogleFonts.poppins(
+                                                                                              fontWeight: FontWeight.w500,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                            ),
+                                                                                            color: FlutterFlowTheme.of(context).icon,
+                                                                                            letterSpacing: 0.0,
+                                                                                            fontWeight: FontWeight.w500,
+                                                                                            fontStyle: FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                                          ),
+                                                                                      elevation: 0.0,
+                                                                                      borderSide: BorderSide(
+                                                                                        color: FlutterFlowTheme.of(context).customColor12,
+                                                                                      ),
+                                                                                      borderRadius: BorderRadius.circular(100.0),
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ],
                                                                             ),
                                                                             Divider(
                                                                               height: 0.0,
@@ -3090,7 +3184,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                         _model.index = 0;
                                                                                         safeSetState(() {});
                                                                                         while (_model.index < _model.animaisDentroLote.length) {
-                                                                                          if ((_model.animaisDentroLote.elementAtOrNull(_model.index)?.loteNome != null && _model.animaisDentroLote.elementAtOrNull(_model.index)?.loteNome != '') && (_model.animaisDentroLote.elementAtOrNull(_model.index)?.loteNome != 'null') && (_model.animaisDentroLote.elementAtOrNull(_model.index)?.loteNome == containerLotesRow?.nome)) {
+                                                                                          if (_model.animaisDentroLote.elementAtOrNull(_model.index)?.loteID.trim() == (containerLotesRow?.idLote ?? widget.idLote ?? '').trim()) {
                                                                                             _model.addToAnimaisRetiradosLote(_model.animaisDentroLote.elementAtOrNull(_model.index)!);
                                                                                             safeSetState(() {});
                                                                                           }
@@ -3131,7 +3225,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                             Flexible(
                                                                               child: Builder(
                                                                                 builder: (context) {
-                                                                                  final animais = _model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimentoDe == null) && (_model.filtroRightDataNacimentoAte == null) && (_model.filtroRightLoteNome == '')) || ((e.numeroAnimal.trim().toLowerCase().contains(_model.pesquisaDentroTextController.text.trim().toLowerCase())) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimentoDe == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isBefore(_model.filtroRightDataNacimentoDe!))) && ((_model.filtroRightDataNacimentoAte == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isAfter(_model.filtroRightDataNacimentoAte!))) && ((_model.filtroRightLoteNome == '') || (e.loteNome == _model.filtroRightLoteNome)))).toList().take(_model.mostrarAdicionados).toList();
+                                                                                  final animais = ordenarAnimaisLote(_model.animaisDentroLote.where((e) => ((_model.pesquisaDentroTextController.text == '') && (_model.filtroRightCategoria == '') && (_model.filtroRightSexo == '') && (_model.filtroRightRaca == '') && (_model.filtroRightOrigem == '') && (_model.filtroRightStatusRebanho == '') && (_model.filtroRightDataNacimentoDe == null) && (_model.filtroRightDataNacimentoAte == null) && (_model.filtroRightLoteNome == '')) || ((e.numeroAnimal.trim().toLowerCase().contains(_model.pesquisaDentroTextController.text.trim().toLowerCase())) && ((_model.filtroRightSexo == '') || (e.sexo == _model.filtroRightSexo)) && ((_model.filtroRightCategoria == '') || (e.categoria == _model.filtroRightCategoria)) && ((_model.filtroRightRaca == '') || (e.raca == _model.filtroRightRaca)) && ((_model.filtroRightOrigem == '') || (e.origem == _model.filtroRightOrigem)) && ((_model.filtroRightStatusRebanho == '') || (e.status == _model.filtroRightStatusRebanho)) && ((_model.filtroRightDataNacimentoDe == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isBefore(_model.filtroRightDataNacimentoDe!))) && ((_model.filtroRightDataNacimentoAte == null) || (functions.converterParaData(e.dataNascimento) != null && !functions.converterParaData(e.dataNascimento)!.isAfter(_model.filtroRightDataNacimentoAte!))) && ((_model.filtroRightLoteNome == '') || (e.loteNome == _model.filtroRightLoteNome)))).toList(), _model.ordenarDentro, _model.ordenarDentroAsc).take(_model.mostrarAdicionados).toList();
 
                                                                                   return ListView.builder(
                                                                                     padding: EdgeInsets.zero,
@@ -3174,7 +3268,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                                                                         ) ??
                                                                                                         false;
                                                                                                     if (confirmDialogResponse) {
-                                                                                                      if ((animaisItem.loteNome != '') && (animaisItem.loteNome != 'null') && (animaisItem.loteNome == containerLotesRow?.nome)) {
+                                                                                                      if (animaisItem.loteID.trim() == (containerLotesRow?.idLote ?? widget.idLote ?? '').trim()) {
                                                                                                         _model.addToAnimaisRetiradosLote(animaisItem);
                                                                                                         safeSetState(() {});
                                                                                                       }
@@ -3506,226 +3600,201 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                                                       ),
                                                       FFButtonWidget(
                                                         onPressed: () async {
-                                                          _model.index = 0;
-                                                          safeSetState(() {});
-                                                          // Primeiro remove do lote os animais retirados (para não incluí-los na atualização em massa)
-                                                          if (_model
-                                                              .animaisRetiradosLote
-                                                              .isNotEmpty) {
-                                                            while (_model
-                                                                    .index <
-                                                                _model
-                                                                    .animaisRetiradosLote
-                                                                    .length) {
-                                                              await RebanhoTable()
-                                                                  .update(
-                                                                data: {
-                                                                  'loteID':
-                                                                      'null',
-                                                                  'loteNome':
-                                                                      'null',
-                                                                  'updated_at':
-                                                                      supaSerialize<
-                                                                              DateTime>(
-                                                                          getCurrentTimestamp),
-                                                                },
-                                                                matchingRows:
-                                                                    (rows) => rows
-                                                                        .eqOrNull(
-                                                                  'idRebanho',
-                                                                  _model
-                                                                      .animaisRetiradosLote
-                                                                      .elementAtOrNull(
-                                                                          _model
-                                                                              .index)
-                                                                      ?.idRebanho,
-                                                                ),
-                                                              );
-                                                              _model.index =
-                                                                  _model.index +
-                                                                      1;
-                                                              safeSetState(
-                                                                  () {});
-                                                            }
-                                                            _model.index = 0;
-                                                            safeSetState(() {});
+                                                          if (_model.isSaving) {
+                                                            return;
                                                           }
-                                                          // Atualiza cada animal listado no lote (inclui os vindos de outro lote),
-                                                          // para que nome/status/venda fiquem consistentes ao salvar.
-                                                          final animaisRetiradosIds = _model
-                                                              .animaisRetiradosLote
-                                                              .map((e) => e
-                                                                  .idRebanho
-                                                                  .trim())
-                                                              .where((e) =>
-                                                                  e.isNotEmpty)
-                                                              .toSet();
-                                                          final animaisParaAtualizar =
-                                                              <RebanhoDTStruct>[];
-                                                          final animaisIdsSeen =
+                                                          final animaisRetiradosIds =
+                                                              normalizeLoteAnimalIds(
+                                                            _model
+                                                                .animaisRetiradosLote
+                                                                .map((animal) =>
+                                                                    animal
+                                                                        .idRebanho),
+                                                          ).toSet();
+                                                          final animaisIds =
                                                               <String>{};
-                                                          void addAnimalParaAtualizar(
-                                                              RebanhoDTStruct
-                                                                  animal) {
+                                                          for (final animal in [
+                                                            ..._model
+                                                                .animaisDentroLote,
+                                                            ..._model
+                                                                .animaisSelecionados,
+                                                          ]) {
                                                             final id = animal
                                                                 .idRebanho
                                                                 .trim();
-                                                            if (id.isEmpty ||
-                                                                animaisRetiradosIds
+                                                            if (id.isNotEmpty &&
+                                                                !animaisRetiradosIds
                                                                     .contains(
-                                                                        id) ||
-                                                                !animaisIdsSeen
-                                                                    .add(id)) {
-                                                              return;
+                                                                        id)) {
+                                                              animaisIds
+                                                                  .add(id);
                                                             }
-                                                            animaisParaAtualizar
-                                                                .add(animal);
                                                           }
 
-                                                          for (final animal
-                                                              in _model
-                                                                  .animaisDentroLote) {
-                                                            addAnimalParaAtualizar(
-                                                                animal);
-                                                          }
-                                                          final animaisCarregados =
-                                                              await _loadAnimaisDoLoteParaEdicao();
-                                                          for (final animal
-                                                              in animaisCarregados) {
-                                                            addAnimalParaAtualizar(
-                                                                animal);
-                                                          }
-
-                                                          final novoLoteNome = _model
+                                                          final idPropriedade =
+                                                              (containerLotesRow
+                                                                          ?.idPropriedade ??
+                                                                      FFAppState()
+                                                                          .propriedadeSelecionada
+                                                                          .idPropriedade)
+                                                                  .trim();
+                                                          final idLote =
+                                                              (containerLotesRow
+                                                                          ?.idLote ??
+                                                                      widget
+                                                                          .idLote ??
+                                                                      '')
+                                                                  .trim();
+                                                          final nomeLote = _model
                                                                   .nomeLoteTextController
                                                                   .text
+                                                                  .trim()
                                                                   .isNotEmpty
                                                               ? _model
                                                                   .nomeLoteTextController
                                                                   .text
-                                                              : containerLotesRow
-                                                                      ?.nome ??
-                                                                  widget
-                                                                      .loteNome;
-                                                          await SupaFlow.client
-                                                              .rpc(
-                                                            'salvar_lote_status_e_sincronizar_animais',
-                                                            params: {
-                                                              'p_id_propriedade':
-                                                                  containerLotesRow
-                                                                          ?.idPropriedade ??
-                                                                      FFAppState()
-                                                                          .propriedadeSelecionada
-                                                                          .idPropriedade,
-                                                              'p_id_lote':
-                                                                  containerLotesRow
-                                                                          ?.idLote ??
+                                                                  .trim()
+                                                              : (containerLotesRow
+                                                                          ?.nome ??
                                                                       widget
-                                                                          .idLote,
-                                                              'p_nome':
-                                                                  novoLoteNome,
-                                                              'p_anotacoes': _model
-                                                                          .anotacoesTextController
-                                                                          .text !=
-                                                                      ''
-                                                                  ? _model
-                                                                      .anotacoesTextController
-                                                                      .text
-                                                                  : _model
+                                                                          .loteNome ??
+                                                                      '')
+                                                                  .trim();
+                                                          final anotacoes = _model
+                                                                  .anotacoesTextController
+                                                                  .text
+                                                                  .trim()
+                                                                  .isNotEmpty
+                                                              ? _model
+                                                                  .anotacoesTextController
+                                                                  .text
+                                                                  .trim()
+                                                              : (_model
                                                                       .loteEdit
                                                                       ?.firstOrNull
-                                                                      ?.anotacoes,
-                                                              'p_ativo':
-                                                                  _model.switchValue ==
-                                                                          true
-                                                                      ? 'Ativo'
-                                                                      : 'Inativo',
-                                                              'p_motivo': _model
-                                                                          .switchValue ==
-                                                                      true
-                                                                  ? null
-                                                                  : _model
-                                                                          .motivoCleared
-                                                                      ? null
-                                                                      : (_model
-                                                                              .dropDownLotesValue ??
-                                                                          containerLotesRow
-                                                                              ?.motivo),
-                                                              'p_data_motivo': _model
-                                                                          .switchValue ==
-                                                                      true
-                                                                  ? null
-                                                                  : _model
-                                                                          .dataMotivoCleared
-                                                                      ? null
-                                                                      : supaSerialize<
-                                                                          DateTime>(_model
-                                                                              .datePicked ??
-                                                                          containerLotesRow
-                                                                              ?.dataMotivo),
-                                                              'p_valor_venda': _model
-                                                                          .switchValue ==
-                                                                      true
-                                                                  ? null
-                                                                  : FFAppState()
-                                                                      .valueDouble2,
-                                                              'p_id_animais': functions.converterListaParaJSON(animaisParaAtualizar
-                                                                  .map((e) => e
-                                                                      .idRebanho)
-                                                                  .where((e) => e
-                                                                      .trim()
-                                                                      .isNotEmpty)
-                                                                  .toList()),
-                                                            },
-                                                          );
-                                                          _model.animaisDentroLote =
-                                                              [];
-                                                          _model.animaisSelecionados =
-                                                              [];
-                                                          _model.animaisRetiradosLote =
-                                                              [];
-                                                          safeSetState(() {});
-                                                          FFAppState()
-                                                                  .refreshLotes =
+                                                                      ?.anotacoes ??
+                                                                  '');
+                                                          final ativo = _model
+                                                                  .switchValue ==
+                                                              true;
+                                                          final motivo = _model
+                                                                  .motivoCleared
+                                                              ? null
+                                                              : (_model
+                                                                      .dropDownLotesValue ??
+                                                                  containerLotesRow
+                                                                      ?.motivo);
+                                                          final dataMotivo = _model
+                                                                  .dataMotivoCleared
+                                                              ? null
+                                                              : (_model
+                                                                      .datePicked ??
+                                                                  containerLotesRow
+                                                                      ?.dataMotivo);
+
+                                                          _model.isSaving =
                                                               true;
                                                           safeSetState(() {});
-                                                          unawaited(
-                                                            () async {
-                                                              await action_blocks
-                                                                  .countLotes(
-                                                                      context);
-                                                            }(),
-                                                          );
-                                                          ScaffoldMessenger.of(
-                                                                  context)
-                                                              .showSnackBar(
-                                                            SnackBar(
-                                                              content: Text(
-                                                                'Lote atualizado com sucesso',
-                                                                style:
-                                                                    TextStyle(
-                                                                  color: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .secondaryBackground,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
+                                                          try {
+                                                            await const LoteRepository()
+                                                                .salvarLoteComComposicao(
+                                                              idPropriedade:
+                                                                  idPropriedade,
+                                                              idLote: idLote,
+                                                              nome: nomeLote,
+                                                              anotacoes:
+                                                                  anotacoes,
+                                                              ativo: ativo,
+                                                              motivo: motivo,
+                                                              dataMotivo:
+                                                                  dataMotivo,
+                                                              valorVenda:
+                                                                  FFAppState()
+                                                                      .valueDouble2,
+                                                              animaisIds:
+                                                                  animaisIds,
+                                                              composicaoEsperada:
+                                                                  _model
+                                                                      .composicaoInicialIds,
+                                                            );
+                                                            if (!context
+                                                                .mounted) {
+                                                              return;
+                                                            }
+                                                            _model.animaisDentroLote =
+                                                                [];
+                                                            _model.animaisSelecionados =
+                                                                [];
+                                                            _model.animaisRetiradosLote =
+                                                                [];
+                                                            safeSetState(() {});
+                                                            FFAppState()
+                                                                    .refreshLotes =
+                                                                true;
+                                                            safeSetState(() {});
+                                                            unawaited(
+                                                              () async {
+                                                                await action_blocks
+                                                                    .countLotes(
+                                                                        context);
+                                                              }(),
+                                                            );
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                  'Lote atualizado com sucesso',
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .secondaryBackground,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w500,
+                                                                  ),
                                                                 ),
+                                                                duration: const Duration(
+                                                                    milliseconds:
+                                                                        4000),
+                                                                backgroundColor:
+                                                                    FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .secondary,
                                                               ),
-                                                              duration:
-                                                                  const Duration(
-                                                                      milliseconds:
-                                                                          4000),
-                                                              backgroundColor:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .secondary,
-                                                            ),
-                                                          );
+                                                            );
 
-                                                          context.pushNamed(
-                                                              PgLotesWidget
-                                                                  .routeName);
+                                                            context.pushNamed(
+                                                                PgLotesWidget
+                                                                    .routeName);
+                                                          } on LoteRepositoryException catch (error) {
+                                                            if (!context
+                                                                .mounted) {
+                                                              return;
+                                                            }
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                    error
+                                                                        .message),
+                                                                backgroundColor:
+                                                                    FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .error,
+                                                              ),
+                                                            );
+                                                          } finally {
+                                                            _model.isSaving =
+                                                                false;
+                                                            if (context
+                                                                .mounted) {
+                                                              safeSetState(
+                                                                  () {});
+                                                            }
+                                                          }
                                                         },
                                                         text: 'Salvar',
                                                         options:

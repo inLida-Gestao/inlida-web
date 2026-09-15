@@ -215,6 +215,8 @@ class CountRebanhoFiltrosCall {
     String? pCategoria = '',
     String? pDataNascimentoDe = '',
     String? pDataNascimentoAte = '',
+    String? pDataPesagemDe = '',
+    String? pDataPesagemAte = '',
     String? pIdPropriedade = '',
     String? pLoteID = '',
     String? pOrigem = '',
@@ -230,6 +232,8 @@ class CountRebanhoFiltrosCall {
   "p_categoria": "${escapeStringForJson(pCategoria)}",
   "p_data_nascimento_de": "${escapeStringForJson(pDataNascimentoDe)}",
   "p_data_nascimento_ate": "${escapeStringForJson(pDataNascimentoAte)}",
+  "p_data_pesagem_de": "${escapeStringForJson(pDataPesagemDe)}",
+  "p_data_pesagem_ate": "${escapeStringForJson(pDataPesagemAte)}",
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_lote_id": "${escapeStringForJson(pLoteID)}",
   "p_origem": "${escapeStringForJson(pOrigem)}",
@@ -266,6 +270,8 @@ class BuscarRebanhoFiltrosCall {
     String? pCategoria = '',
     String? pDataNascimentoDe = '',
     String? pDataNascimentoAte = '',
+    String? pDataPesagemDe = '',
+    String? pDataPesagemAte = '',
     String? pIdPropriedade = '',
     String? pLoteNome = '',
     String? pOrigem = '',
@@ -285,6 +291,8 @@ class BuscarRebanhoFiltrosCall {
   "p_categoria": "${escapeStringForJson(pCategoria)}",
   "p_data_nascimento_de": "${escapeStringForJson(pDataNascimentoDe)}",
   "p_data_nascimento_ate": "${escapeStringForJson(pDataNascimentoAte)}",
+  "p_data_pesagem_de": "${escapeStringForJson(pDataPesagemDe)}",
+  "p_data_pesagem_ate": "${escapeStringForJson(pDataPesagemAte)}",
   "p_id_propriedade": "${escapeStringForJson(pIdPropriedade)}",
   "p_limite": $pLimite,
   "p_lote_nome": "${escapeStringForJson(pLoteNome)}",
@@ -609,6 +617,7 @@ class BuscarSanidadeFiltrosCall {
     String? pVacinacao = '',
     int? pLimite = 20,
     int? pOffset = 0,
+    bool? pOrdemDataAsc = false,
   }) async {
     final baseUrl = FunctionsSupabaseRebanhoGroup.getBaseUrl();
 
@@ -630,7 +639,8 @@ class BuscarSanidadeFiltrosCall {
   "p_antiparasitarios": "${escapeStringForJson(pAntiparasitarios)}",
   "p_vacinacao": "${escapeStringForJson(pVacinacao)}",
   "p_limite": $pLimite,
-  "p_offset": $pOffset
+  "p_offset": $pOffset,
+  "p_ordem_data_asc": $pOrdemDataAsc
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Buscar Sanidade Filtros',
@@ -1815,6 +1825,8 @@ class TaxaConcepcaoGetCall {
     String? pLoteId = '',
     String? pInseminador = '',
     String? pIdRebanhoReprodutor = '',
+    String? pTipoReproducao = '',
+    String? pRessinc = '',
   }) async {
     final baseUrl = SupabaseEdgeGroup.getBaseUrl();
 
@@ -1832,6 +1844,12 @@ class TaxaConcepcaoGetCall {
     if (pIdRebanhoReprodutor != null &&
         pIdRebanhoReprodutor.trim().isNotEmpty) {
       params['p_id_rebanho_reprodutor'] = pIdRebanhoReprodutor.trim();
+    }
+    if (pTipoReproducao != null && pTipoReproducao.trim().isNotEmpty) {
+      params['p_tipo_reproducao'] = pTipoReproducao.trim();
+    }
+    if (pRessinc != null && pRessinc.trim().isNotEmpty) {
+      params['p_ressinc'] = pRessinc.trim();
     }
 
     return ApiManager.instance.makeApiCall(
@@ -1880,6 +1898,7 @@ class TaxaPrenhez2GetCall {
     String? pInseminador = '',
     String? pIdRebanhoReprodutor = '',
     String? pTipoReproducao = '',
+    String? pRessinc = '',
   }) async {
     final baseUrl = SupabaseEdgeGroup.getBaseUrl();
 
@@ -1900,6 +1919,9 @@ class TaxaPrenhez2GetCall {
     }
     if (pTipoReproducao != null && pTipoReproducao.trim().isNotEmpty) {
       params['p_tipo_reproducao'] = pTipoReproducao.trim();
+    }
+    if (pRessinc != null && pRessinc.trim().isNotEmpty) {
+      params['p_ressinc'] = pRessinc.trim();
     }
 
     return ApiManager.instance.makeApiCall(
@@ -2412,39 +2434,6 @@ class ExclusaoDeContaCall {
         'apikey':
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
         'Authorization': 'Bearer $jwt',
-      },
-      params: {},
-      body: ffApiRequestBody,
-      bodyType: BodyType.JSON,
-      returnBody: true,
-      encodeBodyUtf8: false,
-      decodeUtf8: false,
-      cache: false,
-      isStreamingApi: false,
-      alwaysAllowBody: false,
-    );
-  }
-}
-
-class AtualizarSenhaCall {
-  static Future<ApiCallResponse> call({
-    String? userToken = '',
-    String? email = '',
-    String? password = '',
-  }) async {
-    final ffApiRequestBody = '''
-{
-  "email": "${escapeStringForJson(email)}",
-  "password": "${escapeStringForJson(password)}"
-}''';
-    return ApiManager.instance.makeApiCall(
-      callName: 'Atualizar senha',
-      apiUrl: 'https://eqrtgsqnxxnfjjzlxpuj.supabase.co/auth/v1/user',
-      callType: ApiCallType.PUT,
-      headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization': 'Bearer $userToken',
       },
       params: {},
       body: ffApiRequestBody,

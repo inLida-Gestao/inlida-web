@@ -9,6 +9,28 @@ void main() {
         dataNascimento: dataNascimento,
       );
 
+  test('detecta conflito usando somente o ID canônico do lote', () {
+    final animalComNomeDesatualizado = RebanhoDTStruct(
+      loteID: 'lote-a',
+      loteNome: 'Nome antigo',
+    );
+
+    expect(
+      animalEstaEmOutroLote(
+        animalComNomeDesatualizado,
+        idLoteDestino: 'lote-a',
+      ),
+      isFalse,
+    );
+    expect(
+      animalEstaEmOutroLote(
+        animalComNomeDesatualizado,
+        idLoteDestino: 'lote-b',
+      ),
+      isTrue,
+    );
+  });
+
   test('ordena número do animal pelo valor numérico extraído do texto', () {
     final sorted = rebanhoSortingFunction(
       [

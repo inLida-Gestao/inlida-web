@@ -5,8 +5,6 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/pg_rebanho/modal_excluir_animal/modal_excluir_animal_widget.dart';
 import '/pg_rebanho/pp_add_pessagem/pp_add_pessagem_widget.dart';
-import 'dart:async';
-import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -301,6 +299,14 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                       _model.rebanho?.firstOrNull?.idRebanho,
                       ParamType.String,
                     ),
+                    'returnToLoteId': serializeParam(
+                      widget.returnToLoteId,
+                      ParamType.String,
+                    ),
+                    'returnToLoteNome': serializeParam(
+                      widget.returnToLoteNome,
+                      ParamType.String,
+                    ),
                   }.withoutNulls,
                   extra: <String, dynamic>{
                     kTransitionInfoKey: const TransitionInfo(
@@ -411,88 +417,24 @@ class _ModalMoreWidgetState extends State<ModalMoreWidget> {
                     widget.rebanhoId,
                   ),
                 );
-                _model.matriz = await RebanhoTable().queryRows(
-                  queryFn: (q) => q
-                      .eqOrNull(
-                        'numeroAnimal',
-                        _model.rebanhoPrincipal?.firstOrNull?.numeroMatriz,
-                      )
-                      .eqOrNull(
-                        'dataNascimento',
-                        supaSerialize<DateTime>(functions.converterParaData(
-                            _model.rebanhoPrincipal?.firstOrNull?.dataNascMatriz
-                                ?.toString())),
-                      )
-                      .eqOrNull(
-                        'raca',
-                        _model.rebanhoPrincipal?.firstOrNull?.racaMatriz,
-                      ),
-                );
-                _model.reprodutor = await RebanhoTable().queryRows(
-                  queryFn: (q) => q
-                      .eqOrNull(
-                        'numeroAnimal',
-                        _model.rebanhoPrincipal?.firstOrNull?.numeroReprodutor,
-                      )
-                      .eqOrNull(
-                        'dataNascimento',
-                        supaSerialize<DateTime>(functions.converterParaData(
-                            _model.rebanhoPrincipal?.firstOrNull
-                                ?.dataNascReprodutor
-                                ?.toString())),
-                      )
-                      .eqOrNull(
-                        'raca',
-                        _model.rebanhoPrincipal?.firstOrNull?.racaReprodutor,
-                      ),
-                );
+                final rebanhoPrincipal = _model.rebanhoPrincipal?.firstOrNull;
                 FFAppState().matrizSelecionada = AnimalSelecionadoStruct(
-                  numAnimal: _model.matriz?.firstOrNull?.numeroAnimal,
-                  nomeAnimal: _model.matriz?.firstOrNull?.nome,
-                  dataNascAnimal:
-                      _model.matriz?.firstOrNull?.dataNascimento?.toString(),
-                  racaAnimal: _model.matriz?.firstOrNull?.raca,
+                  numAnimal: rebanhoPrincipal?.numeroMatriz,
+                  nomeAnimal: rebanhoPrincipal?.nomeMatriz,
+                  dataNascAnimal: rebanhoPrincipal?.dataNascMatriz?.toString(),
+                  racaAnimal: rebanhoPrincipal?.racaMatriz,
+                  categoria: rebanhoPrincipal?.categoriaMatriz,
+                  idAnimal: rebanhoPrincipal?.rebanhoIdMatriz,
                 );
                 FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct(
-                  numAnimal: _model.reprodutor?.firstOrNull?.numeroAnimal,
-                  nomeAnimal: _model.reprodutor?.firstOrNull?.nome,
-                  dataNascAnimal: _model.reprodutor?.firstOrNull?.dataNascimento
-                      ?.toString(),
-                  racaAnimal: _model.reprodutor?.firstOrNull?.raca,
+                  numAnimal: rebanhoPrincipal?.numeroReprodutor,
+                  nomeAnimal: rebanhoPrincipal?.nomeReprodutor,
+                  dataNascAnimal:
+                      rebanhoPrincipal?.dataNascReprodutor?.toString(),
+                  racaAnimal: rebanhoPrincipal?.racaReprodutor,
+                  idAnimal: rebanhoPrincipal?.rebanhoIdReprodutor,
                 );
                 safeSetState(() {});
-                // Só grava o vínculo que FOI ENCONTRADO. As buscas acima casam
-                // matriz/reprodutor por número+data+raça; quando não acham
-                // (número corrigido, pai fora do rebanho, texto divergente),
-                // gravar o resultado vazio APAGAVA o vínculo do animal — e o
-                // vínculo é a fonte de verdade (é ele que alimenta o pai/mãe
-                // no PAINT e o trigger que propaga os dados do pai). Foi assim
-                // que 148 animais da Cachoeira ficaram com pai só como texto.
-                {
-                  final vinculos = <String, dynamic>{};
-                  final idMatriz = _model.matriz?.firstOrNull?.idRebanho;
-                  final idReprodutor =
-                      _model.reprodutor?.firstOrNull?.idRebanho;
-                  if (idMatriz != null && idMatriz.trim().isNotEmpty) {
-                    vinculos['rebanhoIdMatriz'] = idMatriz;
-                  }
-                  if (idReprodutor != null && idReprodutor.trim().isNotEmpty) {
-                    vinculos['rebanhoIdReprodutor'] = idReprodutor;
-                  }
-                  if (vinculos.isNotEmpty) {
-                    unawaited(
-                      () async {
-                        await RebanhoTable().update(
-                          data: vinculos,
-                          matchingRows: (rows) => rows.eqOrNull(
-                            'id',
-                            widget.rebanhoId,
-                          ),
-                        );
-                      }(),
-                    );
-                  }
-                }
 
                 if (!context.mounted) {
                   return;

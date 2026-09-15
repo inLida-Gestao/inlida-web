@@ -17,8 +17,6 @@ export 'export_pesagem_excel.dart' show exportPesagemExcel;
 export 'parse_csv_to_json_pesagem.dart' show parseCsvToJsonPesagem;
 export 'batch_insert_supabase_pesagem.dart'
     show previewPesagemImport, batchInsertSupabasePesagem;
-export 'remover_animal_de_lote_anterior.dart'
-    show removerAnimalDeLoteAnterior;
 export 'registrar_paint_baixa.dart' show registrarPaintBaixa;
 export 'import_biblioteca_touros.dart' show importBibliotecaTouros;
 export 'auto_preencher_paint.dart' show autoPreencherPaint;

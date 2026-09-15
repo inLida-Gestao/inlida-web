@@ -262,6 +262,14 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                   'rebanhoId',
                   ParamType.String,
                 ),
+            returnToLoteId: params.getParam(
+              'returnToLoteId',
+              ParamType.String,
+            ),
+            returnToLoteNome: params.getParam(
+              'returnToLoteNome',
+              ParamType.String,
+            ),
           ),
         ),
         FFRoute(
@@ -292,6 +300,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: AlterarSenhaWidget.routeName,
           path: AlterarSenhaWidget.routePath,
+          requireAuth: true,
           builder: (context, params) => const AlterarSenhaWidget(),
         ),
         FFRoute(

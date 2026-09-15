@@ -23,9 +23,6 @@ class LotesRow extends SupabaseDataRow {
   String? get idPropriedade => getField<String>('id_propriedade');
   set idPropriedade(String? value) => setField<String>('id_propriedade', value);
 
-  String? get idAnimais => getField<String>('id_animais');
-  set idAnimais(String? value) => setField<String>('id_animais', value);
-
   String? get nome => getField<String>('nome');
   set nome(String? value) => setField<String>('nome', value);
 

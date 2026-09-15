@@ -1,5 +1,4 @@
 import '/auth/supabase_auth/auth_util.dart';
-import '/backend/api_requests/api_calls.dart';
 import '/componentes/header/header_widget.dart';
 import '/componentes/side_bar/side_bar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -25,6 +24,7 @@ class AlterarSenhaWidget extends StatefulWidget {
 
 class _AlterarSenhaWidgetState extends State<AlterarSenhaWidget> {
   late AlterarSenhaModel _model;
+  bool _isSubmitting = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -110,8 +110,9 @@ class _AlterarSenhaWidgetState extends State<AlterarSenhaWidget> {
                                   mainAxisSize: MainAxisSize.max,
                                   children: [
                                     Padding(
-                                      padding: const EdgeInsetsDirectional.fromSTEB(
-                                          0.0, 32.0, 0.0, 0.0),
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              0.0, 32.0, 0.0, 0.0),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.max,
                                         mainAxisAlignment:
@@ -580,42 +581,43 @@ class _AlterarSenhaWidgetState extends State<AlterarSenhaWidget> {
                                           options: FFButtonOptions(
                                             width: 160.0,
                                             height: 56.0,
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    16.0, 0.0, 16.0, 0.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(16.0, 0.0, 16.0, 0.0),
                                             iconPadding:
-                                                const EdgeInsetsDirectional.fromSTEB(
+                                                const EdgeInsetsDirectional
+                                                    .fromSTEB(
                                                     0.0, 0.0, 0.0, 0.0),
                                             color: Colors.white,
-                                            textStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .titleSmall
-                                                    .override(
-                                                      font: GoogleFonts.poppins(
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .titleSmall
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .titleSmall
-                                                                .fontStyle,
-                                                      ),
-                                                      color: const Color(0xFF28A365),
-                                                      letterSpacing: 0.0,
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontStyle,
-                                                    ),
+                                            textStyle: FlutterFlowTheme.of(
+                                                    context)
+                                                .titleSmall
+                                                .override(
+                                                  font: GoogleFonts.poppins(
+                                                    fontWeight:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .titleSmall
+                                                            .fontWeight,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .titleSmall
+                                                            .fontStyle,
+                                                  ),
+                                                  color:
+                                                      const Color(0xFF28A365),
+                                                  letterSpacing: 0.0,
+                                                  fontWeight:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .titleSmall
+                                                          .fontWeight,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .titleSmall
+                                                          .fontStyle,
+                                                ),
                                             elevation: 0.0,
                                             borderSide: BorderSide(
                                               color:
@@ -627,69 +629,65 @@ class _AlterarSenhaWidgetState extends State<AlterarSenhaWidget> {
                                           ),
                                         ),
                                         FFButtonWidget(
-                                          onPressed: (_model
-                                                      .senha2TextController
-                                                      .text !=
-                                                  _model
-                                                      .senhaTextController.text)
+                                          onPressed: _isSubmitting ||
+                                                  _model.senha2TextController
+                                                          .text !=
+                                                      _model.senhaTextController
+                                                          .text
                                               ? null
                                               : () async {
-                                                  _model.apiResultqd3 =
-                                                      await AtualizarSenhaCall
-                                                          .call(
-                                                    userToken: currentJwtToken,
-                                                    email: currentUserEmail,
-                                                    password: _model
-                                                        .senha2TextController
-                                                        .text,
-                                                  );
-
-                                                  if ((_model.apiResultqd3
-                                                          ?.succeeded ??
-                                                      true)) {
+                                                  final password = _model
+                                                      .senha2TextController
+                                                      .text;
+                                                  if (password.isEmpty) {
                                                     ScaffoldMessenger.of(
                                                             context)
                                                         .showSnackBar(
-                                                      SnackBar(
+                                                      const SnackBar(
                                                         content: Text(
-                                                          'Senha atualizada com sucesso.',
-                                                          style: TextStyle(
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .secondaryBackground,
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                            fontSize: 16.0,
-                                                          ),
-                                                        ),
-                                                        duration: const Duration(
-                                                            milliseconds: 4000),
-                                                        backgroundColor:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .secondary,
+                                                            'Informe uma senha.'),
                                                       ),
                                                     );
-                                                    safeSetState(() {
-                                                      _model.senhaTextController
-                                                          ?.clear();
-                                                      _model
-                                                          .senha2TextController
-                                                          ?.clear();
-                                                    });
+                                                    return;
                                                   }
 
-                                                  safeSetState(() {});
+                                                  setState(() =>
+                                                      _isSubmitting = true);
+                                                  try {
+                                                    final updated =
+                                                        await authManager
+                                                            .updatePassword(
+                                                      newPassword: password,
+                                                      context: context,
+                                                    );
+                                                    if (updated &&
+                                                        context.mounted) {
+                                                      safeSetState(() {
+                                                        _model
+                                                            .senhaTextController
+                                                            ?.clear();
+                                                        _model
+                                                            .senha2TextController
+                                                            ?.clear();
+                                                      });
+                                                    }
+                                                  } finally {
+                                                    if (mounted) {
+                                                      setState(() =>
+                                                          _isSubmitting =
+                                                              false);
+                                                    }
+                                                  }
                                                 },
                                           text: 'Salvar',
                                           options: FFButtonOptions(
                                             width: 160.0,
                                             height: 56.0,
-                                            padding:
-                                                const EdgeInsetsDirectional.fromSTEB(
-                                                    16.0, 0.0, 16.0, 0.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(16.0, 0.0, 16.0, 0.0),
                                             iconPadding:
-                                                const EdgeInsetsDirectional.fromSTEB(
+                                                const EdgeInsetsDirectional
+                                                    .fromSTEB(
                                                     0.0, 0.0, 0.0, 0.0),
                                             color: FlutterFlowTheme.of(context)
                                                 .primary,

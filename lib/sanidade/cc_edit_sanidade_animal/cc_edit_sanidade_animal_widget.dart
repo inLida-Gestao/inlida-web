@@ -783,7 +783,7 @@ class _CcEditSanidadeAnimalWidgetState
             FlutterFlowDropDown<String>(
               multiSelectController: _model.vacinaDropdownValueController ??=
                   FormListFieldController<String>(_model.vacinaDropdownValue),
-              options: FFAppState().vacinacao,
+              options: FFAppState().vacinacaoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) {
                 if (widget.readOnly) return;
@@ -873,7 +873,7 @@ class _CcEditSanidadeAnimalWidgetState
                   _model.antiparasitarioDropdownValueController ??=
                       FormListFieldController<String>(
                           _model.antiparasitarioDropdownValue),
-              options: FFAppState().antiparasitario,
+              options: FFAppState().antiparasitarioComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) {
                 if (widget.readOnly) return;
@@ -963,7 +963,7 @@ class _CcEditSanidadeAnimalWidgetState
                   _model.tratamentoDropdownValueController ??=
                       FormListFieldController<String>(
                           _model.tratamentoDropdownValue),
-              options: FFAppState().tratamento,
+              options: FFAppState().tratamentoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) {
                 if (widget.readOnly) return;
@@ -1052,7 +1052,7 @@ class _CcEditSanidadeAnimalWidgetState
               multiSelectController: _model.protocoloDropdownValueController ??=
                   FormListFieldController<String>(
                       _model.protocoloDropdownValue),
-              options: FFAppState().protocoloReprodutivo,
+              options: FFAppState().protocoloReprodutivoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) {
                 if (widget.readOnly) return;
@@ -1193,6 +1193,35 @@ class _CcEditSanidadeAnimalWidgetState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Por favor, selecione pelo menos um tipo de sanidade'),
+        ),
+      );
+      return;
+    }
+
+    // Cada seção de sanidade selecionada exige uma opção no dropdown (uma da
+    // lista ou "Outros"). Sem isso o registro era salvo vazio.
+    final faltandoOpcao = <String>[];
+    if (_model.tiposSelecionados.contains('Vacinação') &&
+        !(_model.vacinaDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Vacinação');
+    }
+    if (_model.tiposSelecionados.contains('Antiparasitário') &&
+        !(_model.antiparasitarioDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Antiparasitário');
+    }
+    if (_model.tiposSelecionados.contains('Tratamento') &&
+        !(_model.tratamentoDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Tratamento');
+    }
+    if (_model.tiposSelecionados.contains('Protocolo reprodutivo') &&
+        !(_model.protocoloDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Protocolo reprodutivo');
+    }
+    if (faltandoOpcao.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Selecione uma opção em: ${faltandoOpcao.join(', ')}'),
         ),
       );
       return;

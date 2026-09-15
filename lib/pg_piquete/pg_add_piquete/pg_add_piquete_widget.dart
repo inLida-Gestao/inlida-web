@@ -25,6 +25,8 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
   final _store = PiqueteBackendStore.instance;
   late final VoidCallback _disposePiqueteRefresh;
   int _formVersion = 0;
+  bool _loadingFormData = true;
+  String? _formLoadError;
 
   @override
   void initState() {
@@ -56,10 +58,16 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
   }
 
   Future<void> _loadFormData() async {
+    safeSetState(() {
+      _loadingFormData = true;
+      _formLoadError = null;
+    });
     try {
       await _store.load();
     } catch (_) {
-      // A mensagem amigável fica no store e é exibida na tela.
+      _formLoadError = _store.errorMessage;
+    } finally {
+      safeSetState(() => _loadingFormData = false);
     }
   }
 
@@ -89,17 +97,17 @@ class _PgAddPiqueteWidgetState extends State<PgAddPiqueteWidget> {
               ),
             ),
             const SizedBox(height: 20),
-            if (_store.loading && _store.retiros.isEmpty)
+            if (_loadingFormData)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(48),
                   child: CircularProgressIndicator(),
                 ),
               )
-            else if (_store.errorMessage != null && _store.retiros.isEmpty)
+            else if (_formLoadError != null)
               PrototypeEmptyState(
                 title: 'Não foi possível carregar os retiros',
-                message: _store.errorMessage!,
+                message: _formLoadError!,
                 icon: Icons.warning_amber_rounded,
                 action: PrototypePrimaryButton(
                   label: 'Tentar novamente',

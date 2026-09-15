@@ -16,6 +16,8 @@ class PpFiltroRebanhoModel extends FlutterFlowModel<PpFiltroRebanhoWidget> {
   String pendingOrigem = '';
   DateTime? pendingDataNascimentoDe;
   DateTime? pendingDataNascimentoAte;
+  DateTime? pendingDataPesagemDe;
+  DateTime? pendingDataPesagemAte;
 
   ///  State fields for stateful widgets in this component.
 
@@ -37,6 +39,17 @@ class PpFiltroRebanhoModel extends FlutterFlowModel<PpFiltroRebanhoWidget> {
   String? Function(BuildContext, String?)?
       dataNascimentoAteTextControllerValidator;
   DateTime? datePickedAte;
+  // State field(s) for dataPesagemDe widget.
+  FocusNode? dataPesagemDeFocusNode;
+  TextEditingController? dataPesagemDeTextController;
+  String? Function(BuildContext, String?)? dataPesagemDeTextControllerValidator;
+  DateTime? datePickedPesagemDe;
+  // State field(s) for dataPesagemAte widget.
+  FocusNode? dataPesagemAteFocusNode;
+  TextEditingController? dataPesagemAteTextController;
+  String? Function(BuildContext, String?)?
+      dataPesagemAteTextControllerValidator;
+  DateTime? datePickedPesagemAte;
   // State field(s) for DropDownLote widget.
   List<String>? dropDownLoteValues;
   FormFieldController<List<String>?>? dropDownLoteValueController;
@@ -62,5 +75,9 @@ class PpFiltroRebanhoModel extends FlutterFlowModel<PpFiltroRebanhoWidget> {
     dataNascimentoDeTextController?.dispose();
     dataNascimentoAteFocusNode?.dispose();
     dataNascimentoAteTextController?.dispose();
+    dataPesagemDeFocusNode?.dispose();
+    dataPesagemDeTextController?.dispose();
+    dataPesagemAteFocusNode?.dispose();
+    dataPesagemAteTextController?.dispose();
   }
 }

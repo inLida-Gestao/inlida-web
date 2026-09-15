@@ -11,6 +11,43 @@ import 'package:download/download.dart';
 DateTime _dateOnly(DateTime value) =>
     DateTime(value.year, value.month, value.day);
 
+String _formatCivilDate(int year, int month, int day) {
+  final date = DateTime.utc(year, month, day);
+  if (date.year != year || date.month != month || date.day != day) {
+    return '';
+  }
+
+  final formattedDay = day.toString().padLeft(2, '0');
+  final formattedMonth = month.toString().padLeft(2, '0');
+  return '$formattedDay/$formattedMonth/$year';
+}
+
+String formatDataPesagemForExport(dynamic value) {
+  if (value == null) return '';
+  if (value is DateTime) {
+    return _formatCivilDate(value.year, value.month, value.day);
+  }
+
+  final raw = value.toString();
+  final trimmed = raw.trim();
+  if (trimmed.isEmpty) return '';
+
+  final isoDate = RegExp(
+    r'^(\d{4})-(\d{2})-(\d{2})(?:$|[Tt\s])',
+  ).firstMatch(trimmed);
+  if (isoDate == null) return raw;
+
+  final formatted = _formatCivilDate(
+    int.parse(isoDate.group(1)!),
+    int.parse(isoDate.group(2)!),
+    int.parse(isoDate.group(3)!),
+  );
+  return formatted.isEmpty ? raw : formatted;
+}
+
+CellValue dataPesagemCellValueForExport(dynamic value) =>
+    TextCellValue(formatDataPesagemForExport(value));
+
 DateTime? _parseDateForPesagemExport(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value;
@@ -280,7 +317,7 @@ Future<bool> exportPesagemExcel(String nameExcel, String idPropriedade) async {
     }
 
     const numericColumns = {'Peso', 'GMD'};
-    const dateColumns = {'Data_nascimento', 'Data_pesagem'};
+    const dateColumns = {'Data_nascimento'};
 
     // Preencher dados
     print('Preenchendo dados...');
@@ -324,6 +361,8 @@ Future<bool> exportPesagemExcel(String nameExcel, String idPropriedade) async {
             } else {
               cell.value = TextCellValue(value.toString());
             }
+          } else if (header == 'Data_pesagem') {
+            cell.value = dataPesagemCellValueForExport(value);
           } else if (dateColumns.contains(header)) {
             if (value == null) {
               cell.value = TextCellValue('');

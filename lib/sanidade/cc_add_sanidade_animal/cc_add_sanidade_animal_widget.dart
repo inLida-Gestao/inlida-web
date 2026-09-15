@@ -801,7 +801,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
             FlutterFlowDropDown<String>(
               multiSelectController: _model.vacinaDropdownValueController ??=
                   FormListFieldController<String>(null),
-              options: FFAppState().vacinacao,
+              options: FFAppState().vacinacaoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.vacinaDropdownValue = val),
@@ -990,7 +990,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
               multiSelectController:
                   _model.antiparasitarioDropdownValueController ??=
                       FormListFieldController<String>(null),
-              options: FFAppState().antiparasitario,
+              options: FFAppState().antiparasitarioComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.antiparasitarioDropdownValue = val),
@@ -1179,7 +1179,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
               multiSelectController:
                   _model.tratamentoDropdownValueController ??=
                       FormListFieldController<String>(null),
-              options: FFAppState().tratamento,
+              options: FFAppState().tratamentoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.tratamentoDropdownValue = val),
@@ -1370,7 +1370,7 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
                   child: FlutterFlowDropDown<String>(
                     controller: _model.protocoloDropdownValueController ??=
                         FormFieldController<String>(null),
-                    options: FFAppState().protocoloReprodutivo,
+                    options: FFAppState().protocoloReprodutivoComOutros,
                     onChanged: (val) =>
                         setState(() => _model.protocoloDropdownValue = val),
                     hidesUnderline: true,
@@ -1718,6 +1718,35 @@ class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Por favor, selecione pelo menos um tipo de sanidade'),
+        ),
+      );
+      return;
+    }
+
+    // Cada seção de sanidade selecionada exige uma opção no dropdown (uma da
+    // lista ou "Outros"). Sem isso o registro era salvo vazio.
+    final faltandoOpcao = <String>[];
+    if (_model.tiposSelecionados.contains('Vacinação') &&
+        !(_model.vacinaDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Vacinação');
+    }
+    if (_model.tiposSelecionados.contains('Antiparasitário') &&
+        !(_model.antiparasitarioDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Antiparasitário');
+    }
+    if (_model.tiposSelecionados.contains('Tratamento') &&
+        !(_model.tratamentoDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Tratamento');
+    }
+    if (_model.tiposSelecionados.contains('Protocolo reprodutivo') &&
+        (_model.protocoloDropdownValue ?? '').trim().isEmpty) {
+      faltandoOpcao.add('Protocolo reprodutivo');
+    }
+    if (faltandoOpcao.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Selecione uma opção em: ${faltandoOpcao.join(', ')}'),
         ),
       );
       return;

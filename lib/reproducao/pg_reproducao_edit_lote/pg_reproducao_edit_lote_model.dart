@@ -15,7 +15,7 @@ class PgReproducaoEditLoteModel
 
   double? score = 1.0;
 
-  int? partidaSemen = 1;
+  int? partidaSemen;
 
   // State field(s) for Ressinc dropdown widget.
   String? ressincDropdownValue;

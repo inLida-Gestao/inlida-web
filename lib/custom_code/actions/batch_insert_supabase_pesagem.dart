@@ -261,6 +261,13 @@ String _nextIsoDate(String isoDate) {
   return parsed.add(const Duration(days: 1)).toIso8601String().split('T').first;
 }
 
+/// A coluna `deletado` é NOT NULL no banco. Enviar `null` explicitamente
+/// ignora o DEFAULT 'NAO' e viola a constraint, então normalizamos aqui.
+String _resolveDeletado(dynamic value) {
+  final raw = _asNonEmptyString(value)?.trim().toUpperCase();
+  return raw == 'SIM' ? 'SIM' : 'NAO';
+}
+
 Future<bool> _pesagemAtivaJaExiste({
   required String idRebanho,
   required String? tipo,
@@ -616,7 +623,7 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
           'dataPesagem': dataPesagem,
           'tipo': tipo,
           'peso': peso,
-          'deletado': null,
+          'deletado': _resolveDeletado(row['deletado']),
           'id_propriedade': idPropriedade,
         });
         rowsParaInserir.add(row);
@@ -656,7 +663,7 @@ Future<Map<String, dynamic>> batchInsertSupabasePesagem(
               'dataPesagem': dataPesagem,
               'tipo': tipo,
               'peso': peso,
-              'deletado': null,
+              'deletado': _resolveDeletado(row['deletado']),
               'id_propriedade': idPropriedade,
             });
 

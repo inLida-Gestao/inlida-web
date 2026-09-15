@@ -37,8 +37,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
     'eCG + PGF + CE',
     'eCG + PGR + CE + BE',
   ];
-  static const String _kProtocoloLegenda =
-      'BE - Benzoato de Estradiol\n'
+  static const String _kProtocoloLegenda = 'BE - Benzoato de Estradiol\n'
       'Implante - Implante intravaginal de Progesterona (P4)\n'
       'PGF - Prostaglandina\n'
       'eCG - Gonadotrofina Coriônica Equina\n'
@@ -92,8 +91,8 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
       ),
     );
   }
+
   String? _loteSelecionadoId;
-  String? _loteSelecionadoDbId;
 
   @override
   void setState(VoidCallback callback) {
@@ -278,8 +277,9 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
                               controller: _model.loteDropdownValueController ??=
                                   FormFieldController<String>(null),
                               options: lotes
-                                  .map((lote) =>
-                                      lote.idLote ?? lote.id.toString())
+                                  .map((lote) => lote.idLote)
+                                  .whereType<String>()
+                                  .where((id) => id.trim().isNotEmpty)
                                   .toList(),
                               optionLabels:
                                   lotes.map((lote) => lote.nome ?? '').toList(),
@@ -287,23 +287,15 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
                               onChanged: (val) {
                                 setState(() {
                                   final selected = lotes.where((lote) {
-                                    final value =
-                                        lote.idLote ?? lote.id.toString();
-                                    return value == (val ?? '');
+                                    return lote.idLote == (val ?? '');
                                   }).toList();
 
                                   if ((val ?? '').isEmpty) {
                                     _loteSelecionadoId = null;
-                                    _loteSelecionadoDbId = null;
                                   } else if (selected.isNotEmpty) {
-                                    _loteSelecionadoId =
-                                        selected.first.idLote ??
-                                            selected.first.id.toString();
-                                    _loteSelecionadoDbId =
-                                        selected.first.id.toString();
+                                    _loteSelecionadoId = selected.first.idLote;
                                   } else {
                                     _loteSelecionadoId = val;
-                                    _loteSelecionadoDbId = null;
                                   }
                                 });
                               },
@@ -842,7 +834,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
             FlutterFlowDropDown<String>(
               multiSelectController: _model.vacinaDropdownValueController ??=
                   FormListFieldController<String>(null),
-              options: FFAppState().vacinacao,
+              options: FFAppState().vacinacaoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.vacinaDropdownValue = val),
@@ -1031,7 +1023,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
               multiSelectController:
                   _model.antiparasitarioDropdownValueController ??=
                       FormListFieldController<String>(null),
-              options: FFAppState().antiparasitario,
+              options: FFAppState().antiparasitarioComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.antiparasitarioDropdownValue = val),
@@ -1220,7 +1212,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
               multiSelectController:
                   _model.tratamentoDropdownValueController ??=
                       FormListFieldController<String>(null),
-              options: FFAppState().tratamento,
+              options: FFAppState().tratamentoComOutros,
               isMultiSelect: true,
               onMultiSelectChanged: (val) =>
                   setState(() => _model.tratamentoDropdownValue = val),
@@ -1411,7 +1403,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
                   child: FlutterFlowDropDown<String>(
                     controller: _model.protocoloDropdownValueController ??=
                         FormFieldController<String>(null),
-                    options: FFAppState().protocoloReprodutivo,
+                    options: FFAppState().protocoloReprodutivoComOutros,
                     onChanged: (val) =>
                         setState(() => _model.protocoloDropdownValue = val),
                     hidesUnderline: true,
@@ -1735,60 +1727,26 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
     );
   }
 
-  /// Mesma regra de `PgViewLoteWidget._loadAnimaisDoLote`: animais com
-  /// `loteID` ou `loteNome` na propriedade.
-  /// Evita divergência entre a contagem na tela do lote e o lançamento de sanidade.
-  Future<List<RebanhoRow>> _rebanhosDoLoteAlinhadoComTelaLote(LotesRow lote) async {
+  /// Usa a mesma composição canônica da tela do lote: rebanho.loteID.
+  Future<List<RebanhoRow>> _rebanhosDoLoteAlinhadoComTelaLote(
+      LotesRow lote) async {
     final idPropriedadeLote = lote.idPropriedade;
-    final nomeLote = lote.nome;
     if (idPropriedadeLote == null || idPropriedadeLote.isEmpty) {
       return [];
     }
 
     final idLoteCanonical = lote.idLote?.trim();
-    final idDbStr = lote.id.toString();
+    if (idLoteCanonical == null || idLoteCanonical.isEmpty) {
+      return [];
+    }
 
     final byLoteID = await RebanhoTable().queryRows(
-      queryFn: (q) {
-        final base = q
-            .eqOrNull('idPropriedade', idPropriedadeLote)
-            .eqOrNull('deletado', 'NAO');
-        if (idLoteCanonical != null &&
-            idLoteCanonical.isNotEmpty &&
-            idLoteCanonical != idDbStr) {
-          return base.or('loteID.eq.$idLoteCanonical,loteID.eq.$idDbStr');
-        }
-        final single = (idLoteCanonical != null && idLoteCanonical.isNotEmpty)
-            ? idLoteCanonical
-            : idDbStr;
-        return base.eqOrNull('loteID', single);
-      },
+      queryFn: (q) => q
+          .eqOrNull('idPropriedade', idPropriedadeLote)
+          .eqOrNull('loteID', idLoteCanonical)
+          .eqOrNull('deletado', 'NAO'),
     );
-
-    final byLoteNome = (nomeLote != null && nomeLote.trim().isNotEmpty)
-        ? await RebanhoTable().queryRows(
-            queryFn: (q) => q
-                .eqOrNull('loteNome', nomeLote.trim())
-                .eqOrNull('idPropriedade', idPropriedadeLote)
-                .eqOrNull('deletado', 'NAO'),
-          )
-        : <RebanhoRow>[];
-
-    final idsSeen = <String>{};
-    final merged = <RebanhoRow>[];
-    for (final row in byLoteID) {
-      final id = row.idRebanho;
-      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
-        merged.add(row);
-      }
-    }
-    for (final row in byLoteNome) {
-      final id = row.idRebanho;
-      if (id != null && id.isNotEmpty && idsSeen.add(id)) {
-        merged.add(row);
-      }
-    }
-    return merged;
+    return byLoteID;
   }
 
   Future<void> _salvarSanidade() async {
@@ -1820,9 +1778,37 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
       return;
     }
 
+    // Cada seção de sanidade selecionada exige uma opção no dropdown (uma da
+    // lista ou "Outros"). Sem isso o registro era salvo vazio.
+    final faltandoOpcao = <String>[];
+    if (_model.tiposSelecionados.contains('Vacinação') &&
+        !(_model.vacinaDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Vacinação');
+    }
+    if (_model.tiposSelecionados.contains('Antiparasitário') &&
+        !(_model.antiparasitarioDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Antiparasitário');
+    }
+    if (_model.tiposSelecionados.contains('Tratamento') &&
+        !(_model.tratamentoDropdownValue?.isNotEmpty ?? false)) {
+      faltandoOpcao.add('Tratamento');
+    }
+    if (_model.tiposSelecionados.contains('Protocolo reprodutivo') &&
+        (_model.protocoloDropdownValue ?? '').trim().isEmpty) {
+      faltandoOpcao.add('Protocolo reprodutivo');
+    }
+    if (faltandoOpcao.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Selecione uma opção em: ${faltandoOpcao.join(', ')}'),
+        ),
+      );
+      return;
+    }
+
     try {
       final loteIdStr = _loteSelecionadoId!.trim();
-      final loteDbIdStr = _loteSelecionadoDbId?.trim();
       final idProp = FFAppState().propriedadeSelecionada.idPropriedade;
 
       // Buscar animais do lote (alinhado à tela do lote: loteID / loteNome)
@@ -1835,17 +1821,6 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
       );
       if (lotesPorIdLote.isNotEmpty) {
         loteRow = lotesPorIdLote.first;
-      } else if (loteDbIdStr != null) {
-        final idInt = int.tryParse(loteDbIdStr);
-        if (idInt != null) {
-          final lotesPorPk = await LotesTable().queryRows(
-            queryFn: (q) => q
-                .eqOrNull('id', idInt)
-                .eqOrNull('id_propriedade', idProp)
-                .eqOrNull('deletado', 'NAO'),
-          );
-          loteRow = lotesPorPk.firstOrNull;
-        }
       }
 
       late final List<RebanhoRow> animaisDoLote;
@@ -1855,16 +1830,10 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
         idLoteParaSanidade = loteRow.idLote ?? loteRow.id.toString();
       } else {
         animaisDoLote = await RebanhoTable().queryRows(
-          queryFn: (q) {
-            if (loteDbIdStr != null &&
-                loteDbIdStr.isNotEmpty &&
-                loteDbIdStr != loteIdStr) {
-              return q
-                  .or('loteID.eq.$loteIdStr,loteID.eq.$loteDbIdStr')
-                  .eqOrNull('deletado', 'NAO');
-            }
-            return q.eqOrNull('loteID', loteIdStr).eqOrNull('deletado', 'NAO');
-          },
+          queryFn: (q) => q
+              .eqOrNull('idPropriedade', idProp)
+              .eqOrNull('loteID', loteIdStr)
+              .eqOrNull('deletado', 'NAO'),
         );
         idLoteParaSanidade = loteIdStr;
       }
@@ -1942,8 +1911,8 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
         // Adicionar campos específicos conforme tipo selecionado
         if (_model.tiposSelecionados.contains('Vacinação')) {
           dados['vacinacao'] = (_model.vacinaDropdownValue?.isNotEmpty ?? false)
-            ? jsonEncode(_model.vacinaDropdownValue)
-            : null;
+              ? jsonEncode(_model.vacinaDropdownValue)
+              : null;
           dados['vacinacao_outros'] =
               vacinaOutros.isNotEmpty ? vacinaOutros : null;
           dados['vacinacao_obs'] = vacinaObs.isNotEmpty ? vacinaObs : null;
@@ -1952,7 +1921,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
         if (_model.tiposSelecionados.contains('Antiparasitário')) {
           dados['antiparasitario'] =
               (_model.antiparasitarioDropdownValue?.isNotEmpty ?? false)
-              ? jsonEncode(_model.antiparasitarioDropdownValue)
+                  ? jsonEncode(_model.antiparasitarioDropdownValue)
                   : null;
           dados['antiparasitario_outros'] =
               antiparasitarioOutros.isNotEmpty ? antiparasitarioOutros : null;
@@ -1963,7 +1932,7 @@ class _CcAddSanidadeLoteWidgetState extends State<CcAddSanidadeLoteWidget> {
         if (_model.tiposSelecionados.contains('Tratamento')) {
           dados['tratamento'] =
               (_model.tratamentoDropdownValue?.isNotEmpty ?? false)
-              ? jsonEncode(_model.tratamentoDropdownValue)
+                  ? jsonEncode(_model.tratamentoDropdownValue)
                   : null;
           dados['tratamento_outros'] =
               tratamentoOutros.isNotEmpty ? tratamentoOutros : null;

@@ -22,6 +22,7 @@ class RecuperacaodesenhaWidget extends StatefulWidget {
 
 class _RecuperacaodesenhaWidgetState extends State<RecuperacaodesenhaWidget> {
   late RecuperacaodesenhaModel _model;
+  bool _isSubmitting = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -240,26 +241,37 @@ class _RecuperacaodesenhaWidgetState extends State<RecuperacaodesenhaWidget> {
                   padding:
                       const EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 8.0),
                   child: FFButtonWidget(
-                    onPressed: () async {
-                      if (_model.emailTextController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Email required!',
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-                      await authManager.resetPassword(
-                        email: _model.emailTextController.text,
-                        context: context,
-                        redirectTo:
-                            '${Uri.base.origin}${RedefinicaosenhaWidget.routePath}',
-                      );
+                    onPressed: _isSubmitting
+                        ? null
+                        : () async {
+                            if (_model.emailTextController.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Email required!',
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                            setState(() => _isSubmitting = true);
+                            try {
+                              final sent = await authManager.resetPassword(
+                                email: _model.emailTextController.text,
+                                context: context,
+                                redirectTo:
+                                    '${Uri.base.origin}${RedefinicaosenhaWidget.routePath}',
+                              );
 
-                      context.goNamed(LoginWidget.routeName);
-                    },
+                              if (sent && context.mounted) {
+                                context.goNamed(LoginWidget.routeName);
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(() => _isSubmitting = false);
+                              }
+                            }
+                          },
                     text: 'Enviar',
                     options: FFButtonOptions(
                       width: double.infinity,

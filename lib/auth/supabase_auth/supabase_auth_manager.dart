@@ -55,30 +55,54 @@ class SupabaseAuthManager extends AuthManager with EmailSignInManager {
     );
   }
 
-  Future updatePassword({
+  @override
+  Future<bool> updatePassword({
     required String newPassword,
     required BuildContext context,
   }) async {
+    final session = SupaFlow.client.auth.currentSession;
+    if (session == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('Sua sessão expirou. Solicite um novo link de recuperação.'),
+        ),
+      );
+      return false;
+    }
+
     try {
-      if (!loggedIn) {
-        print('Error: update password attempted with no logged in user!');
-        return;
+      final response = await SupaFlow.client.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+      if (response.user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Não foi possível atualizar a senha.')),
+        );
+        return false;
       }
-      await currentUser?.updatePassword(newPassword);
     } on AuthException catch (e) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.message}')),
+        SnackBar(
+            content: Text('Não foi possível atualizar a senha: ${e.message}')),
       );
-      return;
+      return false;
+    } catch (_) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível atualizar a senha.')),
+      );
+      return false;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password updated successfully')),
+      const SnackBar(content: Text('Senha atualizada com sucesso.')),
     );
+    return true;
   }
 
   @override
-  Future resetPassword({
+  Future<bool> resetPassword({
     required String email,
     required BuildContext context,
     String? redirectTo,
@@ -91,11 +115,12 @@ class SupabaseAuthManager extends AuthManager with EmailSignInManager {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.message}')),
       );
-      return null;
+      return false;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password reset email sent')),
+      const SnackBar(content: Text('E-mail de recuperação enviado.')),
     );
+    return true;
   }
 
   @override

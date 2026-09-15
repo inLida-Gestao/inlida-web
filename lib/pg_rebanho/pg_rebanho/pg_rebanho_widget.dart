@@ -82,6 +82,8 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
         s.filtroCategoria.isNotEmpty ||
         s.filtroDataNacimentoDe != null ||
         s.filtroDataNacimentoAte != null ||
+        s.filtroDataPesagemDe != null ||
+        s.filtroDataPesagemAte != null ||
         s.filtroLoteId.isNotEmpty ||
         s.filtroLoteNome.isNotEmpty ||
         s.filtroRaca.isNotEmpty ||
@@ -131,6 +133,16 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
         FFAppState().filtroDataNacimentoAte,
         locale: FFLocalizations.of(context).languageCode,
       );
+      final dataPesagemDe = dateTimeFormat(
+        "yyyy-MM-dd",
+        FFAppState().filtroDataPesagemDe,
+        locale: FFLocalizations.of(context).languageCode,
+      );
+      final dataPesagemAte = dateTimeFormat(
+        "yyyy-MM-dd",
+        FFAppState().filtroDataPesagemAte,
+        locale: FFLocalizations.of(context).languageCode,
+      );
       final idPropriedade = FFAppState().propriedadeSelecionada.idPropriedade;
       final pesquisa = _model.textController.text;
 
@@ -139,6 +151,8 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
         pCategoria: FFAppState().filtroCategoria,
         pDataNascimentoDe: dataNascimentoDe,
         pDataNascimentoAte: dataNascimentoAte,
+        pDataPesagemDe: dataPesagemDe,
+        pDataPesagemAte: dataPesagemAte,
         pIdPropriedade: idPropriedade,
         pLoteNome: FFAppState().filtroLoteId.isNotEmpty
             ? FFAppState().filtroLoteId
@@ -160,6 +174,8 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
         pCategoria: FFAppState().filtroCategoria,
         pDataNascimentoDe: dataNascimentoDe,
         pDataNascimentoAte: dataNascimentoAte,
+        pDataPesagemDe: dataPesagemDe,
+        pDataPesagemAte: dataPesagemAte,
         pLoteID: FFAppState().filtroLoteId,
         pOrigem: FFAppState().filtroOrigem,
         pRaca: FFAppState().filtroRaca,
@@ -879,6 +895,8 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
                                               s.filtroCategoria = '';
                                               s.filtroDataNacimentoDe = null;
                                               s.filtroDataNacimentoAte = null;
+                                              s.filtroDataPesagemDe = null;
+                                              s.filtroDataPesagemAte = null;
                                               s.filtroLoteId = '';
                                               s.filtroRaca = '';
                                               s.filtroOrigem = '';

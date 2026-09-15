@@ -10,7 +10,6 @@ class LotesStruct extends BaseStruct {
     int? id,
     String? createdAt,
     String? idPropriedade,
-    String? idAnimais,
     String? nome,
     String? anotacoes,
     String? ativo,
@@ -25,7 +24,6 @@ class LotesStruct extends BaseStruct {
   })  : _id = id,
         _createdAt = createdAt,
         _idPropriedade = idPropriedade,
-        _idAnimais = idAnimais,
         _nome = nome,
         _anotacoes = anotacoes,
         _ativo = ativo,
@@ -60,13 +58,6 @@ class LotesStruct extends BaseStruct {
   set idPropriedade(String? val) => _idPropriedade = val;
 
   bool hasIdPropriedade() => _idPropriedade != null;
-
-  // "id_animais" field.
-  String? _idAnimais;
-  String get idAnimais => _idAnimais ?? '';
-  set idAnimais(String? val) => _idAnimais = val;
-
-  bool hasIdAnimais() => _idAnimais != null;
 
   // "nome" field.
   String? _nome;
@@ -152,7 +143,6 @@ class LotesStruct extends BaseStruct {
         id: castToType<int>(data['id']),
         createdAt: data['created_at'] as String?,
         idPropriedade: data['id_propriedade'] as String?,
-        idAnimais: data['id_animais'] as String?,
         nome: data['nome'] as String?,
         anotacoes: data['anotacoes'] as String?,
         ativo: data['ativo'] as String?,
@@ -173,7 +163,6 @@ class LotesStruct extends BaseStruct {
         'id': _id,
         'created_at': _createdAt,
         'id_propriedade': _idPropriedade,
-        'id_animais': _idAnimais,
         'nome': _nome,
         'anotacoes': _anotacoes,
         'ativo': _ativo,
@@ -199,10 +188,6 @@ class LotesStruct extends BaseStruct {
         ),
         'id_propriedade': serializeParam(
           _idPropriedade,
-          ParamType.String,
-        ),
-        'id_animais': serializeParam(
-          _idAnimais,
           ParamType.String,
         ),
         'nome': serializeParam(
@@ -265,11 +250,6 @@ class LotesStruct extends BaseStruct {
         ),
         idPropriedade: deserializeParam(
           data['id_propriedade'],
-          ParamType.String,
-          false,
-        ),
-        idAnimais: deserializeParam(
-          data['id_animais'],
           ParamType.String,
           false,
         ),
@@ -339,7 +319,6 @@ class LotesStruct extends BaseStruct {
         id == other.id &&
         createdAt == other.createdAt &&
         idPropriedade == other.idPropriedade &&
-        idAnimais == other.idAnimais &&
         nome == other.nome &&
         anotacoes == other.anotacoes &&
         ativo == other.ativo &&
@@ -358,7 +337,6 @@ class LotesStruct extends BaseStruct {
         id,
         createdAt,
         idPropriedade,
-        idAnimais,
         nome,
         anotacoes,
         ativo,
@@ -377,7 +355,6 @@ LotesStruct createLotesStruct({
   int? id,
   String? createdAt,
   String? idPropriedade,
-  String? idAnimais,
   String? nome,
   String? anotacoes,
   String? ativo,
@@ -394,7 +371,6 @@ LotesStruct createLotesStruct({
       id: id,
       createdAt: createdAt,
       idPropriedade: idPropriedade,
-      idAnimais: idAnimais,
       nome: nome,
       anotacoes: anotacoes,
       ativo: ativo,

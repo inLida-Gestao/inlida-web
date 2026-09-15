@@ -1177,7 +1177,8 @@ void _addPesagemRecord({
     'tipo': tipo,
     'peso': _parsePeso(peso),
     'dataPesagem': dataPesagem,
-    'deletado': null,
+    // Coluna NOT NULL: enviar null explicitamente ignora o DEFAULT 'NAO'.
+    'deletado': 'NAO',
   });
 }
 

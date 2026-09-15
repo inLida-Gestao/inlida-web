@@ -1,4 +1,5 @@
 import '/backend/supabase/supabase.dart';
+import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/form_field_controller.dart';
 import 'pp_filtro_reproducao_widget.dart' show PpFiltroReproducaoWidget;
@@ -42,6 +43,9 @@ class PpFiltroReproducaoModel
   String? Function(BuildContext, String?)?
       dataDiagnosticoAteTextControllerValidator;
   DateTime? datePickedDiagAte;
+  AnimalSelecionadoStruct matrizFiltroSelecionada = AnimalSelecionadoStruct();
+  AnimalSelecionadoStruct reprodutorFiltroSelecionado =
+      AnimalSelecionadoStruct();
   // State field(s) for DDCatRebanho widget.
   String? dDCatRebanhoValue;
   FormFieldController<String>? dDCatRebanhoValueController;

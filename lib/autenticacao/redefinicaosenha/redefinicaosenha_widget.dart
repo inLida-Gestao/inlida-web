@@ -3,6 +3,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/autenticacao/auth_layout.dart';
+import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'redefinicaosenha_model.dart';
@@ -20,6 +21,7 @@ class RedefinicaosenhaWidget extends StatefulWidget {
 
 class _RedefinicaosenhaWidgetState extends State<RedefinicaosenhaWidget> {
   late RedefinicaosenhaModel _model;
+  bool _isSubmitting = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -74,8 +76,8 @@ class _RedefinicaosenhaWidgetState extends State<RedefinicaosenhaWidget> {
                 Padding(
                   padding: const EdgeInsetsDirectional.fromSTEB(
                       0.0, 32.0, 0.0, 16.0),
-                                child: Text(
-                                  'Redefinição de senha',
+                  child: Text(
+                    'Redefinição de senha',
                     style: FlutterFlowTheme.of(context).bodyMedium.override(
                           font: GoogleFonts.poppins(
                             fontWeight: FontWeight.w500,
@@ -397,33 +399,53 @@ class _RedefinicaosenhaWidgetState extends State<RedefinicaosenhaWidget> {
                   padding:
                       const EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
                   child: FFButtonWidget(
-                    onPressed: (_model.senhaTextController.text !=
-                            _model.confirmacaoSenhaTextController.text)
+                    onPressed: _isSubmitting
                         ? null
                         : () async {
-                            await authManager.updatePassword(
-                              newPassword: _model.senhaTextController.text,
-                              context: context,
-                            );
-                            safeSetState(() {});
+                            final password = _model.senhaTextController.text;
+                            final confirmation =
+                                _model.confirmacaoSenhaTextController.text;
 
-                            await showDialog(
-                              context: context,
-                              builder: (alertDialogContext) {
-                                return AlertDialog(
-                                  title: const Text('Senha atualizada'),
-                                  content: const Text(
-                                      'Senha atualizada com sucesso. Você já pode fechar esta janela e fazer o login com a nova senha.'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(alertDialogContext),
-                                      child: const Text('Ok'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
+                            if (password.isEmpty || confirmation.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text('Preencha os dois campos de senha.'),
+                                ),
+                              );
+                              return;
+                            }
+                            if (password != confirmation) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('As senhas não conferem.'),
+                                ),
+                              );
+                              return;
+                            }
+
+                            setState(() => _isSubmitting = true);
+                            try {
+                              final updated = await authManager.updatePassword(
+                                newPassword: password,
+                                context: context,
+                              );
+                              if (!updated || !context.mounted) {
+                                return;
+                              }
+
+                              GoRouter.of(context).prepareAuthEvent();
+                              await authManager.signOut();
+                              if (!context.mounted) {
+                                return;
+                              }
+                              GoRouter.of(context).clearRedirectLocation();
+                              context.goNamed(LoginWidget.routeName);
+                            } finally {
+                              if (mounted) {
+                                setState(() => _isSubmitting = false);
+                              }
+                            }
                           },
                     text: 'Finalizar',
                     options: FFButtonOptions(

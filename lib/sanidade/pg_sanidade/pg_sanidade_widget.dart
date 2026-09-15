@@ -12,6 +12,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/sanidade/pp_filtro_sanidade/pp_filtro_sanidade_widget.dart';
 import '/sanidade/modal_add_sanidade/modal_add_sanidade_widget.dart';
 import '/sanidade/cc_edit_sanidade_animal/cc_edit_sanidade_animal_widget.dart';
+import '/sanidade/sanidade_ordenacao.dart';
 import '/actions/actions.dart' as action_blocks;
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'dart:async';
@@ -69,6 +70,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
   void initState() {
     super.initState();
     _model = createModel(context, () => PgSanidadeModel());
+    _model.syncSanidadeSortControllers();
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -389,9 +391,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
 
   /// Evita listagem duplicada quando a API/view devolve o mesmo registro mais de uma vez
   /// (ex.: múltiplas linhas com o mesmo `id` por causa de JOIN na view).
-  List<SanidadeStruct> _sanidadeRowsFromResponseJson(dynamic jsonBody) {
+  List<SanidadeStruct> _sanidadeRowsFromResponseJson(List<dynamic> jsonBody) {
     final parsed = (jsonBody
-            .toList()
             .map<SanidadeStruct?>(SanidadeStruct.maybeFromMap)
             .toList() as Iterable<SanidadeStruct?>)
         .withoutNulls
@@ -407,6 +408,119 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
       }
     }
     return out;
+  }
+
+  Widget _buildSanidadeLoadError({int? statusCode}) {
+    final statusMessage =
+        statusCode == null ? null : 'Código do erro: $statusCode';
+
+    return Scaffold(
+      backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              color: FlutterFlowTheme.of(context).error,
+              size: 48.0,
+            ),
+            const SizedBox(height: 16.0),
+            Text(
+              'Erro ao carregar dados',
+              style: FlutterFlowTheme.of(context).titleMedium,
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              'Não foi possível carregar os registros de sanidade.',
+              style: FlutterFlowTheme.of(context).bodySmall,
+            ),
+            if (statusMessage != null) ...[
+              const SizedBox(height: 4.0),
+              Text(
+                statusMessage,
+                style: FlutterFlowTheme.of(context).bodySmall,
+              ),
+            ],
+            const SizedBox(height: 16.0),
+            ElevatedButton.icon(
+              onPressed: () =>
+                  safeSetState(() => _model.apiRequestCompleter2 = null),
+              icon: const Icon(Icons.refresh_rounded, size: 18.0),
+              label: const Text('Tentar novamente'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSanidadeAnimalCell(
+    BuildContext context,
+    SanidadeStruct sanidade,
+  ) {
+    final numero =
+        _hasValue(sanidade.numeroAnimal) ? sanidade.numeroAnimal.trim() : 'S/N';
+    final nome = _hasValue(sanidade.nome) ? sanidade.nome.trim() : 'S/N';
+    final animalLabel = '$numero • $nome';
+    final isTableCompact = MediaQuery.sizeOf(context).width < 1440.0;
+
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: Tooltip(
+            message: animalLabel,
+            child: Text(
+              animalLabel,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    font: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w500,
+                      fontStyle:
+                          FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                    ),
+                    fontSize: isTableCompact ? 12.0 : 14.0,
+                    letterSpacing: 0.0,
+                    fontWeight: FontWeight.w500,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                  ),
+            ),
+          ),
+        ),
+        Text(
+          'Nascido em: ${valueOrDefault<String>(
+            dateTimeFormat(
+              "d/M/y",
+              functions.converterParaData(sanidade.dataNascimento),
+              locale: FFLocalizations.of(context).languageCode,
+            ),
+            'S/D',
+          )}',
+          maxLines: 1,
+          softWrap: false,
+          overflow: TextOverflow.ellipsis,
+          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                font: GoogleFonts.poppins(
+                  fontWeight:
+                      FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                ),
+                color: FlutterFlowTheme.of(context).icon,
+                fontSize: 12.0,
+                letterSpacing: 0.0,
+                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+              ),
+        ),
+      ],
+    );
   }
 
   Future<void> _openViewSanidadeDialog(SanidadeStruct sanidade) async {
@@ -791,6 +905,20 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
         s.filtroNascimentoSanidadeAte != null;
   }
 
+  void _handleSanidadeSort(int columnIndex, bool ascending) {
+    if (columnIndex != kSanidadeColData) {
+      _model.syncSanidadeSortControllers();
+      return;
+    }
+
+    safeSetState(() {
+      _model.sanidadeSortAscending = ascending;
+      _model.pageNum = 1;
+      _model.apiRequestCompleter2 = null;
+      _model.syncSanidadeSortControllers();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -850,6 +978,7 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
               pLimite: FFAppConstants.limit,
               pOffset: functions.calcDeslocamento(
                   _model.pageNum, FFAppConstants.limit),
+              pOrdemDataAsc: _model.sanidadeSortAscending,
             )))
           .future,
       builder: (context, snapshot) {
@@ -871,40 +1000,17 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
           );
         }
         if (snapshot.hasError) {
-          return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-            body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.error_outline_rounded,
-                    color: FlutterFlowTheme.of(context).error,
-                    size: 48.0,
-                  ),
-                  const SizedBox(height: 16.0),
-                  Text(
-                    'Erro ao carregar dados',
-                    style: FlutterFlowTheme.of(context).titleMedium,
-                  ),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    'Verifique sua conexão e tente novamente.',
-                    style: FlutterFlowTheme.of(context).bodySmall,
-                  ),
-                  const SizedBox(height: 16.0),
-                  ElevatedButton.icon(
-                    onPressed: () =>
-                        safeSetState(() => _model.apiRequestCompleter2 = null),
-                    icon: const Icon(Icons.refresh_rounded, size: 18.0),
-                    label: const Text('Tentar novamente'),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return _buildSanidadeLoadError();
         }
         final pgSanidadeBuscarSanidadeFiltrosResponse = snapshot.data!;
+        final sanidadeResponseJson =
+            pgSanidadeBuscarSanidadeFiltrosResponse.jsonBody;
+        if (!pgSanidadeBuscarSanidadeFiltrosResponse.succeeded ||
+            sanidadeResponseJson is! List) {
+          return _buildSanidadeLoadError(
+            statusCode: pgSanidadeBuscarSanidadeFiltrosResponse.statusCode,
+          );
+        }
 
         return GestureDetector(
           onTap: () {
@@ -2108,16 +2214,15 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = _sanidadeRowsFromResponseJson(
-                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                        .jsonBody)
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .sortedList(
-                                                                    keyOf: (e) =>
-                                                                        e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                ordenarSanidadesPorData(
+                                                              _sanidadeRowsFromResponseJson(
+                                                                      sanidadeResponseJson)
+                                                                  .where(
+                                                                      _passesMultiSelectFilters),
+                                                              _model
+                                                                  .sanidadeSortAscending,
+                                                            );
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -2135,6 +2240,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               controller: _model
                                                                   .paginatedDataTableController1,
                                                               data: sanidade,
+                                                              onSortChanged:
+                                                                  _handleSanidadeSort,
                                                               columnsBuilder:
                                                                   (onSortChanged) =>
                                                                       [
@@ -2366,67 +2473,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                               const SizedBox(width: 4.0)),
                                                                     ),
                                                                   ),
-                                                                  Column(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .center,
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
-                                                                      Text(
-                                                                        '${valueOrDefault<String>(
-                                                                          sanidadeItem
-                                                                              .numeroAnimal,
-                                                                          'S/N',
-                                                                        )} • ${valueOrDefault<String>(
-                                                                          sanidadeItem
-                                                                              .nome,
-                                                                          'S/N',
-                                                                        )}',
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              fontSize: 14.0,
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FontWeight.w500,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                      Text(
-                                                                        'Nascido em: ${valueOrDefault<String>(
-                                                                          dateTimeFormat(
-                                                                            "d/M/y",
-                                                                            functions.converterParaData(
-                                                                              sanidadeItem.dataNascimento,
-                                                                            ),
-                                                                            locale:
-                                                                                FFLocalizations.of(context).languageCode,
-                                                                          ),
-                                                                          'S/D',
-                                                                        )}',
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              color: FlutterFlowTheme.of(context).icon,
-                                                                              fontSize: 12.0,
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ],
+                                                                  _buildSanidadeAnimalCell(
+                                                                    context,
+                                                                    sanidadeItem,
                                                                   ),
                                                                   Column(
                                                                     mainAxisSize:
@@ -3004,19 +3053,17 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = _sanidadeRowsFromResponseJson(
-                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                        .jsonBody)
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where(
-                                                                    _rowQualifiesVacinaTab)
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) =>
-                                                                        e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                ordenarSanidadesPorData(
+                                                              _sanidadeRowsFromResponseJson(
+                                                                      sanidadeResponseJson)
+                                                                  .where(
+                                                                      _passesMultiSelectFilters)
+                                                                  .where(
+                                                                      _rowQualifiesVacinaTab),
+                                                              _model
+                                                                  .sanidadeSortAscending,
+                                                            );
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -3034,6 +3081,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               controller: _model
                                                                   .paginatedDataTableController2,
                                                               data: sanidade,
+                                                              onSortChanged:
+                                                                  _handleSanidadeSort,
                                                               columnsBuilder:
                                                                   (onSortChanged) =>
                                                                       [
@@ -3307,67 +3356,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       );
                                                                     },
                                                                   ),
-                                                                  Column(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .center,
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
-                                                                      Text(
-                                                                        '${valueOrDefault<String>(
-                                                                          sanidadeItem
-                                                                              .numeroAnimal,
-                                                                          'S/N',
-                                                                        )} • ${valueOrDefault<String>(
-                                                                          sanidadeItem
-                                                                              .nome,
-                                                                          'S/N',
-                                                                        )}',
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              fontSize: 14.0,
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FontWeight.w500,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                      Text(
-                                                                        'Nascido em: ${valueOrDefault<String>(
-                                                                          dateTimeFormat(
-                                                                            "d/M/y",
-                                                                            functions.converterParaData(
-                                                                              sanidadeItem.dataNascimento,
-                                                                            ),
-                                                                            locale:
-                                                                                FFLocalizations.of(context).languageCode,
-                                                                          ),
-                                                                          'S/D',
-                                                                        )}',
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              color: FlutterFlowTheme.of(context).icon,
-                                                                              fontSize: 12.0,
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ],
+                                                                  _buildSanidadeAnimalCell(
+                                                                    context,
+                                                                    sanidadeItem,
                                                                   ),
                                                                   Column(
                                                                     mainAxisSize:
@@ -3950,19 +3941,17 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = _sanidadeRowsFromResponseJson(
-                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                        .jsonBody)
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where(
-                                                                    _rowQualifiesAntiparasitarioTab)
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) =>
-                                                                        e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                ordenarSanidadesPorData(
+                                                              _sanidadeRowsFromResponseJson(
+                                                                      sanidadeResponseJson)
+                                                                  .where(
+                                                                      _passesMultiSelectFilters)
+                                                                  .where(
+                                                                      _rowQualifiesAntiparasitarioTab),
+                                                              _model
+                                                                  .sanidadeSortAscending,
+                                                            );
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -3980,6 +3969,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               controller: _model
                                                                   .paginatedDataTableController3,
                                                               data: sanidade,
+                                                              onSortChanged:
+                                                                  _handleSanidadeSort,
                                                               columnsBuilder:
                                                                   (onSortChanged) =>
                                                                       [
@@ -4253,67 +4244,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       );
                                                                     },
                                                                   ),
-                                                                  Column(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .center,
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
-                                                                      Text(
-                                                                        '${valueOrDefault<String>(
-                                                                          sanidadeItem
-                                                                              .numeroAnimal,
-                                                                          'S/N',
-                                                                        )} • ${valueOrDefault<String>(
-                                                                          sanidadeItem
-                                                                              .nome,
-                                                                          'S/N',
-                                                                        )}',
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              fontSize: 14.0,
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FontWeight.w500,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                      Text(
-                                                                        'Nascido em: ${valueOrDefault<String>(
-                                                                          dateTimeFormat(
-                                                                            "d/M/y",
-                                                                            functions.converterParaData(
-                                                                              sanidadeItem.dataNascimento,
-                                                                            ),
-                                                                            locale:
-                                                                                FFLocalizations.of(context).languageCode,
-                                                                          ),
-                                                                          'S/D',
-                                                                        )}',
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              color: FlutterFlowTheme.of(context).icon,
-                                                                              fontSize: 12.0,
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ],
+                                                                  _buildSanidadeAnimalCell(
+                                                                    context,
+                                                                    sanidadeItem,
                                                                   ),
                                                                   Column(
                                                                     mainAxisSize:
@@ -4896,19 +4829,17 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = _sanidadeRowsFromResponseJson(
-                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                        .jsonBody)
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where(
-                                                                    _rowQualifiesTratamentoTab)
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) =>
-                                                                        e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                ordenarSanidadesPorData(
+                                                              _sanidadeRowsFromResponseJson(
+                                                                      sanidadeResponseJson)
+                                                                  .where(
+                                                                      _passesMultiSelectFilters)
+                                                                  .where(
+                                                                      _rowQualifiesTratamentoTab),
+                                                              _model
+                                                                  .sanidadeSortAscending,
+                                                            );
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -4926,6 +4857,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               controller: _model
                                                                   .paginatedDataTableController4,
                                                               data: sanidade,
+                                                              onSortChanged:
+                                                                  _handleSanidadeSort,
                                                               columnsBuilder:
                                                                   (onSortChanged) =>
                                                                       [
@@ -5199,67 +5132,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                       );
                                                                     },
                                                                   ),
-                                                                  Column(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .center,
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
-                                                                      Text(
-                                                                        '${valueOrDefault<String>(
-                                                                          sanidadeItem
-                                                                              .numeroAnimal,
-                                                                          'S/N',
-                                                                        )} • ${valueOrDefault<String>(
-                                                                          sanidadeItem
-                                                                              .nome,
-                                                                          'S/N',
-                                                                        )}',
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              fontSize: 14.0,
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FontWeight.w500,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                      Text(
-                                                                        'Nascido em: ${valueOrDefault<String>(
-                                                                          dateTimeFormat(
-                                                                            "d/M/y",
-                                                                            functions.converterParaData(
-                                                                              sanidadeItem.dataNascimento,
-                                                                            ),
-                                                                            locale:
-                                                                                FFLocalizations.of(context).languageCode,
-                                                                          ),
-                                                                          'S/D',
-                                                                        )}',
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              color: FlutterFlowTheme.of(context).icon,
-                                                                              fontSize: 12.0,
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ],
+                                                                  _buildSanidadeAnimalCell(
+                                                                    context,
+                                                                    sanidadeItem,
                                                                   ),
                                                                   Column(
                                                                     mainAxisSize:
@@ -5842,19 +5717,17 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                       Flexible(
                                                         child: Builder(
                                                           builder: (context) {
-                                                            final sanidade = _sanidadeRowsFromResponseJson(
-                                                                    pgSanidadeBuscarSanidadeFiltrosResponse
-                                                                        .jsonBody)
-                                                                .where(
-                                                                    _passesMultiSelectFilters)
-                                                                .where(
-                                                                    _rowQualifiesProtocoloTab)
-                                                                .toList()
-                                                                .sortedList(
-                                                                    keyOf: (e) =>
-                                                                        e.createdAt,
-                                                                    desc: true)
-                                                                .toList();
+                                                            final sanidade =
+                                                                ordenarSanidadesPorData(
+                                                              _sanidadeRowsFromResponseJson(
+                                                                      sanidadeResponseJson)
+                                                                  .where(
+                                                                      _passesMultiSelectFilters)
+                                                                  .where(
+                                                                      _rowQualifiesProtocoloTab),
+                                                              _model
+                                                                  .sanidadeSortAscending,
+                                                            );
                                                             if (sanidade
                                                                 .isEmpty) {
                                                               return Center(
@@ -5872,6 +5745,8 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                               controller: _model
                                                                   .paginatedDataTableController5,
                                                               data: sanidade,
+                                                              onSortChanged:
+                                                                  _handleSanidadeSort,
                                                               columnsBuilder:
                                                                   (onSortChanged) =>
                                                                       [
@@ -6325,67 +6200,9 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
                                                                               .fontStyle,
                                                                         ),
                                                                   ),
-                                                                  Column(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .max,
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .center,
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
-                                                                      Text(
-                                                                        '${valueOrDefault<String>(
-                                                                          sanidadeItem
-                                                                              .numeroAnimal,
-                                                                          'S/N',
-                                                                        )} • ${valueOrDefault<String>(
-                                                                          sanidadeItem
-                                                                              .nome,
-                                                                          'S/N',
-                                                                        )}',
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FontWeight.w500,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              fontSize: 14.0,
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FontWeight.w500,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                      Text(
-                                                                        'Nascido em: ${valueOrDefault<String>(
-                                                                          dateTimeFormat(
-                                                                            "d/M/y",
-                                                                            functions.converterParaData(
-                                                                              sanidadeItem.dataNascimento,
-                                                                            ),
-                                                                            locale:
-                                                                                FFLocalizations.of(context).languageCode,
-                                                                          ),
-                                                                          'S/D',
-                                                                        )}',
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.poppins(
-                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              color: FlutterFlowTheme.of(context).icon,
-                                                                              fontSize: 12.0,
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ],
+                                                                  _buildSanidadeAnimalCell(
+                                                                    context,
+                                                                    sanidadeItem,
                                                                   ),
                                                                   Column(
                                                                     mainAxisSize:

@@ -15,7 +15,7 @@ class PgReproducaoViewAnimalModel
 
   double? score = 1.0;
 
-  int? partidaSemen = 1;
+  int? partidaSemen;
 
   ReproducaoRow? reproducaoSelecionada;
 
