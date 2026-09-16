@@ -14,7 +14,6 @@ import {
 import { selectAll } from "./sql.ts";
 import {
   a12FromRebanho,
-  derivaSafraCodigo,
   digAnoCandidates,
   extractAnimal5,
   extractBrinco5,
@@ -82,6 +81,9 @@ export interface ExportContext {
   // existe no ANIMAL.TXT e passaria a exibi-lo (bug reportado pela cliente).
   // Referência a eles como PAI/MÃE/TOURO continua saindo (regra da cliente).
   foraDoAnimalTxt?: { a12: Set<string>; digAno: Set<string> };
+  // Janelas das safras cadastradas (só as de estação de monta, código ...P),
+  // já ordenadas da mais curta para a mais longa. Ver safraPorData.
+  safraJanelas?: Array<{ codigo: string; inicio: string; fim: string }>;
   generationDate: string; // dd/mm/aaaa
   generationTime: string; // hh:mm:ss
   generationDateTime: Date;
@@ -692,6 +694,8 @@ async function genComposicaoRacial(ctx: ExportContext): Promise<string> {
 // COBERTURA — de `reproducao`.
 // =============================================================================
 async function genCobertura(ctx: ExportContext): Promise<string> {
+  // Janelas das safras: memoizado em ctx, então só a primeira paga a consulta.
+  await loadSafraJanelas(ctx);
   const layout = LAYOUTS.COBERTURA;
   const rows = ctx.reproducaoRows ?? await selectAll<any>(
     ctx.supa,
@@ -774,7 +778,7 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
     );
     lines.push(buildLine(layout, {
       cob_parceiro: ctx.config.codigo_transmissao,
-      cob_safra_id: derivaSafraCodigo(r.data_inseminacao ?? r.data_inicial),
+      cob_safra_id: safraPorData(ctx, r.data_inseminacao ?? r.data_inicial),
       cob_animal_id: matrizA12,
       // Monta natural não tem data de inseminação: a data da cobertura é a
       // data inicial do repasse. Mesmo fallback que cob_safra_id já fazia
@@ -820,6 +824,8 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
 // NASCIMENTO — filhos com matriz definida.
 // =============================================================================
 async function genNascimento(ctx: ExportContext): Promise<string> {
+  // Janelas das safras: memoizado em ctx, então só a primeira paga a consulta.
+  await loadSafraJanelas(ctx);
   const layout = LAYOUTS.NASCIMENTO;
   // Reusa pre-fetch de rebanho (genAnimal popula).
   const rowsAll = ctx.rebanhoRows ?? await selectAll<any>(
@@ -907,7 +913,7 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
     const posNas = camposPosicionais(ctx, r, a12Cria);
     lines.push(buildLine(layout, {
       nas_parceiro: ctx.config.codigo_transmissao,
-      nas_safra_id: derivaSafraCodigo(cob.data_parto),
+      nas_safra_id: safraPorData(ctx, cob.data_inseminacao ?? cob.data_inicial),
       nas_animal_id: matrizA12,
       nas_data_cob: formatDate(cob.data_inseminacao ?? cob.data_inicial),
       // Sequência da cria dentro do parto: gêmeas viram 1 e 2. Com "1" fixo as
@@ -1274,6 +1280,55 @@ async function genRegimeAlimentar(ctx: ExportContext): Promise<string> {
   }));
 }
 
+// A safra do PAINT é a ESTAÇÃO DE MONTA da fazenda, com início e fim próprios
+// de cada ano (ex.: Cachoeira, 2026P = 01/10/2025 a 16/07/2026). Não é uma
+// janela fixa 01/06–31/05, e entre uma estação e a seguinte existe um intervalo
+// sem safra nenhuma. Por isso a safra não pode ser DEDUZIDA da data: ela é
+// procurada no cadastro que a própria cliente mantém.
+//
+// Sem janela que contenha a data, o campo sai VAZIO — é o mesmo princípio de
+// cob_periodo e grupo de manejo: melhor faltar informação do que apontar para
+// uma safra cuja janela não contém o registro, que era exatamente o defeito
+// anterior.
+async function loadSafraJanelas(
+  ctx: ExportContext,
+): Promise<Array<{ codigo: string; inicio: string; fim: string }>> {
+  if (ctx.safraJanelas) return ctx.safraJanelas;
+  const rows = await selectAll<any>(
+    ctx.supa,
+    "paint_safra",
+    (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
+    { orderColumn: "id", columns: "codigo,data_inicio,data_final" },
+  );
+  const janelas: Array<{ codigo: string; inicio: string; fim: string }> = [];
+  for (const r of rows) {
+    const codigo = String(r.codigo ?? "").trim();
+    const inicio = dateKeyIso(r.data_inicio);
+    const fim = dateKeyIso(r.data_final);
+    // Só as safras de estação de monta. As trimestrais (26I, 25V...) que o
+    // auto-preencher cria ficam de fora de propósito: são curtas e sempre
+    // venceriam o desempate abaixo, roubando coberturas da estação real.
+    if (!codigo.endsWith("P") || !inicio || !fim) continue;
+    janelas.push({ codigo, inicio, fim });
+  }
+  // Mais curta primeiro: quando duas janelas contêm a mesma data, a mais
+  // específica é a estação de verdade, não um bloco anual genérico.
+  const duracao = (j: { inicio: string; fim: string }) =>
+    Date.parse(j.fim) - Date.parse(j.inicio);
+  janelas.sort((a, b) => duracao(a) - duracao(b) || a.codigo.localeCompare(b.codigo));
+  ctx.safraJanelas = janelas;
+  return janelas;
+}
+
+function safraPorData(ctx: ExportContext, data: unknown): string {
+  const dia = dateKeyIso(data);
+  if (!dia) return "";
+  for (const j of ctx.safraJanelas ?? []) {
+    if (dia >= j.inicio && dia <= j.fim) return j.codigo;
+  }
+  return "";
+}
+
 async function genSafra(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "SAFRA", "paint_safra", (r, recno) => ({
     sfr_parceiro: ctx.config.codigo_transmissao,
@@ -1327,6 +1382,8 @@ async function genTouroMultiplo(ctx: ExportContext): Promise<string> {
 // PESAGEM — derivada de historico_pesagens (ou rebanho.pesoAtual em fallback).
 // =============================================================================
 async function genPesagem(ctx: ExportContext): Promise<string> {
+  // Janelas das safras: memoizado em ctx, então só a primeira paga a consulta.
+  await loadSafraJanelas(ctx);
   const layout = LAYOUTS.PESAGEM;
   const lines: string[] = [];
   let recno = 0;
@@ -1377,7 +1434,7 @@ async function genPesagem(ctx: ExportContext): Promise<string> {
       pes_hora_alteracao: ctx.generationTime,
       pes_enviar: "True ",
       pes_recno: recno,
-      pes_safra_id: derivaSafraCodigo(r.data_pesagem ?? r.data),
+      pes_safra_id: safraPorData(ctx, r.data_pesagem ?? r.data),
       pes_frame: "",
     }));
   }

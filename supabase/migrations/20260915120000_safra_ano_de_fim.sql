@@ -1,52 +1,75 @@
--- Safra passa a ser nomeada pelo ano em que TERMINA.
+-- A safra do PAINT é a ESTAÇÃO DE MONTA da fazenda, e por isso não é calculável.
 --
--- A safra reprodutiva vai de 01/06 a 31/05. O código usava o ano de INÍCIO
--- (uma cobertura de julho/2025 virava "2025P"), mas o PAINT nomeia pelo ano de
--- FIM: 2026P = 01/06/2025 a 31/05/2026. A cliente corrigiu o cadastro de
--- safras à mão para conseguir mandar os TXT, e com isso o banco e o código
--- ficaram provadamente inconsistentes: a janela de 2025P no cadastro
--- (01/06/2024 a 31/05/2025) não contém julho/2025, que o código carimbava
--- como 2025P.
+-- Historico desta correção, em dois passos, porque o primeiro estava incompleto:
 --
--- Corrigido em derivaSafraCodigo (Dart e TypeScript) e na criação automática
--- de safras do auto_preencher_paint. Isso resolve os campos CALCULADOS na
--- exportação — cob_safra_id, nas_safra_id e pes_safra_id.
+-- 15/09 — o código derivava a safra da data por fórmula de mês, com janela fixa
+-- 01/06 a 31/05, e nomeava pelo ano de INÍCIO. Corrigimos para o ano de FIM,
+-- que é a convenção do PAINT.
+--
+-- 16/09 — a cliente mandou as janelas reais e a premissa da janela fixa caiu:
+--
+--     2019P  25/09/2018 a 14/06/2019      2023P  01/10/2022 a 22/06/2023
+--     2020P  24/09/2019 a 20/07/2020      2024P  29/09/2023 a 18/07/2024
+--     2021P  01/10/2020 a 15/07/2021      2025P  01/10/2024 a 29/07/2025
+--     2022P  09/09/2021 a 08/07/2022      2026P  01/10/2025 a 16/07/2026
+--
+-- Cada estação começa e termina em dia diferente, varia de fazenda para fazenda,
+-- e entre uma e a seguinte existe um intervalo sem safra nenhuma. Nenhuma
+-- fórmula reproduz isso. A safra passou a ser PROCURADA no cadastro que a
+-- própria cliente mantém, e sem janela que contenha a data o campo sai vazio.
+--
+-- Mudou junto:
+--   - NASCIMENTO usa a data da COBERTURA, não a do parto. O registro já é
+--     chaveado por nas_data_cob, e bezerro nasce ~9 meses depois, quase sempre
+--     fora da estação: pela data do parto só 3.367 de 4.591 achavam safra;
+--     pela data da cobertura, 4.494.
+--   - auto_preencher_paint parou de CRIAR safra faltante. Inventar janela ali
+--     foi o que encheu o cadastro de safras erradas que a cliente corrigiu à
+--     mão. Diagnóstico fora de toda estação agora é pulado e reportado.
+--
+-- Cobertura da regra nova, medida em 16/09/2026 na Cachoeira:
+--   COBERTURA   11.412 de 11.615 (98,3%)
+--   NASCIMENTO   4.494 de  4.591 (97,9%)
+--   PESAGEM     12.296 de 15.522 (79,2%)   <-- ver pendência abaixo
 --
 -- ---------------------------------------------------------------------------
--- BACKFILL — NÃO aplicado nesta migration.
+-- PENDÊNCIA 1 — o que pes_safra_id significa.
 --
--- `paint_diagnostico.safra_codigo` é GRAVADO, não calculado na exportação, e
--- todas as linhas estão na convenção antiga. Sem o backfill, DIAGNOSTICO.TXT
--- continua um ano atrás dos outros arquivos. Medido em 15/09/2026, só a
--- Cachoeira tem config PAINT:
+-- Data de pesagem não pertence a uma estação de monta por natureza, e o manual
+-- não define o campo. Hoje ele procura a janela que contém a data da pesagem,
+-- e 3.226 saem em branco. Se o certo for a estação que GEROU o animal, a regra
+-- muda para "safra da cobertura que originou o animal" e a cobertura sobe.
+-- Confirmar com a cliente antes de mexer.
 --
---   2014P->2015P      4      2021P->2022P   1.411
---   2017P->2018P     87      2022P->2023P   1.200
---   2018P->2019P    730      2023P->2024P   1.418
---   2019P->2020P  1.084      2024P->2025P   1.433
---   2020P->2021P  1.577      2025P->2026P   1.060
---                            2026P->2027P     316
---   total: 10.320 linhas
+-- ---------------------------------------------------------------------------
+-- PENDÊNCIA 2 — backfill de paint_diagnostico.safra_codigo. NÃO aplicado.
 --
--- Todas as safras de destino já existem no cadastro, MENOS 2027P, que precisa
--- ser criada antes (01/06/2026 a 31/05/2027).
+-- safra_codigo é GRAVADO (not null, e parte da unique), não calculado na
+-- exportação, então as linhas antigas continuam na convenção velha. Medido em
+-- 16/09/2026, só a Cachoeira tem config PAINT:
 --
--- Fica de fora porque é escrita em lote em produção e porque a convenção vem
--- da palavra da cliente, não de documento — confirmar com ela antes. O comando:
+--   16.468 linhas no total
+--    6.086 já estão com o código certo
+--    8.584 mudam de código
+--    1.798 não caem em nenhuma estação cadastrada
 --
---   insert into public.paint_safra
---     (id_propriedade, codigo, descricao, data_inicio, data_final, concluida)
---   values ('u7chcvxq1cxzss762oyi','2027P','Safra 2027P',
---           '2026-06-01','2027-05-31', false)
---   on conflict (id_propriedade, codigo) do nothing;
+-- As 1.798 não têm destino: ou a cliente estende/cadastra a estação que falta,
+-- ou elas ficam como estão. Por isso o update abaixo só toca nas 8.584.
 --
---   update public.paint_diagnostico
---      set safra_codigo = (case when extract(month from data) <= 5
---                               then extract(year from data)
---                               else extract(year from data) + 1 end)::int::text
---                         || right(btrim(safra_codigo), 1)
---    where id_propriedade = 'u7chcvxq1cxzss762oyi'
---      and btrim(safra_codigo) <> '';
+--   update public.paint_diagnostico d
+--      set safra_codigo = j.codigo
+--     from lateral (
+--            select s.codigo
+--              from public.paint_safra s
+--             where s.id_propriedade = d.id_propriedade
+--               and s.codigo like '%P'
+--               and d.data between s.data_inicio and s.data_final
+--             order by (s.data_final - s.data_inicio) asc, s.codigo asc
+--             limit 1
+--          ) j
+--    where d.id_propriedade = 'u7chcvxq1cxzss762oyi'
+--      and btrim(d.safra_codigo) is distinct from j.codigo;
 --
--- Rodar os dois na mesma transação: o update viola a FK de safra_codigo se
--- 2027P não existir.
+-- Atenção à unique (id_propriedade, safra_codigo, animal_a12, data): se o mesmo
+-- animal tiver dois diagnósticos na mesma data que convirjam para a mesma
+-- safra, o update colide. Conferir antes.

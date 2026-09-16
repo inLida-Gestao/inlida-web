@@ -341,25 +341,6 @@ export function mapTipoCobertura(tipo: unknown): string {
   return "R";
 }
 
-// ---------------------------------------------------------------------------
-// Código de safra — manual §8.5: ano + sigla estação (P/V/O/I), janela
-// 01/06–31/05. Heurística: mês <= 5 → ano-1 (estação anterior).
-// ---------------------------------------------------------------------------
-export function derivaSafraCodigo(data: unknown, tag = "P"): string {
-  if (!data) return "";
-  const d = new Date(String(data));
-  if (isNaN(d.getTime())) return "";
-  const m = d.getUTCMonth() + 1;
-  const y = d.getUTCFullYear();
-  // A safra vai de 01/06 a 31/05 e é nomeada pelo ano em que TERMINA, que é a
-  // convenção do PAINT: 2026P = 01/06/2025 a 31/05/2026. Até 15/09/2026 isto
-  // usava o ano de INÍCIO, e cob_safra_id / nas_safra_id / pes_safra_id
-  // apontavam para uma safra cuja janela não continha a data do próprio
-  // registro.
-  const safraAno = m <= 5 ? y : y + 1;
-  return `${safraAno}${tag}`;
-}
-
 // Largura dos campos de descrição C(20) do PAINT: `grm_descri`, `ins_descri`,
 // `lde_descri`, `rga_descri`. É o ÚNICO ponto onde esses textos precisam caber
 // em 20 chars — o cadastro e a coluna guardam o texto completo, e o corte

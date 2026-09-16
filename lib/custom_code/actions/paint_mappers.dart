@@ -211,21 +211,3 @@ String mapTipoCobertura(dynamic tipo) {
   if (t.contains('EMBRI')) return 'E';
   return 'R';
 }
-
-/// Código de safra (manual §8.5): ano + sigla estação.
-String derivaSafraCodigo(dynamic data, {String tag = 'P'}) {
-  if (data == null) return '';
-  DateTime? d;
-  if (data is DateTime) {
-    d = data;
-  } else {
-    d = DateTime.tryParse(data.toString());
-  }
-  if (d == null) return '';
-  // A safra vai de 01/06 a 31/05 e é nomeada pelo ano em que TERMINA, que é a
-  // convenção do PAINT: 2026P = 01/06/2025 a 31/05/2026. Até 15/09/2026 isto
-  // usava o ano de INÍCIO, e ficava um ano atrás do cadastro de safras — a
-  // cliente corrigiu a tabela à mão para poder mandar os TXT.
-  final safraAno = d.month <= 5 ? d.year : d.year + 1;
-  return '$safraAno$tag';
-}

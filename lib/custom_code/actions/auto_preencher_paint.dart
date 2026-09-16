@@ -3,7 +3,6 @@ import '/backend/supabase/supabase.dart';
 // Imports other custom actions
 import 'paint_excel_helpers.dart';
 import 'paint_helpers.dart';
-import 'paint_mappers.dart' show derivaSafraCodigo;
 // Imports custom functions
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
@@ -40,6 +39,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
     'sobreanos': 0,
     'rahs': 0,
     'diagnosticos': 0,
+    'diagnosticos_sem_safra': 0,
     'regimes': 0,
     'biblioteca': 0,
     'baixas': 0,
@@ -110,7 +110,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
           .eq('id_propriedade', idPropriedade),
       client
           .from('paint_safra')
-          .select('codigo')
+          .select('codigo, data_inicio, data_final')
           .eq('id_propriedade', idPropriedade),
       client
           .from('paint_regime_alimentar')
@@ -463,7 +463,7 @@ Future<Map<String, dynamic>> autoPreencherPaint(
               '${e['animal_a12']}|${parseDateIso(e['data']) ?? e['data']}|${(e['safra_codigo'] ?? '').toString().trim()}')
           .toSet();
       final insertDiag = <Map<String, dynamic>>[];
-      final safrasNecessarias = <String>{};
+      var semSafra = 0;
       for (final rep in reproRows) {
         final status =
             (rep['status_reproducao'] ?? '').toString().toLowerCase();
@@ -485,16 +485,24 @@ Future<Map<String, dynamic>> autoPreencherPaint(
         if (!avDentro(dataStr)) continue;
         final a = a12Of(reb);
         if (a.isEmpty) continue;
-        // Safra derivada da DATA do diagnóstico (manual §8.5, janela
-        // 01/06–31/05) — não a safra do dia do clique: carimbar a safra atual
-        // reetiquetava o histórico inteiro a cada trimestre e duplicava os
-        // diagnósticos em cada nova execução.
-        final safraDiag = derivaSafraCodigo(dataStr);
-        if (safraDiag.isEmpty) continue;
+        // Safra do CADASTRO cuja janela contém a data do diagnóstico. Não é
+        // fórmula: a safra do PAINT é a estação de monta da fazenda, com
+        // início e fim próprios de cada ano (na Cachoeira, 2026P = 01/10/2025
+        // a 16/07/2026), e entre uma estação e a seguinte há intervalo sem
+        // safra nenhuma. Diagnóstico que cai nesse intervalo é PULADO e
+        // contado: inventar uma janela aqui foi o que encheu o cadastro de
+        // safras erradas, que a cliente teve de corrigir à mão.
+        //
+        // Também não é a safra do dia do clique: carimbar a safra atual
+        // reetiquetava o histórico inteiro a cada trimestre.
+        final safraDiag = _safraPorData(existSafras, dataStr);
+        if (safraDiag.isEmpty) {
+          semSafra++;
+          continue;
+        }
         final key = '$a|$dataStr|$safraDiag';
         if (diagExist.contains(key)) continue;
         diagExist.add(key);
-        safrasNecessarias.add(safraDiag);
         insertDiag.add({
           'id_propriedade': idPropriedade,
           'safra_codigo': safraDiag,
@@ -503,32 +511,15 @@ Future<Map<String, dynamic>> autoPreencherPaint(
           'resultado': resultadoPV,
         });
       }
+      // NÃO cria safra faltante. A janela da safra é a estação de monta da
+      // fazenda, que só a cliente sabe (início e fim mudam todo ano); qualquer
+      // janela inventada aqui entra errada e ela precisa corrigir à mão depois.
+      // Diagnóstico fora de toda estação cadastrada fica de fora e é reportado,
+      // para ela estender a estação ou cadastrar a que falta.
+      if (semSafra > 0) {
+        result['diagnosticos_sem_safra'] = semSafra;
+      }
       if (insertDiag.isNotEmpty) {
-        // Garante o cadastro das safras referenciadas pelos diagnósticos.
-        final safrasExistentes = existSafras
-            .map((e) => (e['codigo'] ?? '').toString().trim())
-            .toSet();
-        final novasSafras = <Map<String, dynamic>>[];
-        for (final cod in safrasNecessarias) {
-          if (safrasExistentes.contains(cod)) continue;
-          final ano = int.tryParse(cod.substring(0, cod.length - 1));
-          if (ano == null) continue;
-          // O código nomeia a safra pelo ano em que ela TERMINA (2026P =
-          // 01/06/2025 a 31/05/2026), mesma convenção de derivaSafraCodigo.
-          novasSafras.add({
-            'id_propriedade': idPropriedade,
-            'codigo': cod,
-            'descricao': 'Safra $cod',
-            'data_inicio': '${ano - 1}-06-01',
-            'data_final': '$ano-05-31',
-            'concluida': false,
-          });
-        }
-        if (novasSafras.isNotEmpty) {
-          await _upsertIgnore(
-              client, 'paint_safra', novasSafras, 'id_propriedade,codigo');
-          result['safras'] = (result['safras'] as int) + novasSafras.length;
-        }
         await _upsertIgnore(client, 'paint_diagnostico', insertDiag,
             'id_propriedade,safra_codigo,animal_a12,data');
         result['diagnosticos'] = insertDiag.length;
@@ -911,4 +902,38 @@ String _resumoErroTecnico(Object e) {
     if (match != null) return match.group(1)!.trim();
   }
   return raw;
+}
+
+/// Código da safra CADASTRADA cuja janela contém [dataIso] (yyyy-MM-dd).
+///
+/// A safra do PAINT é a estação de monta da fazenda, não uma janela fixa: na
+/// Cachoeira 2026P vai de 01/10/2025 a 16/07/2026, e a de cada ano começa e
+/// termina em dia diferente. Entre uma estação e a seguinte existe intervalo
+/// sem safra — data que cai ali devolve string vazia, e quem chama decide.
+///
+/// Só considera safras de estação (código terminado em P). As trimestrais que
+/// o passo 4 cria (26I, 25V...) ficam de fora: são curtas e venceriam sempre o
+/// desempate abaixo. Havendo mais de uma janela que contém a data, vence a mais
+/// CURTA — a estação de verdade, e não um bloco anual genérico.
+String _safraPorData(List<Map<String, dynamic>> safras, String? dataIso) {
+  final dia = (dataIso ?? '').trim();
+  if (dia.isEmpty) return '';
+  String? melhor;
+  int? melhorDuracao;
+  for (final s in safras) {
+    final codigo = (s['codigo'] ?? '').toString().trim();
+    if (!codigo.endsWith('P')) continue;
+    final inicio = parseDateIso(s['data_inicio']);
+    final fim = parseDateIso(s['data_final']);
+    if (inicio == null || fim == null) continue;
+    if (dia.compareTo(inicio) < 0 || dia.compareTo(fim) > 0) continue;
+    final duracao = DateTime.parse(fim).difference(DateTime.parse(inicio)).inDays;
+    if (melhorDuracao == null ||
+        duracao < melhorDuracao ||
+        (duracao == melhorDuracao && codigo.compareTo(melhor!) < 0)) {
+      melhor = codigo;
+      melhorDuracao = duracao;
+    }
+  }
+  return melhor ?? '';
 }
