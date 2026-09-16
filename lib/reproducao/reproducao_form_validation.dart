@@ -14,3 +14,7 @@ String? validarCamposMontaNatural({
   }
   return null;
 }
+
+bool deveExibirCamposRessincGnrhCio(String? tipoReproducao) {
+  return tipoReproducao == 'Inseminação';
+}

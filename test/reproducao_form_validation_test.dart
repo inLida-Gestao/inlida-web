@@ -47,4 +47,14 @@ void main() {
       );
     });
   });
+
+  group('deveExibirCamposRessincGnrhCio', () {
+    test('oculta os campos para monta natural', () {
+      expect(deveExibirCamposRessincGnrhCio('Monta Natural'), isFalse);
+    });
+
+    test('exibe os campos para inseminacao', () {
+      expect(deveExibirCamposRessincGnrhCio('Inseminação'), isTrue);
+    });
+  });
 }

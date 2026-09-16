@@ -798,8 +798,8 @@ class _PgReproducaoEditLoteWidgetState
                                               ].divide(
                                                   const SizedBox(height: 8.0)),
                                             ),
-                                            if (_model.tipoReproducao ==
-                                                'Inseminação')
+                                            if (deveExibirCamposRessincGnrhCio(
+                                                _model.tipoReproducao))
                                               Row(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:
@@ -2704,8 +2704,8 @@ class _PgReproducaoEditLoteWidgetState
                                                   ),
                                                 ],
                                               ),
-                                            if (_model.tipoReproducao ==
-                                                'Monta Natural')
+                                            if (deveExibirCamposRessincGnrhCio(
+                                                _model.tipoReproducao))
                                               Row(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:

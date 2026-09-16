@@ -1157,7 +1157,8 @@ class _PgReproducaoAddAnimalWidgetState
                                         ),
                                       ].divide(const SizedBox(height: 8.0)),
                                     ),
-                                    if (_model.tipoReproducao == 'Inseminação')
+                                    if (deveExibirCamposRessincGnrhCio(
+                                        _model.tipoReproducao))
                                       Row(
                                         mainAxisSize: MainAxisSize.max,
                                         crossAxisAlignment:
@@ -3063,8 +3064,8 @@ class _PgReproducaoAddAnimalWidgetState
                                           ),
                                         ],
                                       ),
-                                    if (_model.tipoReproducao ==
-                                        'Monta Natural')
+                                    if (deveExibirCamposRessincGnrhCio(
+                                        _model.tipoReproducao))
                                       Row(
                                         mainAxisSize: MainAxisSize.max,
                                         crossAxisAlignment:

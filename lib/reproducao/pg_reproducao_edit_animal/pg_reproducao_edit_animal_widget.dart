@@ -1426,9 +1426,8 @@ class _PgReproducaoEditAnimalWidgetState
                                               ].divide(
                                                   const SizedBox(height: 8.0)),
                                             ),
-                                            if (pgReproducaoEditAnimalReproducaoRow
-                                                    ?.tipoReproducao ==
-                                                'Inseminação')
+                                            if (deveExibirCamposRessincGnrhCio(
+                                                _model.tipoReproducao))
                                               Row(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:
@@ -2786,8 +2785,7 @@ class _PgReproducaoEditAnimalWidgetState
                                                 ].divide(const SizedBox(
                                                     width: 16.0)),
                                               ),
-                                            if (pgReproducaoEditAnimalReproducaoRow
-                                                    ?.tipoReproducao ==
+                                            if (_model.tipoReproducao ==
                                                 'Monta Natural')
                                               Row(
                                                 mainAxisSize: MainAxisSize.max,
@@ -3525,9 +3523,8 @@ class _PgReproducaoEditAnimalWidgetState
                                                   ),
                                                 ],
                                               ),
-                                            if (pgReproducaoEditAnimalReproducaoRow
-                                                    ?.tipoReproducao ==
-                                                'Monta Natural')
+                                            if (deveExibirCamposRessincGnrhCio(
+                                                _model.tipoReproducao))
                                               Row(
                                                 mainAxisSize: MainAxisSize.max,
                                                 crossAxisAlignment:
