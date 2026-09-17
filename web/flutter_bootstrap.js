@@ -2,15 +2,12 @@
 {{flutter_build_config}}
 
 _flutter.loader.load(
-    {
-        onEntrypointLoaded: async function(engineInitializer) {
-            // Initialize the Flutter engine
-                        let appRunner = await engineInitializer.initializeEngine({
-                            useColorEmoji: true,
-                            renderer: "html",
-                        });
-            // Run the app
-            await appRunner.runApp();
-          }
-    }
+  {
+    onEntrypointLoaded: async function(engineInitializer) {
+      const appRunner = await engineInitializer.initializeEngine({
+        useColorEmoji: true,
+      });
+      await appRunner.runApp();
+    },
+  }
 );
