@@ -4433,6 +4433,8 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                 FFAppState()
                                                         .reprodutorSelecionado =
                                                     AnimalSelecionadoStruct();
+                                                FFAppState().navegacao =
+                                                    'reproducao';
                                                 context.pushNamed(
                                                     PgReproducaoWidget
                                                         .routeName);
@@ -5015,6 +5017,8 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                 FFAppState()
                                                         .reprodutorSelecionado =
                                                     AnimalSelecionadoStruct();
+                                                FFAppState().navegacao =
+                                                    'reproducao';
                                                 context.pushNamed(
                                                     PgReproducaoWidget
                                                         .routeName);

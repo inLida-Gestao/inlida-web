@@ -4782,6 +4782,8 @@ class _PgReproducaoAddAnimalWidgetState
                                             FFAppState()
                                                     .reprodutorSelecionado =
                                                 AnimalSelecionadoStruct();
+                                            FFAppState().navegacao =
+                                                'reproducao';
                                             context.pushNamed(
                                                 PgReproducaoWidget.routeName);
                                           },
@@ -5256,6 +5258,8 @@ class _PgReproducaoAddAnimalWidgetState
                                             FFAppState()
                                                     .reprodutorSelecionado =
                                                 AnimalSelecionadoStruct();
+                                            FFAppState().navegacao =
+                                                'reproducao';
                                             context.pushNamed(
                                                 PgReproducaoWidget.routeName);
                                           },

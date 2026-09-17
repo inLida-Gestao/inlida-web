@@ -13,10 +13,15 @@ class ModalMoreReproducaoWidget extends StatefulWidget {
     super.key,
     required this.reproducaoDbId,
     required this.reproducaoID,
+    this.returnToRebanhoId,
   });
 
   final int? reproducaoDbId;
   final String? reproducaoID;
+
+  /// Ficha do animal que abriu este menu (aba Reproduções). Repassado à tela
+  /// de edição para que Salvar/Cancelar voltem para a ficha.
+  final String? returnToRebanhoId;
 
   @override
   State<ModalMoreReproducaoWidget> createState() =>
@@ -123,6 +128,10 @@ class _ModalMoreReproducaoWidgetState extends State<ModalMoreReproducaoWidget> {
                   queryParameters: {
                     'idReproducao': serializeParam(
                       widget.reproducaoID,
+                      ParamType.String,
+                    ),
+                    'returnToRebanhoId': serializeParam(
+                      widget.returnToRebanhoId,
                       ParamType.String,
                     ),
                   }.withoutNulls,
