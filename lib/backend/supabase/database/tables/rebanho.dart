@@ -55,6 +55,9 @@ class RebanhoRow extends SupabaseDataRow {
   String? get raca => getField<String>('raca');
   set raca(String? value) => setField<String>('raca', value);
 
+  String? get tipoRegistro => getField<String>('tipo_registro');
+  set tipoRegistro(String? value) => setField<String>('tipo_registro', value);
+
   String? get loteID => getField<String>('loteID');
   set loteID(String? value) => setField<String>('loteID', value);
 

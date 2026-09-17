@@ -1,0 +1,75 @@
+-- A safra do PAINT é a ESTAÇÃO DE MONTA da fazenda, e por isso não é calculável.
+--
+-- Historico desta correção, em dois passos, porque o primeiro estava incompleto:
+--
+-- 15/09 — o código derivava a safra da data por fórmula de mês, com janela fixa
+-- 01/06 a 31/05, e nomeava pelo ano de INÍCIO. Corrigimos para o ano de FIM,
+-- que é a convenção do PAINT.
+--
+-- 16/09 — a cliente mandou as janelas reais e a premissa da janela fixa caiu:
+--
+--     2019P  25/09/2018 a 14/06/2019      2023P  01/10/2022 a 22/06/2023
+--     2020P  24/09/2019 a 20/07/2020      2024P  29/09/2023 a 18/07/2024
+--     2021P  01/10/2020 a 15/07/2021      2025P  01/10/2024 a 29/07/2025
+--     2022P  09/09/2021 a 08/07/2022      2026P  01/10/2025 a 16/07/2026
+--
+-- Cada estação começa e termina em dia diferente, varia de fazenda para fazenda,
+-- e entre uma e a seguinte existe um intervalo sem safra nenhuma. Nenhuma
+-- fórmula reproduz isso. A safra passou a ser PROCURADA no cadastro que a
+-- própria cliente mantém, e sem janela que contenha a data o campo sai vazio.
+--
+-- Mudou junto:
+--   - NASCIMENTO usa a data da COBERTURA, não a do parto. O registro já é
+--     chaveado por nas_data_cob, e bezerro nasce ~9 meses depois, quase sempre
+--     fora da estação: pela data do parto só 3.367 de 4.591 achavam safra;
+--     pela data da cobertura, 4.494.
+--   - auto_preencher_paint parou de CRIAR safra faltante. Inventar janela ali
+--     foi o que encheu o cadastro de safras erradas que a cliente corrigiu à
+--     mão. Diagnóstico fora de toda estação agora é pulado e reportado.
+--
+-- Cobertura da regra nova, medida em 16/09/2026 na Cachoeira:
+--   COBERTURA   11.412 de 11.615 (98,3%)
+--   NASCIMENTO   4.494 de  4.591 (97,9%)
+--   PESAGEM     12.296 de 15.522 (79,2%)   <-- ver pendência abaixo
+--
+-- ---------------------------------------------------------------------------
+-- PENDÊNCIA 1 — o que pes_safra_id significa.
+--
+-- Data de pesagem não pertence a uma estação de monta por natureza, e o manual
+-- não define o campo. Hoje ele procura a janela que contém a data da pesagem,
+-- e 3.226 saem em branco. Se o certo for a estação que GEROU o animal, a regra
+-- muda para "safra da cobertura que originou o animal" e a cobertura sobe.
+-- Confirmar com a cliente antes de mexer.
+--
+-- ---------------------------------------------------------------------------
+-- PENDÊNCIA 2 — backfill de paint_diagnostico.safra_codigo. NÃO aplicado.
+--
+-- safra_codigo é GRAVADO (not null, e parte da unique), não calculado na
+-- exportação, então as linhas antigas continuam na convenção velha. Medido em
+-- 16/09/2026, só a Cachoeira tem config PAINT:
+--
+--   16.468 linhas no total
+--    6.086 já estão com o código certo
+--    8.584 mudam de código
+--    1.798 não caem em nenhuma estação cadastrada
+--
+-- As 1.798 não têm destino: ou a cliente estende/cadastra a estação que falta,
+-- ou elas ficam como estão. Por isso o update abaixo só toca nas 8.584.
+--
+--   update public.paint_diagnostico d
+--      set safra_codigo = j.codigo
+--     from lateral (
+--            select s.codigo
+--              from public.paint_safra s
+--             where s.id_propriedade = d.id_propriedade
+--               and s.codigo like '%P'
+--               and d.data between s.data_inicio and s.data_final
+--             order by (s.data_final - s.data_inicio) asc, s.codigo asc
+--             limit 1
+--          ) j
+--    where d.id_propriedade = 'u7chcvxq1cxzss762oyi'
+--      and btrim(d.safra_codigo) is distinct from j.codigo;
+--
+-- Atenção à unique (id_propriedade, safra_codigo, animal_a12, data): se o mesmo
+-- animal tiver dois diagnósticos na mesma data que convirjam para a mesma
+-- safra, o update colide. Conferir antes.

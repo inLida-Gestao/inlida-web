@@ -133,6 +133,49 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                     final containerBuscarPropriedadesDoUsuarioResponse =
                         snapshot.data!;
 
+                    // Lista de IDs que o usuário pode escolher agora.
+                    final propsLista = (containerBuscarPropriedadesDoUsuarioResponse
+                                .jsonBody
+                                .toList()
+                                .map<PropriedadeStruct?>(
+                                    PropriedadeStruct.maybeFromMap)
+                                .toList() as Iterable<PropriedadeStruct?>)
+                            .withoutNulls
+                            .toList();
+                    final optionIds = propsLista
+                        .map((e) => e.idPropriedade)
+                        .where((id) => id.isNotEmpty)
+                        .toList();
+                    final sidPersistido =
+                        FFAppState().propriedadeSelecionada.idPropriedade;
+
+                    // Id guardado no app não existe mais na lista → limpar (senão o PAINT
+                    // e outras telas usam uma "propriedade fantasma" enquanto o dropdown
+                    // mostra só o hint "Propriedade").
+                    if (sidPersistido.isNotEmpty &&
+                        !optionIds.contains(sidPersistido)) {
+                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                        if (!mounted) return;
+                        FFAppState().onPropriedadeChanged(PropriedadesDTStruct());
+                        safeSetState(() {
+                          _model.dropDownValueController?.reset();
+                          _model.dropDownValue = null;
+                        });
+                      });
+                    } else if (sidPersistido.isNotEmpty &&
+                        optionIds.contains(sidPersistido)) {
+                      final cur = _model.dropDownValueController?.value;
+                      if (cur != sidPersistido) {
+                        SchedulerBinding.instance.addPostFrameCallback((_) {
+                          if (!mounted) return;
+                          _model.dropDownValue = sidPersistido;
+                          _model.dropDownValueController?.value =
+                              sidPersistido;
+                          safeSetState(() {});
+                        });
+                      }
+                    }
+
                     return Container(
                       decoration: BoxDecoration(
                         color: FlutterFlowTheme.of(context).secondaryBackground,
