@@ -3932,6 +3932,8 @@ class _PgReproducaoEditLoteWidgetState
                                               children: [
                                                 FFButtonWidget(
                                                   onPressed: () async {
+                                                    FFAppState()
+                                                        .navegacao = 'reproducao';
                                                     context.pushNamed(
                                                         PgReproducaoWidget
                                                             .routeName);
@@ -4282,6 +4284,8 @@ class _PgReproducaoEditLoteWidgetState
                                                           true;
                                                       safeSetState(() {});
 
+                                                      FFAppState()
+                                                          .navegacao = 'reproducao';
                                                       context.pushNamed(
                                                           PgReproducaoWidget
                                                               .routeName);

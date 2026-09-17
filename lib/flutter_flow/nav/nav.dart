@@ -361,6 +361,10 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               'idReproducao',
               ParamType.String,
             ),
+            returnToRebanhoId: params.getParam(
+              'returnToRebanhoId',
+              ParamType.String,
+            ),
           ),
         ),
         FFRoute(

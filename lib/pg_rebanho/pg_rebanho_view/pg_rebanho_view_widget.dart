@@ -7630,6 +7630,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                                       child: ModalMoreReproducaoWidget(
                                                                                                         reproducaoDbId: reproducaoItem.id,
                                                                                                         reproducaoID: reproducaoItem.idReproducao!,
+                                                                                                        returnToRebanhoId: widget.idRebanho,
                                                                                                       ),
                                                                                                     ),
                                                                                                   );
@@ -8282,6 +8283,7 @@ class _PgRebanhoViewWidgetState extends State<PgRebanhoViewWidget>
                                                                                                       child: ModalMoreReproducaoWidget(
                                                                                                         reproducaoDbId: reproducaoItem.id,
                                                                                                         reproducaoID: reproducaoItem.idReproducao!,
+                                                                                                        returnToRebanhoId: widget.idRebanho,
                                                                                                       ),
                                                                                                     ),
                                                                                                   );
