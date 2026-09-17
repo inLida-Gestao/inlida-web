@@ -23,7 +23,8 @@ class CurrencyInputBR extends StatefulWidget {
       this.textColor,
       this.fontSize,
       this.borderRadius,
-      this.contentPadding});
+      this.contentPadding,
+      this.onChanged});
 
   final double? width;
   final double? height;
@@ -37,6 +38,7 @@ class CurrencyInputBR extends StatefulWidget {
   final double? fontSize;
   final double? borderRadius;
   final EdgeInsetsGeometry? contentPadding;
+  final ValueChanged<double>? onChanged;
 
   @override
   State<CurrencyInputBR> createState() => _CurrencyInputBRState();
@@ -139,8 +141,8 @@ class _CurrencyInputBRState extends State<CurrencyInputBR> {
         ),
         onChanged: (text) {
           _value = _parseValue(text);
-          // Atualiza o App State automaticamente
           _updateAppState(_value);
+          widget.onChanged?.call(_value);
         },
       ),
     );

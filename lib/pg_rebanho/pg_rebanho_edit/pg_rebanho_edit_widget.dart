@@ -5296,7 +5296,11 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             height:
                                                                                 56.0,
                                                                             initialValue:
-                                                                                pgRebanhoEditRebanhoRow?.valorVenda,
+                                                                                _model.valorVendaEditado ?? pgRebanhoEditRebanhoRow?.valorVenda,
+                                                                            onChanged:
+                                                                                (value) {
+                                                                              _model.valorVendaEditado = value;
+                                                                            },
                                                                             fillColor:
                                                                                 FlutterFlowTheme.of(context).customColor2,
                                                                             borderColor:
@@ -6770,8 +6774,9 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                             pgRebanhoEditRebanhoRow
                                                                 ?.dataVenda),
                                                         'valorVenda':
-                                                            FFAppState()
-                                                                .valueDouble2,
+                                                            _model.valorVendaEditado ??
+                                                                pgRebanhoEditRebanhoRow
+                                                                    ?.valorVenda,
                                                         'numeroMatriz':
                                                             FFAppState()
                                                                 .matrizSelecionada

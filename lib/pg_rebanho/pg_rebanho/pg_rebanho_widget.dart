@@ -163,8 +163,7 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
         pStatus: FFAppState().filtroStatusRebanho,
         pPesquisa: pesquisa,
         pLimite: _rebanhoPageLimit,
-        pOffset:
-            functions.calcDeslocamento(_model.pageNum, _rebanhoPageLimit),
+        pOffset: functions.calcDeslocamento(_model.pageNum, _rebanhoPageLimit),
         pOrdenar: _model.rebanhosOrdenar,
         pAsc: _model.rebanhosAsc,
       );
@@ -271,6 +270,7 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FlutterFlowIconButton(
+            tooltip: 'Primeira página',
             borderColor: FlutterFlowTheme.of(context).customColor5,
             borderRadius: 6.0,
             borderWidth: 1.0,
@@ -284,6 +284,7 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
             onPressed: canGoBack ? () async => _goToRebanhoPage(1) : null,
           ),
           FlutterFlowIconButton(
+            tooltip: 'Página anterior',
             borderColor: FlutterFlowTheme.of(context).customColor5,
             borderRadius: 6.0,
             borderWidth: 1.0,
@@ -317,6 +318,7 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
             ),
           ),
           FlutterFlowIconButton(
+            tooltip: 'Próxima página',
             borderColor: FlutterFlowTheme.of(context).customColor5,
             borderRadius: 6.0,
             borderWidth: 1.0,
@@ -332,6 +334,7 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
                 : null,
           ),
           FlutterFlowIconButton(
+            tooltip: 'Última página',
             borderColor: FlutterFlowTheme.of(context).customColor5,
             borderRadius: 6.0,
             borderWidth: 1.0,
@@ -696,24 +699,28 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
                                                             .textController!
                                                             .text
                                                             .isNotEmpty
-                                                        ? InkWell(
-                                                            onTap: () async {
-                                                              _model
-                                                                  .textController
-                                                                  ?.clear();
-                                                              _model.pageNum =
-                                                                  1;
-                                                              FFAppState()
-                                                                      .refreshRebanho =
-                                                                  true;
-                                                              safeSetState(
-                                                                  () {});
-                                                              safeSetState(
-                                                                  () {});
-                                                            },
-                                                            child: const Icon(
-                                                              Icons.clear,
-                                                              size: 22,
+                                                        ? Tooltip(
+                                                            message:
+                                                                'Limpar pesquisa',
+                                                            child: InkWell(
+                                                              onTap: () async {
+                                                                _model
+                                                                    .textController
+                                                                    ?.clear();
+                                                                _model.pageNum =
+                                                                    1;
+                                                                FFAppState()
+                                                                        .refreshRebanho =
+                                                                    true;
+                                                                safeSetState(
+                                                                    () {});
+                                                                safeSetState(
+                                                                    () {});
+                                                              },
+                                                              child: const Icon(
+                                                                Icons.clear,
+                                                                size: 22,
+                                                              ),
                                                             ),
                                                           )
                                                         : null,
@@ -1878,6 +1885,8 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
                                                   Builder(
                                                     builder: (context) =>
                                                         FlutterFlowIconButton(
+                                                      tooltip:
+                                                          'Ações do animal',
                                                       borderRadius: 8.0,
                                                       buttonSize: 40.0,
                                                       fillColor: const Color(
