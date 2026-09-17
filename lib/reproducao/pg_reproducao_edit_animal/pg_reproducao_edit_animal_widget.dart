@@ -28,9 +28,15 @@ class PgReproducaoEditAnimalWidget extends StatefulWidget {
   const PgReproducaoEditAnimalWidget({
     super.key,
     required this.idReproducao,
+    this.returnToRebanhoId,
   });
 
   final String? idReproducao;
+
+  /// Ficha do animal de onde a edição foi aberta (aba Reproduções). Quando
+  /// preenchido, Salvar/Cancelar voltam para ela em vez de jogar o usuário na
+  /// lista geral de Reprodução.
+  final String? returnToRebanhoId;
 
   static String routeName = 'pgReproducaoEditAnimal';
   static String routePath = '/editar-reproducao-animal';
@@ -169,6 +175,27 @@ class _PgReproducaoEditAnimalWidgetState
         );
       });
     }
+  }
+
+  /// Volta para onde o usuário estava: a ficha do animal (quando a edição foi
+  /// aberta pela aba Reproduções dela) ou a lista geral de Reprodução.
+  /// Também acerta o item destacado no menu lateral — ele é controlado por
+  /// FFAppState().navegacao, que só mudava no clique do próprio menu; sem isto
+  /// o menu seguia marcando "Rebanho" com a tela de Reprodução aberta.
+  void _voltarDaEdicao(BuildContext context) {
+    final idRebanho = (widget.returnToRebanhoId ?? '').trim();
+    if (idRebanho.isNotEmpty) {
+      FFAppState().navegacao = 'rebanhos';
+      context.pushNamed(
+        PgRebanhoViewWidget.routeName,
+        queryParameters: {
+          'idRebanho': serializeParam(idRebanho, ParamType.String),
+        }.withoutNulls,
+      );
+      return;
+    }
+    FFAppState().navegacao = 'reproducao';
+    context.pushNamed(PgReproducaoWidget.routeName);
   }
 
   @override
@@ -5450,9 +5477,7 @@ class _PgReproducaoEditAnimalWidgetState
                                               children: [
                                                 FFButtonWidget(
                                                   onPressed: () async {
-                                                    context.pushNamed(
-                                                        PgReproducaoWidget
-                                                            .routeName);
+                                                    _voltarDaEdicao(context);
                                                   },
                                                   text: 'Cancelar',
                                                   options: FFButtonOptions(
@@ -5901,9 +5926,7 @@ class _PgReproducaoEditAnimalWidgetState
                                                         true;
                                                     safeSetState(() {});
 
-                                                    context.pushNamed(
-                                                        PgReproducaoWidget
-                                                            .routeName);
+                                                    _voltarDaEdicao(context);
                                                   },
                                                   text: 'Salvar',
                                                   options: FFButtonOptions(

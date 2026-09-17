@@ -1,0 +1,1041 @@
+// Automatic FlutterFlow imports
+import '/backend/supabase/supabase.dart';
+import '/flutter_flow/flutter_flow_util.dart';
+// Imports other custom actions
+import 'paint_excel_helpers.dart';
+// Begin custom action code
+
+import '/pg_rebanho/pesagem_rebanho_sync.dart'
+    show sincronizarUltimaPesagemRebanho;
+import 'package:excel/excel.dart';
+
+/// Importa planilha PAINT de avaliação (matrizes/desmama/sobreano).
+///
+/// Desmama/sobreano: o Peso_kg da planilha também vira pesagem no inLida
+/// (`historico_pesagens`, tipo 'Desmama'/'Atual') e a ficha do animal é
+/// sincronizada — terceira via de cadastro de peso, além do import do Painel e
+/// do lançamento manual no Rebanho.
+///
+/// Retorna { inseridos, atualizados, pesagens_inseridas, pesagens_atualizadas,
+/// erros: [{linha, motivo}] }.
+Future<Map<String, dynamic>> importPaintAvaliacaoExcel(
+  String? idPropriedade,
+  String? tipo,
+  FFUploadedFile? arquivo,
+) async {
+  final result = <String, dynamic>{
+    'inseridos': 0,
+    'atualizados': 0,
+    'pesagens_inseridas': 0,
+    'pesagens_atualizadas': 0,
+    'erros': <Map<String, dynamic>>[],
+  };
+  if (idPropriedade == null || idPropriedade.isEmpty) {
+    result['erros'] = [
+      {'linha': 0, 'motivo': 'Propriedade não informada.'},
+    ];
+    return result;
+  }
+  if (arquivo?.bytes == null) {
+    result['erros'] = [
+      {'linha': 0, 'motivo': 'Arquivo vazio.'},
+    ];
+    return result;
+  }
+
+  final cfg = await loadPaintConfig(idPropriedade);
+  if (cfg == null) {
+    result['erros'] = [
+      {'linha': 0, 'motivo': 'Configure PAINT antes de importar.'},
+    ];
+    return result;
+  }
+
+  final t = (tipo ?? '').toLowerCase().trim();
+
+  // A planilha de cobertura não tem A12 nem notas técnicas: a chave é o
+  // id_reproducao e o único dado é Manhã/Tarde. Desvia antes do pipeline de
+  // avaliações, que é todo construído em torno de (A12, data).
+  if (t == 'cobertura') {
+    return _importCoberturaPeriodo(idPropriedade, arquivo!, result);
+  }
+
+  final table = t == 'matrizes'
+      ? 'paint_avaliacao_rah'
+      : t == 'desmama'
+          ? 'paint_avaliacao_desmama'
+          : t == 'sobreano'
+              ? 'paint_avaliacao_sobreano'
+              : null;
+  if (table == null) {
+    result['erros'] = [
+      {
+        'linha': 0,
+        'motivo': 'Tipo inválido: use matrizes, desmama, sobreano ou cobertura.'
+      },
+    ];
+    return result;
+  }
+
+  final excel = Excel.decodeBytes(arquivo!.bytes!.toList());
+  if (excel.tables.isEmpty) {
+    result['erros'] = [
+      {'linha': 0, 'motivo': 'Planilha sem abas.'},
+    ];
+    return result;
+  }
+  final sheet = excel.tables[excel.tables.keys.first]!;
+  if (sheet.rows.isEmpty) {
+    result['erros'] = [
+      {'linha': 0, 'motivo': 'Planilha vazia.'},
+    ];
+    return result;
+  }
+
+  final cabecalho = sheet.rows.first
+      .map((c) => normalizePaintHeader(c?.value?.toString() ?? ''))
+      .toList();
+
+  int idx(String name) => cabecalho.indexOf(normalizePaintHeader(name));
+
+  final iA12 = idx('a12');
+  final iDataAv = idx('data_avaliacao');
+  final iNasc = idx('data_nascimento');
+  final iSexo = idx('sexo');
+  if (iA12 < 0 || iDataAv < 0) {
+    result['erros'] = [
+      {'linha': 1, 'motivo': 'Colunas A12 e Data_Avaliacao são obrigatórias.'},
+    ];
+    return result;
+  }
+  final technicalIndexes = _technicalIndexesFor(t, idx);
+  if (technicalIndexes.every((i) => i < 0)) {
+    result['erros'] = [
+      {'linha': 1, 'motivo': 'Nenhuma coluna de nota técnica encontrada.'},
+    ];
+    return result;
+  }
+
+  // incluirRemovidos: localiza o animal mesmo se não estiver mais na
+  // propriedade (vendido/morto) ou tiver sido removido — a avaliação histórica
+  // precisa ser importada de qualquer forma.
+  final rebanho = await fetchRebanhoPaint(idPropriedade, incluirRemovidos: true);
+  // A12 oficial do PAINT (quando a fazenda já tem histórico importado): a
+  // avaliação deve ser gravada com o MESMO A12 que o ANIMAL.TXT vai emitir.
+  final a12Oficiais = await fetchA12OficialPorRebanho(idPropriedade);
+  final byNumero = <String, List<Map<String, dynamic>>>{};
+  // Um A12 pode colidir (mesmos dígitos do número + mesmo ano de nascimento em
+  // animais diferentes), então o índice guarda TODOS os candidatos; a
+  // desambiguação por Data_Nascimento/Sexo da planilha acontece por linha.
+  final byA12 = <String, List<Map<String, dynamic>>>{};
+  // Índice robusto por (dígitos do número + ano de nascimento). O A12 da
+  // planilha vem do PAINT e carrega programa (P/F/p) e série (460/JLK) que o
+  // nosso recálculo nem sempre reproduz — então o match estrito por A12 falha
+  // em massa. Este fallback identifica o animal pelo que é estável: os dígitos
+  // do número + o ano de nascimento (ex.: "1000 JLK" ≡ "1000"; "F460…" ≡
+  // "P460…"). Colisões (~1%) caem na desambiguação por Data_Nascimento/Sexo.
+  final byDigAno = <String, List<Map<String, dynamic>>>{};
+  for (final r in rebanho) {
+    final n = (r['numeroAnimal'] ?? '').toString().trim();
+    if (n.isNotEmpty) {
+      byNumero.putIfAbsent(n, () => <Map<String, dynamic>>[]).add(r);
+    }
+    final chaveFlex = _chaveDigAno(n, r['dataNascimento']);
+    if (chaveFlex.isNotEmpty) {
+      (byDigAno[chaveFlex] ??= <Map<String, dynamic>>[]).add(r);
+    }
+    final a12Rebanho = _a12Key(a12FromRebanho(r, cfg));
+    if (a12Rebanho.isEmpty) continue;
+    (byA12[a12Rebanho] ??= <Map<String, dynamic>>[]).add(r);
+  }
+
+  // Carrega TODAS as avaliações existentes da propriedade, paginando: o
+  // PostgREST limita o SELECT a 1000 linhas por padrão. Sem paginar, animais
+  // já avaliados além da 1000ª linha escapariam da detecção e cairiam no
+  // INSERT puro (que não tem on_conflict), reintroduzindo o erro 23505.
+  final existKeys = <String, String>{};
+  const pagina = 1000;
+  var offset = 0;
+  while (true) {
+    final lote = await SupaFlow.client
+        .from(table)
+        .select('id,animal_a12,data')
+        .eq('id_propriedade', idPropriedade)
+        .range(offset, offset + pagina - 1);
+    for (final e in lote) {
+      existKeys['${_a12Key(e['animal_a12']?.toString())}|${e['data']}'] =
+          e['id'].toString();
+    }
+    if (lote.length < pagina) break;
+    offset += pagina;
+  }
+
+  final erros = <Map<String, dynamic>>[];
+  var inseridos = 0;
+  var atualizados = 0;
+  final inserts = <Map<String, dynamic>>[];
+  final updates = <Map<String, dynamic>>[];
+  final importKeys = <String>{};
+  // Pesos das linhas aceitas, para registrar em historico_pesagens após a
+  // gravação das avaliações (desmama → tipo 'Desmama'; sobreano → 'Atual').
+  final pesagensPlanilha = <_PesagemPlanilha>[];
+  final fichasPorRebanho = <String, Map<String, dynamic>>{};
+  // Linhas SEM peso na planilha: o peso é completado com a pesagem do inLida
+  // na data EXATA da avaliação (mesma regra do export). Sem isso a tabela fica
+  // com peso NULL enquanto o TXT sai preenchido — o export resolve na hora,
+  // mas quem consulta o banco não vê o peso.
+  final payloadsSemPeso = <MapEntry<String, Map<String, dynamic>>>[];
+
+  for (var r = 1; r < sheet.rows.length; r++) {
+    final row = sheet.rows[r];
+    final linha = r + 1;
+    final a12 = _cel(row, iA12)?.trim() ?? '';
+    if (a12.isEmpty) continue;
+    final a12Key = _a12Key(a12);
+    if (a12Key.isEmpty) continue;
+    if (!_hasAnyCellValue(row, technicalIndexes)) continue;
+    final dataAv = parseDateIso(_celValue(row, iDataAv));
+    if (dataAv == null) {
+      erros.add({'linha': linha, 'motivo': 'Data_Avaliacao inválida.'});
+      continue;
+    }
+    final nascCel = iNasc >= 0 ? parseDateIso(_celValue(row, iNasc)) : null;
+    final numCel = idx('numero_animal') >= 0
+        ? (_cel(row, idx('numero_animal')) ?? '')
+        : '';
+    var candidatos = byA12[a12Key] ?? const <Map<String, dynamic>>[];
+    if (candidatos.isEmpty) {
+      // Fallback: o A12 da planilha (PAINT) não bateu com o recálculo — casa
+      // pelo número (dígitos) + ano de nascimento, que independem de
+      // programa/série. Usa o ano da Data_Nascimento da planilha ou, se
+      // ausente, os 2 últimos dígitos do próprio A12 (posição do ano).
+      // nascCel é a data em ISO ("AAAA-MM-DD"); o ano são os 4 primeiros chars.
+      final anoFlex = (nascCel != null && nascCel.length >= 4)
+          ? nascCel.substring(2, 4)
+          : (a12Key.length >= 2 ? a12Key.substring(a12Key.length - 2) : '');
+      final chaveFlex = _chaveDigAno(numCel, nascCel);
+      final chaveFlexA12 = numCel.trim().isEmpty
+          ? ''
+          : '${_soDigitos(numCel)}|$anoFlex';
+      final flex = byDigAno[chaveFlex.isNotEmpty ? chaveFlex : chaveFlexA12] ??
+          const <Map<String, dynamic>>[];
+      candidatos = flex;
+    }
+    if (candidatos.isEmpty) {
+      erros.add({
+        'linha': linha,
+        'motivo':
+            'A12 $a12Key não pertence ao rebanho da propriedade ou não pôde ser calculado com a configuração PAINT atual.',
+      });
+      continue;
+    }
+    // Se a mesma chave casa um registro vivo e um removido (deletado='SIM'),
+    // prefere o vivo — os removidos só entram para preencher chaves que não
+    // têm nenhum registro ativo (evita ambiguidade nova por duplicatas).
+    if (candidatos.length > 1) {
+      final vivos = candidatos
+          .where((c) => (c['deletado'] ?? '').toString().trim() != 'SIM')
+          .toList();
+      if (vivos.isNotEmpty) candidatos = vivos;
+    }
+    Map<String, dynamic> reb;
+    if (candidatos.length == 1) {
+      reb = candidatos.first;
+    } else {
+      // A12 colidiu (mesmos dígitos do número + mesmo ano de nascimento em
+      // animais diferentes). Primeiro descarta quem não é Nelore/Nelore PO:
+      // só essas raças vão para o PAINT, então um Girolando "3991 G" nunca é o
+      // animal da planilha — e ele colide com o Nelore "3991" em dígitos, data
+      // E sexo, casos em que nenhum outro desempate resolve.
+      var filtrados = candidatos;
+      final soNelore = filtrados.where((c) => paintRacaNeloreOuPo(c['raca'])).toList();
+      // Fallback: se o filtro zerar (planilha de propriedade sem raça cadastrada),
+      // segue com a lista original — nunca perde um casamento que funcionaria.
+      if (soNelore.isNotEmpty) filtrados = soNelore;
+      if (filtrados.length > 1 && nascCel != null) {
+        filtrados = filtrados
+            .where((c) => parseDateIso(c['dataNascimento']) == nascCel)
+            .toList();
+      }
+      if (filtrados.length > 1 && iSexo >= 0) {
+        final sexoCel = sexoMF(_cel(row, iSexo));
+        if (sexoCel.isNotEmpty) {
+          filtrados =
+              filtrados.where((c) => sexoMF(c['sexo']) == sexoCel).toList();
+        }
+      }
+      if (filtrados.length > 1 && cfg.campoOrigemAnimal == 'numeroAnimal') {
+        // Último desempate: o campo Animal do A12 da planilha (posições 6-10)
+        // VERBATIM contra o numeroAnimal. Resolve códigos alfanuméricos do
+        // PAINT que colidem em dígitos+ano+data+sexo — caso real: o PAINT tem
+        // o touro 'T001' como 'P460 T001 21', que colide com 'M001' (mesmo
+        // nascimento 01/01/2021) na chave de dígitos. Só resolve se exatamente
+        // UM candidato bater; empate segue para o erro de ambiguidade.
+        // Restrito a campo_origem_animal='numeroAnimal': nas outras origens o
+        // campo do A12 deriva de chip/nome/codRegistro e a comparação não vale.
+        final animalDoA12 =
+            (paintPartesDoA12(a12)?['animal'] ?? '').trim().toUpperCase();
+        if (animalDoA12.isNotEmpty) {
+          final exatos = filtrados
+              .where((c) =>
+                  (c['numeroAnimal'] ?? '').toString().trim().toUpperCase() ==
+                  animalDoA12)
+              .toList();
+          if (exatos.length == 1) filtrados = exatos;
+        }
+      }
+      if (filtrados.length != 1) {
+        erros.add({
+          'linha': linha,
+          'motivo': 'A12 $a12Key é ambíguo: ${candidatos.length} animais da '
+              'propriedade geram o mesmo código e raça (Nelore/Nelore PO), '
+              'Data_Nascimento e Sexo não bastam para distinguir. Corrija o '
+              'número de um dos animais duplicados no rebanho.',
+        });
+        continue;
+      }
+      reb = filtrados.first;
+    }
+    // NÃO aplicamos o filtro de elegibilidade (categoria/status) na importação:
+    // a planilha PAINT traz avaliações HISTÓRICAS. Um animal hoje "Novilha"/
+    // "Vaca" era bezerro na desmama, e animais vendidos/mortos também têm
+    // avaliações antigas legítimas. A elegibilidade por categoria/status vale
+    // só para a DERIVAÇÃO automática (export "Com dados da fazenda"), não para
+    // dados explicitamente importados pelo usuário.
+
+    // Confere a Data_Nascimento por ANO (não pelo dia): o PAINT e o inLida
+    // divergem em ~1 dia em vários registros (ex.: 18/08 vs 19/08), o que não
+    // significa animal errado. Só rejeita se o ano de nascimento diferir.
+    if (nascCel != null) {
+      final nascReb = parseDateIso(reb['dataNascimento']);
+      if (nascReb != null &&
+          nascCel.length >= 4 &&
+          nascReb.length >= 4 &&
+          nascCel.substring(0, 4) != nascReb.substring(0, 4)) {
+        erros.add({
+          'linha': linha,
+          'motivo':
+              'Data_Nascimento $nascCel não confere com o animal do A12 $a12Key (rebanho: $nascReb).',
+        });
+        continue;
+      }
+    }
+
+    // Confere o Numero_Animal por DÍGITOS: o número no rebanho pode trazer a
+    // sigla do registro (ex.: "1000 JLK") enquanto a planilha traz só "1000".
+    final iNum = idx('numero_animal');
+    if (iNum >= 0) {
+      final num = _cel(row, iNum);
+      if (num != null && num.isNotEmpty) {
+        final numDig = _soDigitos(num);
+        final numeroConfere =
+            _soDigitos((reb['numeroAnimal'] ?? '').toString()) == numDig;
+        if (!numeroConfere) {
+          erros.add({
+            'linha': linha,
+            'motivo':
+                'Numero_Animal $num não confere com o animal identificado pelo A12 $a12Key.',
+          });
+          continue;
+        }
+      }
+    }
+
+    // Prefere o A12 oficial do animal: garante que avaliação e ANIMAL.TXT usem
+    // exatamente a mesma chave. Sem oficial, mantém o A12 da planilha (que já
+    // vem do PAINT).
+    final a12Gravar =
+        a12Oficiais[(reb['idRebanho'] ?? '').toString().trim()] ?? a12;
+    Map<String, dynamic> payload = {
+      'id_propriedade': idPropriedade,
+      'animal_a12': _a12DbValue(a12Gravar),
+      'data': dataAv,
+      // Só uma avaliação importada pela planilha PAINT pode ser enviada nos
+      // arquivos DESMAMA.TXT e ANO_SOBREANO.TXT.
+      'origem': 'importacao_paint',
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    num? pesoPesagem;
+
+    if (t == 'matrizes') {
+      final racial = parseNota(_celNum(row, idx('raca')), min: 1, max: 5);
+      final frame = parseNota(_celNum(row, idx('frame')), min: 1, max: 3);
+      final aprumo = parseNota(_celNum(row, idx('aprumo')), min: 1, max: 5);
+      final pigment =
+          parseNota(_celNum(row, idx('pigmentacao')), min: 1, max: 3);
+      if (racial == null &&
+          frame == null &&
+          aprumo == null &&
+          pigment == null) {
+        erros.add(
+            {'linha': linha, 'motivo': 'Informe ao menos uma nota técnica.'});
+        continue;
+      }
+      if (racial != null) payload['racial'] = racial;
+      if (frame != null) payload['frame'] = frame;
+      if (aprumo != null) payload['aprumos'] = aprumo;
+      if (pigment != null) payload['pigmentacao'] = pigment;
+    } else if (t == 'desmama') {
+      final c = parseNota(_celNum(row, idx('conformacao_c')));
+      final p = parseNota(_celNum(row, idx('precocidade_p')));
+      final m = parseNota(_celNum(row, idx('musculatura_m')));
+      final u = parseNota(_celNum(row, idx('umbigo_u')));
+      if (c == null || p == null || m == null || u == null) {
+        erros.add({'linha': linha, 'motivo': 'Notas C/P/M/U devem ser 1–5.'});
+        continue;
+      }
+      payload['nota_c'] = c;
+      payload['nota_p'] = p;
+      payload['nota_m'] = m;
+      payload['nota_u'] = u;
+      _lerPerimetroEscrotal(row, idx, linha, payload, erros);
+      final obs = normalizarAnotacao(_cel(row, idx('anotacao')));
+      if (obs != null) payload['obs'] = obs;
+      final pesoRaw = _celValue(row, idx('peso_kg'));
+      final peso = _celNum(row, idx('peso_kg'));
+      if (peso != null && peso > 0) {
+        payload['peso'] = peso;
+        pesoPesagem = peso;
+      } else if (!_isBlankValue(pesoRaw)) {
+        erros.add({
+          'linha': linha,
+          'motivo': 'Aviso: Peso_kg inválido ("$pesoRaw") — avaliação '
+              'importada, mas a pesagem não foi registrada no rebanho.',
+        });
+      } else {
+        final idReb = (reb['idRebanho'] ?? '').toString().trim();
+        if (idReb.isNotEmpty) {
+          payloadsSemPeso.add(MapEntry('$idReb|$dataAv', payload));
+        }
+      }
+    } else {
+      final c = parseNota(_celNum(row, idx('conformacao_c')));
+      final p = parseNota(_celNum(row, idx('precocidade_p')));
+      final m = parseNota(_celNum(row, idx('musculatura_m')));
+      final u = parseNota(_celNum(row, idx('umbigo_u')));
+      final temp = parseNota(_celNum(row, idx('temperamento_t')));
+      if (c == null || p == null || m == null || u == null) {
+        erros.add({'linha': linha, 'motivo': 'Notas C/P/M/U devem ser 1–5.'});
+        continue;
+      }
+      if (temp != null && temp == 3) {
+        erros.add({'linha': linha, 'motivo': 'Temperamento não pode ser 3.'});
+        continue;
+      }
+      payload['nota_c'] = c;
+      payload['nota_p'] = p;
+      payload['nota_m'] = m;
+      payload['nota_u'] = u;
+      if (temp != null) payload['nota_t'] = temp;
+      _lerPerimetroEscrotal(row, idx, linha, payload, erros);
+      final obs = normalizarAnotacao(_cel(row, idx('anotacao')));
+      if (obs != null) payload['obs'] = obs;
+      final pesoRaw = _celValue(row, idx('peso_kg'));
+      final peso = _celNum(row, idx('peso_kg'));
+      if (peso != null && peso > 0) {
+        payload['peso'] = peso;
+        pesoPesagem = peso;
+      } else if (!_isBlankValue(pesoRaw)) {
+        erros.add({
+          'linha': linha,
+          'motivo': 'Aviso: Peso_kg inválido ("$pesoRaw") — avaliação '
+              'importada, mas a pesagem não foi registrada no rebanho.',
+        });
+      } else {
+        final idReb = (reb['idRebanho'] ?? '').toString().trim();
+        if (idReb.isNotEmpty) {
+          payloadsSemPeso.add(MapEntry('$idReb|$dataAv', payload));
+        }
+      }
+    }
+
+    // A chave de dedup precisa usar o MESMO A12 que vai ser gravado (o oficial
+    // quando existe), senão a checagem olharia uma chave diferente da linha
+    // gravada e poderia duplicar / violar a unique (id_propriedade,a12,data).
+    final key = '${_a12Key(a12Gravar)}|$dataAv';
+    if (importKeys.contains(key)) {
+      erros.add({
+        'linha': linha,
+        'motivo':
+            'Avaliação duplicada na planilha para A12 $a12Key e data $dataAv.',
+      });
+      continue;
+    }
+    importKeys.add(key);
+    // Inserts e updates são separados em dois lotes. O postgrest-dart 2.4.2
+    // descarta o parâmetro `on_conflict` em upsert de LISTA (bug: ao montar o
+    // `columns=` ele sobrescreve a URL e perde o on_conflict), então não dá
+    // para resolver o conflito pela unique (id_propriedade,animal_a12,data).
+    //  - Novos: insert sem `id` (o DEFAULT gen_random_uuid gera o id).
+    //  - Existentes: upsert com `id` em todas as linhas → conflito pela PRIMARY
+    //    KEY (usada pelo merge-duplicates por padrão, sem precisar de on_conflict).
+    if (existKeys.containsKey(key)) {
+      payload['id'] = existKeys[key];
+      updates.add(payload);
+      atualizados++;
+    } else {
+      inserts.add(payload);
+      inseridos++;
+    }
+
+    if (pesoPesagem != null) {
+      final idReb = (reb['idRebanho'] ?? '').toString().trim();
+      if (idReb.isNotEmpty) {
+        pesagensPlanilha.add(_PesagemPlanilha(idReb, dataAv, pesoPesagem));
+        fichasPorRebanho[idReb] = reb;
+      }
+    }
+  }
+
+  // Completa o peso das linhas que vieram sem Peso_kg com a pesagem do inLida
+  // na data EXATA da avaliação (regra do PAINT, a mesma que o export usa para
+  // preencher dsm_peso/sbr_peso). Materializar aqui deixa a tabela igual ao
+  // TXT; sem pesagem na data, o peso fica vazio nos dois.
+  if (payloadsSemPeso.isNotEmpty) {
+    final idRebs =
+        payloadsSemPeso.map((e) => e.key.split('|').first).toSet().toList();
+    final datas =
+        payloadsSemPeso.map((e) => e.key.split('|').last).toSet().toList();
+    final pesoPorRebData = <String, num>{};
+    const lotePesagem = 200;
+    for (var i = 0; i < idRebs.length; i += lotePesagem) {
+      final fim =
+          (i + lotePesagem < idRebs.length) ? i + lotePesagem : idRebs.length;
+      final rows = await SupaFlow.client
+          .from('historico_pesagens')
+          .select('idRebanho,dataPesagem,peso,id')
+          .eq('id_propriedade', idPropriedade)
+          .inFilter('idRebanho', idRebs.sublist(i, fim))
+          .inFilter('dataPesagem', datas)
+          .or('deletado.is.null,deletado.neq.SIM')
+          .order('id', ascending: true);
+      for (final p in rows) {
+        final peso = p['peso'];
+        final n = peso is num ? peso : num.tryParse('${peso ?? ''}');
+        if (n == null || n <= 0) continue;
+        final chave = '${(p['idRebanho'] ?? '').toString().trim()}'
+            '|${(p['dataPesagem'] ?? '').toString().substring(0, 10)}';
+        // Primeira pesagem (menor id) ganha, como no export.
+        pesoPorRebData.putIfAbsent(chave, () => n);
+      }
+    }
+    var completados = 0;
+    for (final e in payloadsSemPeso) {
+      final peso = pesoPorRebData[e.key];
+      if (peso != null) {
+        e.value['peso'] = peso;
+        completados++;
+      }
+    }
+    if (completados > 0) result['pesos_da_pesagem'] = completados;
+  }
+
+  const tam = 200;
+  for (var i = 0; i < inserts.length; i += tam) {
+    final fim = (i + tam < inserts.length) ? i + tam : inserts.length;
+    await SupaFlow.client.from(table).insert(inserts.sublist(i, fim));
+  }
+  // Os updates vão agrupados por CONJUNTO DE COLUNAS, e não em lotes de 200 na
+  // ordem da planilha. Motivo: no upsert de lista o postgrest monta `columns=`
+  // com a UNIÃO das chaves do lote e manda `defaultToNull`, então uma linha sem
+  // Perimetro_Escrotal_PE viajando junto de outra com o campo preenchido
+  // gravaria nota_ce = NULL na primeira — apagando um valor que já estava no
+  // banco e que a planilha nem se propôs a mexer. Vale para todo campo
+  // opcional (nota_t, nota_ce, obs, peso). Com um lote por assinatura, o
+  // `columns=` fica igual às chaves que a linha realmente traz e o
+  // ON CONFLICT DO UPDATE não toca no resto.
+  final updatesPorColunas = <String, List<Map<String, dynamic>>>{};
+  for (final u in updates) {
+    final assinatura = (u.keys.toList()..sort()).join(',');
+    (updatesPorColunas[assinatura] ??= []).add(u);
+  }
+  for (final grupo in updatesPorColunas.values) {
+    for (var i = 0; i < grupo.length; i += tam) {
+      final fim = (i + tam < grupo.length) ? i + tam : grupo.length;
+      await SupaFlow.client.from(table).upsert(grupo.sublist(i, fim));
+    }
+  }
+
+  // Só depois de as avaliações gravarem com sucesso, alimenta o peso no
+  // rebanho do inLida (elimina a dupla digitação Painel + PAINT).
+  if (t == 'desmama' || t == 'sobreano') {
+    final resumo = await _registrarPesagensImportadas(
+      idPropriedade: idPropriedade,
+      tipoPesagem: t == 'desmama' ? 'Desmama' : 'Atual',
+      itens: pesagensPlanilha,
+      fichas: fichasPorRebanho,
+      atualizarFichaDesmama: t == 'desmama',
+    );
+    result['pesagens_inseridas'] = resumo['inseridas'];
+    result['pesagens_atualizadas'] = resumo['atualizadas'];
+  }
+
+  result['inseridos'] = inseridos;
+  result['atualizados'] = atualizados;
+  result['erros'] = erros;
+  return result;
+}
+
+/// Peso de uma linha aceita da planilha, destinado a `historico_pesagens`.
+class _PesagemPlanilha {
+  final String idRebanho;
+  final String dataIso;
+  final num peso;
+  _PesagemPlanilha(this.idRebanho, this.dataIso, this.peso);
+}
+
+/// Registra os pesos da planilha em `historico_pesagens` e sincroniza a ficha
+/// dos animais afetados. Idempotente: reimportar a mesma planilha não duplica.
+///  - Desmama é evento único do animal: atualiza a pesagem 'Desmama' existente
+///    mesmo se a data foi corrigida na planilha (nunca cria uma segunda).
+///  - 'Atual' (sobreano) é um registro por data: mesma data atualiza o peso,
+///    data nova insere.
+Future<Map<String, int>> _registrarPesagensImportadas({
+  required String idPropriedade,
+  required String tipoPesagem,
+  required List<_PesagemPlanilha> itens,
+  required Map<String, Map<String, dynamic>> fichas,
+  required bool atualizarFichaDesmama,
+}) async {
+  if (itens.isEmpty) return const {'inseridas': 0, 'atualizadas': 0};
+
+  final existentes = await fetchPesagensPaintPorRebanho(
+    itens.map((i) => i.idRebanho),
+    tipo: tipoPesagem,
+  );
+  final porRebanho = <String, List<Map<String, dynamic>>>{};
+  for (final p in existentes) {
+    (porRebanho[(p['idRebanho'] ?? '').toString()] ??= []).add(p);
+  }
+
+  final inserts = <Map<String, dynamic>>[];
+  final updates = <Map<String, dynamic>>[];
+  // Animais cuja "Última pesagem"/"Peso atual" da ficha precisa ser recalculada.
+  final sincronizarFicha = <String>{};
+  final fichaDesmama = <String, Map<String, dynamic>>{};
+
+  for (final item in itens) {
+    final ativos = porRebanho[item.idRebanho] ?? const [];
+    Map<String, dynamic>? alvo;
+    for (final p in ativos) {
+      if (tipoPesagem != 'Desmama' &&
+          parseDateIso(p['dataPesagem']) != item.dataIso) {
+        continue;
+      }
+      if (alvo == null || (p['id'] as num) > (alvo['id'] as num)) alvo = p;
+    }
+
+    final registro = <String, dynamic>{
+      'idRebanho': item.idRebanho,
+      'id_propriedade': idPropriedade,
+      'dataPesagem': item.dataIso,
+      'tipo': tipoPesagem,
+      'peso': item.peso,
+      'deletado': 'NAO',
+    };
+
+    if (alvo != null) {
+      final mesmaData = parseDateIso(alvo['dataPesagem']) == item.dataIso;
+      if (!mesmaData || !_pesoIgual(alvo['peso'], item.peso)) {
+        updates.add({'id': alvo['id'], 'registro': registro});
+        sincronizarFicha.add(item.idRebanho);
+      }
+    } else {
+      inserts.add(registro);
+      // Insert só mexe na ficha se puder virar a última pesagem do animal.
+      final ultimaIso = parseDateIso(fichas[item.idRebanho]?['dataUltimaPesagem']);
+      if (ultimaIso == null || item.dataIso.compareTo(ultimaIso) >= 0) {
+        sincronizarFicha.add(item.idRebanho);
+      }
+    }
+
+    if (atualizarFichaDesmama) {
+      final ficha = fichas[item.idRebanho];
+      if (parseDateIso(ficha?['dataDesmama']) != item.dataIso ||
+          !_pesoIgual(ficha?['pesoDesmama'], item.peso)) {
+        fichaDesmama[item.idRebanho] = {
+          'dataDesmama': item.dataIso,
+          'pesoDesmama': item.peso,
+        };
+      }
+    }
+  }
+
+  // Lotes PEQUENOS: cada linha inserida dispara o trigger que recalcula a
+  // "última pesagem"/"peso atual" do animal no rebanho. Com 200 linhas o
+  // statement passava dos 8s do statement_timeout do PostgREST e caía com
+  // 57014 no meio da importação (visto em produção em 14/08). Se ainda assim
+  // um lote estourar, cai para linha a linha — cada insert vira um statement
+  // curto e o trigger roda uma vez só.
+  const tam = 25;
+  for (var i = 0; i < inserts.length; i += tam) {
+    final fim = (i + tam < inserts.length) ? i + tam : inserts.length;
+    final lote = inserts.sublist(i, fim);
+    try {
+      await SupaFlow.client.from('historico_pesagens').insert(lote);
+    } on PostgrestException catch (e) {
+      if (e.code != '57014') rethrow;
+      await _emLotesConcorrentes(lote, (registro) async {
+        await SupaFlow.client.from('historico_pesagens').insert(registro);
+      }, concorrencia: 4);
+    }
+  }
+  await _emLotesConcorrentes(updates, (u) async {
+    await SupaFlow.client
+        .from('historico_pesagens')
+        .update(u['registro'] as Map<String, dynamic>)
+        .eq('id', u['id']);
+  });
+
+  // Espelha o que o import do Painel grava na ficha para a desmama.
+  await _emLotesConcorrentes(fichaDesmama.entries.toList(), (e) async {
+    await SupaFlow.client.from('rebanho').update(e.value).eq('idRebanho', e.key);
+  });
+
+  // Recalcula Última pesagem/Peso atual pela regra oficial (pesagem ativa mais
+  // recente) — não regride se o animal já tem pesagem mais nova que a planilha.
+  await _emLotesConcorrentes(sincronizarFicha.toList(), (idReb) async {
+    await sincronizarUltimaPesagemRebanho(
+      idRebanho: idReb,
+      sincronizarPesoAtual: true,
+    );
+  });
+
+  return {'inseridas': inserts.length, 'atualizadas': updates.length};
+}
+
+bool _pesoIgual(dynamic a, num b) {
+  final na = a is num
+      ? a
+      : num.tryParse((a ?? '').toString().replaceAll(',', '.'));
+  if (na == null) return false;
+  return (na - b).abs() < 0.001;
+}
+
+/// Executa [acao] sobre [itens] em lotes paralelos limitados — atualizações
+/// linha a linha no PostgREST sem estourar conexões nem serializar tudo.
+Future<void> _emLotesConcorrentes<T>(
+  List<T> itens,
+  Future<void> Function(T) acao, {
+  int concorrencia = 8,
+}) async {
+  for (var i = 0; i < itens.length; i += concorrencia) {
+    final fim =
+        (i + concorrencia < itens.length) ? i + concorrencia : itens.length;
+    await Future.wait(itens.sublist(i, fim).map(acao));
+  }
+}
+
+/// Lê `Perimetro_Escrotal_PE` para `nota_ce` (desmama e sobreano).
+///
+/// O nome da coluna engana: CE é MEDIDA em centímetros, não nota de 1 a 5. Até
+/// 10/09/2026 esta leitura passava por `parseNota`, que devolve null fora de
+/// 1..5 — ou seja, jogava fora em silêncio praticamente todo CE real (o rebanho
+/// da Cachoeira vai de 15 a 39 cm) e o campo saía vazio no TXT. Por isso aqui
+/// não há `parseNota`: vale qualquer número que caiba em numeric(4,2), e valor
+/// preenchido que não caiba vira aviso em vez de sumir.
+void _lerPerimetroEscrotal(
+  List<dynamic> row,
+  int Function(String) idx,
+  int linha,
+  Map<String, dynamic> payload,
+  List<Map<String, dynamic>> erros,
+) {
+  final coluna = idx('perimetro_escrotal_pe');
+  final bruto = _celValue(row, coluna);
+  final pe = _celNum(row, coluna);
+  if (pe != null && pe > 0 && pe < 100) {
+    payload['nota_ce'] = pe.toDouble();
+    if (pe < 10) {
+      erros.add({
+        'linha': linha,
+        'motivo': 'Aviso: Perimetro_Escrotal_PE = $pe — importado assim mesmo, '
+            'mas confira: o valor é a medida em cm (ex.: 32), não uma nota.',
+      });
+    }
+    return;
+  }
+  if (!_isBlankValue(bruto)) {
+    erros.add({
+      'linha': linha,
+      'motivo': 'Aviso: Perimetro_Escrotal_PE inválido ("$bruto") — avaliação '
+          'importada, mas sem o perímetro escrotal. Use a medida em cm '
+          '(ex.: 32).',
+    });
+  }
+}
+
+List<int> _technicalIndexesFor(String tipo, int Function(String) idx) {
+  if (tipo == 'matrizes') {
+    return [
+      idx('raca'),
+      idx('frame'),
+      idx('aprumo'),
+      idx('pigmentacao'),
+    ];
+  }
+  if (tipo == 'desmama') {
+    return [
+      idx('conformacao_c'),
+      idx('precocidade_p'),
+      idx('musculatura_m'),
+      idx('umbigo_u'),
+      idx('perimetro_escrotal_pe'),
+      idx('anotacao'),
+    ];
+  }
+  return [
+    idx('conformacao_c'),
+    idx('precocidade_p'),
+    idx('musculatura_m'),
+    idx('umbigo_u'),
+    idx('temperamento_t'),
+    idx('perimetro_escrotal_pe'),
+    idx('anotacao'),
+  ];
+}
+
+bool _hasAnyCellValue(List<dynamic> row, List<int> indexes) {
+  for (final index in indexes) {
+    if (!_isBlankValue(_celValue(row, index))) return true;
+  }
+  return false;
+}
+
+bool _isBlankValue(dynamic value) {
+  if (value == null) return true;
+  if (value is String) return value.trim().isEmpty;
+  return false;
+}
+
+String? _cel(List<dynamic> row, int index) {
+  final v = _celValue(row, index);
+  if (v == null) return null;
+  return v.toString().trim();
+}
+
+dynamic _celValue(List<dynamic> row, int index) {
+  if (index < 0 || index >= row.length) return null;
+  final cell = row[index];
+  if (cell == null) return null;
+  final v = cell.value;
+  if (v == null) return null;
+  if (v is DateCellValue) return v.asDateTimeLocal();
+  if (v is DoubleCellValue) return v.value;
+  if (v is IntCellValue) return v.value;
+  if (v is TextCellValue) return v.value.text ?? '';
+  return v;
+}
+
+/// Lê uma célula como número. Célula vazia (ou texto não-numérico) vira `null`
+/// — importante para NÃO enviar string vazia "" a colunas numéricas do banco
+/// (erro 22P02). Aceita vírgula decimal ("300,00").
+num? _celNum(List<dynamic> row, int index) {
+  final v = _celValue(row, index);
+  if (v == null) return null;
+  if (v is num) return v;
+  final s = v.toString().trim();
+  if (s.isEmpty) return null;
+  return num.tryParse(s.replaceAll(',', '.'));
+}
+
+String _a12DbValue(String raw) {
+  final clean = raw.trim();
+  if (clean.length > 12) return clean.substring(0, 12);
+  return clean.padRight(12, ' ');
+}
+
+String _a12Key(String? raw) {
+  if (raw == null) return '';
+  return _a12DbValue(raw).trim();
+}
+
+/// Só os dígitos (primeiros 5) do número do animal — ignora sigla de registro
+/// ("1000 JLK" → "1000") e qualquer separador.
+String _soDigitos(String? raw) {
+  final d = (raw ?? '').replaceAll(RegExp(r'\D'), '');
+  return d.length > 5 ? d.substring(0, 5) : d;
+}
+
+/// Chave robusta de identidade: dígitos do número + ano (2) de nascimento.
+/// Independe de programa (P/F/p) e série (460/JLK) do A12.
+String _chaveDigAno(String? numero, dynamic dataNascimento) {
+  final dig = _soDigitos(numero);
+  if (dig.isEmpty) return '';
+  DateTime? d;
+  if (dataNascimento is DateTime) {
+    d = dataNascimento;
+  } else if (dataNascimento != null) {
+    d = DateTime.tryParse(dataNascimento.toString());
+  }
+  if (d == null) return '';
+  return '$dig|${(d.year % 100).toString().padLeft(2, '0')}';
+}
+
+/// Importa a planilha de período da cobertura. Só duas colunas importam:
+/// `id_reproducao` (a chave) e `Periodo` (Manhã ou Tarde). Linha em branco no
+/// período é ignorada em silêncio — é o caso normal de quem preencheu só parte
+/// da planilha; valor diferente vira erro com o número da linha.
+Future<Map<String, dynamic>> _importCoberturaPeriodo(
+  String idPropriedade,
+  FFUploadedFile arquivo,
+  Map<String, dynamic> result,
+) async {
+  final excel = Excel.decodeBytes(arquivo.bytes!.toList());
+  if (excel.tables.isEmpty) {
+    result['erros'] = [
+      {'linha': 0, 'motivo': 'Planilha sem abas.'},
+    ];
+    return result;
+  }
+  final sheet = excel.tables[excel.tables.keys.first]!;
+  if (sheet.rows.length < 2) {
+    result['erros'] = [
+      {'linha': 0, 'motivo': 'Planilha sem linhas de dados.'},
+    ];
+    return result;
+  }
+
+  final cabecalho = sheet.rows.first
+      .map((c) => normalizePaintHeader(c?.value?.toString() ?? ''))
+      .toList();
+  // Busca tolerante a acento: `normalizePaintHeader` não remove acentos, e
+  // "Período" é a grafia natural em português — quem reescrever o cabeçalho
+  // assim não pode ver a importação falhar por isso.
+  int idx(String name) {
+    final direto = cabecalho.indexOf(normalizePaintHeader(name));
+    if (direto >= 0) return direto;
+    final alvo = normalizePaintText(name);
+    for (var i = 0; i < cabecalho.length; i++) {
+      if (normalizePaintText(cabecalho[i]) == alvo) return i;
+    }
+    return -1;
+  }
+
+  final iId = idx('id_reproducao');
+  final iPeriodo = idx('periodo');
+  if (iId < 0 || iPeriodo < 0) {
+    result['erros'] = [
+      {
+        'linha': 1,
+        'motivo': 'Colunas id_reproducao e Periodo são obrigatórias. '
+            'Baixe o modelo pelo botão "Com dados da fazenda".'
+      },
+    ];
+    return result;
+  }
+
+  // Reprodutções válidas da propriedade: impede gravar período para um id que
+  // não existe ou que é de outra fazenda.
+  final validos = <String>{};
+  const pagina = 1000;
+  var offset = 0;
+  while (true) {
+    final lote = await SupaFlow.client
+        .from('reproducao')
+        .select('id_reproducao')
+        .eq('id_propriedade', idPropriedade)
+        .neq('deletado', 'SIM')
+        .order('id')
+        .range(offset, offset + pagina - 1);
+    for (final r in lote) {
+      validos.add((r['id_reproducao'] ?? '').toString().trim());
+    }
+    if (lote.length < pagina) break;
+    offset += pagina;
+  }
+
+  // Já gravados, para separar insert de update (mesmo esquema das avaliações:
+  // o postgrest-dart descarta on_conflict em upsert de lista, então o update
+  // precisa carregar o id da PK).
+  final existentes = <String, String>{};
+  final salvos = await SupaFlow.client
+      .from('paint_cobertura_periodo')
+      .select('id,id_reproducao')
+      .eq('id_propriedade', idPropriedade);
+  for (final r in salvos) {
+    existentes[(r['id_reproducao'] ?? '').toString().trim()] =
+        (r['id'] ?? '').toString();
+  }
+
+  final erros = <Map<String, dynamic>>[];
+  final inserts = <Map<String, dynamic>>[];
+  final updates = <Map<String, dynamic>>[];
+  final vistos = <String>{};
+
+  for (var r = 1; r < sheet.rows.length; r++) {
+    final linha = r + 1;
+    final row = sheet.rows[r];
+    final idRep = _cel(row, iId) ?? '';
+    final periodoBruto = _cel(row, iPeriodo) ?? '';
+    if (idRep.isEmpty && periodoBruto.isEmpty) continue;
+    if (idRep.isEmpty) {
+      erros.add({'linha': linha, 'motivo': 'id_reproducao vazio.'});
+      continue;
+    }
+    // Sem período preenchido não há o que gravar. Não é erro: é a maior parte
+    // da planilha enquanto a cliente preenche aos poucos.
+    if (periodoBruto.isEmpty) continue;
+
+    final periodo = normalizePaintText(periodoBruto);
+    final valor = periodo.startsWith('MANHA')
+        ? 'MANHA'
+        : periodo.startsWith('TARDE')
+            ? 'TARDE'
+            : null;
+    if (valor == null) {
+      erros.add({
+        'linha': linha,
+        'motivo': 'Periodo "$periodoBruto" inválido: use Manhã ou Tarde.'
+      });
+      continue;
+    }
+    if (!validos.contains(idRep)) {
+      erros.add({
+        'linha': linha,
+        'motivo': 'Cobertura $idRep não encontrada nesta propriedade.'
+      });
+      continue;
+    }
+    if (!vistos.add(idRep)) {
+      erros.add({
+        'linha': linha,
+        'motivo': 'Cobertura $idRep repetida na planilha — 1ª linha mantida.'
+      });
+      continue;
+    }
+
+    final payload = <String, dynamic>{
+      'id_propriedade': idPropriedade,
+      'id_reproducao': idRep,
+      'periodo': valor,
+      'origem': 'importacao_paint',
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    if (existentes.containsKey(idRep)) {
+      payload['id'] = existentes[idRep];
+      updates.add(payload);
+    } else {
+      inserts.add(payload);
+    }
+  }
+
+  const lote = 200;
+  for (var i = 0; i < inserts.length; i += lote) {
+    final fim = (i + lote < inserts.length) ? i + lote : inserts.length;
+    await SupaFlow.client
+        .from('paint_cobertura_periodo')
+        .insert(inserts.sublist(i, fim));
+  }
+  for (var i = 0; i < updates.length; i += lote) {
+    final fim = (i + lote < updates.length) ? i + lote : updates.length;
+    await SupaFlow.client
+        .from('paint_cobertura_periodo')
+        .upsert(updates.sublist(i, fim));
+  }
+
+  result['inseridos'] = inserts.length;
+  result['atualizados'] = updates.length;
+  result['erros'] = erros;
+  return result;
+}

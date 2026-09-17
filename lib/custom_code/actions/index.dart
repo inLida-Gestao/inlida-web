@@ -17,3 +17,16 @@ export 'export_pesagem_excel.dart' show exportPesagemExcel;
 export 'parse_csv_to_json_pesagem.dart' show parseCsvToJsonPesagem;
 export 'batch_insert_supabase_pesagem.dart'
     show previewPesagemImport, batchInsertSupabasePesagem;
+export 'registrar_paint_baixa.dart' show registrarPaintBaixa;
+export 'import_biblioteca_touros.dart' show importBibliotecaTouros;
+export 'auto_preencher_paint.dart' show autoPreencherPaint;
+export 'export_paint_avaliacao_excel.dart'
+    show exportPaintAvaliacaoExcel, PaintExportStatus;
+export 'import_paint_avaliacao_excel.dart' show importPaintAvaliacaoExcel;
+export 'export_paint_resultados_excel.dart' show exportPaintResultadosExcel;
+export 'registrar_paint_excluido.dart' show registrarPaintExcluido;
+export 'resetar_dados_paint.dart' show resetarDadosPaint;
+export 'import_paint_animal_txt.dart' show importPaintAnimalTxt;
+export 'a12_oficial_csv.dart'
+    show exportarA12OficialCsv, importarA12OficialCsv;
+export 'paint_helpers.dart' show formatA12, PaintEstrategiaA12, parseEstrategiaA12;

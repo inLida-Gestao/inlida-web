@@ -8,6 +8,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
+import '/custom_code/actions/paint_tipo_registro_options.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
@@ -2138,9 +2139,26 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     FFAppState()
                                                                         .raca,
                                                                 onChanged: (val) =>
-                                                                    safeSetState(() =>
-                                                                        _model.dropDownRacaValue =
-                                                                            val),
+                                                                    safeSetState(
+                                                                        () {
+                                                                  _model.dropDownRacaValue =
+                                                                      val;
+                                                                  final tipo =
+                                                                      ajustarTipoRegistroAoTrocarRaca(
+                                                                    val,
+                                                                    _model
+                                                                        .dropDownTipoRegistroValue,
+                                                                  );
+                                                                  if (tipo !=
+                                                                      _model
+                                                                          .dropDownTipoRegistroValue) {
+                                                                    _model.dropDownTipoRegistroValue =
+                                                                        tipo;
+                                                                    _model
+                                                                        .dropDownTipoRegistroValueController
+                                                                        ?.value = tipo;
+                                                                  }
+                                                                }),
                                                                 height: 56.0,
                                                                 textStyle: FlutterFlowTheme.of(
                                                                         context)
@@ -2212,6 +2230,28 @@ class _PgRebanhoAddNascimentoWidgetState
                                                         ),
                                                       ].divide(const SizedBox(
                                                           width: 24.0)),
+                                                    ),
+                                                    Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      children: [
+                                                        Expanded(
+                                                          child: custom_widgets
+                                                              .PaintTipoRegistroDropdown(
+                                                            controller: _model
+                                                                    .dropDownTipoRegistroValueController ??=
+                                                                FormFieldController<
+                                                                    String>(
+                                                              null,
+                                                            ),
+                                                            onChanged: (val) =>
+                                                                safeSetState(
+                                                                    () => _model
+                                                                            .dropDownTipoRegistroValue =
+                                                                        val),
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                     Row(
                                                       mainAxisSize:
@@ -4280,6 +4320,11 @@ class _PgRebanhoAddNascimentoWidgetState
                                             _model.dropDownRacaValueController
                                                 ?.reset();
                                             _model.dropDownRacaValue = null;
+                                            _model
+                                                .dropDownTipoRegistroValueController
+                                                ?.reset();
+                                            _model.dropDownTipoRegistroValue =
+                                                null;
                                             _model.dropDownLotesValueController
                                                 ?.reset();
                                             _model.dropDownLotesValue = null;
@@ -4513,6 +4558,10 @@ class _PgRebanhoAddNascimentoWidgetState
                                                       _model.dropDownPorteValue,
                                                   'raca':
                                                       _model.dropDownRacaValue,
+                                                  'tipo_registro':
+                                                      paintTipoRegistroParaSalvar(
+                                                          _model
+                                                              .dropDownTipoRegistroValue),
                                                   'loteID':
                                                       _model.dropDownLotesValue,
                                                   'dataEntradaLote':
