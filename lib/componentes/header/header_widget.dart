@@ -1,7 +1,6 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/schema/structs/index.dart';
-import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -27,6 +26,7 @@ class HeaderWidget extends StatefulWidget {
 
 class _HeaderWidgetState extends State<HeaderWidget> {
   late HeaderModel _model;
+  int _propertyChangeSequence = 0;
 
   @override
   void setState(VoidCallback callback) {
@@ -38,6 +38,10 @@ class _HeaderWidgetState extends State<HeaderWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => HeaderModel());
+    _model.propriedadesFuture ??=
+        FunctionsSupabaseRebanhoGroup.buscarPropriedadesDoUsuarioCall.call(
+      pUserId: currentUserUid,
+    );
 
     // On component load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -91,11 +95,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                   ),
                 ),
                 FutureBuilder<ApiCallResponse>(
-                  future: FunctionsSupabaseRebanhoGroup
-                      .buscarPropriedadesDoUsuarioCall
-                      .call(
-                    pUserId: currentUserUid,
-                  ),
+                  future: _model.propriedadesFuture,
                   builder: (context, snapshot) {
                     // Customize what your widget looks like when it's loading.
                     if (!snapshot.hasData) {
@@ -134,7 +134,8 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                         snapshot.data!;
 
                     // Lista de IDs que o usuário pode escolher agora.
-                    final propsLista = (containerBuscarPropriedadesDoUsuarioResponse
+                    final propsLista =
+                        (containerBuscarPropriedadesDoUsuarioResponse
                                 .jsonBody
                                 .toList()
                                 .map<PropriedadeStruct?>(
@@ -154,9 +155,15 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                     // mostra só o hint "Propriedade").
                     if (sidPersistido.isNotEmpty &&
                         !optionIds.contains(sidPersistido)) {
+                      final sidInvalido = sidPersistido;
                       SchedulerBinding.instance.addPostFrameCallback((_) {
-                        if (!mounted) return;
-                        FFAppState().onPropriedadeChanged(PropriedadesDTStruct());
+                        if (!mounted ||
+                            FFAppState().propriedadeSelecionada.idPropriedade !=
+                                sidInvalido) {
+                          return;
+                        }
+                        FFAppState()
+                            .onPropriedadeChanged(PropriedadesDTStruct());
                         safeSetState(() {
                           _model.dropDownValueController?.reset();
                           _model.dropDownValue = null;
@@ -166,11 +173,18 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                         optionIds.contains(sidPersistido)) {
                       final cur = _model.dropDownValueController?.value;
                       if (cur != sidPersistido) {
+                        final sidSincronizado = sidPersistido;
                         SchedulerBinding.instance.addPostFrameCallback((_) {
-                          if (!mounted) return;
-                          _model.dropDownValue = sidPersistido;
+                          if (!mounted ||
+                              FFAppState()
+                                      .propriedadeSelecionada
+                                      .idPropriedade !=
+                                  sidSincronizado) {
+                            return;
+                          }
+                          _model.dropDownValue = sidSincronizado;
                           _model.dropDownValueController?.value =
-                              sidPersistido;
+                              sidSincronizado;
                           safeSetState(() {});
                         });
                       }
@@ -238,45 +252,58 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                                         .map((e) => e.nome)
                                         .toList(),
                                 onChanged: (val) async {
+                                  final selectedId = val?.trim() ?? '';
+                                  final selectedProperty = propsLista
+                                      .where((property) =>
+                                          property.idPropriedade == selectedId)
+                                      .firstOrNull;
+                                  if (selectedId.isEmpty ||
+                                      selectedProperty == null) {
+                                    return;
+                                  }
+
+                                  final changeSequence =
+                                      ++_propertyChangeSequence;
                                   safeSetState(
-                                      () => _model.dropDownValue = val);
-                                  // 1. Buscar dados da propriedade
-                                  _model.propriedade =
-                                      await PropriedadesTable().queryRows(
-                                    queryFn: (q) => q.eqOrNull(
-                                      'idPropriedade',
-                                      _model.dropDownValue,
-                                    ),
-                                  );
-                                  // 2. Atualizar propriedade, resetar filtros
-                                  //    e setar TODAS as flags de refresh de uma vez
+                                      () => _model.dropDownValue = selectedId);
+
+                                  // Atualizar imediatamente para impedir que um
+                                  // rebuild restaure a propriedade anterior.
                                   FFAppState().onPropriedadeChanged(
                                     PropriedadesDTStruct(
-                                      idPropriedade: _model.propriedade
-                                          ?.firstOrNull?.idPropriedade,
-                                      nome: _model.propriedade?.firstOrNull?.nome,
+                                      idPropriedade: selectedId,
+                                      nome: selectedProperty.nome,
                                     ),
                                   );
-                                  // 3. Executar contagens assíncronas (pages já
-                                  //    estão atualizando em paralelo)
-                                  _model.qtdAnimais =
-                                      await FunctionsSupabaseRebanhoGroup
-                                          .countRebanhoFiltrosCall
-                                          .call(
-                                    pIdPropriedade: FFAppState()
-                                        .propriedadeSelecionada
-                                        .idPropriedade,
-                                    pStatus: 'Na Propriedade',
-                                  );
+
+                                  final qtdAnimaisResponses =
+                                      await Future.wait([
+                                    FunctionsSupabaseRebanhoGroup
+                                        .countRebanhoFiltrosCall
+                                        .call(
+                                      pIdPropriedade: selectedId,
+                                      pStatus: 'Na Propriedade',
+                                    ),
+                                    FunctionsSupabaseRebanhoGroup
+                                        .countRebanhoFiltrosCall
+                                        .call(
+                                      pIdPropriedade: selectedId,
+                                      pStatus: 'Na propriedade',
+                                    ),
+                                  ]);
+                                  if (!context.mounted ||
+                                      changeSequence !=
+                                          _propertyChangeSequence ||
+                                      FFAppState()
+                                              .propriedadeSelecionada
+                                              .idPropriedade !=
+                                          selectedId) {
+                                    return;
+                                  }
+
+                                  _model.qtdAnimais = qtdAnimaisResponses.first;
                                   final qtdAnimaisLower =
-                                      await FunctionsSupabaseRebanhoGroup
-                                          .countRebanhoFiltrosCall
-                                          .call(
-                                    pIdPropriedade: FFAppState()
-                                        .propriedadeSelecionada
-                                        .idPropriedade,
-                                    pStatus: 'Na propriedade',
-                                  );
+                                      qtdAnimaisResponses.last;
                                   final qtdUpper = valueOrDefault<int>(
                                     (_model.qtdAnimais?.jsonBody ?? ''),
                                     0,
@@ -290,9 +317,26 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                                       : (qtdUpper + qtdLower);
                                   FFAppState().qtdAnimaisNaPropriedade =
                                       qtdTotal;
-                                  await action_blocks.countReproducoes(context);
-                                  await action_blocks.countLotes(context);
-                                  // 4. Propagar valores de contagem
+                                  await Future.wait([
+                                    action_blocks.countReproducoes(
+                                      context,
+                                      propriedadeId: selectedId,
+                                    ),
+                                    action_blocks.countLotes(
+                                      context,
+                                      propriedadeId: selectedId,
+                                    ),
+                                  ]);
+                                  if (!context.mounted ||
+                                      changeSequence !=
+                                          _propertyChangeSequence ||
+                                      FFAppState()
+                                              .propriedadeSelecionada
+                                              .idPropriedade !=
+                                          selectedId) {
+                                    return;
+                                  }
+
                                   FFAppState().update(() {});
                                   safeSetState(() {});
                                 },
@@ -343,21 +387,20 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                                               .secondaryText,
                                           fontSize: 14.0,
                                         ),
-                                searchTextStyle:
-                                    FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.poppins(),
-                                          fontSize: 14.0,
-                                        ),
+                                searchTextStyle: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .override(
+                                      font: GoogleFonts.poppins(),
+                                      fontSize: 14.0,
+                                    ),
                                 searchCursorColor:
                                     FlutterFlowTheme.of(context).primary,
                                 isMultiSelect: false,
                               ),
                               if ((FFAppState()
-                                              .propriedadeSelecionada
-                                              .idPropriedade !=
-                                          '') &&
+                                          .propriedadeSelecionada
+                                          .idPropriedade !=
+                                      '') &&
                                   responsiveVisibility(
                                     context: context,
                                     phone: false,

@@ -3,45 +3,49 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 
-Future countReproducoes(BuildContext context) async {
+Future countReproducoes(
+  BuildContext context, {
+  String? propriedadeId,
+}) async {
   List<ReproducaoRow>? countRepro;
   ApiCallResponse? countReproducoes;
+  final targetPropertyId =
+      (propriedadeId ?? FFAppState().propriedadeSelecionada.idPropriedade)
+          .trim();
 
   countRepro = await ReproducaoTable().queryRows(
     queryFn: (q) => q.eqOrNull(
       'id_propriedade',
-      FFAppState().propriedadeSelecionada.idPropriedade,
+      targetPropertyId,
     ),
-  );
-  FFAppState().qtdReproducoes = valueOrDefault<int>(
-    countRepro.length,
-    0,
-  );
-  FFAppState().qtdInseminacoes = valueOrDefault<int>(
-    countRepro.where((e) => e.tipoReproducao == 'Inseminação').toList().length,
-    0,
-  );
-  FFAppState().qtdMontaNatural = valueOrDefault<int>(
-    countRepro
-        .where((e) => e.tipoReproducao == 'Monta Natural')
-        .toList()
-        .length,
-    0,
   );
   countReproducoes =
       await FunctionsSupabaseRebanhoGroup.countReproducaoFiltrosCall.call(
-    pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+    pIdPropriedade: targetPropertyId,
   );
 
-  if (countReproducoes.succeeded) {
-    FFAppState().qtdReproducoes = (countReproducoes.jsonBody ?? '');
+  if (FFAppState().propriedadeSelecionada.idPropriedade != targetPropertyId) {
+    return;
   }
+
+  FFAppState().qtdReproducoes = countReproducoes.succeeded
+      ? valueOrDefault<int>(countReproducoes.jsonBody, countRepro.length)
+      : countRepro.length;
+  FFAppState().qtdInseminacoes =
+      countRepro.where((e) => e.tipoReproducao == 'Inseminação').length;
+  FFAppState().qtdMontaNatural =
+      countRepro.where((e) => e.tipoReproducao == 'Monta Natural').length;
 }
 
-Future countLotes(BuildContext context) async {
-  final propriedadeId = FFAppState().propriedadeSelecionada.idPropriedade;
+Future countLotes(
+  BuildContext context, {
+  String? propriedadeId,
+}) async {
+  final targetPropertyId =
+      (propriedadeId ?? FFAppState().propriedadeSelecionada.idPropriedade)
+          .trim();
 
-  if (propriedadeId.isEmpty) {
+  if (targetPropertyId.isEmpty) {
     FFAppState().lotesInativos = 0;
     FFAppState().lotesAtivos = 0;
     FFAppState().qtdAnimaisEmLotesAtivos = 0;
@@ -52,7 +56,7 @@ Future countLotes(BuildContext context) async {
   // Busca todos os lotes da propriedade
   final todosLotes = await LotesTable().queryRows(
     queryFn: (q) =>
-        q.eq('id_propriedade', propriedadeId).eqOrNull('deletado', 'NAO'),
+        q.eq('id_propriedade', targetPropertyId).eqOrNull('deletado', 'NAO'),
   );
 
   // Aplica mesma lógica de hasExitInfo do pg_lotes_widget para determinar ativo/inativo
@@ -76,13 +80,10 @@ Future countLotes(BuildContext context) async {
     }
   }
 
-  FFAppState().lotesAtivos = lotesAtivosCount;
-  FFAppState().lotesInativos = lotesInativosCount;
-
   // Conta animais que têm loteID preenchido via função SQL (sem limite de rows)
   final countResult =
       await FunctionsSupabaseRebanhoGroup.countRebanhosComLoteCall.call(
-    propriedade: propriedadeId,
+    propriedade: targetPropertyId,
   );
 
   var qtdAnimaisEmLotes = 0;
@@ -97,6 +98,12 @@ Future countLotes(BuildContext context) async {
     }
   }
 
+  if (FFAppState().propriedadeSelecionada.idPropriedade != targetPropertyId) {
+    return;
+  }
+
+  FFAppState().lotesAtivos = lotesAtivosCount;
+  FFAppState().lotesInativos = lotesInativosCount;
   FFAppState().qtdAnimaisEmLotesAtivos = qtdAnimaisEmLotes;
   FFAppState().update(() {});
 }
