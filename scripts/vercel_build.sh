@@ -38,7 +38,12 @@ flutter config --no-analytics
 
 flutter pub get
 
-BUILD_ARGS=(web --wasm --release --pwa-strategy=none --base-href /)
+# Sem --wasm de proposito. No build WebAssembly o pacote `archive` (usado pelo
+# `excel` para montar o .xlsx) cai no stub e lanca
+# "inflateBuffer requires html or io", entao nenhuma exportacao conclui.
+# O `excel` 4.0.6 exige `archive ^3.6.1`, que nao tem implementacao para wasm.
+# Reativar quando essas dependencias suportarem wasm.
+BUILD_ARGS=(web --release --pwa-strategy=none --base-href /)
 if [[ -n "${MAPBOX_ACCESS_TOKEN:-}" ]]; then
   BUILD_ARGS+=(--dart-define="MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN}")
 else
@@ -54,11 +59,11 @@ if [ -f "build/web/assets/AssetManifest.bin.json" ] && [ ! -f "build/web/assets/
   echo "Created AssetManifest.json for compatibility"
 fi
 
-for artifact in main.dart.wasm main.dart.mjs main.dart.js; do
+for artifact in main.dart.js; do
   if [[ ! -f "build/web/$artifact" ]]; then
     echo "Missing required Flutter web artifact: build/web/$artifact" >&2
     exit 1
   fi
 done
 
-echo "Built Flutter web with Wasm and JavaScript fallback into build/web"
+echo "Built Flutter web (JavaScript) into build/web"
