@@ -3,7 +3,7 @@ set -euo pipefail
 
 FLUTTER_CHANNEL="${FLUTTER_CHANNEL:-stable}"
 # Mantém compatibilidade com o `pubspec.yaml` atual (ex.: `collection: 1.19.1`).
-FLUTTER_VERSION="${FLUTTER_VERSION:-3.38.4}"
+FLUTTER_VERSION="${FLUTTER_VERSION:-3.38.9}"
 
 # Prefer usar Flutter já instalado (útil localmente no macOS).
 # Em builds da Vercel normalmente não existe `flutter`, então baixamos o SDK.
@@ -38,14 +38,14 @@ flutter config --no-analytics
 
 flutter pub get
 
-DART_DEFINES=()
+BUILD_ARGS=(web --wasm --release --pwa-strategy=none --base-href /)
 if [[ -n "${MAPBOX_ACCESS_TOKEN:-}" ]]; then
-  DART_DEFINES+=(--dart-define="MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN}")
+  BUILD_ARGS+=(--dart-define="MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN}")
 else
   echo "MAPBOX_ACCESS_TOKEN is not set; map will use fallback tile provider."
 fi
 
-flutter build web --release --pwa-strategy=none --base-href / "${DART_DEFINES[@]}"
+flutter build "${BUILD_ARGS[@]}"
 
 # Criar AssetManifest.json para compatibilidade com google_fonts
 # O Flutter agora gera AssetManifest.bin.json, mas alguns pacotes ainda procuram AssetManifest.json
@@ -54,4 +54,11 @@ if [ -f "build/web/assets/AssetManifest.bin.json" ] && [ ! -f "build/web/assets/
   echo "Created AssetManifest.json for compatibility"
 fi
 
-echo "Built Flutter web into build/web"
+for artifact in main.dart.wasm main.dart.mjs main.dart.js; do
+  if [[ ! -f "build/web/$artifact" ]]; then
+    echo "Missing required Flutter web artifact: build/web/$artifact" >&2
+    exit 1
+  fi
+done
+
+echo "Built Flutter web with Wasm and JavaScript fallback into build/web"

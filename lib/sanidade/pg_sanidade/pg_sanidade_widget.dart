@@ -39,6 +39,7 @@ class PgSanidadeWidget extends StatefulWidget {
 class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     with TickerProviderStateMixin {
   late PgSanidadeModel _model;
+  bool _sanidadeRefreshQueued = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -48,13 +49,19 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
   /// linhas do PostgREST: antes os 4 KPIs puxavam todas as linhas de `sanidade`
   /// e contavam com `.length` no cliente, fazendo "Vacinas aplicadas" travar em
   /// 1000. Mantem a mesma regra dos cards (tipo, "outros" ou observacao).
-  Future<void> _carregarCountsSanidade() async {
+  Future<void> _carregarCountsSanidade({String? propriedadeId}) async {
+    final targetPropertyId =
+        propriedadeId ?? FFAppState().propriedadeSelecionada.idPropriedade;
     final response = await SupaFlow.client.rpc(
       'count_sanidade_kpis',
       params: {
-        'p_id_propriedade': FFAppState().propriedadeSelecionada.idPropriedade,
+        'p_id_propriedade': targetPropertyId,
       },
     );
+    if (!mounted ||
+        FFAppState().propriedadeSelecionada.idPropriedade != targetPropertyId) {
+      return;
+    }
     final rows = (response as List?) ?? const [];
     final counts = rows.isNotEmpty
         ? (rows.first as Map).cast<String, dynamic>()
@@ -66,11 +73,48 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
     _model.countProtocolos = (counts['protocolos'] as num?)?.toInt() ?? 0;
   }
 
+  void _queueSanidadeRefresh() {
+    if (_sanidadeRefreshQueued) {
+      return;
+    }
+    _sanidadeRefreshQueued = true;
+    scheduleMicrotask(() async {
+      _sanidadeRefreshQueued = false;
+      if (!mounted) {
+        return;
+      }
+      final targetPropertyId =
+          FFAppState().propriedadeSelecionada.idPropriedade;
+      safeSetState(() {
+        _model.pageNum = 1;
+        _model.apiRequestCompleter2 = null;
+        _model.apiRequestCompleter1 = null;
+      });
+      await _carregarCountsSanidade(propriedadeId: targetPropertyId);
+      if (mounted &&
+          FFAppState().propriedadeSelecionada.idPropriedade ==
+              targetPropertyId) {
+        safeSetState(() {});
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => PgSanidadeModel());
     _model.syncSanidadeSortControllers();
+
+    _model.disposeRefreshListener =
+        FFAppState().onRefresh('refreshSanidade', () {
+      FFAppState().refreshSanidade = false;
+      _queueSanidadeRefresh();
+    });
+    _model.disposeRefreshListener2 =
+        FFAppState().onRefresh('refreshReproducao', () {
+      FFAppState().refreshReproducao = false;
+      _queueSanidadeRefresh();
+    });
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -81,23 +125,6 @@ class _PgSanidadeWidgetState extends State<PgSanidadeWidget>
       await _carregarCountsSanidade();
 
       safeSetState(() {});
-
-      _model.disposeRefreshListener =
-          FFAppState().onRefresh('refreshSanidade', () {
-        FFAppState().refreshSanidade = false;
-        safeSetState(() {
-          _model.apiRequestCompleter2 = null;
-          _model.apiRequestCompleter1 = null;
-        });
-      });
-      _model.disposeRefreshListener2 =
-          FFAppState().onRefresh('refreshReproducao', () {
-        FFAppState().refreshReproducao = false;
-        safeSetState(() {
-          _model.apiRequestCompleter2 = null;
-          _model.apiRequestCompleter1 = null;
-        });
-      });
     });
 
     _model.textController ??= TextEditingController();

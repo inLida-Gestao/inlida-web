@@ -15,6 +15,9 @@ class PgEditLoteModel extends FlutterFlowModel<PgEditLoteWidget> {
 
   int pageNumAdd = 1;
 
+  int pageSizeFora = 50;
+  int totalAnimaisDisponiveis = 0;
+
   // Ordenação da lista "Animais fora do lote" (server-side).
   String ordenarFora = '';
   bool ordenarForaAsc = true;
@@ -51,13 +54,17 @@ class PgEditLoteModel extends FlutterFlowModel<PgEditLoteWidget> {
 
   int pageNumLT = 1;
 
-  int mostrarAdicionados = 20;
+  int pageSizeDentro = 50;
+
+  int listaAnimaisTab = 0;
 
   int index = 0;
 
   bool ativo = true;
 
   bool isSaving = false;
+
+  bool isSelectingAll = false;
 
   // Local filter state for "Animais neste lote" (right side)
   String filtroRightSexo = '';
@@ -130,8 +137,6 @@ class PgEditLoteModel extends FlutterFlowModel<PgEditLoteWidget> {
   String? Function(BuildContext, String?)? pesquisaTextControllerValidator;
   Completer<ApiCallResponse>? apiRequestCompleter;
   VoidCallback? disposeRefreshListener;
-  // State field(s) for Checkbox widget.
-  bool? checkboxValue;
   // State field(s) for pesquisaDentro widget.
   FocusNode? pesquisaDentroFocusNode;
   TextEditingController? pesquisaDentroTextController;

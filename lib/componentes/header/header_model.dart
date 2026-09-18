@@ -1,5 +1,4 @@
 import '/backend/api_requests/api_calls.dart';
-import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/form_field_controller.dart';
 import 'header_widget.dart' show HeaderWidget;
@@ -11,8 +10,7 @@ class HeaderModel extends FlutterFlowModel<HeaderWidget> {
   // State field(s) for DropDown widget.
   String? dropDownValue;
   FormFieldController<String>? dropDownValueController;
-  // Stores action output result for [Backend Call - Query Rows] action in DropDown widget.
-  List<PropriedadesRow>? propriedade;
+  Future<ApiCallResponse>? propriedadesFuture;
   // Stores action output result for [Backend Call - API (QTD Rebanho Propriedades)] action in DropDown widget.
   ApiCallResponse? qtdAnimais;
 

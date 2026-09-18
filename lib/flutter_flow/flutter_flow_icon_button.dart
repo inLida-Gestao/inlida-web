@@ -19,6 +19,7 @@ class FlutterFlowIconButton extends StatefulWidget {
     this.showLoadingIndicator = false,
     this.focusBorderSide,
     this.focusBorderRadius,
+    this.tooltip,
   });
 
   final Widget icon;
@@ -36,6 +37,7 @@ class FlutterFlowIconButton extends StatefulWidget {
   final Function()? onPressed;
   final BorderSide? focusBorderSide;
   final BorderRadius? focusBorderRadius;
+  final String? tooltip;
 
   @override
   State<FlutterFlowIconButton> createState() => _FlutterFlowIconButtonState();
@@ -156,6 +158,7 @@ class _FlutterFlowIconButtonState extends State<FlutterFlowIconButton> {
         child: IgnorePointer(
           ignoring: (widget.showLoadingIndicator && loading),
           child: IconButton(
+            tooltip: widget.tooltip,
             icon: (widget.showLoadingIndicator && loading)
                 ? SizedBox(
                     width: iconSize,

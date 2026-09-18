@@ -14,6 +14,9 @@ class PgAddLoteModel extends FlutterFlowModel<PgAddLoteWidget> {
 
   int pageNumAdd = 1;
 
+  int pageSizeFora = 50;
+  int totalAnimaisDisponiveis = 0;
+
   // Ordenação da lista "Animais fora do lote" (server-side).
   String ordenarFora = '';
   bool ordenarForaAsc = true;
@@ -50,13 +53,17 @@ class PgAddLoteModel extends FlutterFlowModel<PgAddLoteWidget> {
 
   int pageNumLT = 1;
 
-  int mostrarAdicionados = 20;
+  int pageSizeDentro = 50;
+
+  int listaAnimaisTab = 0;
 
   String? idLote;
 
   int index = 0;
 
   bool isSaving = false;
+
+  bool isSelectingAll = false;
 
   ///  State fields for stateful widgets in this page.
 
@@ -95,8 +102,7 @@ class PgAddLoteModel extends FlutterFlowModel<PgAddLoteWidget> {
   TextEditingController? pesquisaTextController1;
   String? Function(BuildContext, String?)? pesquisaTextController1Validator;
   Completer<ApiCallResponse>? apiRequestCompleter;
-  // State field(s) for Checkbox widget.
-  bool? checkboxValue1;
+  VoidCallback? disposeRefreshListener;
   // State field(s) for Checkbox widget.
   Map<RebanhoDTStruct, bool> checkboxValueMap2 = {};
   List<RebanhoDTStruct> get checkboxCheckedItems2 => checkboxValueMap2.entries
@@ -123,6 +129,7 @@ class PgAddLoteModel extends FlutterFlowModel<PgAddLoteWidget> {
 
   @override
   void dispose() {
+    disposeRefreshListener?.call();
     headerModel.dispose();
     sideBarModel.dispose();
     tabBarController?.dispose();

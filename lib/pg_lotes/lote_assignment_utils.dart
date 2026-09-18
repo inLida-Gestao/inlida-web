@@ -16,6 +16,32 @@ List<RebanhoDTStruct> filtrarAnimaisSelecionaveisParaLote(
   }).toList();
 }
 
+List<RebanhoDTStruct> mesclarAnimaisSelecionados(
+  Iterable<RebanhoDTStruct> selecionados,
+  Iterable<RebanhoDTStruct> novos, {
+  Iterable<String?> idsExcluidos = const [],
+}) {
+  final resultado = selecionados.toList();
+  final idsSelecionados = resultado
+      .map((animal) => animal.idRebanho.trim())
+      .where((id) => id.isNotEmpty && id.toLowerCase() != 'null')
+      .toSet();
+  final idsBloqueados = normalizeLoteAnimalIds(idsExcluidos).toSet();
+
+  for (final animal in novos) {
+    final id = animal.idRebanho.trim();
+    if (id.isEmpty ||
+        id.toLowerCase() == 'null' ||
+        idsBloqueados.contains(id) ||
+        !idsSelecionados.add(id)) {
+      continue;
+    }
+    resultado.add(animal);
+  }
+
+  return resultado;
+}
+
 List<String> normalizeLoteAnimalIds(Iterable<String?> ids) {
   final normalized = <String>{};
   for (final value in ids) {

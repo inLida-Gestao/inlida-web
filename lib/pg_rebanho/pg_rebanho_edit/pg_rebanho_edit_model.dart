@@ -23,6 +23,8 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
 
   RebanhoRow? animalSelecionado;
 
+  double? valorVendaEditado;
+
   /// Evita ressincronizar `FFAppState` a cada rebuild do FutureBuilder (preserva escolhas via popup).
   int? progenySyncedForRebanhoPk;
 

@@ -38,6 +38,40 @@ void main() {
     expect(ids, ['animal-1', 'animal-2']);
   });
 
+  test('mescla seleção de várias páginas sem perder ou duplicar animais', () {
+    final selecionados = mesclarAnimaisSelecionados(
+      [
+        RebanhoDTStruct(idRebanho: 'animal-1'),
+        RebanhoDTStruct(idRebanho: 'animal-2'),
+      ],
+      [
+        RebanhoDTStruct(idRebanho: 'animal-2'),
+        RebanhoDTStruct(idRebanho: 'animal-3'),
+      ],
+    );
+
+    expect(
+      selecionados.map((animal) => animal.idRebanho),
+      ['animal-1', 'animal-2', 'animal-3'],
+    );
+  });
+
+  test('não seleciona novamente animais que já pertencem ao lote', () {
+    final selecionados = mesclarAnimaisSelecionados(
+      [RebanhoDTStruct(idRebanho: 'animal-1')],
+      [
+        RebanhoDTStruct(idRebanho: 'animal-2'),
+        RebanhoDTStruct(idRebanho: 'animal-3'),
+      ],
+      idsExcluidos: ['animal-2'],
+    );
+
+    expect(
+      selecionados.map((animal) => animal.idRebanho),
+      ['animal-1', 'animal-3'],
+    );
+  });
+
   test('normaliza os IDs do lote sem perder animais transferidos', () {
     final ids = loteAnimalIds([
       RebanhoDTStruct(idRebanho: ' animal-1 '),
