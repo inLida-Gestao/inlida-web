@@ -4624,9 +4624,14 @@ class _PgReproducaoEditAnimalWidgetState
                                                                   String>(
                                                                   dateTimeFormat(
                                                                     "d/M/y",
-                                                                    _model.datePicked7 ??
-                                                                        pgReproducaoEditAnimalReproducaoRow
-                                                                            ?.previsaoParto,
+                                                                    previsaoPartoMontaNatural(
+                                                                      _model.datePicked7 ??
+                                                                          pgReproducaoEditAnimalReproducaoRow
+                                                                              ?.previsaoParto,
+                                                                      _model.datePicked3 ??
+                                                                          pgReproducaoEditAnimalReproducaoRow
+                                                                              ?.dataInicial,
+                                                                    ),
                                                                     locale: FFLocalizations.of(
                                                                             context)
                                                                         .languageCode,
@@ -5796,9 +5801,14 @@ class _PgReproducaoEditAnimalWidgetState
                                                               _model.dropDownStatusValue ??
                                                                   pgReproducaoEditAnimalReproducaoRow
                                                                       ?.statusReproducao,
-                                                              _model.datePicked7 ??
-                                                                  pgReproducaoEditAnimalReproducaoRow
-                                                                      ?.previsaoParto,
+                                                              previsaoPartoMontaNatural(
+                                                                _model.datePicked7 ??
+                                                                    pgReproducaoEditAnimalReproducaoRow
+                                                                        ?.previsaoParto,
+                                                                _model.datePicked3 ??
+                                                                    pgReproducaoEditAnimalReproducaoRow
+                                                                        ?.dataInicial,
+                                                              ),
                                                             ),
                                                           ),
                                                           'status_reproducao':

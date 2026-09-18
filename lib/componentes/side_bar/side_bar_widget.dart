@@ -1,3 +1,4 @@
+import '/app_features.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -651,62 +652,63 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                     ),
                   ),
                 ),
-                InkWell(
-                  splashColor: Colors.transparent,
-                  focusColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  onTap: () async {
-                    FFAppState().navegacao = 'paint';
-                    safeSetState(() {});
+                if (kPaintHabilitado)
+                  InkWell(
+                    splashColor: Colors.transparent,
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    onTap: () async {
+                      FFAppState().navegacao = 'paint';
+                      safeSetState(() {});
 
-                    context.pushNamed(
-                      PgPaintWidget.routeName,
-                      extra: <String, dynamic>{
-                        kTransitionInfoKey: const TransitionInfo(
-                          hasTransition: true,
-                          transitionType: PageTransitionType.fade,
-                          duration: Duration(milliseconds: 0),
-                        ),
-                      },
-                    );
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    height: 48.0,
-                    decoration: BoxDecoration(
-                      color: FlutterFlowTheme.of(context).customColor2,
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 0.0,
-                          color: FFAppState().navegacao == 'paint'
-                              ? FlutterFlowTheme.of(context).customColor10
-                              : Colors.transparent,
-                          offset: const Offset(
-                            -4.0,
-                            0.0,
+                      context.pushNamed(
+                        PgPaintWidget.routeName,
+                        extra: <String, dynamic>{
+                          kTransitionInfoKey: const TransitionInfo(
+                            hasTransition: true,
+                            transitionType: PageTransitionType.fade,
+                            duration: Duration(milliseconds: 0),
                           ),
-                          spreadRadius: 0.0,
-                        )
-                      ],
-                      borderRadius: BorderRadius.circular(6.0),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0,
-                        vertical: 6.0,
+                        },
+                      );
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 48.0,
+                      decoration: BoxDecoration(
+                        color: FlutterFlowTheme.of(context).customColor2,
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 0.0,
+                            color: FFAppState().navegacao == 'paint'
+                                ? FlutterFlowTheme.of(context).customColor10
+                                : Colors.transparent,
+                            offset: const Offset(
+                              -4.0,
+                              0.0,
+                            ),
+                            spreadRadius: 0.0,
+                          )
+                        ],
+                        borderRadius: BorderRadius.circular(6.0),
                       ),
-                      child: Image.asset(
-                        'assets/images/logo_paint.png',
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.contain,
-                        alignment: Alignment.centerLeft,
-                        filterQuality: FilterQuality.high,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0,
+                          vertical: 6.0,
+                        ),
+                        child: Image.asset(
+                          'assets/images/logo_paint.png',
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.contain,
+                          alignment: Alignment.centerLeft,
+                          filterQuality: FilterQuality.high,
+                        ),
                       ),
                     ),
                   ),
-                ),
                 if (_canSeePiquetes)
                   InkWell(
                     splashColor: Colors.transparent,
