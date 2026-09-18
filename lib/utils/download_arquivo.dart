@@ -19,14 +19,21 @@ Future<void> download(Stream<int> stream, String filename) async {
   await downloadData(Uint8List.fromList(bytes), filename);
 }
 
-Future<void> downloadData(Uint8List data, String filename) async {
-  final nome = filename.replaceAll('/', '_').replaceAll('\\', '_');
-
+/// Publica o conteúdo como um Blob e devolve a URL temporária.
+///
+/// Separado do resto para dar para testar no navegador sem disparar download.
+String criarUrlDoArquivo(Uint8List data) {
   final blob = web.Blob(
     <JSAny>[data.toJS].toJS,
     web.BlobPropertyBag(type: 'application/octet-stream'),
   );
-  final url = web.URL.createObjectURL(blob);
+  return web.URL.createObjectURL(blob);
+}
+
+Future<void> downloadData(Uint8List data, String filename) async {
+  final nome = filename.replaceAll('/', '_').replaceAll('\\', '_');
+
+  final url = criarUrlDoArquivo(data);
 
   final ancora = web.document.createElement('a') as web.HTMLAnchorElement
     ..href = url
