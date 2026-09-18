@@ -40,6 +40,7 @@ Future countReproducoes(
 Future countLotes(
   BuildContext context, {
   String? propriedadeId,
+  bool notifyListeners = true,
 }) async {
   final targetPropertyId =
       (propriedadeId ?? FFAppState().propriedadeSelecionada.idPropriedade)
@@ -49,7 +50,9 @@ Future countLotes(
     FFAppState().lotesInativos = 0;
     FFAppState().lotesAtivos = 0;
     FFAppState().qtdAnimaisEmLotesAtivos = 0;
-    FFAppState().update(() {});
+    if (notifyListeners) {
+      FFAppState().update(() {});
+    }
     return;
   }
 
@@ -105,7 +108,9 @@ Future countLotes(
   FFAppState().lotesAtivos = lotesAtivosCount;
   FFAppState().lotesInativos = lotesInativosCount;
   FFAppState().qtdAnimaisEmLotesAtivos = qtdAnimaisEmLotes;
-  FFAppState().update(() {});
+  if (notifyListeners) {
+    FFAppState().update(() {});
+  }
 }
 
 Future countPiquetes(BuildContext context) async {

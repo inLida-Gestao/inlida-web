@@ -49,17 +49,18 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
     super.initState();
     _model = createModel(context, () => PgRebanhoModel());
 
+    _model.disposeRefreshListener =
+        FFAppState().onRefresh('refreshRebanho', () async {
+      FFAppState().refreshRebanho = false;
+      await _loadRebanhos(resetPage: true, refreshCounters: true);
+    });
+
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _model.propriedadesUser = await PropriedadesTable().queryRows(
         queryFn: (q) =>
             q.or("userID.eq.$currentUserUid, usersID.like.$currentUserUid"),
       );
       await _loadRebanhos(refreshCounters: true);
-      _model.disposeRefreshListener =
-          FFAppState().onRefresh('refreshRebanho', () async {
-        FFAppState().refreshRebanho = false;
-        await _loadRebanhos(resetPage: true, refreshCounters: true);
-      });
     });
 
     _model.textController ??= TextEditingController();
@@ -194,7 +195,9 @@ class _PgRebanhoWidgetState extends State<PgRebanhoWidget> {
         countFuture,
         if (activeCountFuture != null) activeCountFuture,
       ]);
-      if (!mounted || requestId != _model.rebanhosRequestId) {
+      if (!mounted ||
+          requestId != _model.rebanhosRequestId ||
+          FFAppState().propriedadeSelecionada.idPropriedade != idPropriedade) {
         return;
       }
 

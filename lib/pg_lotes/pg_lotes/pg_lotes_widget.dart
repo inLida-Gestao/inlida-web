@@ -45,13 +45,19 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
     super.initState();
     _model = createModel(context, () => PgLotesModel());
 
+    _model.disposeRefreshListener = FFAppState().onRefresh('refreshLotes', () {
+      FFAppState().refreshLotes = false;
+      safeSetState(() {
+        _model.pageNum = 1;
+        _model.apiRequestCompleter = null;
+        _model.lastLotesResponse = null;
+        _model.isPaginating = false;
+      });
+    });
+
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       await action_blocks.countLotes(context);
-      _model.disposeRefreshListener = FFAppState().onRefresh('refreshLotes', () {
-        FFAppState().refreshLotes = false;
-        safeSetState(() => _model.apiRequestCompleter = null);
-      });
     });
 
     _model.textController ??= TextEditingController();
@@ -77,13 +83,23 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+    final selectedPropertyId =
+        FFAppState().propriedadeSelecionada.idPropriedade;
+
+    if (FFAppState().refreshLotes) {
+      FFAppState().refreshLotes = false;
+      _model.pageNum = 1;
+      _model.apiRequestCompleter = null;
+      _model.lastLotesResponse = null;
+      _model.isPaginating = false;
+    }
 
     return FutureBuilder<ApiCallResponse>(
-      key: ValueKey('lotes_page_${_model.pageNum}'),
+      key: ValueKey('lotes_${selectedPropertyId}_${_model.pageNum}'),
       future: (_model.apiRequestCompleter ??= Completer<ApiCallResponse>()
             ..complete(
                 FunctionsSupabaseRebanhoGroup.buscarLotesFiltrosCall.call(
-              pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+              pIdPropriedade: selectedPropertyId,
               pPesquisa: _model.textController.text,
               pLimite: FFAppConstants.limit,
               pOffset: functions.calcDeslocamento(

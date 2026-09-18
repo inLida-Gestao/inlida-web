@@ -102,6 +102,7 @@ class PgAddLoteModel extends FlutterFlowModel<PgAddLoteWidget> {
   TextEditingController? pesquisaTextController1;
   String? Function(BuildContext, String?)? pesquisaTextController1Validator;
   Completer<ApiCallResponse>? apiRequestCompleter;
+  VoidCallback? disposeRefreshListener;
   // State field(s) for Checkbox widget.
   Map<RebanhoDTStruct, bool> checkboxValueMap2 = {};
   List<RebanhoDTStruct> get checkboxCheckedItems2 => checkboxValueMap2.entries
@@ -128,6 +129,7 @@ class PgAddLoteModel extends FlutterFlowModel<PgAddLoteWidget> {
 
   @override
   void dispose() {
+    disposeRefreshListener?.call();
     headerModel.dispose();
     sideBarModel.dispose();
     tabBarController?.dispose();

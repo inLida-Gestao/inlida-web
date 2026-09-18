@@ -42,6 +42,7 @@ class PgAddLoteWidget extends StatefulWidget {
 class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
     with TickerProviderStateMixin {
   late PgAddLoteModel _model;
+  late String _activePropertyId;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -271,6 +272,28 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
   void initState() {
     super.initState();
     _model = createModel(context, () => PgAddLoteModel());
+    _activePropertyId = FFAppState().propriedadeSelecionada.idPropriedade;
+    _model.disposeRefreshListener =
+        FFAppState().onRefresh('refreshRebanho', () {
+      FFAppState().refreshRebanho = false;
+      final selectedPropertyId =
+          FFAppState().propriedadeSelecionada.idPropriedade;
+      final propertyChanged = selectedPropertyId != _activePropertyId;
+      _activePropertyId = selectedPropertyId;
+      safeSetState(() {
+        _model.pageNumAdd = 1;
+        _model.apiRequestCompleter = null;
+        _model.totalAnimaisDisponiveis = 0;
+        if (propertyChanged) {
+          _model.animaisSelecionados = [];
+          _model.animaisDentroLote = [];
+          _model.checkboxValueMap2.clear();
+          _model.checkboxValueMap3.clear();
+          _model.pageNumLT = 1;
+          _model.listaAnimaisTab = 0;
+        }
+      });
+    });
 
     _model.tabBarController = TabController(
       vsync: this,
@@ -309,8 +332,13 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
     context.watch<FFAppState>();
 
     final pageSize = _model.pageSizeFora;
+    final selectedPropertyId =
+        FFAppState().propriedadeSelecionada.idPropriedade;
 
     return FutureBuilder<ApiCallResponse>(
+      key: ValueKey(
+        'add_lote_${selectedPropertyId}_${_model.pageNumAdd}_$pageSize',
+      ),
       future: (_model.apiRequestCompleter ??= Completer<ApiCallResponse>()
             ..complete(
                 FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
@@ -323,7 +351,7 @@ class _PgAddLoteWidgetState extends State<PgAddLoteWidget>
                   ? dateTimeFormat(
                       "yyyy-MM-dd", FFAppState().filtroDataNacimentoAte)
                   : '',
-              pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+              pIdPropriedade: selectedPropertyId,
               pLoteNome: FFAppState().filtroLoteNome,
               pOrigem: FFAppState().filtroOrigem,
               pRaca: FFAppState().filtroRaca,

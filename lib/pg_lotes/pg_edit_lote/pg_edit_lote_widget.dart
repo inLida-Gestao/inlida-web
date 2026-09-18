@@ -50,6 +50,7 @@ class PgEditLoteWidget extends StatefulWidget {
 class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
     with TickerProviderStateMixin {
   late PgEditLoteModel _model;
+  late String _activePropertyId;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -365,6 +366,24 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
   void initState() {
     super.initState();
     _model = createModel(context, () => PgEditLoteModel());
+    _activePropertyId = FFAppState().propriedadeSelecionada.idPropriedade;
+    _model.disposeRefreshListener =
+        FFAppState().onRefresh('refreshRebanho', () {
+      FFAppState().refreshRebanho = false;
+      final selectedPropertyId =
+          FFAppState().propriedadeSelecionada.idPropriedade;
+      final propertyChanged = selectedPropertyId != _activePropertyId;
+      _activePropertyId = selectedPropertyId;
+      safeSetState(() {
+        _model.pageNumAdd = 1;
+        _model.apiRequestCompleter = null;
+        _model.totalAnimaisDisponiveis = 0;
+        if (propertyChanged) {
+          _model.animaisSelecionados =
+              List<RebanhoDTStruct>.from(_model.animaisDentroLote);
+        }
+      });
+    });
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -394,12 +413,6 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
       }
       _model.composicaoInicialIds = loteAnimalIds(animaisStructs);
       safeSetState(() {});
-
-      _model.disposeRefreshListener =
-          FFAppState().onRefresh('refreshRebanho', () {
-        FFAppState().refreshRebanho = false;
-        safeSetState(() => _model.apiRequestCompleter = null);
-      });
     });
 
     _model.tabBarController = TabController(
@@ -505,8 +518,13 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
     final pageSize = _model.pageSizeFora;
+    final selectedPropertyId =
+        FFAppState().propriedadeSelecionada.idPropriedade;
 
     return FutureBuilder<ApiCallResponse>(
+      key: ValueKey(
+        'edit_lote_${selectedPropertyId}_${_model.pageNumAdd}_$pageSize',
+      ),
       future: (_model.apiRequestCompleter ??= Completer<ApiCallResponse>()
             ..complete(
                 FunctionsSupabaseRebanhoGroup.buscarRebanhoFiltrosCall.call(
@@ -519,7 +537,7 @@ class _PgEditLoteWidgetState extends State<PgEditLoteWidget>
                 "yyyy-MM-dd",
                 FFAppState().filtroDataNacimentoAte,
               ),
-              pIdPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+              pIdPropriedade: selectedPropertyId,
               pLoteNome: FFAppState().filtroLoteNome.isNotEmpty
                   ? FFAppState().filtroLoteNome
                   : '',

@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'header_model.dart';
 export 'header_model.dart';
 
@@ -65,8 +64,6 @@ class _HeaderWidgetState extends State<HeaderWidget> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     return Container(
       width: double.infinity,
       height: 120.0,
@@ -169,25 +166,6 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                           _model.dropDownValue = null;
                         });
                       });
-                    } else if (sidPersistido.isNotEmpty &&
-                        optionIds.contains(sidPersistido)) {
-                      final cur = _model.dropDownValueController?.value;
-                      if (cur != sidPersistido) {
-                        final sidSincronizado = sidPersistido;
-                        SchedulerBinding.instance.addPostFrameCallback((_) {
-                          if (!mounted ||
-                              FFAppState()
-                                      .propriedadeSelecionada
-                                      .idPropriedade !=
-                                  sidSincronizado) {
-                            return;
-                          }
-                          _model.dropDownValue = sidSincronizado;
-                          _model.dropDownValueController?.value =
-                              sidSincronizado;
-                          safeSetState(() {});
-                        });
-                      }
                     }
 
                     return Container(
@@ -325,6 +303,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                                     action_blocks.countLotes(
                                       context,
                                       propriedadeId: selectedId,
+                                      notifyListeners: false,
                                     ),
                                   ]);
                                   if (!context.mounted ||
@@ -336,9 +315,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                                           selectedId) {
                                     return;
                                   }
-
                                   FFAppState().update(() {});
-                                  safeSetState(() {});
                                 },
                                 width: 418.0,
                                 height: 56.0,
