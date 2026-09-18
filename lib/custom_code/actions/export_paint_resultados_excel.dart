@@ -4,7 +4,7 @@ import '/backend/supabase/supabase.dart';
 import 'paint_excel_helpers.dart';
 // Begin custom action code
 
-import 'package:download/download.dart';
+import '/utils/download_arquivo.dart';
 import 'package:excel/excel.dart';
 
 /// Relatório auxiliar estilo 460: resumo de contagens PAINT + animais elegíveis.

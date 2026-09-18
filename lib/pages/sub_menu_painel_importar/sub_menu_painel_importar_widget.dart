@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:download/download.dart';
+import '/utils/download_arquivo.dart';
 import 'package:provider/provider.dart';
 import '/pages/pp_importar_pesagem/pp_importar_pesagem_widget.dart';
 import '/pages/pp_instrucoes_importacao/pp_instrucoes_importacao_widget.dart';
