@@ -5,7 +5,7 @@ import '/custom_code/actions/index.dart' as actions;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:download/download.dart';
+import '/utils/download_arquivo.dart';
 import 'package:provider/provider.dart';
 import 'pp_importar_pesagem_model.dart';
 export 'pp_importar_pesagem_model.dart';

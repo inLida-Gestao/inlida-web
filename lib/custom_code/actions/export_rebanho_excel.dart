@@ -6,7 +6,7 @@ import '/flutter_flow/flutter_flow_util.dart'; // ignore: unused_import
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import 'package:download/download.dart';
+import '/utils/download_arquivo.dart';
 import 'package:excel/excel.dart';
 
 /// Converte o valor vindo do Supabase/JSON para [DateTime] para células tipo data no Excel.

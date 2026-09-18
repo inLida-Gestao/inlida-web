@@ -4,7 +4,7 @@ import '/backend/supabase/supabase.dart';
 import 'paint_excel_helpers.dart';
 // Begin custom action code
 
-import 'package:download/download.dart';
+import '/utils/download_arquivo.dart';
 import 'package:excel/excel.dart';
 
 /// Resultado da exportação de planilha PAINT, permitindo à UI exibir mensagens

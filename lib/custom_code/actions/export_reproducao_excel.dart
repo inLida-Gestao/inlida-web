@@ -6,7 +6,7 @@ import '/backend/supabase/supabase.dart';
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 import 'package:excel/excel.dart';
-import 'package:download/download.dart';
+import '/utils/download_arquivo.dart';
 
 String? _nonEmptyExportText(dynamic value) {
   final text = value?.toString().trim();

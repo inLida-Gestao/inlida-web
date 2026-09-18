@@ -7,7 +7,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 import 'package:excel/excel.dart';
-import 'package:download/download.dart';
+import '/utils/download_arquivo.dart';
 
 /// Normaliza sexo para exportação (Macho / Fêmea), como no cadastro do rebanho.
 String _sexoParaExportacao(dynamic raw) {
