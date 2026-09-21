@@ -14,6 +14,7 @@ import '/importacao/import_diagnostico_model.dart';
 import '/importacao/import_diagnostico_service.dart';
 import '/importacao/pp_pre_confirmacao_importacao_widget.dart';
 import '/importacao/import_auditoria_repository.dart';
+import '/pages/pg_auditoria_importacao/pg_auditoria_importacao_widget.dart';
 import 'sub_menu_painel_importar_model.dart';
 export 'sub_menu_painel_importar_model.dart';
 
@@ -1097,6 +1098,73 @@ class _SubMenuPainelImportarWidgetState
                           ),
                         Text(
                           'Pesagem',
+                          style:
+                              FlutterFlowTheme.of(context).bodyMedium.override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                        ),
+                      ].divide(const SizedBox(width: 10.0)),
+                    ),
+                  ),
+                ),
+              ),
+              // Historico de importacoes: fica aqui, e nao na side_bar, porque
+              // e exatamente onde o usuario esta quando a importacao da errado.
+              InkWell(
+                splashColor: Colors.transparent,
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                onTap: () async {
+                  if (FFAppState().propriedadeSelecionada.idPropriedade == '') {
+                    await showDialog(
+                      context: context,
+                      builder: (alertDialogContext) {
+                        return AlertDialog(
+                          content:
+                              const Text('Selecione uma propriedade primeiro'),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(alertDialogContext),
+                              child: const Text('Ok'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    return;
+                  }
+                  Navigator.pop(context);
+                  context.pushNamed(PgAuditoriaImportacaoWidget.routeName);
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 56.0,
+                  decoration: const BoxDecoration(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        if (FFAppState().navegacao != 'rebanhos')
+                          Icon(
+                            Icons.history,
+                            color: FlutterFlowTheme.of(context).primaryText,
+                            size: 24.0,
+                          ),
+                        Text(
+                          'Histórico de importações',
                           style:
                               FlutterFlowTheme.of(context).bodyMedium.override(
                                     font: GoogleFonts.poppins(

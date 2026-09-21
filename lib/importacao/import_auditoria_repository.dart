@@ -222,3 +222,98 @@ class ImportAuditoriaHandle {
         'finished_at': DateTime.now().toIso8601String(),
       });
 }
+
+// ---------------------------------------------------------------------------
+// Leitura de volta
+// ---------------------------------------------------------------------------
+
+ImportSeveridade severidadeDoTexto(String? v) => switch (v) {
+      'bloqueante' => ImportSeveridade.bloqueante,
+      'informativo' => ImportSeveridade.informativo,
+      _ => ImportSeveridade.aviso,
+    };
+
+ImportEscopo escopoDoTexto(String? v) => switch (v) {
+      'arquivo' => ImportEscopo.arquivo,
+      'consistencia' => ImportEscopo.consistencia,
+      'semantica' => ImportEscopo.semantica,
+      _ => ImportEscopo.dado,
+    };
+
+ImportEntidade entidadeDoTexto(String? v) =>
+    v == 'pesagem' ? ImportEntidade.pesagem : ImportEntidade.rebanho;
+
+/// Remonta o diagnostico a partir do que foi gravado, para a tela de historico
+/// reabrir o MESMO popup que o usuario viu antes de confirmar.
+///
+/// Duas coisas precisam de cuidado aqui:
+///  - as contagens vem do RESUMO, nunca dos itens: os itens sao amostra
+///    truncada, e usa-los daria numeros menores que a realidade;
+///  - o detalhe gravado nao inclui uma linha por registro criado, entao as
+///    acoes por linha sao reconstruidas a partir dos totais do job. Isso
+///    sustenta os cartoes de resumo, que e o que a tela mostra, e nao pretende
+///    reproduzir qual linha especifica virou o que.
+ImportDiagnostico remontarDiagnosticoDaAuditoria({
+  required Map<String, dynamic> auditoria,
+  required List<Map<String, dynamic>> resumos,
+  required List<Map<String, dynamic>> itens,
+}) {
+  final entidade = entidadeDoTexto(auditoria['entidade']?.toString());
+  final builder = ImportDiagnosticoBuilder(entidade: entidade);
+
+  for (final item in itens) {
+    builder.add(ImportOcorrencia(
+      codigo: item['codigo']?.toString() ?? '',
+      severidade: severidadeDoTexto(item['severidade']?.toString()),
+      escopo: escopoDoTexto(item['escopo']?.toString()),
+      linha: item['linha'] is int
+          ? item['linha'] as int
+          : int.tryParse(item['linha']?.toString() ?? ''),
+      coluna: item['coluna']?.toString(),
+      valor: item['valor']?.toString(),
+      mensagem: item['mensagem']?.toString() ?? '',
+    ));
+  }
+
+  final base = builder.build(
+    arquivo: ImportArquivoInfo(
+      nomeArquivo: auditoria['nome_arquivo']?.toString(),
+      tamanhoBytes: (auditoria['arquivo_tamanho_bytes'] as num?)?.toInt(),
+      sha1: auditoria['arquivo_sha1']?.toString(),
+      formato: auditoria['formato']?.toString() ?? 'desconhecido',
+      delimitador: auditoria['delimitador']?.toString(),
+      encodingUsado: auditoria['encoding_usado']?.toString(),
+      abaUsada: auditoria['aba_usada']?.toString(),
+      usouFallbackPosicional: auditoria['usou_fallback_posicional'] == true,
+    ),
+    totalLinhas: (auditoria['total_linhas'] as num?)?.toInt() ?? 0,
+  );
+
+  // Linhas negativas e sinteticas: servem so para os contadores, e nao colidem
+  // com as linhas reais do arquivo, que sao positivas.
+  final acoes = <int, ImportAcaoLinha>{};
+  var sintetica = 0;
+  void preencher(Object? quantidade, ImportAcaoLinha acao) {
+    final n = (quantidade as num?)?.toInt() ?? 0;
+    for (var i = 0; i < n; i++) {
+      acoes[--sintetica] = acao;
+    }
+  }
+
+  preencher(auditoria['previstos_criar'], ImportAcaoLinha.criar);
+  preencher(auditoria['previstos_atualizar'], ImportAcaoLinha.atualizar);
+  preencher(auditoria['previstos_bloquear'], ImportAcaoLinha.bloquear);
+
+  return ImportDiagnostico(
+    entidade: base.entidade,
+    arquivo: base.arquivo,
+    totalLinhas: base.totalLinhas,
+    ocorrencias: base.ocorrencias,
+    contagemPorCodigo: {
+      for (final r in resumos)
+        (r['codigo']?.toString() ?? ''):
+            (r['quantidade'] as num?)?.toInt() ?? 0,
+    },
+    acaoPorLinha: acoes,
+  );
+}
