@@ -8,6 +8,7 @@ import '/backend/supabase/supabase.dart';
 import 'dart:convert';
 import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import 'package:flutter/foundation.dart';
+import '/importacao/import_texto_utils.dart';
 
 class _PesagemRebanhoLookup {
   final Map<String, _AnimalInfo> byFiveFields;
@@ -43,16 +44,9 @@ class _AnimalInfo {
   });
 }
 
-bool _isMissingValue(dynamic value) {
-  if (value == null) return true;
-  final s = value.toString();
-  return s.trim().isEmpty || s == 'null' || s == 'undefined';
-}
+bool _isMissingValue(dynamic value) => isMissingValueImport(value);
 
-String? _asNonEmptyString(dynamic value) {
-  if (_isMissingValue(value)) return null;
-  return value.toString();
-}
+String? _asNonEmptyString(dynamic value) => asNonEmptyStringImport(value);
 
 String _normalize(String value) {
   return value
@@ -65,70 +59,17 @@ String _normalize(String value) {
       .replaceAll(RegExp(r'\s+'), ' ');
 }
 
-String _stripDiacritics(String ch) {
-  switch (ch) {
-    case 'á':
-    case 'à':
-    case 'â':
-    case 'ã':
-    case 'ä':
-    case 'å':
-    case 'Á':
-    case 'À':
-    case 'Â':
-    case 'Ã':
-    case 'Ä':
-    case 'Å':
-      return 'a';
-    case 'é':
-    case 'è':
-    case 'ê':
-    case 'ë':
-    case 'É':
-    case 'È':
-    case 'Ê':
-    case 'Ë':
-      return 'e';
-    case 'í':
-    case 'ì':
-    case 'î':
-    case 'ï':
-    case 'Í':
-    case 'Ì':
-    case 'Î':
-    case 'Ï':
-      return 'i';
-    case 'ó':
-    case 'ò':
-    case 'ô':
-    case 'õ':
-    case 'ö':
-    case 'Ó':
-    case 'Ò':
-    case 'Ô':
-    case 'Õ':
-    case 'Ö':
-      return 'o';
-    case 'ú':
-    case 'ù':
-    case 'û':
-    case 'ü':
-    case 'Ú':
-    case 'Ù':
-    case 'Û':
-    case 'Ü':
-      return 'u';
-    case 'ç':
-    case 'Ç':
-      return 'c';
-    case 'ñ':
-    case 'Ñ':
-      return 'n';
-    default:
-      return ch;
-  }
-}
+String _stripDiacritics(String ch) => stripDiacriticsImport(ch);
 
+// NAO substituido por fixEncodingImport de propriedade. Esta copia usa o
+// _mojibakeScore local (logo abaixo), que e DIFERENTE do de
+// batch_insert_supabase_rebanho.dart: pontua 12 padroes especificos com peso 3
+// e o caractere de substituicao com peso 10, enquanto o do rebanho soma 2 por
+// ocorrencia de 'A-tilde'/'A-circunflexo'. Os dois scorers dao decisoes
+// diferentes em casos-limite de acentuacao, entao unificar aqui mudaria o
+// resultado da importacao de pesagem -- e decisao de produto, nao refatoracao.
+// O diagnostico de importacao reporta ARQ_ENCODING_MOJIBAKE para que essa
+// escolha passe a ser feita com dado de uso em vez de palpite.
 String _fixEncoding(String text) {
   try {
     final looksLikeMojibake = text.contains('Ã') || text.contains('Â ');
@@ -197,35 +138,7 @@ String? _normalizeDateKey(dynamic value) {
   return null;
 }
 
-String? _convertDateFormat(String dateStr) {
-  if (dateStr.isEmpty) return null;
-  try {
-    dateStr = dateStr.trim();
-
-    final isoMatch =
-        RegExp(r'^(\d{4}-\d{2}-\d{2})(?:\s+.*)?$').firstMatch(dateStr);
-    if (isoMatch != null) {
-      final isoDate = isoMatch.group(1)!;
-      if (DateTime.tryParse(isoDate) == null) return null;
-      return isoDate;
-    }
-
-    final brMatch = RegExp(r'^(\d{2})[/\-](\d{2})[/\-](\d{4})(?:\s+.*)?$')
-        .firstMatch(dateStr);
-    if (brMatch != null) {
-      final day = brMatch.group(1)!;
-      final month = brMatch.group(2)!;
-      final year = brMatch.group(3)!;
-      final converted = '$year-$month-$day';
-      if (DateTime.tryParse(converted) == null) return null;
-      return converted;
-    }
-
-    return null;
-  } catch (_) {
-    return null;
-  }
-}
+String? _convertDateFormat(String dateStr) => convertDateFormatImport(dateStr);
 
 double? _parseDoubleSafe(dynamic value) {
   if (_isMissingValue(value)) return null;

@@ -3,7 +3,8 @@ export 'upload_csv_file.dart' show uploadCsvFile;
 export 'import_books.dart' show importBooks;
 export 'parse_csv_to_json_machines.dart' show parseCsvToJsonMachines;
 export 'csv_to_json.dart' show csvToJson;
-export 'parse_csv_to_json_rebanho2.dart' show parseCsvToJsonRebanho2;
+export 'parse_csv_to_json_rebanho2.dart'
+    show parseCsvToJsonRebanho2, parseCsvToJsonRebanho2Detalhado;
 export 'parse_csv_to_json_lotes.dart' show parseCsvToJsonLotes;
 export 'batch_insert_supabase_reproducao.dart'
     show batchInsertSupabaseReproducao;
@@ -14,7 +15,8 @@ export 'export_rebanho_excel.dart' show exportRebanhoExcel;
 export 'export_reproducao_excel.dart' show exportReproducaoExcel;
 export 'export_sanidade_excel.dart' show exportSanidadeExcel;
 export 'export_pesagem_excel.dart' show exportPesagemExcel;
-export 'parse_csv_to_json_pesagem.dart' show parseCsvToJsonPesagem;
+export 'parse_csv_to_json_pesagem.dart'
+    show parseCsvToJsonPesagem, parseCsvToJsonPesagemDetalhado;
 export 'batch_insert_supabase_pesagem.dart'
     show previewPesagemImport, batchInsertSupabasePesagem;
 export 'registrar_paint_baixa.dart' show registrarPaintBaixa;
@@ -27,6 +29,6 @@ export 'export_paint_resultados_excel.dart' show exportPaintResultadosExcel;
 export 'registrar_paint_excluido.dart' show registrarPaintExcluido;
 export 'resetar_dados_paint.dart' show resetarDadosPaint;
 export 'import_paint_animal_txt.dart' show importPaintAnimalTxt;
-export 'a12_oficial_csv.dart'
-    show exportarA12OficialCsv, importarA12OficialCsv;
-export 'paint_helpers.dart' show formatA12, PaintEstrategiaA12, parseEstrategiaA12;
+export 'a12_oficial_csv.dart' show exportarA12OficialCsv, importarA12OficialCsv;
+export 'paint_helpers.dart'
+    show formatA12, PaintEstrategiaA12, parseEstrategiaA12;
