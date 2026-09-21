@@ -1,3 +1,5 @@
+import '/app_features.dart';
+import '/pg_rebanho/rebanho_status_utils.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/supabase/supabase.dart';
 import '/componentes/header/header_widget.dart';
@@ -3155,7 +3157,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                         .dropDownStatusValueController ??=
                                                                     FormFieldController<
                                                                             String>(
-                                                                        null),
+                                                                        _model.dropDownStatusValue ??= statusRebanhoPadrao),
                                                                 options:
                                                                     FFAppState()
                                                                         .statusRebanho,
@@ -4330,7 +4332,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                             _model.dropDownLotesValue = null;
                                             _model.dropDownStatusValueController
                                                 ?.reset();
-                                            _model.dropDownStatusValue = null;
+                                            _model.dropDownStatusValue = statusRebanhoPadrao;
                                           });
                                           safeSetState(() {
                                             _model.numAnimalTextController
@@ -4558,10 +4560,11 @@ class _PgRebanhoAddNascimentoWidgetState
                                                       _model.dropDownPorteValue,
                                                   'raca':
                                                       _model.dropDownRacaValue,
-                                                  'tipo_registro':
-                                                      paintTipoRegistroParaSalvar(
+                                                  'tipo_registro': kPaintHabilitado
+                                                      ? paintTipoRegistroParaSalvar(
                                                           _model
-                                                              .dropDownTipoRegistroValue),
+                                                              .dropDownTipoRegistroValue)
+                                                      : null,
                                                   'loteID':
                                                       _model.dropDownLotesValue,
                                                   'dataEntradaLote':

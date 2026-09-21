@@ -8,10 +8,15 @@
 //
 // Mantem as escolhas que faziam o arquivo abrir certo no Excel em pt-BR: BOM
 // UTF-8 no inicio e ponto e virgula como separador.
+//
+// A entrega do arquivo usa lib/utils/download_arquivo.dart, e nao o pacote
+// `download`: aquele pacote escolhe a implementacao por dart.library.html, que
+// e falso no build WebAssembly, e ali ele tenta gravar em disco de dentro do
+// navegador -- nenhum arquivo chega ao usuario. Ver o commit 0a8617b.
 
 import 'dart:convert';
 
-import 'package:download/download.dart';
+import '/utils/download_arquivo.dart';
 
 import 'import_diagnostico_model.dart';
 

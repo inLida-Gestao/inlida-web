@@ -6,7 +6,7 @@ import 'paint_excel_helpers.dart';
 // Begin custom action code
 
 import 'dart:convert' show utf8, latin1;
-import 'package:download/download.dart';
+import '/utils/download_arquivo.dart';
 
 const _a12CsvHeader =
     'idRebanho;Numero_Animal;Nome;Data_Nascimento;A12_Calculado;A12_PAINT;Origem;Divergente';

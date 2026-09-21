@@ -400,12 +400,17 @@ Map<String, dynamic> _prepareReproducaoRecord(
     }
   }
 
-  // Calcular previsao_parto automaticamente se data_inseminacao estiver preenchida e previsao_parto estiver vazio
-  if (cleanData['previsao_parto'] == null &&
-      cleanData['data_inseminacao'] != null &&
-      cleanData['data_inseminacao'].toString().isNotEmpty) {
-    cleanData['previsao_parto'] =
-        _addDaysToDate(cleanData['data_inseminacao'].toString(), 295);
+  // Calcular previsao_parto automaticamente quando a planilha nao traz a data.
+  // Vale para os dois tipos: inseminacao conta da data da inseminacao, monta
+  // natural conta do inicio da exposicao ao touro (data_inicial). Sem isso a
+  // reproducao entrava sem previsao e a lista mostrava "Sem previsao".
+  if (cleanData['previsao_parto'] == null) {
+    final baseData = [cleanData['data_inseminacao'], cleanData['data_inicial']]
+        .map((v) => v?.toString() ?? '')
+        .firstWhere((v) => v.isNotEmpty, orElse: () => '');
+    if (baseData.isNotEmpty) {
+      cleanData['previsao_parto'] = _addDaysToDate(baseData, 295);
+    }
   }
 
   // Resolver id_lote pelo loteNome (se faltar)

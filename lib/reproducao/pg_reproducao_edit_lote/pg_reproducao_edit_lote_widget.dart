@@ -4197,8 +4197,13 @@ class _PgReproducaoEditLoteWidgetState
                                                                 _model.dropDownStatusValue ??
                                                                     pgReproducaoEditLoteReproducaoRow
                                                                         .statusReproducao,
-                                                                pgReproducaoEditLoteReproducaoRow
-                                                                    .previsaoParto,
+                                                                previsaoPartoMontaNatural(
+                                                                  pgReproducaoEditLoteReproducaoRow
+                                                                      .previsaoParto,
+                                                                  _model.datePicked3 ??
+                                                                      pgReproducaoEditLoteReproducaoRow
+                                                                          .dataInicial,
+                                                                ),
                                                               ),
                                                             ),
                                                             'inseminador': _model

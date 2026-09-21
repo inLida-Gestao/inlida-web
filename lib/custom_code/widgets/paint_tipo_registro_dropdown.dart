@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
+import '/app_features.dart';
 import '/custom_code/actions/paint_tipo_registro_options.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -29,6 +30,11 @@ class PaintTipoRegistroDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // O PAINT ainda esta em teste interno: fora da branch lucas-paint o campo
+    // nao aparece no cadastro. As telas montam Row > Expanded > este widget,
+    // entao devolver um widget vazio nao deixa buraco no formulario.
+    if (!kPaintHabilitado) return const SizedBox.shrink();
+
     final hint = helperText ??
         'Sugerido como PO quando a raça indica Puro de Origem.';
     return Column(

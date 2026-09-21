@@ -4018,7 +4018,10 @@ class _PgReproducaoAddAnimalWidgetState
                                                       ? valueOrDefault<String>(
                                                           dateTimeFormat(
                                                             "d/M/y",
-                                                            _model.datePicked7,
+                                                            previsaoPartoMontaNatural(
+                                                              _model.datePicked7,
+                                                              _model.datePicked3,
+                                                            ),
                                                             locale: FFLocalizations
                                                                     .of(context)
                                                                 .languageCode,
@@ -5101,7 +5104,10 @@ class _PgReproducaoAddAnimalWidgetState
                                                   previsaoPartoPermitida(
                                                     statusReproducaoEfetivo(_model
                                                         .dropDownStatusValue),
-                                                    _model.datePicked7,
+                                                    previsaoPartoMontaNatural(
+                                                      _model.datePicked7,
+                                                      _model.datePicked3,
+                                                    ),
                                                   ),
                                                 ),
                                                 'racaReprodutor': FFAppState()

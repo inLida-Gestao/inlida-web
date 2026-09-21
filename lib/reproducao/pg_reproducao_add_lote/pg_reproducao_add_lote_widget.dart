@@ -4780,7 +4780,10 @@ class _PgReproducaoAddLoteWidgetState extends State<PgReproducaoAddLoteWidget> {
                                                             statusReproducaoEfetivo(
                                                                 _model
                                                                     .dropDownStatusValue),
-                                                            null,
+                                                            previsaoPartoMontaNatural(
+                                                              null,
+                                                              _model.datePicked3,
+                                                            ),
                                                           ),
                                                         ),
                                                         'inseminador': _model

@@ -1,3 +1,4 @@
+import '/app_features.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/supabase/supabase.dart';
 import '/componentes/header/header_widget.dart';
@@ -6717,10 +6718,12 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                             .dropDownPorteValue,
                                                         'raca': _model
                                                             .dropDownRacaValue,
-                                                        'tipo_registro':
-                                                            paintTipoRegistroParaSalvar(
+                                                        'tipo_registro': kPaintHabilitado
+                                                            ? paintTipoRegistroParaSalvar(
                                                                 _model
-                                                                    .dropDownTipoRegistroValue),
+                                                                    .dropDownTipoRegistroValue)
+                                                            : pgRebanhoEditRebanhoRow
+                                                                ?.tipoRegistro,
                                                         'dataEntradaLote': supaSerialize<
                                                             DateTime>(_model
                                                                 .datePicked2 ??

@@ -12,6 +12,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/pg_piquete/data/piquete_permissions.dart';
 
 import '/index.dart';
+import '/app_features.dart';
 
 export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
@@ -19,6 +20,12 @@ export 'serialization_util.dart';
 const kTransitionInfoKey = '__transition_info__';
 
 GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
+
+Future<String?> _redirectPaintDesabilitado(
+  BuildContext context,
+  GoRouterState state,
+) async =>
+    kPaintHabilitado ? null : PainelWidget.routePath;
 
 Future<String?> _redirectPiquetesSemAcesso(
   BuildContext context,
@@ -151,6 +158,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: PgPaintWidget.routeName,
           path: PgPaintWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PgPaintWidget(),
         ),
         FFRoute(
@@ -163,96 +171,112 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: PaintAvaliadorWidget.routeName,
           path: PaintAvaliadorWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintAvaliadorWidget(),
         ),
         FFRoute(
           name: PaintGrupoManejoWidget.routeName,
           path: PaintGrupoManejoWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintGrupoManejoWidget(),
         ),
         FFRoute(
           name: PaintLocalidadeWidget.routeName,
           path: PaintLocalidadeWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintLocalidadeWidget(),
         ),
         FFRoute(
           name: PaintInseminadorWidget.routeName,
           path: PaintInseminadorWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintInseminadorWidget(),
         ),
         FFRoute(
           name: PaintRegimeAlimentarWidget.routeName,
           path: PaintRegimeAlimentarWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintRegimeAlimentarWidget(),
         ),
         FFRoute(
           name: PaintSafraWidget.routeName,
           path: PaintSafraWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintSafraWidget(),
         ),
         FFRoute(
           name: PaintSafraXAnimalWidget.routeName,
           path: PaintSafraXAnimalWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintSafraXAnimalWidget(),
         ),
         FFRoute(
           name: PaintTouroMultiploWidget.routeName,
           path: PaintTouroMultiploWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintTouroMultiploWidget(),
         ),
         FFRoute(
           name: PaintComposicaoRacialWidget.routeName,
           path: PaintComposicaoRacialWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintComposicaoRacialWidget(),
         ),
         FFRoute(
           name: PaintBaixaWidget.routeName,
           path: PaintBaixaWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintBaixaWidget(),
         ),
         FFRoute(
           name: PaintEstoqueWidget.routeName,
           path: PaintEstoqueWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintEstoqueWidget(),
         ),
         FFRoute(
           name: PaintAvaliacaoDesmamaWidget.routeName,
           path: PaintAvaliacaoDesmamaWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintAvaliacaoDesmamaWidget(),
         ),
         FFRoute(
           name: PaintAvaliacaoSobreanoWidget.routeName,
           path: PaintAvaliacaoSobreanoWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintAvaliacaoSobreanoWidget(),
         ),
         FFRoute(
           name: PaintAvaliacaoRahWidget.routeName,
           path: PaintAvaliacaoRahWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintAvaliacaoRahWidget(),
         ),
         FFRoute(
           name: PaintDiagnosticoWidget.routeName,
           path: PaintDiagnosticoWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintDiagnosticoWidget(),
         ),
         FFRoute(
           name: PaintBibliotecaTourosWidget.routeName,
           path: PaintBibliotecaTourosWidget.routePath,
           requireAuth: true,
+          redirect: _redirectPaintDesabilitado,
           builder: (context, params) => const PaintBibliotecaTourosWidget(),
         ),
         FFRoute(
