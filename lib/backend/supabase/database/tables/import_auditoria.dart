@@ -26,6 +26,15 @@ class ImportAuditoriaRow extends SupabaseDataRow {
   String? get usuarioId => getField<String>('usuario_id');
   set usuarioId(String? value) => setField<String>('usuario_id', value);
 
+  /// Snapshot do nome de quem importou. Ver a migration
+  /// 20260921190000_auditoria_importacao_autor_snapshot.sql: um join com
+  /// public.users nao serviria, porque a RLS de la e por usuario.
+  String? get usuarioNome => getField<String>('usuario_nome');
+  set usuarioNome(String? value) => setField<String>('usuario_nome', value);
+
+  String? get usuarioEmail => getField<String>('usuario_email');
+  set usuarioEmail(String? value) => setField<String>('usuario_email', value);
+
   String get entidade => getField<String>('entidade')!;
   set entidade(String value) => setField<String>('entidade', value);
 

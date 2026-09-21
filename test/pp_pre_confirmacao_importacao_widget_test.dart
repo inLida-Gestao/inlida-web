@@ -51,7 +51,8 @@ ImportDiagnostico _diagnostico({
   }
 
   return b.build(
-    arquivo: const ImportArquivoInfo(nomeArquivo: 'rebanho.csv', formato: 'csv'),
+    arquivo:
+        const ImportArquivoInfo(nomeArquivo: 'rebanho.csv', formato: 'csv'),
     totalLinhas: criar + atualizar + bloquear,
   );
 }
@@ -61,6 +62,8 @@ Future<void> _abrir(
   ImportDiagnostico d, {
   bool permitirForcar = true,
   bool somenteLeitura = false,
+  String? autor,
+  String? quando,
 }) async {
   tester.view.physicalSize = const Size(1400, 2400);
   tester.view.devicePixelRatio = 1.0;
@@ -76,6 +79,8 @@ Future<void> _abrir(
           nomeEntidade: 'Rebanho',
           permitirForcar: permitirForcar,
           somenteLeitura: somenteLeitura,
+          autor: autor,
+          quando: quando,
         ),
       ),
     ),
@@ -94,7 +99,6 @@ FFButtonWidget _botao(WidgetTester tester, String trecho) =>
         );
 
 void main() {
-
   testWidgets('sem problema, oferece importar tudo', (tester) async {
     await _abrir(tester, _diagnostico(criar: 5));
     expect(find.textContaining('Nenhum problema encontrado'), findsOneWidget);
@@ -193,12 +197,30 @@ void main() {
     await _abrir(
         tester,
         b.build(
-            arquivo: const ImportArquivoInfo(formato: 'csv'),
-            totalLinhas: 40));
+            arquivo: const ImportArquivoInfo(formato: 'csv'), totalLinhas: 40));
 
     await tester.tap(find.textContaining('Valor numérico inválido'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Mostrando 5 de 40'), findsOneWidget);
+  });
+
+  testWidgets('na consulta ao historico, mostra quem importou e quando',
+      (tester) async {
+    await _abrir(
+      tester,
+      _diagnostico(criar: 3),
+      somenteLeitura: true,
+      autor: 'João da Silva',
+      quando: '21/09/2026 14:05',
+    );
+    expect(find.text('Importado por João da Silva em 21/09/2026 14:05'),
+        findsOneWidget);
+  });
+
+  testWidgets('durante a importacao nao mostra autor', (tester) async {
+    // Quem esta olhando e a propria pessoa; a atribuicao so importa depois.
+    await _abrir(tester, _diagnostico(criar: 3));
+    expect(find.textContaining('Importado por'), findsNothing);
   });
 
   testWidgets('modo somente leitura esconde as acoes', (tester) async {

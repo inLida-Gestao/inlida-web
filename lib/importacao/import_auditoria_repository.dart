@@ -51,6 +51,44 @@ String? sha1DoArquivo(List<int>? bytes) {
   }
 }
 
+/// Nome e e-mail de quem esta importando, para o snapshot da auditoria.
+///
+/// A policy `users_select_own` deixa o usuario ler apenas o proprio registro
+/// em `public.users`, entao guardar so o UUID tornaria impossivel responder
+/// "quem da equipe fez esta importacao". A fonte aqui e
+/// `users_propriedades`, legivel por quem tem acesso a propriedade.
+///
+/// Nunca lanca: sem nome, a auditoria ainda vale pelo usuario_id.
+Future<({String? nome, String? email})> _autorDaImportacao(
+  String idPropriedade,
+) async {
+  final usuario = SupaFlow.client.auth.currentUser;
+  final emailDaSessao = usuario?.email;
+  if (usuario == null) return (nome: null, email: emailDaSessao);
+
+  try {
+    final res = await SupaFlow.client
+        .from('users_propriedades')
+        .select('nome,email')
+        .eq('user_id', usuario.id)
+        .eq('idPropriedade', idPropriedade)
+        .limit(1)
+        .maybeSingle();
+
+    if (res != null) {
+      final nome = res['nome']?.toString().trim();
+      final email = res['email']?.toString().trim();
+      return (
+        nome: (nome == null || nome.isEmpty) ? null : nome,
+        email: (email == null || email.isEmpty) ? emailDaSessao : email,
+      );
+    }
+  } catch (e) {
+    debugPrint('Auditoria: nao foi possivel resolver o autor: $e');
+  }
+  return (nome: null, email: emailDaSessao);
+}
+
 class ImportAuditoriaRepository {
   /// Abre a auditoria e grava o diagnostico. Devolve null quando a gravacao
   /// falha -- e o chamador segue a importacao normalmente.
@@ -63,9 +101,12 @@ class ImportAuditoriaRepository {
   }) async {
     try {
       final arquivo = diagnostico.arquivo;
+      final autor = await _autorDaImportacao(idPropriedade);
       final payload = <String, dynamic>{
         'id_propriedade': idPropriedade,
         'usuario_id': SupaFlow.client.auth.currentUser?.id,
+        'usuario_nome': autor.nome,
+        'usuario_email': autor.email,
         'entidade': diagnostico.entidade.name,
         'entidade_detectada': arquivo.entidadeDetectada?.name,
         'nome_arquivo': arquivo.nomeArquivo,

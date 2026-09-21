@@ -43,6 +43,8 @@ class PpPreConfirmacaoImportacaoWidget extends StatefulWidget {
     required this.nomeEntidade,
     this.permitirForcar = true,
     this.somenteLeitura = false,
+    this.autor,
+    this.quando,
   });
 
   final ImportDiagnostico diagnostico;
@@ -58,6 +60,13 @@ class PpPreConfirmacaoImportacaoWidget extends StatefulWidget {
   /// Modo consulta, usado pela tela de auditoria: esconde os botoes de acao.
   final bool somenteLeitura;
 
+  /// Quem fez a importacao. So preenchido na consulta ao historico: durante a
+  /// importacao quem esta olhando e a propria pessoa.
+  final String? autor;
+
+  /// Quando a importacao aconteceu, ja formatado.
+  final String? quando;
+
   /// Abre o popup e devolve a decisao. Fechar pelo X ou pelo fundo equivale a
   /// cancelar -- nunca a importar.
   static Future<ImportDecisao> mostrar(
@@ -66,6 +75,8 @@ class PpPreConfirmacaoImportacaoWidget extends StatefulWidget {
     required String nomeEntidade,
     bool permitirForcar = true,
     bool somenteLeitura = false,
+    String? autor,
+    String? quando,
   }) async =>
       await showDialog<ImportDecisao>(
         context: context,
@@ -75,6 +86,8 @@ class PpPreConfirmacaoImportacaoWidget extends StatefulWidget {
           nomeEntidade: nomeEntidade,
           permitirForcar: permitirForcar,
           somenteLeitura: somenteLeitura,
+          autor: autor,
+          quando: quando,
         ),
       ) ??
       ImportDecisao.cancelar;
@@ -171,6 +184,16 @@ class _PpPreConfirmacaoImportacaoWidgetState
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         d.arquivo.nomeArquivo!,
+                        style:
+                            tema.bodySmall.copyWith(color: tema.secondaryText),
+                      ),
+                    ),
+                  if (widget.autor != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        'Importado por ${widget.autor}'
+                        '${widget.quando == null ? '' : ' em ${widget.quando}'}',
                         style:
                             tema.bodySmall.copyWith(color: tema.secondaryText),
                       ),

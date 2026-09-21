@@ -136,6 +136,8 @@ class _PgAuditoriaImportacaoWidgetState
         diagnostico: diagnostico,
         nomeEntidade: _rotuloEntidade(auditoria['entidade']?.toString()),
         somenteLeitura: true,
+        autor: _autor(auditoria),
+        quando: _dataHora(auditoria['created_at']?.toString()),
       );
     } catch (e) {
       if (!mounted) return;
@@ -148,9 +150,6 @@ class _PgAuditoriaImportacaoWidgetState
     }
   }
 
-  /// O detalhe gravado nao inclui uma linha por registro criado, entao as
-  /// acoes sao reconstruidas a partir dos totais do job. E o suficiente para
-  /// os cartoes de resumo, que e o que a tela mostra.
   String _rotuloEntidade(String? v) => switch (v) {
         'rebanho' => 'Rebanho',
         'pesagem' => 'Pesagem',
@@ -177,6 +176,17 @@ class _PgAuditoriaImportacaoWidgetState
         'cancelada' => tema.secondaryText,
         _ => tema.secondaryText,
       };
+
+  /// Quem fez a importacao. Usa o snapshot gravado na propria auditoria: a
+  /// RLS de public.users so deixa o usuario ler o proprio registro, entao um
+  /// join nao responderia "quem da equipe importou".
+  String _autor(Map<String, dynamic> a) {
+    final nome = a['usuario_nome']?.toString().trim();
+    if (nome != null && nome.isNotEmpty) return nome;
+    final email = a['usuario_email']?.toString().trim();
+    if (email != null && email.isNotEmpty) return email;
+    return 'usuário não identificado';
+  }
 
   String _dataHora(String? iso) {
     final d = DateTime.tryParse(iso ?? '')?.toLocal();
@@ -342,8 +352,19 @@ class _PgAuditoriaImportacaoWidgetState
               ],
             ),
             const SizedBox(height: 6),
-            Text(_dataHora(a['created_at']?.toString()),
-                style: tema.bodySmall.copyWith(color: tema.secondaryText)),
+            Row(
+              children: [
+                Icon(Icons.person_outline, size: 14, color: tema.secondaryText),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    '${_autor(a)} · ${_dataHora(a['created_at']?.toString())}',
+                    style: tema.bodySmall.copyWith(color: tema.secondaryText),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 16,
