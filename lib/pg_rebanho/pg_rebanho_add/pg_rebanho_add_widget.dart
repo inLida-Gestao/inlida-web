@@ -1,3 +1,4 @@
+import '/app_features.dart';
 import '/pg_rebanho/rebanho_status_utils.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/supabase/supabase.dart';
@@ -6641,10 +6642,11 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                       _model.dropDownPorteValue,
                                                   'raca':
                                                       _model.dropDownRacaValue,
-                                                  'tipo_registro':
-                                                      paintTipoRegistroParaSalvar(
+                                                  'tipo_registro': kPaintHabilitado
+                                                      ? paintTipoRegistroParaSalvar(
                                                           _model
-                                                              .dropDownTipoRegistroValue),
+                                                              .dropDownTipoRegistroValue)
+                                                      : null,
                                                   'loteID':
                                                       _model.dropDownLotesValue,
                                                   'dataEntradaLote':

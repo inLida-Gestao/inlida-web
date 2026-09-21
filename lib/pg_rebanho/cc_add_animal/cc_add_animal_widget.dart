@@ -1,3 +1,4 @@
+import '/app_features.dart';
 import '/pg_rebanho/rebanho_status_utils.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
@@ -4896,8 +4897,10 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                 'pesoNascimento': pesoNascimentoParsedCC,
                                 'porte': _model.dropDownPorteValue,
                                 'raca': _model.dropDownRacaValue,
-                                'tipo_registro': paintTipoRegistroParaSalvar(
-                                    _model.dropDownTipoRegistroValue),
+                                'tipo_registro': kPaintHabilitado
+                                    ? paintTipoRegistroParaSalvar(
+                                        _model.dropDownTipoRegistroValue)
+                                    : null,
                                 'loteID': _model.dropDownLotesValue,
                                 'dataEntradaLote':
                                     supaSerialize<DateTime>(_model.datePicked2),
