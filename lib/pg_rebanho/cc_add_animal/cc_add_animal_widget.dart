@@ -1,3 +1,4 @@
+import '/pg_rebanho/rebanho_status_utils.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -67,7 +68,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
         _model.dropDownReprodutorValueController?.reset();
         _model.dropDownReprodutorValue = null;
         _model.dropDownStatusValueController?.reset();
-        _model.dropDownStatusValue = null;
+        _model.dropDownStatusValue = statusRebanhoPadrao;
         _model.dropDownOrigemValueController?.reset();
         _model.dropDownOrigemValue = null;
       });
@@ -3886,7 +3887,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                               controller: _model
                                                       .dropDownStatusValueController ??=
                                                   FormFieldController<String>(
-                                                      null),
+                                                      _model.dropDownStatusValue ??= statusRebanhoPadrao),
                                               options:
                                                   FFAppState().statusRebanho,
                                               onChanged: (val) => safeSetState(
@@ -4685,7 +4686,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                           _model.dropDownReprodutorValueController?.reset();
                           _model.dropDownReprodutorValue = null;
                           _model.dropDownStatusValueController?.reset();
-                          _model.dropDownStatusValue = null;
+                          _model.dropDownStatusValue = statusRebanhoPadrao;
                           _model.dropDownOrigemValueController?.reset();
                           _model.dropDownOrigemValue = null;
                         });
@@ -4988,7 +4989,7 @@ class _CcAddAnimalWidgetState extends State<CcAddAnimalWidget>
                                     ?.reset();
                                 _model.dropDownReprodutorValue = null;
                                 _model.dropDownStatusValueController?.reset();
-                                _model.dropDownStatusValue = null;
+                                _model.dropDownStatusValue = statusRebanhoPadrao;
                                 _model.dropDownOrigemValueController?.reset();
                                 _model.dropDownOrigemValue = null;
                               });
