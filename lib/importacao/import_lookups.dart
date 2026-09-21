@@ -467,3 +467,39 @@ String composePesagemChaveImport({
       dataIso,
       peso == null ? '' : peso.toString(),
     ].join('|');
+
+/// Divide os registros de um lote em "atualizar" (com a chave primaria no
+/// payload) e "criar" (sem ela).
+///
+/// Existe por causa de um detalhe do postgrest-dart 2.4.2: em `upsert` de
+/// LISTA, o parametro `columns` enviado ao PostgREST e a UNIAO das chaves de
+/// todos os registros. Se um lote misturasse linhas com e sem `id`, a coluna
+/// id entraria nessa uniao e as linhas que nao a trazem seriam gravadas com id
+/// nulo, quebrando a chave primaria. Por isso os dois grupos vao em chamadas
+/// separadas, cada uma com payload homogeneo.
+///
+/// O grupo "atualizar" dispensa `onConflict`: com a PK no payload o PostgREST
+/// resolve o conflito por ela -- que e justamente o contorno para o
+/// `on_conflict` que a biblioteca descarta em upsert de lista.
+({List<Map<String, dynamic>> atualizar, List<Map<String, dynamic>> criar})
+    particionarPorChavePrimaria({
+  required List<Map<String, dynamic>> registros,
+  required Map<String, int> pkPorIdRebanho,
+  String campoChaveNegocio = 'idRebanho',
+  String campoChavePrimaria = 'id',
+}) {
+  final atualizar = <Map<String, dynamic>>[];
+  final criar = <Map<String, dynamic>>[];
+
+  for (final registro in registros) {
+    final chave = registro[campoChaveNegocio]?.toString();
+    final pk = chave == null ? null : pkPorIdRebanho[chave];
+    if (pk != null) {
+      atualizar.add({...registro, campoChavePrimaria: pk});
+    } else {
+      criar.add(registro);
+    }
+  }
+
+  return (atualizar: atualizar, criar: criar);
+}

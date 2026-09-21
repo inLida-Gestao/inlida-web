@@ -466,6 +466,8 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
       try {
         // Preparar dados para inserção
         final List<Map<String, dynamic>> cleanRecords = [];
+        // idRebanho -> chave primaria do animal existente, quando conhecida.
+        final Map<String, int> pkPorIdRebanho = {};
         final List<Map<String, dynamic>> pesagensToInsert = [];
         int chunkCreated = 0;
         int chunkUpdated = 0;
@@ -574,6 +576,30 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
               'nome': (cleanData['nome']?.toString() ?? '').trim(),
               'motivo': 'Animal existente encontrado e atualizado.',
             });
+
+            // Carrega a PRIMARY KEY do animal existente.
+            //
+            // Motivo: postgrest-dart 2.4.2 descarta o on_conflict quando o
+            // upsert recebe uma LISTA. Em postgrest_query_builder.dart o `url`
+            // com on_conflict e sobrescrito por _setColumnsSearchParam, que
+            // reconstroi a URL a partir de _url. O header
+            // Prefer: resolution=merge-duplicates sobrevive, entao o PostgREST
+            // resolve o conflito pela chave primaria -- que ate agora nunca ia
+            // no payload, porque data.remove('id') a tirava.
+            //
+            // Resultado pratico sem esta linha: reimportar uma planilha faz o
+            // chunk de 500 estourar 23505 no unique de idRebanho, cair no
+            // catch e degradar para 500 requisicoes individuais (onde o
+            // upsert recebe um Map e o on_conflict sobrevive). O dado fica
+            // certo, mas reimportar 10 mil animais vira 10 mil requisicoes.
+            //
+            // Com a PK no payload o conflito e resolvido no proprio lote. So e
+            // possivel quando o diagnostico ja carregou o contexto; sem ele o
+            // comportamento antigo permanece.
+            final pkExistente = contexto?.lookup.porIdRebanho[idRebanho]?.id;
+            if (pkExistente != null) {
+              pkPorIdRebanho[idRebanho] = pkExistente;
+            }
           } else {
             chunkCreated += 1;
           }
@@ -594,13 +620,36 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
           );
         }
 
-        // Inserir em lote no Supabase
-        // Usando upsert com id_reproducao como chave única
-        await Supabase.instance.client.from('rebanho').upsert(
-              cleanRecords,
-              onConflict: 'idRebanho',
-              ignoreDuplicates: false,
-            );
+        // Envia em dois lotes HOMOGENEOS.
+        //
+        // Nao da para misturar linhas com e sem 'id' num mesmo upsert de
+        // lista: o postgrest monta o parametro `columns` com a UNIAO das
+        // chaves de todos os registros, entao a coluna id entraria na lista e
+        // as linhas que nao a trazem seriam gravadas com id nulo -- erro na
+        // chave primaria. Por isso as atualizacoes (que carregam a PK) vao
+        // separadas das criacoes.
+        final particao = particionarPorChavePrimaria(
+          registros: cleanRecords,
+          pkPorIdRebanho: pkPorIdRebanho,
+        );
+        final paraAtualizar = particao.atualizar;
+        final paraCriar = particao.criar;
+
+        if (paraAtualizar.isNotEmpty) {
+          // A PK vai no payload, entao o conflito e resolvido mesmo sem o
+          // on_conflict que o postgrest descarta em upsert de lista.
+          await Supabase.instance.client.from('rebanho').upsert(
+                paraAtualizar,
+                ignoreDuplicates: false,
+              );
+        }
+        if (paraCriar.isNotEmpty) {
+          await Supabase.instance.client.from('rebanho').upsert(
+                paraCriar,
+                onConflict: 'idRebanho',
+                ignoreDuplicates: false,
+              );
+        }
 
         totalInserted += cleanRecords.length;
         totalCreated += chunkCreated;
