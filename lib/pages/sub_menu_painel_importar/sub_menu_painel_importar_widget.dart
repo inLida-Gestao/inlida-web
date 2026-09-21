@@ -13,6 +13,7 @@ import '/pages/pp_instrucoes_importacao/pp_instrucoes_importacao_widget.dart';
 import '/importacao/import_diagnostico_model.dart';
 import '/importacao/import_diagnostico_service.dart';
 import '/importacao/pp_pre_confirmacao_importacao_widget.dart';
+import '/importacao/import_auditoria_repository.dart';
 import 'sub_menu_painel_importar_model.dart';
 export 'sub_menu_painel_importar_model.dart';
 
@@ -64,9 +65,13 @@ class _SubMenuPainelImportarWidgetState
     _model.listaJson = [];
     safeSetState(() {});
 
+    final inicioParse = DateTime.now();
     final parse = await actions.parseCsvToJsonRebanho2Detalhado(arquivo);
+    final duracaoParseMs =
+        DateTime.now().difference(inicioParse).inMilliseconds;
 
     // A leitura do banco e feita uma vez e reaproveitada pela gravacao.
+    final inicioDiagnostico = DateTime.now();
     ImportContexto? contexto;
     try {
       contexto = await carregarContextoRebanho(idPropriedade);
@@ -81,6 +86,19 @@ class _SubMenuPainelImportarWidgetState
       parse: parse,
       contexto: contexto,
     );
+    final duracaoDiagnosticoMs =
+        DateTime.now().difference(inicioDiagnostico).inMilliseconds;
+
+    // A auditoria e aberta ANTES de perguntar, para que o cancelamento
+    // tambem fique registrado -- e o dado mais revelador sobre o que trava a
+    // importacao na pratica.
+    final auditoria = await ImportAuditoriaRepository().abrir(
+      diagnostico: diagnostico,
+      idPropriedade: idPropriedade,
+      bytesDoArquivo: arquivo.bytes,
+      duracaoParseMs: duracaoParseMs,
+      duracaoDiagnosticoMs: duracaoDiagnosticoMs,
+    );
 
     if (!context.mounted) return;
     final decisao = await PpPreConfirmacaoImportacaoWidget.mostrar(
@@ -90,6 +108,7 @@ class _SubMenuPainelImportarWidgetState
     );
 
     if (decisao == ImportDecisao.cancelar) {
+      await auditoria?.finalizarCancelada();
       if (context.mounted) Navigator.pop(context);
       return;
     }
@@ -99,6 +118,7 @@ class _SubMenuPainelImportarWidgetState
         : parse.registros;
 
     if (aEnviar.isEmpty) {
+      await auditoria?.finalizarCancelada();
       _aviso('Nenhuma linha pôde ser importada.', erro: true);
       if (context.mounted) Navigator.pop(context);
       return;
@@ -107,10 +127,27 @@ class _SubMenuPainelImportarWidgetState
     _model.listaJson = aEnviar.toList().cast<dynamic>();
     safeSetState(() {});
 
-    final importResult = await actions.batchInsertSupabaseRebanho(
-      aEnviar,
-      idPropriedade,
-      contexto: contexto,
+    final inicioEscrita = DateTime.now();
+    late final Map<String, dynamic> importResult;
+    try {
+      importResult = await actions.batchInsertSupabaseRebanho(
+        aEnviar,
+        idPropriedade,
+        contexto: contexto,
+      );
+    } catch (e) {
+      await auditoria?.falhar(e);
+      rethrow;
+    }
+    final duracaoEscritaMs =
+        DateTime.now().difference(inicioEscrita).inMilliseconds;
+
+    await auditoria?.finalizar(
+      resultado: importResult,
+      decisao: decisao == ImportDecisao.importarValidos
+          ? ImportDecisaoAuditoria.importouValidos
+          : ImportDecisaoAuditoria.forcou,
+      duracaoEscritaMs: duracaoEscritaMs,
     );
 
     final bool success = importResult['success'] == true;

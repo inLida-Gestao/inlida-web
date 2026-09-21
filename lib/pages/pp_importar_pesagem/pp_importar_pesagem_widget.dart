@@ -2,6 +2,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/importacao/import_diagnostico_model.dart';
 import '/importacao/import_diagnostico_service.dart';
 import '/importacao/pp_pre_confirmacao_importacao_widget.dart';
+import '/importacao/import_auditoria_repository.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/upload_data.dart';
 import '/custom_code/actions/index.dart' as actions;
@@ -118,14 +119,25 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
         debugPrint('Falha ao carregar contexto da importacao de pesagem: \$e');
       }
 
+      final diagnostico = diagnosticarImportacao(
+        entidade: ImportEntidade.pesagem,
+        parse: parse,
+        contexto: contexto,
+      );
+
+      // Aberta antes de perguntar, para que o cancelamento tambem fique
+      // registrado.
+      final auditoria = await ImportAuditoriaRepository().abrir(
+        diagnostico: diagnostico,
+        idPropriedade: idPropriedade,
+        bytesDoArquivo: _model.uploadedFile.bytes,
+      );
+
       setState(() {
         _model.previewRows = preview;
         _model.contexto = contexto;
-        _model.diagnostico = diagnosticarImportacao(
-          entidade: ImportEntidade.pesagem,
-          parse: parse,
-          contexto: contexto,
-        );
+        _model.diagnostico = diagnostico;
+        _model.auditoria = auditoria;
         _model.isProcessing = false;
       });
     } catch (e) {
@@ -168,13 +180,17 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
         nomeEntidade: 'Pesagem',
         permitirForcar: false,
       );
-      if (decisao == ImportDecisao.cancelar) return;
+      if (decisao == ImportDecisao.cancelar) {
+        await _model.auditoria?.finalizarCancelada();
+        return;
+      }
 
       aEnviar = diagnostico
           .registrosValidos(_model.previewRows)
           .cast<Map<String, dynamic>>();
 
       if (aEnviar.isEmpty) {
+        await _model.auditoria?.finalizarCancelada();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -189,10 +205,18 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
 
     setState(() => _model.isImporting = true);
 
+    final inicioEscrita = DateTime.now();
     try {
       final result = await actions.batchInsertSupabasePesagem(
         aEnviar,
         FFAppState().propriedadeSelecionada.idPropriedade,
+      );
+
+      await _model.auditoria?.finalizar(
+        resultado: result,
+        decisao: ImportDecisaoAuditoria.importouValidos,
+        duracaoEscritaMs:
+            DateTime.now().difference(inicioEscrita).inMilliseconds,
       );
 
       final bool success = result['success'] == true;
@@ -238,6 +262,7 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
         if (context.mounted) Navigator.pop(context);
       }
     } catch (e) {
+      await _model.auditoria?.falhar(e);
       setState(() => _model.isImporting = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

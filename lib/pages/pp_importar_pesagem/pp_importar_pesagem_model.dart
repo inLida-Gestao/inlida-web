@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '/importacao/import_diagnostico_model.dart';
 import '/importacao/import_diagnostico_service.dart';
+import '/importacao/import_auditoria_repository.dart';
 
 class PpImportarPesagemModel extends FlutterFlowModel<PpImportarPesagemWidget> {
   bool isDataUploading = false;
@@ -20,6 +21,10 @@ class PpImportarPesagemModel extends FlutterFlowModel<PpImportarPesagemWidget> {
 
   /// Leitura do banco, reaproveitada pela gravacao.
   ImportContexto? contexto;
+
+  /// Trilha de auditoria desta tentativa. Null quando a gravacao da auditoria
+  /// falhou -- a importacao segue normalmente.
+  ImportAuditoriaHandle? auditoria;
 
   List<Map<String, dynamic>> previewRows = [];
 
