@@ -109,7 +109,7 @@ class _PpInstrucoesImportacaoWidgetState
                       ),
                 ),
                 Text(
-                  'Apenas arquivo no formato .csv, depois de fazer todas as modificações salve o arquivo como \"Valores Separados por Vírgula\" .csv',
+                  'Aceitamos .xlsx (Pasta de Trabalho do Excel) e .csv. Se salvar como .csv, escolha \"CSV UTF-8\" para não perder os acentos. O formato .xls antigo não é aceito. Mantenha os nomes das colunas na primeira linha: sem eles não conseguimos identificar as colunas e a importação é recusada.',
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         font: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,

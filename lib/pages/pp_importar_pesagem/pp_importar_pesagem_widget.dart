@@ -1,11 +1,12 @@
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/importacao/import_diagnostico_model.dart';
+import '/importacao/import_diagnostico_service.dart';
+import '/importacao/pp_pre_confirmacao_importacao_widget.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/upload_data.dart';
 import '/custom_code/actions/index.dart' as actions;
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:download/download.dart';
 import 'package:provider/provider.dart';
 import 'pp_importar_pesagem_model.dart';
 export 'pp_importar_pesagem_model.dart';
@@ -58,7 +59,9 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
               ))
           .toList();
 
-      if (uploaded.isEmpty || uploaded.first.bytes == null || uploaded.first.bytes!.isEmpty) {
+      if (uploaded.isEmpty ||
+          uploaded.first.bytes == null ||
+          uploaded.first.bytes!.isEmpty) {
         setState(() => _model.isDataUploading = false);
         return;
       }
@@ -70,7 +73,10 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
         _model.isProcessing = true;
       });
 
-      final parsed = await actions.parseCsvToJsonPesagem(_model.uploadedFile);
+      final parse =
+          await actions.parseCsvToJsonPesagemDetalhado(_model.uploadedFile);
+      _model.parseResult = parse;
+      final parsed = parse.registros;
       _model.parsedJson = parsed;
 
       if (parsed.isEmpty) {
@@ -79,7 +85,9 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'CSV vazio ou sem dados válidos.',
+                parse.ocorrencias.isEmpty
+                    ? 'Planilha vazia ou sem dados válidos.'
+                    : parse.ocorrencias.first.mensagem,
                 style: TextStyle(
                   color: FlutterFlowTheme.of(context).secondaryBackground,
                   fontWeight: FontWeight.w500,
@@ -94,13 +102,30 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
         return;
       }
 
+      final idPropriedade = FFAppState().propriedadeSelecionada.idPropriedade;
+
       final preview = await actions.previewPesagemImport(
         parsed,
-        FFAppState().propriedadeSelecionada.idPropriedade,
+        idPropriedade,
       );
+
+      // Uma unica leitura do banco alimenta o diagnostico e, depois, a
+      // gravacao.
+      ImportContexto? contexto;
+      try {
+        contexto = await carregarContextoPesagem(idPropriedade, parsed);
+      } catch (e) {
+        debugPrint('Falha ao carregar contexto da importacao de pesagem: \$e');
+      }
 
       setState(() {
         _model.previewRows = preview;
+        _model.contexto = contexto;
+        _model.diagnostico = diagnosticarImportacao(
+          entidade: ImportEntidade.pesagem,
+          parse: parse,
+          contexto: contexto,
+        );
         _model.isProcessing = false;
       });
     } catch (e) {
@@ -130,11 +155,43 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
   Future<void> _importPesagens() async {
     if (_foundCount == 0) return;
 
+    final diagnostico = _model.diagnostico;
+    var aEnviar = _model.previewRows;
+
+    if (diagnostico != null) {
+      // permitirForcar: false porque o unique parcial de historico_pesagens
+      // recusaria as linhas bloqueadas de qualquer forma -- oferecer "importar
+      // mesmo assim" seria prometer algo que o banco nao cumpre.
+      final decisao = await PpPreConfirmacaoImportacaoWidget.mostrar(
+        context,
+        diagnostico: diagnostico,
+        nomeEntidade: 'Pesagem',
+        permitirForcar: false,
+      );
+      if (decisao == ImportDecisao.cancelar) return;
+
+      aEnviar = diagnostico
+          .registrosValidos(_model.previewRows)
+          .cast<Map<String, dynamic>>();
+
+      if (aEnviar.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Nenhuma pesagem pôde ser importada.'),
+              backgroundColor: FlutterFlowTheme.of(context).error,
+            ),
+          );
+        }
+        return;
+      }
+    }
+
     setState(() => _model.isImporting = true);
 
     try {
       final result = await actions.batchInsertSupabasePesagem(
-        _model.previewRows,
+        aEnviar,
         FFAppState().propriedadeSelecionada.idPropriedade,
       );
 
@@ -165,7 +222,17 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
         );
 
         if (failedRows.isNotEmpty && context.mounted) {
-          await _showErrorDialog(failedRows);
+          await PpPreConfirmacaoImportacaoWidget.mostrar(
+            context,
+            diagnostico: diagnosticoDeFalhasDoBanco(
+              entidade: ImportEntidade.pesagem,
+              arquivo: _model.parseResult?.arquivo ?? const ImportArquivoInfo(),
+              totalLinhas: _model.parseResult?.totalLinhas ?? 0,
+              failedRows: failedRows,
+            ),
+            nomeEntidade: 'Pesagem',
+            somenteLeitura: true,
+          );
         }
 
         if (context.mounted) Navigator.pop(context);
@@ -189,144 +256,6 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
         );
       }
     }
-  }
-
-  Future<void> _showErrorDialog(List<dynamic> failedRows) async {
-    await showDialog(
-      context: context,
-      builder: (dialogContext) {
-        final previewRows = failedRows.take(100).toList();
-        return AlertDialog(
-          title: const Text('Linhas com erro na importação'),
-          content: SizedBox(
-            width: 500.0,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    failedRows.length > 100
-                        ? 'Mostrando 100 de ${failedRows.length} erros.'
-                        : 'Total de erros: ${failedRows.length}.',
-                    style: FlutterFlowTheme.of(dialogContext).bodyMedium,
-                  ),
-                  const SizedBox(height: 12.0),
-                  ...previewRows.map((row) {
-                    final map = row is Map
-                        ? Map<String, dynamic>.from(row)
-                        : <String, dynamic>{};
-                    final linha = map['linha']?.toString() ?? '-';
-                    final numero =
-                        (map['numeroAnimal']?.toString() ?? '').trim();
-                    final nome = (map['nome']?.toString() ?? '').trim();
-                    final motivo = (map['motivo']?.toString() ??
-                            map['erro']?.toString() ??
-                            'Erro não identificado.')
-                        .trim();
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10.0),
-                      child: Text(
-                        'Linha $linha • Número: ${numero.isEmpty ? '-' : numero} • Nome: ${nome.isEmpty ? '-' : nome}\nMotivo: $motivo',
-                        style:
-                            FlutterFlowTheme.of(dialogContext).bodyMedium,
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                try {
-                  await _exportFailedRowsCsv(failedRows);
-                  if (dialogContext.mounted) {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'CSV de erros exportado com sucesso.',
-                          style: TextStyle(
-                            color: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14.0,
-                          ),
-                        ),
-                        duration: const Duration(milliseconds: 3000),
-                        backgroundColor:
-                            FlutterFlowTheme.of(context).secondary,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (dialogContext.mounted) {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Erro ao exportar CSV: $e',
-                          style: TextStyle(
-                            color: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14.0,
-                          ),
-                        ),
-                        duration: const Duration(milliseconds: 4000),
-                        backgroundColor:
-                            FlutterFlowTheme.of(context).secondary,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text('Exportar CSV'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Fechar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  String _csvEscape(String value) {
-    final needsQuotes =
-        value.contains(';') || value.contains('"') || value.contains('\n');
-    final escaped = value.replaceAll('"', '""');
-    return needsQuotes ? '"$escaped"' : escaped;
-  }
-
-  Future<void> _exportFailedRowsCsv(List<dynamic> failedRows) async {
-    final buffer = StringBuffer();
-    buffer.writeln('Linha;Numero;Nome;Motivo;Erro');
-
-    for (final row in failedRows) {
-      final map =
-          row is Map ? Map<String, dynamic>.from(row) : <String, dynamic>{};
-
-      final linha = (map['linha']?.toString() ?? '').trim();
-      final numero = (map['numeroAnimal']?.toString() ?? '').trim();
-      final nome = (map['nome']?.toString() ?? '').trim();
-      final motivo = (map['motivo']?.toString() ?? '').trim();
-      final erro = (map['erro']?.toString() ?? '').trim();
-
-      buffer.writeln(
-        '${_csvEscape(linha)};${_csvEscape(numero)};${_csvEscape(nome)};${_csvEscape(motivo)};${_csvEscape(erro)}',
-      );
-    }
-
-    final csvContent = '\uFEFF${buffer.toString()}';
-    final bytes = utf8.encode(csvContent);
-    final now = DateTime.now();
-    final fileName =
-        'erros_importacao_pesagem_${now.year.toString().padLeft(4, '0')}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}.csv';
-
-    await download(Stream.fromIterable(bytes), fileName);
   }
 
   @override
@@ -432,9 +361,7 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
             ),
             const SizedBox(height: 8.0),
             Text(
-              hasFile
-                  ? fileName
-                  : 'Clique para selecionar o arquivo CSV',
+              hasFile ? fileName : 'Clique para selecionar o arquivo CSV',
               style: FlutterFlowTheme.of(context).bodyMedium.override(
                     font: GoogleFonts.poppins(
                       fontWeight: FontWeight.w500,
@@ -455,9 +382,8 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
                 'Clique para selecionar outro arquivo',
                 style: FlutterFlowTheme.of(context).labelSmall.override(
                       font: GoogleFonts.poppins(
-                        fontStyle: FlutterFlowTheme.of(context)
-                            .labelSmall
-                            .fontStyle,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).labelSmall.fontStyle,
                       ),
                       color: FlutterFlowTheme.of(context).secondaryText,
                       letterSpacing: 0.0,
@@ -495,8 +421,7 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
             ),
           ),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
             decoration: BoxDecoration(
               color: FlutterFlowTheme.of(context).secondary.withOpacity(0.15),
               borderRadius: BorderRadius.circular(4.0),
@@ -506,9 +431,8 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
               style: FlutterFlowTheme.of(context).labelMedium.override(
                     font: GoogleFonts.poppins(
                       fontWeight: FontWeight.w600,
-                      fontStyle: FlutterFlowTheme.of(context)
-                          .labelMedium
-                          .fontStyle,
+                      fontStyle:
+                          FlutterFlowTheme.of(context).labelMedium.fontStyle,
                     ),
                     color: FlutterFlowTheme.of(context).secondary,
                     letterSpacing: 0.0,
@@ -530,9 +454,8 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
                 style: FlutterFlowTheme.of(context).labelMedium.override(
                       font: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
-                        fontStyle: FlutterFlowTheme.of(context)
-                            .labelMedium
-                            .fontStyle,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).labelMedium.fontStyle,
                       ),
                       color: FlutterFlowTheme.of(context).error,
                       letterSpacing: 0.0,
@@ -563,25 +486,21 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
             ),
             columnSpacing: 16.0,
             horizontalMargin: 12.0,
-            headingTextStyle:
-                FlutterFlowTheme.of(context).labelSmall.override(
-                      font: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        fontStyle: FlutterFlowTheme.of(context)
-                            .labelSmall
-                            .fontStyle,
-                      ),
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w600,
-                    ),
-            dataTextStyle:
-                FlutterFlowTheme.of(context).bodySmall.override(
-                      font: GoogleFonts.poppins(
-                        fontStyle:
-                            FlutterFlowTheme.of(context).bodySmall.fontStyle,
-                      ),
-                      letterSpacing: 0.0,
-                    ),
+            headingTextStyle: FlutterFlowTheme.of(context).labelSmall.override(
+                  font: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).labelSmall.fontStyle,
+                  ),
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w600,
+                ),
+            dataTextStyle: FlutterFlowTheme.of(context).bodySmall.override(
+                  font: GoogleFonts.poppins(
+                    fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                  ),
+                  letterSpacing: 0.0,
+                ),
             columns: const [
               DataColumn(label: Text('Status')),
               DataColumn(label: Text('Número')),
@@ -600,9 +519,7 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
                   FlutterFlowTheme.of(context).error.withOpacity(0.08);
 
               return DataRow(
-                color: found
-                    ? null
-                    : WidgetStateProperty.all(errorColor),
+                color: found ? null : WidgetStateProperty.all(errorColor),
                 cells: [
                   DataCell(
                     Container(
@@ -630,24 +547,16 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
                       ),
                     ),
                   ),
-                  DataCell(Text(
-                      (row['numeroAnimal'] ?? '').toString())),
-                  DataCell(Text(
-                      (row['chip'] ?? '').toString())),
+                  DataCell(Text((row['numeroAnimal'] ?? '').toString())),
+                  DataCell(Text((row['chip'] ?? '').toString())),
+                  DataCell(Text((row['nome'] ?? '').toString())),
+                  DataCell(Text((row['sexo'] ?? '').toString())),
+                  DataCell(Text((row['dataNascimento'] ?? '').toString())),
+                  DataCell(Text((row['raca'] ?? '').toString())),
+                  DataCell(Text((row['dataPesagem'] ?? '').toString())),
                   DataCell(
-                      Text((row['nome'] ?? '').toString())),
-                  DataCell(
-                      Text((row['sexo'] ?? '').toString())),
-                  DataCell(Text(
-                      (row['dataNascimento'] ?? '').toString())),
-                  DataCell(
-                      Text((row['raca'] ?? '').toString())),
-                  DataCell(Text(
-                      (row['dataPesagem'] ?? '').toString())),
-                  DataCell(Text(
-                      row['peso'] != null ? row['peso'].toString() : '')),
-                  DataCell(
-                      Text((row['tipo'] ?? '').toString())),
+                      Text(row['peso'] != null ? row['peso'].toString() : '')),
+                  DataCell(Text((row['tipo'] ?? '').toString())),
                 ],
               );
             }).toList(),
@@ -662,8 +571,7 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         TextButton(
-          onPressed:
-              _model.isImporting ? null : () => Navigator.pop(context),
+          onPressed: _model.isImporting ? null : () => Navigator.pop(context),
           child: Text(
             'Cancelar',
             style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -680,15 +588,13 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
         ),
         const SizedBox(width: 12.0),
         ElevatedButton(
-          onPressed: (_foundCount > 0 &&
-                  !_model.isImporting &&
-                  !_model.isProcessing)
-              ? _importPesagens
-              : null,
+          onPressed:
+              (_foundCount > 0 && !_model.isImporting && !_model.isProcessing)
+                  ? _importPesagens
+                  : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: FlutterFlowTheme.of(context).secondary,
-            disabledBackgroundColor:
-                FlutterFlowTheme.of(context).alternate,
+            disabledBackgroundColor: FlutterFlowTheme.of(context).alternate,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
@@ -711,9 +617,8 @@ class _PpImportarPesagemWidgetState extends State<PpImportarPesagemWidget> {
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         font: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
-                          fontStyle: FlutterFlowTheme.of(context)
-                              .bodyMedium
-                              .fontStyle,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                         ),
                         color: Colors.white,
                         letterSpacing: 0.0,
