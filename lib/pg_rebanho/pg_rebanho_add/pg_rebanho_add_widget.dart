@@ -1,3 +1,4 @@
+import '/pg_rebanho/rebanho_status_utils.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/supabase/supabase.dart';
 import '/componentes/header/header_widget.dart';
@@ -4099,7 +4100,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                                                         .dropDownStatusValueController ??=
                                                                     FormFieldController<
                                                                             String>(
-                                                                        null),
+                                                                        _model.dropDownStatusValue ??= statusRebanhoPadrao),
                                                                 options:
                                                                     FFAppState()
                                                                         .statusRebanho,
@@ -6306,7 +6307,7 @@ class _PgRebanhoAddWidgetState extends State<PgRebanhoAddWidget>
                                             _model.dropDownLotesValue = null;
                                             _model.dropDownStatusValueController
                                                 ?.reset();
-                                            _model.dropDownStatusValue = null;
+                                            _model.dropDownStatusValue = statusRebanhoPadrao;
                                             _model.dropDownOrigemValueController
                                                 ?.reset();
                                             _model.dropDownOrigemValue = null;

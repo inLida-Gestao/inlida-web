@@ -1,3 +1,4 @@
+import '/pg_rebanho/rebanho_status_utils.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -2881,7 +2882,7 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                                 controller: _model
                                                         .dropDownStatusValueController ??=
                                                     FormFieldController<String>(
-                                                        null),
+                                                        _model.dropDownStatusValue ??= statusRebanhoPadrao),
                                                 options:
                                                     FFAppState().statusRebanho,
                                                 onChanged: (val) =>
@@ -3183,7 +3184,7 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                             _model.dropDownReprodutorValueController?.reset();
                             _model.dropDownReprodutorValue = null;
                             _model.dropDownStatusValueController?.reset();
-                            _model.dropDownStatusValue = null;
+                            _model.dropDownStatusValue = statusRebanhoPadrao;
                           });
                           safeSetState(() {
                             _model.numAnimalTextController?.clear();
@@ -3376,7 +3377,7 @@ class _CcAddNascimentoWidgetState extends State<CcAddNascimentoWidget>
                                       ?.reset();
                                   _model.dropDownReprodutorValue = null;
                                   _model.dropDownStatusValueController?.reset();
-                                  _model.dropDownStatusValue = null;
+                                  _model.dropDownStatusValue = statusRebanhoPadrao;
                                 });
                                 safeSetState(() {
                                   _model.numAnimalTextController?.clear();
