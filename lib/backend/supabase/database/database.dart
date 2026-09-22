@@ -33,3 +33,7 @@ export 'tables/forrageiras.dart';
 export 'tables/users_propriedades.dart';
 export 'tables/sanidade_change_tracker.dart';
 export 'tables/historico_pesagens.dart';
+export 'tables/import_auditoria.dart';
+export 'tables/import_auditoria_resumo.dart';
+export 'tables/import_auditoria_item.dart';
+export 'tables/import_auditoria_alteracao.dart';

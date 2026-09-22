@@ -516,7 +516,8 @@ class _SubMenuPainelExportarWidgetState
                   hoverColor: Colors.transparent,
                   highlightColor: Colors.transparent,
                   onTap: () async {
-                    if (FFAppState().propriedadeSelecionada.idPropriedade == '') {
+                    if (FFAppState().propriedadeSelecionada.idPropriedade ==
+                        '') {
                       await showDialog(
                         context: context,
                         builder: (alertDialogContext) {
@@ -554,20 +555,21 @@ class _SubMenuPainelExportarWidgetState
                           ),
                           Text(
                             'PAINT',
-                            style:
-                                FlutterFlowTheme.of(context).bodyMedium.override(
-                                      font: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w600,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.w600,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
+                            style: FlutterFlowTheme.of(context)
+                                .bodyMedium
+                                .override(
+                                  font: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                                  letterSpacing: 0.0,
+                                  fontWeight: FontWeight.w600,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .fontStyle,
+                                ),
                           ),
                         ].divide(const SizedBox(width: 10.0)),
                       ),

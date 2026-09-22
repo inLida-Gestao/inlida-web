@@ -10,6 +10,11 @@ import '/utils/download_arquivo.dart';
 import 'package:provider/provider.dart';
 import '/pages/pp_importar_pesagem/pp_importar_pesagem_widget.dart';
 import '/pages/pp_instrucoes_importacao/pp_instrucoes_importacao_widget.dart';
+import '/importacao/import_diagnostico_model.dart';
+import '/importacao/import_diagnostico_service.dart';
+import '/importacao/pp_pre_confirmacao_importacao_widget.dart';
+import '/importacao/import_auditoria_repository.dart';
+import '/pages/pg_auditoria_importacao/pg_auditoria_importacao_widget.dart';
 import 'sub_menu_painel_importar_model.dart';
 export 'sub_menu_painel_importar_model.dart';
 
@@ -25,39 +30,166 @@ class _SubMenuPainelImportarWidgetState
     extends State<SubMenuPainelImportarWidget> {
   late SubMenuPainelImportarModel _model;
 
+  /// Mostra uma mensagem rapida no rodape.
+  void _aviso(String texto, {bool erro = false}) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          texto,
+          style: TextStyle(
+            color: FlutterFlowTheme.of(context).secondaryBackground,
+            fontWeight: FontWeight.w500,
+            fontSize: 16.0,
+          ),
+        ),
+        duration: Duration(milliseconds: erro ? 6000 : 4000),
+        backgroundColor: erro
+            ? FlutterFlowTheme.of(context).error
+            : FlutterFlowTheme.of(context).secondary,
+      ),
+    );
+  }
+
+  /// Importa a planilha de Rebanho com diagnostico previo.
+  ///
+  /// A ordem importa: ler -> diagnosticar -> PERGUNTAR -> gravar. Antes a
+  /// gravacao acontecia direto e o usuario so via os erros depois, com a
+  /// planilha ja aplicada pela metade.
+  Future<void> _importarRebanho() async {
+    final arquivo = _model.uploadedLocalFile_uploadDataP89;
+    if (!(arquivo.bytes?.isNotEmpty ?? false)) return;
+
+    final idPropriedade = FFAppState().propriedadeSelecionada.idPropriedade;
+
+    _aviso('Lendo a planilha, aguarde.');
+    _model.listaJson = [];
+    safeSetState(() {});
+
+    final inicioParse = DateTime.now();
+    final parse = await actions.parseCsvToJsonRebanho2Detalhado(arquivo);
+    final duracaoParseMs =
+        DateTime.now().difference(inicioParse).inMilliseconds;
+
+    // A leitura do banco e feita uma vez e reaproveitada pela gravacao.
+    final inicioDiagnostico = DateTime.now();
+    ImportContexto? contexto;
+    try {
+      contexto = await carregarContextoRebanho(idPropriedade, parse.registros);
+    } catch (e) {
+      // Sem contexto o diagnostico perde o confronto com o banco, mas as
+      // checagens de arquivo e de conteudo continuam valendo.
+      debugPrint('Falha ao carregar contexto da importacao de rebanho: $e');
+    }
+
+    final diagnostico = diagnosticarImportacao(
+      entidade: ImportEntidade.rebanho,
+      parse: parse,
+      contexto: contexto,
+    );
+    final duracaoDiagnosticoMs =
+        DateTime.now().difference(inicioDiagnostico).inMilliseconds;
+
+    // A auditoria e aberta ANTES de perguntar, para que o cancelamento
+    // tambem fique registrado -- e o dado mais revelador sobre o que trava a
+    // importacao na pratica.
+    final auditoria = await ImportAuditoriaRepository().abrir(
+      diagnostico: diagnostico,
+      idPropriedade: idPropriedade,
+      bytesDoArquivo: arquivo.bytes,
+      duracaoParseMs: duracaoParseMs,
+      duracaoDiagnosticoMs: duracaoDiagnosticoMs,
+    );
+
+    if (!context.mounted) return;
+    final decisao = await PpPreConfirmacaoImportacaoWidget.mostrar(
+      context,
+      diagnostico: diagnostico,
+      nomeEntidade: 'Rebanho',
+    );
+
+    if (decisao == ImportDecisao.cancelar) {
+      await auditoria?.finalizarCancelada();
+      if (context.mounted) Navigator.pop(context);
+      return;
+    }
+
+    final aEnviar = decisao == ImportDecisao.importarValidos
+        ? diagnostico.registrosValidos(parse.registros)
+        : parse.registros;
+
+    if (aEnviar.isEmpty) {
+      await auditoria?.finalizarCancelada();
+      _aviso('Nenhuma linha pôde ser importada.', erro: true);
+      if (context.mounted) Navigator.pop(context);
+      return;
+    }
+
+    _model.listaJson = aEnviar.toList().cast<dynamic>();
+    safeSetState(() {});
+
+    final inicioEscrita = DateTime.now();
+    late final Map<String, dynamic> importResult;
+    try {
+      importResult = await actions.batchInsertSupabaseRebanho(
+        aEnviar,
+        idPropriedade,
+        contexto: contexto,
+      );
+    } catch (e) {
+      await auditoria?.falhar(e);
+      rethrow;
+    }
+    final duracaoEscritaMs =
+        DateTime.now().difference(inicioEscrita).inMilliseconds;
+
+    await auditoria?.finalizar(
+      resultado: importResult,
+      decisao: decisao == ImportDecisao.importarValidos
+          ? ImportDecisaoAuditoria.importouValidos
+          : ImportDecisaoAuditoria.forcou,
+      duracaoEscritaMs: duracaoEscritaMs,
+    );
+
+    final bool success = importResult['success'] == true;
+    final int created = (importResult['created'] as num?)?.toInt() ?? 0;
+    final int updated = (importResult['updated'] as num?)?.toInt() ?? 0;
+    final int failed = (importResult['failed'] as num?)?.toInt() ?? 0;
+    final List<dynamic> failedRows =
+        (importResult['failedRows'] as List<dynamic>? ?? []).toList();
+
+    FFAppState().refreshRebanho = true;
+    if (context.mounted) Navigator.pop(context);
+
+    _aviso(
+      success
+          ? 'Importação finalizada. Criados: $created • Atualizados: $updated • Falhas: $failed'
+          : 'Importação finalizada com inconsistências. Criados: $created • Atualizados: $updated • Falhas: $failed',
+      erro: !success,
+    );
+
+    // Se o banco recusou alguma linha, reusa o MESMO popup em modo leitura em
+    // vez do AlertDialog com take(100) que existia aqui.
+    if (failedRows.isNotEmpty && context.mounted) {
+      await PpPreConfirmacaoImportacaoWidget.mostrar(
+        context,
+        diagnostico: diagnosticoDeFalhasDoBanco(
+          entidade: ImportEntidade.rebanho,
+          arquivo: parse.arquivo,
+          totalLinhas: parse.totalLinhas,
+          failedRows: failedRows,
+        ),
+        nomeEntidade: 'Rebanho',
+        somenteLeitura: true,
+      );
+    }
+  }
+
   String _csvEscape(String value) {
     final needsQuotes =
         value.contains(';') || value.contains('"') || value.contains('\n');
     final escaped = value.replaceAll('"', '""');
     return needsQuotes ? '"$escaped"' : escaped;
-  }
-
-  Future<void> _exportFailedRowsCsv(List<dynamic> failedRows) async {
-    final buffer = StringBuffer();
-    buffer.writeln('Linha;Numero;Nome;Motivo;Erro');
-
-    for (final row in failedRows) {
-      final map =
-          row is Map ? Map<String, dynamic>.from(row) : <String, dynamic>{};
-
-      final linha = (map['linha']?.toString() ?? '').trim();
-      final numero = (map['numeroAnimal']?.toString() ?? '').trim();
-      final nome = (map['nome']?.toString() ?? '').trim();
-      final motivo = (map['motivo']?.toString() ?? '').trim();
-      final erro = (map['erro']?.toString() ?? '').trim();
-
-      buffer.writeln(
-        '${_csvEscape(linha)};${_csvEscape(numero)};${_csvEscape(nome)};${_csvEscape(motivo)};${_csvEscape(erro)}',
-      );
-    }
-
-    final csvContent = '\uFEFF${buffer.toString()}';
-    final bytes = utf8.encode(csvContent);
-    final now = DateTime.now();
-    final fileName =
-        'erros_importacao_rebanho_${now.year.toString().padLeft(4, '0')}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}.csv';
-
-    await download(Stream.fromIterable(bytes), fileName);
   }
 
   Future<void> _exportFailedRowsCsvLotes(List<dynamic> failedRows) async {
@@ -268,216 +400,7 @@ class _SubMenuPainelImportarWidgetState
                       }
                     }
 
-                    if ((_model.uploadedLocalFile_uploadDataP89.bytes
-                            ?.isNotEmpty ??
-                        false)) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Realizando upload aguarde.',
-                            style: TextStyle(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16.0,
-                            ),
-                          ),
-                          duration: const Duration(milliseconds: 4000),
-                          backgroundColor:
-                              FlutterFlowTheme.of(context).secondary,
-                        ),
-                      );
-                      _model.listaJson = [];
-                      safeSetState(() {});
-                      _model.json = await actions.parseCsvToJsonRebanho2(
-                        _model.uploadedLocalFile_uploadDataP89,
-                      );
-                      _model.listaJson = _model.json!.toList().cast<dynamic>();
-                      safeSetState(() {});
-                      if (_model.listaJson.isEmpty) {
-                        if (!context.mounted) return;
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Nenhum registro válido encontrado. Verifique se o arquivo é CSV ou XLSX válido e tente novamente.',
-                              style: TextStyle(
-                                color: FlutterFlowTheme.of(context)
-                                    .secondaryBackground,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16.0,
-                              ),
-                            ),
-                            duration: const Duration(milliseconds: 5000),
-                            backgroundColor: FlutterFlowTheme.of(context).error,
-                          ),
-                        );
-                        return;
-                      }
-                      final importResult =
-                          await actions.batchInsertSupabaseRebanho(
-                        _model.listaJson.toList(),
-                        FFAppState().propriedadeSelecionada.idPropriedade,
-                      );
-                      final bool success = importResult['success'] == true;
-                      final int created =
-                          (importResult['created'] as num?)?.toInt() ?? 0;
-                      final int updated =
-                          (importResult['updated'] as num?)?.toInt() ?? 0;
-                      final int failed =
-                          (importResult['failed'] as num?)?.toInt() ?? 0;
-                      final List<dynamic> failedRows =
-                          (importResult['failedRows'] as List<dynamic>? ?? [])
-                              .toList();
-                      FFAppState().refreshRebanho = true;
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            success
-                                ? 'Upload finalizado. Criados: $created • Atualizados: $updated • Falhas: $failed'
-                                : 'Upload finalizado com inconsistências. Criados: $created • Atualizados: $updated • Falhas: $failed',
-                            style: TextStyle(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16.0,
-                            ),
-                          ),
-                          duration: const Duration(milliseconds: 4000),
-                          backgroundColor:
-                              FlutterFlowTheme.of(context).secondary,
-                        ),
-                      );
-
-                      if (failedRows.isNotEmpty && context.mounted) {
-                        await showDialog(
-                          context: context,
-                          builder: (dialogContext) {
-                            final previewRows = failedRows.take(100).toList();
-                            return AlertDialog(
-                              title:
-                                  const Text('Linhas com erro na importação'),
-                              content: SizedBox(
-                                width: 500.0,
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        failedRows.length > 100
-                                            ? 'Mostrando 100 de ${failedRows.length} erros.'
-                                            : 'Total de erros: ${failedRows.length}.',
-                                        style:
-                                            FlutterFlowTheme.of(dialogContext)
-                                                .bodyMedium,
-                                      ),
-                                      const SizedBox(height: 12.0),
-                                      ...previewRows.map((row) {
-                                        final map = row is Map
-                                            ? Map<String, dynamic>.from(row)
-                                            : <String, dynamic>{};
-                                        final linha =
-                                            map['linha']?.toString() ?? '-';
-                                        final numero =
-                                            (map['numeroAnimal']?.toString() ??
-                                                    '')
-                                                .trim();
-                                        final nome =
-                                            (map['nome']?.toString() ?? '')
-                                                .trim();
-                                        final motivo =
-                                            (map['motivo']?.toString() ??
-                                                    map['erro']?.toString() ??
-                                                    'Erro não identificado.')
-                                                .trim();
-
-                                        final numeroDisplay =
-                                            numero.isEmpty ? '-' : numero;
-                                        final nomeDisplay =
-                                            nome.isEmpty ? '-' : nome;
-
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                              bottom: 10.0),
-                                          child: Text(
-                                            'Linha $linha • Número: $numeroDisplay • Nome: $nomeDisplay\nMotivo: $motivo',
-                                            style: FlutterFlowTheme.of(
-                                                    dialogContext)
-                                                .bodyMedium,
-                                          ),
-                                        );
-                                      }),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () async {
-                                    try {
-                                      await _exportFailedRowsCsv(failedRows);
-                                      if (dialogContext.mounted) {
-                                        ScaffoldMessenger.of(dialogContext)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'CSV de erros exportado com sucesso.',
-                                              style: TextStyle(
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryBackground,
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 14.0,
-                                              ),
-                                            ),
-                                            duration: const Duration(
-                                                milliseconds: 3000),
-                                            backgroundColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .secondary,
-                                          ),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      if (dialogContext.mounted) {
-                                        ScaffoldMessenger.of(dialogContext)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Erro ao exportar CSV: $e',
-                                              style: TextStyle(
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryBackground,
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 14.0,
-                                              ),
-                                            ),
-                                            duration: const Duration(
-                                                milliseconds: 4000),
-                                            backgroundColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .secondary,
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  },
-                                  child: const Text('Exportar CSV'),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(dialogContext),
-                                  child: const Text('Fechar'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }
-                    }
+                    await _importarRebanho();
                   } else {
                     await showDialog(
                       context: context,
@@ -1175,6 +1098,73 @@ class _SubMenuPainelImportarWidgetState
                           ),
                         Text(
                           'Pesagem',
+                          style:
+                              FlutterFlowTheme.of(context).bodyMedium.override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .fontStyle,
+                                  ),
+                        ),
+                      ].divide(const SizedBox(width: 10.0)),
+                    ),
+                  ),
+                ),
+              ),
+              // Historico de importacoes: fica aqui, e nao na side_bar, porque
+              // e exatamente onde o usuario esta quando a importacao da errado.
+              InkWell(
+                splashColor: Colors.transparent,
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                onTap: () async {
+                  if (FFAppState().propriedadeSelecionada.idPropriedade == '') {
+                    await showDialog(
+                      context: context,
+                      builder: (alertDialogContext) {
+                        return AlertDialog(
+                          content:
+                              const Text('Selecione uma propriedade primeiro'),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(alertDialogContext),
+                              child: const Text('Ok'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    return;
+                  }
+                  Navigator.pop(context);
+                  context.pushNamed(PgAuditoriaImportacaoWidget.routeName);
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 56.0,
+                  decoration: const BoxDecoration(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        if (FFAppState().navegacao != 'rebanhos')
+                          Icon(
+                            Icons.history,
+                            color: FlutterFlowTheme.of(context).primaryText,
+                            size: 24.0,
+                          ),
+                        Text(
+                          'Histórico de importações',
                           style:
                               FlutterFlowTheme.of(context).bodyMedium.override(
                                     font: GoogleFonts.poppins(

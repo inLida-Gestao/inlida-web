@@ -88,3 +88,5 @@ export '/pg_paint/avaliacoes/diagnostico/paint_diagnostico_widget.dart'
     show PaintDiagnosticoWidget;
 export '/pg_paint/admin/paint_biblioteca_touros_widget.dart'
     show PaintBibliotecaTourosWidget;
+export '/pages/pg_auditoria_importacao/pg_auditoria_importacao_widget.dart'
+    show PgAuditoriaImportacaoWidget;

@@ -5,10 +5,13 @@ import '/backend/supabase/supabase.dart';
 // Begin custom action code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import 'dart:convert';
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '/pg_rebanho/pesagem_rebanho_sync.dart';
+import '/importacao/import_texto_utils.dart';
+import '/importacao/import_erro_amigavel.dart';
+import '/importacao/import_lookups.dart';
+import '/importacao/import_diagnostico_service.dart';
 
 final Random _idRebanhoRandom = Random.secure();
 
@@ -26,40 +29,13 @@ class _RebanhoParentLookup {
   });
 }
 
-bool _isMissingValue(dynamic value) {
-  if (value == null) return true;
-  final s = value.toString();
-  return s.trim().isEmpty || s == 'null' || s == 'undefined';
-}
+bool _isMissingValue(dynamic value) => isMissingValueImport(value);
 
-String? _asNonEmptyString(dynamic value) {
-  if (_isMissingValue(value)) return null;
-  return value.toString();
-}
+String? _asNonEmptyString(dynamic value) => asNonEmptyStringImport(value);
 
-String _normalizeNumeroKey(String value) {
-  return value.trim();
-}
+String _normalizeNumeroKey(String value) => normalizeNumeroKeyImport(value);
 
-String? _normalizeDateKey(dynamic value) {
-  final raw = _asNonEmptyString(value);
-  if (raw == null) return null;
-
-  final fixed = _fixEncoding(raw);
-  final converted = _convertDateFormat(fixed);
-  if (converted != null) return converted;
-
-  // Último fallback: tenta cortar ISO com horário.
-  if (fixed.contains('T')) {
-    final part = fixed.split('T').first;
-    if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(part)) return part;
-  }
-  if (fixed.contains(' ')) {
-    final part = fixed.split(' ').first;
-    if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(part)) return part;
-  }
-  return null;
-}
+String? _normalizeDateKey(dynamic value) => normalizeDateKeyImport(value);
 
 String _composeParentKey({
   required String numero,
@@ -77,9 +53,8 @@ String _composeNumeroDataKey({
   return '${_normalizeNumeroKey(numero)}|$dataNascimento';
 }
 
-String _normalizeIdentityText(String value) {
-  return _normalizeLoteNome(_fixEncoding(value));
-}
+String _normalizeIdentityText(String value) =>
+    normalizeIdentityTextImport(value);
 
 String? _composeAnimalIdentityKeyFromData(Map<String, dynamic> data) {
   final numero = _asNonEmptyString(data['numeroAnimal']);
@@ -260,9 +235,17 @@ Future<_RebanhoParentLookup> _fetchLookupFromDb(String idPropriedade) async {
 
 Future<_RebanhoParentLookup> _buildParentLookup(
   List<dynamic> records,
-  String idPropriedade,
-) async {
-  final db = await _fetchLookupFromDb(idPropriedade);
+  String idPropriedade, {
+  RebanhoDbLookup? preCarregado,
+}) async {
+  final db = preCarregado == null
+      ? await _fetchLookupFromDb(idPropriedade)
+      : _RebanhoParentLookup(
+          byNumero: preCarregado.byNumero,
+          byNumeroData: preCarregado.byNumeroData,
+          byComposite: preCarregado.byComposite,
+          byAnimalIdentity: preCarregado.byAnimalIdentity,
+        );
   final imported = _buildLookupFromImportedRecords(records);
 
   final mergedByNumero = Map<String, String>.from(db.byNumero);
@@ -406,85 +389,17 @@ Future<Map<String, String>> _fetchLoteNomeToIdLoteMap(
   }
 }
 
-String _normalizeLoteNome(String value) {
-  return value
-      .trim()
-      .toLowerCase()
-      .replaceAllMapped(
-        RegExp(r'[\u00C0-\u017F]'),
-        (m) => _stripDiacritics(m[0]!),
-      )
-      .replaceAll(RegExp(r'\s+'), ' ');
-}
-
-String _stripDiacritics(String ch) {
-  switch (ch) {
-    case 'á':
-    case 'à':
-    case 'â':
-    case 'ã':
-    case 'ä':
-    case 'å':
-    case 'Á':
-    case 'À':
-    case 'Â':
-    case 'Ã':
-    case 'Ä':
-    case 'Å':
-      return 'a';
-    case 'é':
-    case 'è':
-    case 'ê':
-    case 'ë':
-    case 'É':
-    case 'È':
-    case 'Ê':
-    case 'Ë':
-      return 'e';
-    case 'í':
-    case 'ì':
-    case 'î':
-    case 'ï':
-    case 'Í':
-    case 'Ì':
-    case 'Î':
-    case 'Ï':
-      return 'i';
-    case 'ó':
-    case 'ò':
-    case 'ô':
-    case 'õ':
-    case 'ö':
-    case 'Ó':
-    case 'Ò':
-    case 'Ô':
-    case 'Õ':
-    case 'Ö':
-      return 'o';
-    case 'ú':
-    case 'ù':
-    case 'û':
-    case 'ü':
-    case 'Ú':
-    case 'Ù':
-    case 'Û':
-    case 'Ü':
-      return 'u';
-    case 'ç':
-    case 'Ç':
-      return 'c';
-    case 'ñ':
-    case 'Ñ':
-      return 'n';
-    default:
-      return ch;
-  }
-}
+String _normalizeLoteNome(String value) => normalizeLoteNomeImport(value);
 
 Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
   List<dynamic> records,
-  String idPropriedade,
-) async {
+  String idPropriedade, {
+  /// Leitura do banco que o diagnostico de importacao ja fez. Quando vem
+  /// preenchida, evita reler a tabela `rebanho` da propriedade inteira -- em
+  /// propriedades grandes essa leitura e paginada de 1000 em 1000, e faze-la
+  /// duas vezes por importacao e desperdicio puro.
+  ImportContexto? contexto,
+}) async {
   if (records.isEmpty) {
     return {
       'success': true,
@@ -508,12 +423,16 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
 
     // Cache de lotes para resolver loteNome -> loteID (id_lote)
     // O usuário geralmente só tem o nome do lote no CSV.
-    final Map<String, String> loteNomeToIdLote =
-        await _fetchLoteNomeToIdLoteMap(idPropriedade);
+    final Map<String, String> loteNomeToIdLote = contexto == null
+        ? await _fetchLoteNomeToIdLoteMap(idPropriedade)
+        : contexto.lookup.loteNomeParaId;
 
     // Cache de animais para resolver matriz/reprodutor -> idRebanho
-    final _RebanhoParentLookup parentLookup =
-        await _buildParentLookup(records, idPropriedade);
+    final _RebanhoParentLookup parentLookup = await _buildParentLookup(
+      records,
+      idPropriedade,
+      preCarregado: contexto?.lookup,
+    );
 
     // Campos de data que precisam de conversão DD/MM/YYYY -> YYYY-MM-DD
     // (created_at e updated_at são gerados pelo Supabase automaticamente)
@@ -547,6 +466,8 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
       try {
         // Preparar dados para inserção
         final List<Map<String, dynamic>> cleanRecords = [];
+        // idRebanho -> chave primaria do animal existente, quando conhecida.
+        final Map<String, int> pkPorIdRebanho = {};
         final List<Map<String, dynamic>> pesagensToInsert = [];
         int chunkCreated = 0;
         int chunkUpdated = 0;
@@ -610,6 +531,10 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
           // Limpar valores "null" string e vazios para null real
           final Map<String, dynamic> cleanData = {};
           data.forEach((key, value) {
+            // Campos auxiliares do diagnostico (prefixo '_', como
+            // kCampoLinhaArquivo) nao existem como coluna no banco e nao podem
+            // ir no payload.
+            if (key.startsWith('_')) return;
             if (value == null ||
                 value == "null" ||
                 value == "undefined" ||
@@ -651,6 +576,30 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
               'nome': (cleanData['nome']?.toString() ?? '').trim(),
               'motivo': 'Animal existente encontrado e atualizado.',
             });
+
+            // Carrega a PRIMARY KEY do animal existente.
+            //
+            // Motivo: postgrest-dart 2.4.2 descarta o on_conflict quando o
+            // upsert recebe uma LISTA. Em postgrest_query_builder.dart o `url`
+            // com on_conflict e sobrescrito por _setColumnsSearchParam, que
+            // reconstroi a URL a partir de _url. O header
+            // Prefer: resolution=merge-duplicates sobrevive, entao o PostgREST
+            // resolve o conflito pela chave primaria -- que ate agora nunca ia
+            // no payload, porque data.remove('id') a tirava.
+            //
+            // Resultado pratico sem esta linha: reimportar uma planilha faz o
+            // chunk de 500 estourar 23505 no unique de idRebanho, cair no
+            // catch e degradar para 500 requisicoes individuais (onde o
+            // upsert recebe um Map e o on_conflict sobrevive). O dado fica
+            // certo, mas reimportar 10 mil animais vira 10 mil requisicoes.
+            //
+            // Com a PK no payload o conflito e resolvido no proprio lote. So e
+            // possivel quando o diagnostico ja carregou o contexto; sem ele o
+            // comportamento antigo permanece.
+            final pkExistente = contexto?.lookup.porIdRebanho[idRebanho]?.id;
+            if (pkExistente != null) {
+              pkPorIdRebanho[idRebanho] = pkExistente;
+            }
           } else {
             chunkCreated += 1;
           }
@@ -671,13 +620,36 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
           );
         }
 
-        // Inserir em lote no Supabase
-        // Usando upsert com id_reproducao como chave única
-        await Supabase.instance.client.from('rebanho').upsert(
-              cleanRecords,
-              onConflict: 'idRebanho',
-              ignoreDuplicates: false,
-            );
+        // Envia em dois lotes HOMOGENEOS.
+        //
+        // Nao da para misturar linhas com e sem 'id' num mesmo upsert de
+        // lista: o postgrest monta o parametro `columns` com a UNIAO das
+        // chaves de todos os registros, entao a coluna id entraria na lista e
+        // as linhas que nao a trazem seriam gravadas com id nulo -- erro na
+        // chave primaria. Por isso as atualizacoes (que carregam a PK) vao
+        // separadas das criacoes.
+        final particao = particionarPorChavePrimaria(
+          registros: cleanRecords,
+          pkPorIdRebanho: pkPorIdRebanho,
+        );
+        final paraAtualizar = particao.atualizar;
+        final paraCriar = particao.criar;
+
+        if (paraAtualizar.isNotEmpty) {
+          // A PK vai no payload, entao o conflito e resolvido mesmo sem o
+          // on_conflict que o postgrest descarta em upsert de lista.
+          await Supabase.instance.client.from('rebanho').upsert(
+                paraAtualizar,
+                ignoreDuplicates: false,
+              );
+        }
+        if (paraCriar.isNotEmpty) {
+          await Supabase.instance.client.from('rebanho').upsert(
+                paraCriar,
+                onConflict: 'idRebanho',
+                ignoreDuplicates: false,
+              );
+        }
 
         totalInserted += cleanRecords.length;
         totalCreated += chunkCreated;
@@ -755,6 +727,8 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
 
             final Map<String, dynamic> cleanData = {};
             data.forEach((key, value) {
+              // Ver nota no caminho em lote: chaves auxiliares nao vao ao banco.
+              if (key.startsWith('_')) return;
               if (value == null ||
                   value == "null" ||
                   value == "undefined" ||
@@ -896,109 +870,10 @@ Future<Map<String, dynamic>> batchInsertSupabaseRebanho(
   }
 }
 
-String _buildFriendlyImportError(Object error) {
-  final raw = error.toString();
-  final lower = raw.toLowerCase();
-  final column = _extractErrorColumn(lower);
-  final keyColumn = _extractKeyColumn(lower);
+String _buildFriendlyImportError(Object error) =>
+    buildFriendlyImportError(error);
 
-  if (lower.contains('date') ||
-      lower.contains('timestamp') ||
-      lower.contains('invalid input syntax for type date')) {
-    if (column != null) {
-      return 'Data inválida ou em formato não reconhecido no campo ${_labelRebanhoColumn(column)}.';
-    }
-    return 'Data inválida ou em formato não reconhecido.';
-  }
-
-  if (lower.contains('invalid input syntax for type numeric') ||
-      lower.contains('invalid input syntax for type double') ||
-      lower.contains('invalid input syntax for type integer')) {
-    if (column != null) {
-      return 'Valor numérico inválido no campo ${_labelRebanhoColumn(column)}.';
-    }
-    return 'Valor numérico inválido em uma das colunas de peso/valor.';
-  }
-
-  if (lower.contains('duplicate key') || lower.contains('unique constraint')) {
-    if (keyColumn != null) {
-      return 'Registro duplicado para chave única no campo ${_labelRebanhoColumn(keyColumn)}.';
-    }
-    return 'Registro duplicado para chave única.';
-  }
-
-  if (lower.contains('null value in column') ||
-      lower.contains('not-null constraint')) {
-    if (column != null) {
-      return 'Campo obrigatório ausente: ${_labelRebanhoColumn(column)}.';
-    }
-    return 'Campo obrigatório ausente.';
-  }
-
-  if (lower.contains('violates foreign key constraint') ||
-      lower.contains('foreign key')) {
-    if (keyColumn != null) {
-      return 'Referência inválida no campo ${_labelRebanhoColumn(keyColumn)} (registro relacionado não encontrado).';
-    }
-    return 'Referência inválida (ex.: lote, matriz ou reprodutor inexistente).';
-  }
-
-  if (lower.contains('dados de importação inválidos') ||
-      lower.contains('dados de importacao invalidos')) {
-    return raw.replaceFirst('FormatException: ', '');
-  }
-
-  return raw;
-}
-
-String? _extractErrorColumn(String lowerRaw) {
-  final match = RegExp(r'column\s+"([^"]+)"').firstMatch(lowerRaw);
-  return match?.group(1);
-}
-
-String? _extractKeyColumn(String lowerRaw) {
-  final match = RegExp(r'key\s*\(([^\)]+)\)').firstMatch(lowerRaw);
-  return match?.group(1)?.trim();
-}
-
-String _labelRebanhoColumn(String column) {
-  switch (column) {
-    case 'datanascimento':
-      return 'Data de nascimento';
-    case 'datadesmama':
-      return 'Data de desmama';
-    case 'dataultimapesagem':
-      return 'Data da última pesagem';
-    case 'datavenda':
-      return 'Data de venda';
-    case 'dataacao':
-      return 'Data de compra';
-    case 'data_morte':
-      return 'Data de morte';
-    case 'pesoatual':
-      return 'Peso atual';
-    case 'pesodesmama':
-      return 'Peso de desmama';
-    case 'pesonascimento':
-      return 'Peso de nascimento';
-    case 'valorcompra':
-      return 'Valor de compra';
-    case 'valorvenda':
-      return 'Valor de venda';
-    case 'loteid':
-      return 'Lote';
-    case 'rebanhoidmatriz':
-      return 'Matriz';
-    case 'rebanhoidreprodutor':
-      return 'Reprodutor';
-    case 'numeroanimal':
-      return 'Número do animal';
-    case 'idrebanho':
-      return 'ID do animal';
-    default:
-      return column;
-  }
-}
+String _labelRebanhoColumn(String column) => labelColunaImportacao(column);
 
 String? _validateCleanRebanhoRecord(Map<String, dynamic> data) {
   const strictIdentifierColumns = [
@@ -1280,97 +1155,15 @@ Future<void> _syncDataUltimaPesagem(Set<String> idsRebanho) async {
 }
 
 // Função auxiliar para validar se o peso é válido
-bool _isValidPeso(dynamic peso) {
-  if (peso == null) return false;
-  if (peso == "null" || peso == "undefined" || peso == "") return false;
-  if (peso is String && peso.trim().isEmpty) return false;
+bool _isValidPeso(dynamic peso) => isValidPesoImport(peso);
 
-  try {
-    final pesoNum = _parsePeso(peso);
-    return pesoNum != null && pesoNum > 0;
-  } catch (e) {
-    return false;
-  }
-}
-
-bool _isValidDate(String? dateValue) {
-  if (dateValue == null) return false;
-  final trimmed =
-      dateValue.trim().replaceAll('null', '').replaceAll('undefined', '');
-  if (trimmed.isEmpty) return false;
-  return DateTime.tryParse(trimmed) != null;
-}
+bool _isValidDate(String? dateValue) => isValidDateImport(dateValue);
 
 // Função auxiliar para converter peso para número
-num? _parsePeso(dynamic peso) {
-  if (peso == null) return null;
-
-  try {
-    if (peso is num) return peso;
-    if (peso is String) {
-      // Remover espaços e trocar vírgula por ponto
-      final cleaned = peso.trim().replaceAll(',', '.');
-      return num.parse(cleaned);
-    }
-    return null;
-  } catch (e) {
-    print('Erro ao converter peso: $peso - $e');
-    return null;
-  }
-}
+num? _parsePeso(dynamic peso) => parsePesoImport(peso);
 
 // Função auxiliar para corrigir problemas de encoding (acentuação)
-String _fixEncoding(String text) {
-  try {
-    text = _stripControlChars(text);
-
-    // Heurística: corrige strings UTF-8 interpretadas como Latin-1.
-    // Ex.: "FÃªmea" -> "Fêmea".
-    if (!_looksMojibake(text)) {
-      return text;
-    }
-
-    final originalScore = _mojibakeScore(text);
-    String? candidate;
-
-    try {
-      final bytes = latin1.encode(text);
-      candidate = utf8.decode(bytes);
-    } catch (_) {
-      try {
-        final bytes = latin1.encode(text);
-        candidate = utf8.decode(bytes, allowMalformed: true);
-      } catch (_) {}
-    }
-
-    if (candidate != null && _mojibakeScore(candidate) < originalScore) {
-      return _stripControlChars(candidate);
-    }
-    return text;
-  } catch (e) {
-    print('Erro ao corrigir encoding: $e');
-    return text;
-  }
-}
-
-String _stripControlChars(String value) {
-  return value.replaceAll(
-    RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFFFD]'),
-    '',
-  );
-}
-
-bool _looksMojibake(String value) {
-  return value.contains('Ã') || value.contains('Â') || value.contains('�');
-}
-
-int _mojibakeScore(String value) {
-  var score = 0;
-  for (final ch in value.split('')) {
-    if (ch == 'Ã' || ch == 'Â' || ch == '�') score += 2;
-  }
-  return score;
-}
+String _fixEncoding(String text) => fixEncodingImport(text);
 
 // Função auxiliar para gerar id_reproducao único
 String _generateIdReproducao() {
@@ -1393,50 +1186,7 @@ String _generateUniqueIdReproducao(Set<String> usedIds) {
 }
 
 // Função auxiliar para converter data de DD/MM/YYYY para YYYY-MM-DD
-String? _convertDateFormat(String dateStr) {
-  if (dateStr.isEmpty) return null;
-
-  try {
-    // Remover espaços em branco
-    dateStr = dateStr.trim();
-
-    // Verificar se já está no formato YYYY-MM-DD (com ou sem hora)
-    final isoMatch =
-        RegExp(r'^(\d{4}-\d{2}-\d{2})(?:\s+.*)?$').firstMatch(dateStr);
-    if (isoMatch != null) {
-      final isoDate = isoMatch.group(1)!;
-      final parsedIso = DateTime.tryParse(isoDate);
-      if (parsedIso == null) {
-        print('Data ISO inválida: $dateStr');
-        return null;
-      }
-      return isoDate;
-    }
-
-    // Verificar formato DD/MM/YYYY (com ou sem hora no final)
-    final brMatch = RegExp(r'^(\d{2})[/\-](\d{2})[/\-](\d{4})(?:\s+.*)?$')
-        .firstMatch(dateStr);
-    if (brMatch != null) {
-      final day = brMatch.group(1)!;
-      final month = brMatch.group(2)!;
-      final year = brMatch.group(3)!;
-      final converted = '$year-$month-$day';
-      final parsedBr = DateTime.tryParse(converted);
-      if (parsedBr == null) {
-        print('Data BR inválida: $dateStr');
-        return null;
-      }
-      return converted;
-    }
-
-    // Se não conseguir converter, retorna null
-    print('Formato de data não reconhecido: $dateStr');
-    return null;
-  } catch (e) {
-    print('Erro ao converter data: $dateStr - $e');
-    return null;
-  }
-}
+String? _convertDateFormat(String dateStr) => convertDateFormatImport(dateStr);
 
 // Set your action name, define your arguments and return parameter,
 // and then add the boilerplate code using the green button on the right!

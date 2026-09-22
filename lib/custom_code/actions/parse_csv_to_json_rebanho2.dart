@@ -8,38 +8,122 @@ import '/flutter_flow/flutter_flow_util.dart';
 import 'dart:convert';
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart' as xl;
+import '/importacao/import_texto_utils.dart';
+import '/importacao/import_diagnostico_model.dart';
+import '/importacao/import_arquivo_probe.dart';
+import '/importacao/import_erro_amigavel.dart';
 
-Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
+/// Le a planilha de Rebanho reportando tudo o que observou.
+///
+/// Diferente de [parseCsvToJsonRebanho2], nao engole problema: cada arquivo
+/// rejeitado e cada linha reprovada viram uma ImportOcorrencia em vez de um
+/// print() no console. As linhas reprovadas continuam em `registros`, marcadas
+/// pelo numero de linha, para que o relatorio feche com a planilha aberta na
+/// tela do usuario.
+Future<ImportParseResult> parseCsvToJsonRebanho2Detalhado(
+  FFUploadedFile? csvFile,
+) async {
+  final ocorrencias = <ImportOcorrencia>[];
+  final linhasInvalidas = <int>{};
+
+  final nomeArquivo = csvFile == null
+      ? null
+      : (csvFile.originalFilename.isNotEmpty
+          ? csvFile.originalFilename
+          : csvFile.name);
+
+  ImportParseResult abortar(
+    String codigo,
+    String mensagem, {
+    String? sugestao,
+    ImportArquivoInfo? arquivo,
+  }) {
+    ocorrencias.add(ImportOcorrencia(
+      codigo: codigo,
+      severidade: ImportSeveridade.bloqueante,
+      escopo: ImportEscopo.arquivo,
+      mensagem: mensagem,
+      sugestao: sugestao,
+    ));
+    return ImportParseResult(
+      registros: const [],
+      arquivo: arquivo ??
+          ImportArquivoInfo(
+            nomeArquivo: nomeArquivo,
+            tamanhoBytes: csvFile?.bytes?.length,
+          ),
+      ocorrencias: ocorrencias,
+      linhasInvalidas: linhasInvalidas,
+    );
+  }
+
   if (csvFile == null || csvFile.bytes == null || csvFile.bytes!.isEmpty) {
-    return [];
+    return abortar(
+      ImportCodigo.arqVazio,
+      'O arquivo está vazio ou não foi selecionado.',
+      sugestao: 'Selecione a planilha preenchida e tente de novo.',
+    );
+  }
+
+  final List<int> bytes = csvFile.bytes!;
+  final fileName = (csvFile.originalFilename.isNotEmpty
+          ? csvFile.originalFilename
+          : (csvFile.name ?? ''))
+      .toLowerCase();
+
+  if (_isLegacyXlsBinary(bytes, fileName)) {
+    return abortar(
+      ImportCodigo.arqXlsBinario,
+      'Arquivo .xls antigo não é suportado.',
+      sugestao: 'No Excel, use Arquivo → Salvar como → Pasta de Trabalho do '
+          'Excel (.xlsx), ou CSV UTF-8.',
+      arquivo: ImportArquivoInfo(
+        nomeArquivo: nomeArquivo,
+        tamanhoBytes: bytes.length,
+        formato: 'xls',
+      ),
+    );
+  }
+
+  final isXlsx = _isXlsxFile(bytes, fileName);
+  final formato = isXlsx ? 'xlsx' : 'csv';
+
+  if (!isXlsx && _looksLikeBinaryContent(bytes)) {
+    return abortar(
+      ImportCodigo.arqBinarioNaoTexto,
+      'O arquivo não parece ser uma planilha de texto (pode ser PDF, imagem '
+      'ou estar corrompido).',
+      sugestao: 'Exporte a planilha como CSV UTF-8 ou .xlsx.',
+      arquivo: ImportArquivoInfo(
+        nomeArquivo: nomeArquivo,
+        tamanhoBytes: bytes.length,
+        formato: formato,
+      ),
+    );
   }
 
   try {
-    final List<int> bytes = csvFile.bytes!;
-    final fileName = (csvFile.originalFilename.isNotEmpty
-            ? csvFile.originalFilename
-            : (csvFile.name ?? ''))
-        .toLowerCase();
+    final leitura = isXlsx ? _lerXlsx(bytes) : _lerCsv(bytes);
+    final List<List<dynamic>> rows = leitura.rows;
 
-    if (_isLegacyXlsBinary(bytes, fileName)) {
-      print(
-        'Arquivo .xls binário não suportado na importação. Exporte como .xlsx ou CSV.',
+    final infoBase = ImportArquivoInfo(
+      nomeArquivo: nomeArquivo,
+      tamanhoBytes: bytes.length,
+      formato: formato,
+      delimitador: leitura.delimitador,
+      encodingUsado: leitura.encoding,
+      abaUsada: leitura.abaUsada,
+      totalAbas: leitura.totalAbas,
+    );
+
+    if (rows.isEmpty) {
+      return abortar(
+        ImportCodigo.arqSemLinhasDados,
+        'Não foi possível ler nenhuma linha da planilha.',
+        sugestao: 'Confira se o arquivo não está vazio ou protegido por senha.',
+        arquivo: infoBase,
       );
-      return [];
     }
-
-    final isXlsx = _isXlsxFile(bytes, fileName);
-    if (!isXlsx && _looksLikeBinaryContent(bytes)) {
-      print(
-        'Arquivo parece binário e não será importado como CSV para evitar caracteres corrompidos.',
-      );
-      return [];
-    }
-
-    final List<List<dynamic>> rows =
-        isXlsx ? _parseXlsx(bytes) : _parseCsv(bytes);
-
-    if (rows.isEmpty) return [];
 
     // 6. Colunas do banco (para fallback por posição quando CSV já vem exportado)
     const dbColumnsInOrder = [
@@ -166,9 +250,11 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
       'valorVenda',
     ];
 
-    // 7. Detectar layout do CSV
-    // - Se a primeira linha contém headers, mapear por nome.
-    // - Caso contrário (ou se parecer export do banco sem header do usuário), usar fallback por posição.
+    // --- detectar layout ---------------------------------------------------
+    // Se a primeira linha tem cabecalho conhecido, mapeia por nome. Caso
+    // contrario o parser historicamente cai num mapeamento por POSICAO cuja
+    // ordem comeca em id, created_at, idPropriedade -- e a planilha do produtor,
+    // que comeca em "Numero", entra inteira deslocada. Agora isso e reportado.
     final headerRow = rows.first;
     final headerStrings = headerRow
         .map((e) => e == null ? '' : e.toString())
@@ -187,93 +273,294 @@ Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
         (looksLikeUserTemplate || looksLikeDbExport) &&
             normalizedHeaders.any((h) => h.isNotEmpty);
 
-    if (useHeaderMapping) {
-      final mapping = _buildHeaderToDbMapping(headerStrings, dbColumnSet);
+    final mapping = useHeaderMapping
+        ? _buildHeaderToDbMapping(headerStrings, dbColumnSet)
+        : <String, int>{
+            for (var i = 0; i < dbColumnsInOrder.length; i++)
+              dbColumnsInOrder[i]: i
+          };
 
-      final out = <dynamic>[];
-      for (final row in rows.skip(1)) {
-        if (_isCsvRowEmpty(row)) continue;
+    final exame = examinarCabecalho(
+      entidade: ImportEntidade.rebanho,
+      headers: headerStrings,
+      mapeamento: mapping,
+    );
 
-        final map = <String, dynamic>{};
+    final arquivo = infoBase.copyWith(
+      usouFallbackPosicional: !useHeaderMapping,
+      headersOriginais: headerStrings.where((h) => h.isNotEmpty).toList(),
+      headersReconhecidos: exame.reconhecidos,
+      headersDesconhecidos: useHeaderMapping ? exame.desconhecidos : const [],
+      colunasObrigatoriasFaltando:
+          useHeaderMapping ? exame.obrigatoriasFaltando : const [],
+      colunasDuplicadas: exame.duplicados,
+      entidadeDetectada: detectarEntidadePorHeaders(headerStrings),
+    );
 
-        mapping.forEach((dbColumn, index) {
-          final raw = (index < row.length && row[index] != null)
-              ? row[index].toString()
-              : '';
-          final value = _cleanText(raw);
-          final cleaned = _cleanCellToNull(value, dbColumn, numericColumns);
-          if (cleaned == null) {
-            map[dbColumn] = null;
-            return;
-          }
-
-          if (dateColumns.contains(dbColumn)) {
-            map[dbColumn] = cleaned;
-          } else if (numericColumns.contains(dbColumn)) {
-            map[dbColumn] = _parseNumberPtBr(cleaned);
-          } else {
-            map[dbColumn] = cleaned;
-          }
-        });
-
-        // Campos que o usuário normalmente não tem: deixam null para o batch_insert gerar/limpar.
-        map.putIfAbsent('idRebanho', () => null);
-        map.putIfAbsent('idPropriedade', () => null);
-
-        if (_isAllValuesMissing(map.values)) continue;
-        final validationError = _validateParsedRecord(map);
-        if (validationError != null) {
-          print('Linha ignorada na importação de rebanho: $validationError');
-          continue;
-        }
-        out.add(map);
-      }
-
-      return out;
-    }
-
-    // Fallback: CSV sem header (ou inesperado), por posição com a ordem do banco.
+    // --- ler as linhas de dados -------------------------------------------
     final out = <dynamic>[];
+    var totalLinhas = 0;
+    var linhasEmBranco = 0;
+
+    // A linha 1 e o cabecalho, entao a primeira linha de dados e a 2.
+    var numeroLinha = 1;
     for (final row in rows.skip(1)) {
-      if (_isCsvRowEmpty(row)) continue;
+      numeroLinha++;
+      if (_isCsvRowEmpty(row)) {
+        linhasEmBranco++;
+        continue;
+      }
+      totalLinhas++;
 
       final map = <String, dynamic>{};
 
-      for (var i = 0; i < dbColumnsInOrder.length; i++) {
-        final dbColumn = dbColumnsInOrder[i];
-        final raw = (i < row.length && row[i] != null) ? row[i].toString() : '';
+      mapping.forEach((dbColumn, index) {
+        final raw = (index < row.length && row[index] != null)
+            ? row[index].toString()
+            : '';
         final value = _cleanText(raw);
         final cleaned = _cleanCellToNull(value, dbColumn, numericColumns);
 
+        // O zero convertido em vazio e um comportamento antigo e surpreendente:
+        // o animal cujo numero e literalmente "0" perde o numero.
         if (cleaned == null) {
+          if (value == '0' && !numericColumns.contains(dbColumn)) {
+            ocorrencias.add(ImportOcorrencia(
+              codigo: ImportCodigo.rebZeroViraVazio,
+              severidade: ImportSeveridade.aviso,
+              escopo: ImportEscopo.dado,
+              linha: numeroLinha,
+              coluna: dbColumn,
+              valor: value,
+              mensagem: 'Linha $numeroLinha: o valor "0" em '
+                  '${labelColunaImportacao(dbColumn.toLowerCase())} será '
+                  'tratado como vazio.',
+              sugestao: 'Se o valor é realmente 0, escreva "000".',
+            ));
+          }
           map[dbColumn] = null;
-          continue;
+          return;
         }
 
         if (dateColumns.contains(dbColumn)) {
           map[dbColumn] = cleaned;
         } else if (numericColumns.contains(dbColumn)) {
-          map[dbColumn] = _parseNumberPtBr(cleaned);
+          // O bruto e perdido na conversao, entao o problema numerico so pode
+          // ser detectado aqui, onde o texto original ainda existe.
+          final numero = _parseNumberPtBr(cleaned);
+          if (numero == null) {
+            ocorrencias.add(ImportOcorrencia(
+              codigo: ImportCodigo.rebNumeroInvalido,
+              severidade: ImportSeveridade.bloqueante,
+              escopo: ImportEscopo.dado,
+              linha: numeroLinha,
+              coluna: dbColumn,
+              valor: cleaned,
+              mensagem: 'Linha $numeroLinha: '
+                  '${labelColunaImportacao(dbColumn.toLowerCase())} "$cleaned" '
+                  'não é um número.',
+              sugestao: 'Escreva apenas o número, sem unidade '
+                  '(ex.: 480 em vez de "480 kg").',
+            ));
+            linhasInvalidas.add(numeroLinha);
+          } else if (_pontoDeMilharAmbiguo(cleaned)) {
+            ocorrencias.add(ImportOcorrencia(
+              codigo: ImportCodigo.rebNumeroPtbrAmbiguo,
+              severidade: ImportSeveridade.aviso,
+              escopo: ImportEscopo.dado,
+              linha: numeroLinha,
+              coluna: dbColumn,
+              valor: cleaned,
+              mensagem: 'Linha $numeroLinha: '
+                  '${labelColunaImportacao(dbColumn.toLowerCase())} "$cleaned" '
+                  'foi lido como $numero, e não como '
+                  '${cleaned.replaceAll('.', '')}.',
+              sugestao: 'Escreva sem separador de milhar '
+                  '(${cleaned.replaceAll('.', '')}) ou use vírgula para '
+                  'decimal.',
+            ));
+          }
+          map[dbColumn] = numero;
         } else {
           map[dbColumn] = cleaned;
         }
-      }
+      });
 
-      if (_isAllValuesMissing(map.values)) continue;
-      final validationError = _validateParsedRecord(map);
-      if (validationError != null) {
-        print('Linha ignorada na importação de rebanho: $validationError');
+      // Campos que o usuário normalmente não tem: deixam null para o
+      // batch_insert gerar/limpar.
+      map.putIfAbsent('idRebanho', () => null);
+      map.putIfAbsent('idPropriedade', () => null);
+
+      if (_isAllValuesMissing(map.values)) {
+        linhasEmBranco++;
+        totalLinhas--;
         continue;
       }
+
+      // O que antes saia por print() e virava linha desaparecida agora e
+      // relatado, e a linha segue na lista marcada como invalida.
+      final validationError = _validateParsedRecord(map);
+      if (validationError != null) {
+        ocorrencias.add(ImportOcorrencia(
+          codigo: _codigoDoErroDeValidacao(validationError),
+          severidade: ImportSeveridade.bloqueante,
+          escopo: ImportEscopo.dado,
+          linha: numeroLinha,
+          mensagem: 'Linha $numeroLinha: $validationError',
+          sugestao: 'Corrija a linha na planilha ou remova-a.',
+        ));
+        linhasInvalidas.add(numeroLinha);
+      }
+
+      map[kCampoLinhaArquivo] = numeroLinha;
       out.add(map);
     }
 
-    return out;
+    if (linhasEmBranco > 0) {
+      ocorrencias.add(ImportOcorrencia(
+        codigo: ImportCodigo.arqLinhasEmBranco,
+        severidade: ImportSeveridade.informativo,
+        escopo: ImportEscopo.arquivo,
+        mensagem: '$linhasEmBranco linha(s) em branco foram ignoradas.',
+      ));
+    }
+
+    if (linhasInvalidas.isNotEmpty) {
+      ocorrencias.add(ImportOcorrencia(
+        codigo: ImportCodigo.arqLinhasDescartadas,
+        severidade: ImportSeveridade.aviso,
+        escopo: ImportEscopo.arquivo,
+        mensagem: '${linhasInvalidas.length} de $totalLinhas linha(s) não '
+            'podem ser importadas por problema no conteúdo.',
+        sugestao: 'Veja o detalhe de cada uma na lista abaixo.',
+      ));
+    }
+
+    ocorrencias.addAll(diagnosticarEstrutura(
+      entidade: ImportEntidade.rebanho,
+      arquivo: arquivo,
+      totalLinhasDados: totalLinhas,
+    ));
+
+    return ImportParseResult(
+      registros: out,
+      arquivo: arquivo,
+      ocorrencias: ocorrencias,
+      linhasInvalidas: linhasInvalidas,
+      totalLinhas: totalLinhas,
+    );
   } catch (e, stack) {
-    print('Erro no processamento CSV: $e');
+    print('Erro no processamento da planilha de rebanho: $e');
     print(stack);
-    return [];
+    return abortar(
+      ImportCodigo.arqBinarioNaoTexto,
+      'Não foi possível ler a planilha: $e',
+      sugestao: 'Confira se o arquivo é um CSV ou .xlsx válido.',
+    );
   }
+}
+
+/// True quando o texto tem ponto seguido de exatamente 3 digitos e nenhuma
+/// virgula -- assinatura de separador de milhar que parseNumberPtBrImport
+/// interpreta como decimal ("1.234" vira 1,234 kg).
+bool _pontoDeMilharAmbiguo(String texto) {
+  if (texto.contains(',')) return false;
+  return RegExp(r'^\d{1,3}(\.\d{3})+$').hasMatch(texto.trim());
+}
+
+/// Traduz a mensagem de _validateParsedRecord no codigo de catalogo
+/// correspondente, para que o relatorio agrupe por causa.
+String _codigoDoErroDeValidacao(String erro) {
+  final lower = erro.toLowerCase();
+  if (lower.contains('identificador')) {
+    return ImportCodigo.rebIdentificadorImplausivel;
+  }
+  if (lower.contains('corrompid') || lower.contains('incompat')) {
+    return ImportCodigo.rebTextoCorrompido;
+  }
+  return ImportCodigo.rebSemIdentidade;
+}
+
+/// Mantida para os call-sites que ainda nao usam o diagnostico. Preserva o
+/// comportamento antigo: descarta as linhas reprovadas e nao expoe os campos
+/// auxiliares do relatorio.
+Future<List<dynamic>> parseCsvToJsonRebanho2(FFUploadedFile? csvFile) async {
+  final resultado = await parseCsvToJsonRebanho2Detalhado(csvFile);
+  return resultado.registrosCompativeis
+      .map((r) => r is Map
+          ? (Map<String, dynamic>.from(r)..remove(kCampoLinhaArquivo))
+          : r)
+      .toList();
+}
+
+/// Resultado bruto da leitura da planilha, com os metadados que o diagnostico
+/// precisa relatar (delimitador detectado, encoding usado, aba lida).
+/// Antes esses dados so apareciam em print() e se perdiam.
+class _LeituraPlanilha {
+  final List<List<dynamic>> rows;
+  final String? delimitador;
+  final String? encoding;
+  final String? abaUsada;
+  final int? totalAbas;
+
+  const _LeituraPlanilha({
+    required this.rows,
+    this.delimitador,
+    this.encoding,
+    this.abaUsada,
+    this.totalAbas,
+  });
+}
+
+/// Le um .xlsx. Assim como antes, usa apenas a PRIMEIRA aba -- a diferenca e
+/// que agora informa quantas existem, para o diagnostico avisar o usuario.
+_LeituraPlanilha _lerXlsx(List<int> bytes) {
+  final excel = xl.Excel.decodeBytes(bytes);
+  if (excel.tables.isEmpty) {
+    return const _LeituraPlanilha(rows: [], totalAbas: 0);
+  }
+  final sheetName = excel.tables.keys.first;
+  final totalAbas = excel.tables.length;
+  return _LeituraPlanilha(
+    rows: _parseXlsx(bytes),
+    abaUsada: sheetName,
+    totalAbas: totalAbas,
+  );
+}
+
+/// Le um CSV, devolvendo tambem o delimitador e o encoding escolhidos.
+_LeituraPlanilha _lerCsv(List<int> bytes) {
+  List<int> cleanBytes = bytes;
+  var encoding = 'utf-8';
+
+  String? csvString = _decodeUtf16Bom(cleanBytes);
+  if (csvString != null) {
+    encoding = 'utf-16';
+  } else {
+    if (cleanBytes.length >= 3 &&
+        cleanBytes[0] == 0xEF &&
+        cleanBytes[1] == 0xBB &&
+        cleanBytes[2] == 0xBF) {
+      cleanBytes = cleanBytes.sublist(3);
+      encoding = 'utf-8-bom';
+    }
+    csvString = _decodeWithBestEncoding(cleanBytes);
+  }
+
+  csvString = csvString.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+  final delimiter = _detectDelimiter(csvString.split('\n').first);
+
+  final converter = CsvToListConverter(
+    fieldDelimiter: delimiter,
+    eol: '\n',
+    shouldParseNumbers: false,
+    allowInvalid: true,
+  );
+  return _LeituraPlanilha(
+    rows: converter.convert(csvString),
+    delimitador: delimiter,
+    encoding: encoding,
+  );
 }
 
 bool _isXlsxFile(List<int> bytes, String fileName) {
@@ -374,42 +661,6 @@ List<List<dynamic>> _parseXlsx(List<int> bytes) {
   return rows;
 }
 
-List<List<dynamic>> _parseCsv(List<int> bytes) {
-  List<int> cleanBytes = bytes;
-  String? csvString = _decodeUtf16Bom(cleanBytes);
-
-  // 1. Detectar e remover BOM (Byte Order Mark)
-  if (csvString == null &&
-      cleanBytes.length >= 3 &&
-      cleanBytes[0] == 0xEF &&
-      cleanBytes[1] == 0xBB &&
-      cleanBytes[2] == 0xBF) {
-    cleanBytes = cleanBytes.sublist(3);
-    print('BOM UTF-8 removido');
-  }
-
-  // 2. Melhor detecção de encoding
-  csvString ??= _decodeWithBestEncoding(cleanBytes);
-
-  // 3. Normalizar quebras de linha
-  csvString = csvString.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
-
-  // 4. Detectar delimitador (usa a primeira linha como base)
-  String firstLine = csvString.split('\n').first;
-  String delimiter = _detectDelimiter(firstLine);
-  print('Delimitador detectado: "$delimiter"');
-
-  // 5. Ler CSV respeitando o delimitador detectado
-  final converter = CsvToListConverter(
-    fieldDelimiter: delimiter,
-    eol: '\n',
-    shouldParseNumbers: false,
-    allowInvalid: true,
-  );
-
-  return converter.convert(csvString);
-}
-
 bool _isCsvRowEmpty(List<dynamic> row) {
   if (row.isEmpty) return true;
   for (final cell in row) {
@@ -472,76 +723,13 @@ String? _validateParsedRecord(Map<String, dynamic> map) {
   return null;
 }
 
-String? _cleanStringOrNull(dynamic value) {
-  if (value == null) return null;
-  final cleaned = _cleanText(value.toString());
-  if (cleaned.isEmpty ||
-      cleaned.toLowerCase() == 'null' ||
-      cleaned.toLowerCase() == 'undefined') {
-    return null;
-  }
-  return cleaned;
-}
+String? _cleanStringOrNull(dynamic value) => cleanStringOrNullImport(value);
 
-bool _isPlausibleImportIdentifier(String value) {
-  final trimmed = value.trim();
-  if (trimmed.isEmpty || trimmed.length > 80) return false;
+bool _isPlausibleImportIdentifier(String value) =>
+    isPlausibleImportIdentifier(value);
 
-  var hasLetterOrDigit = false;
-  for (final rune in trimmed.runes) {
-    if (_isWhitespaceRune(rune)) continue;
-    if (!_isAllowedImportTextRune(rune)) return false;
-    if (_isImportIdentifierLetterOrDigit(rune)) {
-      hasLetterOrDigit = true;
-    }
-  }
-
-  return hasLetterOrDigit;
-}
-
-bool _looksLikeCorruptedImportText(String value) {
-  final text = value.trim();
-  if (text.isEmpty) return false;
-  if (text.contains('\uFFFD')) return true;
-
-  final artifactMatches = RegExp(
-    r'[¢£¤¥¦¨©ª«¬®¯±²³µ¶·¸¹»¼½¾¿ÆÐ×ØÞßæ÷øþ]',
-  ).allMatches(text).length;
-  if (artifactMatches >= 2) return true;
-
-  var nonSpace = 0;
-  var unusualSymbols = 0;
-  for (final rune in text.runes) {
-    if (_isWhitespaceRune(rune)) continue;
-    nonSpace++;
-    if (_isAllowedImportTextRune(rune)) continue;
-    unusualSymbols++;
-  }
-
-  return nonSpace > 0 &&
-      unusualSymbols >= 3 &&
-      unusualSymbols / nonSpace > 0.25;
-}
-
-bool _isWhitespaceRune(int rune) =>
-    rune == 0x20 || rune == 0x09 || rune == 0x0A || rune == 0x0D;
-
-bool _isAllowedImportTextRune(int rune) {
-  final isAsciiLetter =
-      (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
-  final isDigit = rune >= 0x30 && rune <= 0x39;
-  final isLatinLetter = (rune >= 0x00C0 && rune <= 0x017F);
-  final isCommonPunctuation = '.,;:/_-#()*+@\'"&ªº°'.runes.contains(rune);
-  return isAsciiLetter || isDigit || isLatinLetter || isCommonPunctuation;
-}
-
-bool _isImportIdentifierLetterOrDigit(int rune) {
-  final isAsciiLetter =
-      (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);
-  final isDigit = rune >= 0x30 && rune <= 0x39;
-  final isLatinLetter = (rune >= 0x00C0 && rune <= 0x017F);
-  return isAsciiLetter || isDigit || isLatinLetter;
-}
+bool _looksLikeCorruptedImportText(String value) =>
+    looksLikeCorruptedImportText(value);
 
 // Função auxiliar para decodificação customizada (fallback)
 String _decodeWithBestEncoding(List<int> bytes) {
@@ -620,17 +808,9 @@ String? _decodeUtf16Bom(List<int> bytes) {
   return buffer.toString();
 }
 
-bool _looksMojibake(String value) {
-  return value.contains('Ã') || value.contains('Â') || value.contains('�');
-}
+bool _looksMojibake(String value) => looksMojibakeImport(value);
 
-int _mojibakeScore(String value) {
-  var score = 0;
-  for (final ch in value.split('')) {
-    if (ch == 'Ã' || ch == 'Â' || ch == '�') score += 2;
-  }
-  return score;
-}
+int _mojibakeScore(String value) => mojibakeScoreImport(value);
 
 // Função auxiliar para detectar delimitador
 String _detectDelimiter(String firstLine) {
@@ -650,73 +830,15 @@ String _detectDelimiter(String firstLine) {
 }
 
 // Função auxiliar para limpar texto preservando acentos
-String _cleanText(String text) {
-  if (text.isEmpty) return text;
-
-  // Remove espaços extras mas preserva acentos
-  return text
-      .trim()
-      .replaceAll(RegExp(r'\s+'), ' ') // Múltiplos espaços viram um só
-      .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFFFD]'),
-          ''); // Remove caracteres de controle e substituições inválidas
-}
+String _cleanText(String text) => cleanTextImport(text);
 
 String? _cleanCellToNull(
-  String value,
-  String column,
-  List<String> numericColumns,
-) {
-  final lower = value.toLowerCase();
-  if (value.isEmpty || lower == 'null' || lower == 'undefined') return null;
-  if (value == '0' && !numericColumns.contains(column)) return null;
-  return value;
-}
+        String value, String column, List<String> numericColumns) =>
+    cleanCellToNullImport(value, column, numericColumns);
 
-double? _parseNumberPtBr(String value) {
-  final trimmed = value.trim();
-  if (trimmed.isEmpty) return null;
+double? _parseNumberPtBr(String value) => parseNumberPtBrImport(value);
 
-  // Ex.: "1.234,56" -> "1234.56" | "1234,56" -> "1234.56"
-  if (trimmed.contains(',')) {
-    final normalized = trimmed.replaceAll('.', '').replaceAll(',', '.');
-    return double.tryParse(normalized);
-  }
-  return double.tryParse(trimmed);
-}
-
-String _normalizeHeader(String header) {
-  var h = _cleanText(header).toLowerCase();
-  h = h
-      .replaceAll('á', 'a')
-      .replaceAll('à', 'a')
-      .replaceAll('ã', 'a')
-      .replaceAll('â', 'a')
-      .replaceAll('ä', 'a')
-      .replaceAll('é', 'e')
-      .replaceAll('ê', 'e')
-      .replaceAll('è', 'e')
-      .replaceAll('ë', 'e')
-      .replaceAll('í', 'i')
-      .replaceAll('î', 'i')
-      .replaceAll('ì', 'i')
-      .replaceAll('ï', 'i')
-      .replaceAll('ó', 'o')
-      .replaceAll('ô', 'o')
-      .replaceAll('ò', 'o')
-      .replaceAll('õ', 'o')
-      .replaceAll('ö', 'o')
-      .replaceAll('ú', 'u')
-      .replaceAll('û', 'u')
-      .replaceAll('ù', 'u')
-      .replaceAll('ü', 'u')
-      .replaceAll('ç', 'c');
-
-  // Padroniza separadores
-  h = h.replaceAll(RegExp(r'[^a-z0-9]+'), '_');
-  h = h.replaceAll(RegExp(r'_+'), '_');
-  h = h.replaceAll(RegExp(r'^_|_$'), '');
-  return h;
-}
+String _normalizeHeader(String header) => normalizeHeaderImport(header);
 
 Map<String, int> _buildHeaderToDbMapping(
   List<String> headerStrings,

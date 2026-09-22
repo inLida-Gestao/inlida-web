@@ -1,50 +1,16 @@
-import 'dart:js_interop';
-import 'dart:typed_data';
-
-import 'package:web/web.dart' as web;
-
-/// Download de arquivo no navegador, compatível com os dois builds web.
+/// Entrega de arquivo ao usuario, com a implementacao escolhida por plataforma.
 ///
-/// O pacote `download` escolhe a implementação por `dart.library.html`. No
-/// build WebAssembly essa condição é falsa, então ele caía na implementação de
-/// `dart:io` e tentava gravar o arquivo em disco de dentro do navegador: toda
-/// exportação parava de funcionar. Aqui usamos `package:web`, que vale para o
-/// build JavaScript e para o WebAssembly.
+/// Por que existe esta indirecao: a implementacao real usa `package:web`, que
+/// depende de `dart:js_interop`. Essa biblioteca nao existe na VM, e
+/// `flutter test` roda na VM -- entao qualquer teste que alcancasse este
+/// arquivo pela cadeia de imports falhava ao carregar, com
+/// "Dart library 'dart:js_interop' is not available on this platform".
+/// Como download_arquivo.dart e alcancavel a partir de
+/// custom_code/actions/index.dart, isso atingia todo teste que tocasse o
+/// pacote, incluindo os que nada tem a ver com download.
 ///
-/// O conteúdo vai por Blob e não por data URL em base64, porque as planilhas
-/// de fazendas grandes passam de alguns MB e o navegador recusa data URL desse
-/// tamanho.
-Future<void> download(Stream<int> stream, String filename) async {
-  final bytes = await stream.toList();
-  await downloadData(Uint8List.fromList(bytes), filename);
-}
-
-/// Publica o conteúdo como um Blob e devolve a URL temporária.
-///
-/// Separado do resto para dar para testar no navegador sem disparar download.
-String criarUrlDoArquivo(Uint8List data) {
-  final blob = web.Blob(
-    <JSAny>[data.toJS].toJS,
-    web.BlobPropertyBag(type: 'application/octet-stream'),
-  );
-  return web.URL.createObjectURL(blob);
-}
-
-Future<void> downloadData(Uint8List data, String filename) async {
-  final nome = filename.replaceAll('/', '_').replaceAll('\\', '_');
-
-  final url = criarUrlDoArquivo(data);
-
-  final ancora = web.document.createElement('a') as web.HTMLAnchorElement
-    ..href = url
-    ..download = nome
-    ..style.display = 'none';
-
-  web.document.body?.appendChild(ancora);
-  ancora.click();
-  ancora.remove();
-
-  // O clique dispara o download de forma assíncrona: revogar na hora cancela
-  // o arquivo em navegadores mais lentos.
-  Future.delayed(const Duration(minutes: 1), () => web.URL.revokeObjectURL(url));
-}
+/// A condicao e `dart.library.io`, e nao `dart.library.html`: html e falso no
+/// build WebAssembly, que foi exatamente a armadilha do pacote `download` que
+/// este helper substituiu.
+export 'download_arquivo_web.dart'
+    if (dart.library.io) 'download_arquivo_vm.dart';

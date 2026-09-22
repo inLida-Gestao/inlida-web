@@ -162,6 +162,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => const PgPaintWidget(),
         ),
         FFRoute(
+          name: PgAuditoriaImportacaoWidget.routeName,
+          path: PgAuditoriaImportacaoWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => const PgAuditoriaImportacaoWidget(),
+        ),
+        FFRoute(
           name: PaintAvaliadorWidget.routeName,
           path: PaintAvaliadorWidget.routePath,
           requireAuth: true,

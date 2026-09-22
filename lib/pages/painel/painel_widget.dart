@@ -3731,12 +3731,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         pInseminador: _model
                                                                             .filtroInseminadorTaxaConcepcaoValues
                                                                             .join(','),
-                                                                        pTipoReproducao: _model
-                                                                                    .filtroTipoConcepcaoValue ==
+                                                                        pTipoReproducao: _model.filtroTipoConcepcaoValue ==
                                                                                 'Todos'
                                                                             ? ''
-                                                                            : _model
-                                                                                .filtroTipoConcepcaoValue,
+                                                                            : _model.filtroTipoConcepcaoValue,
                                                                         pRessinc: _model
                                                                             .filtroRessincTaxaConcepcaoValues
                                                                             .join(','),
@@ -4137,12 +4135,10 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         pInseminador: _model
                                                                             .filtroInseminadorTaxaConcepcaoValues
                                                                             .join(','),
-                                                                        pTipoReproducao: _model
-                                                                                    .filtroTipoTaxaPrenhezValue ==
+                                                                        pTipoReproducao: _model.filtroTipoTaxaPrenhezValue ==
                                                                                 'Todos'
                                                                             ? ''
-                                                                            : _model
-                                                                                .filtroTipoTaxaPrenhezValue,
+                                                                            : _model.filtroTipoTaxaPrenhezValue,
                                                                         pRessinc: _model
                                                                             .filtroRessincTaxaPrenhezValues
                                                                             .join(','),
@@ -4868,8 +4864,7 @@ class _PainelWidgetState extends State<PainelWidget>
                                                                         FFAppState()
                                                                             .propriedadeSelecionada
                                                                             .idPropriedade,
-                                                                    tipoReproducao: _model
-                                                                                .filtroTipoReproducaoPartosValue ==
+                                                                    tipoReproducao: _model.filtroTipoReproducaoPartosValue ==
                                                                             'Todos'
                                                                         ? ''
                                                                         : _model
