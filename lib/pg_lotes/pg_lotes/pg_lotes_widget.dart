@@ -86,11 +86,24 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
     final selectedPropertyId =
         FFAppState().propriedadeSelecionada.idPropriedade;
 
+    // A troca de propriedade por si só invalida a busca. Antes isso dependia da
+    // flag refreshLotes chegar antes do build; quando não chegava, a tela
+    // reaproveitava a resposta da fazenda anterior.
+    if (_model.lastLotesPropertyId != null &&
+        _model.lastLotesPropertyId != selectedPropertyId) {
+      _model.pageNum = 1;
+      _model.apiRequestCompleter = null;
+      _model.lastLotesResponse = null;
+      _model.lastLotesPropertyId = null;
+      _model.isPaginating = false;
+    }
+
     if (FFAppState().refreshLotes) {
       FFAppState().refreshLotes = false;
       _model.pageNum = 1;
       _model.apiRequestCompleter = null;
       _model.lastLotesResponse = null;
+      _model.lastLotesPropertyId = null;
       _model.isPaginating = false;
     }
 
@@ -113,9 +126,13 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
         // Mantem dados anteriores visiveis enquanto recarrega (evita flash cinza ao paginar).
         if (snapshot.hasData) {
           _model.lastLotesResponse = snapshot.data;
+          _model.lastLotesPropertyId = selectedPropertyId;
           _model.isPaginating = false;
         }
-        final hasCachedData = _model.lastLotesResponse != null;
+        // Cache de outra fazenda não serve de ponte: melhor mostrar carregando
+        // do que uma lista que o filtro por propriedade vai esvaziar.
+        final hasCachedData = _model.lastLotesResponse != null &&
+            _model.lastLotesPropertyId == selectedPropertyId;
         // So mostra a tela cheia de loading na primeira carga (sem cache).
         if (!snapshot.hasData && !hasCachedData) {
           return Scaffold(
@@ -168,6 +185,8 @@ class _PgLotesWidgetState extends State<PgLotesWidget> {
         }
         final pgLotesBuscarLotesFiltrosResponse =
             snapshot.data ?? _model.lastLotesResponse!;
+        assert(snapshot.hasData ||
+            _model.lastLotesPropertyId == selectedPropertyId);
         final isLoadingPage = !snapshot.hasData;
 
 

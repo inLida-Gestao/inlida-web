@@ -84,6 +84,12 @@ class PgLotesModel extends FlutterFlowModel<PgLotesWidget> {
   Completer<ApiCallResponse>? apiRequestCompleter;
   // Cache do ultimo resultado bem-sucedido para evitar tela cinza ao paginar.
   ApiCallResponse? lastLotesResponse;
+  /// Propriedade a que o cache acima pertence.
+  ///
+  /// Sem isso, ao trocar de fazenda a tela exibia a resposta da anterior por um
+  /// instante; como a lista descarta linha de outra propriedade, ela ficava
+  /// vazia e aparecia "Nenhum lote cadastrado" mesmo com lotes cadastrados.
+  String? lastLotesPropertyId;
   bool isPaginating = false;
   // Model for header component.
   late HeaderModel headerModel;
