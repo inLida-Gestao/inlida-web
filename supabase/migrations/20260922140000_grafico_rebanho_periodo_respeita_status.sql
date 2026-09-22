@@ -30,12 +30,16 @@
 -- data de nascimento amanhã (erro de digitação da cliente), que o gráfico
 -- corretamente não conta.
 
+-- A assinatura repete os DEFAULTs, o STABLE, o SECURITY DEFINER e o search_path
+-- da função que já está em produção. Sem isso o Postgres recusa o replace
+-- ("cannot remove parameter defaults from existing function"), e trocar
+-- SECURITY DEFINER por INVOKER mudaria quem enxerga os dados.
 create or replace function public.get_rebanho_stats_by_gender_monthly(
-  property_id text,
-  start_year integer,
-  start_month integer,
-  end_year integer,
-  end_month integer
+  property_id text default null::text,
+  start_year integer default (extract(year from current_date))::integer,
+  start_month integer default 1,
+  end_year integer default (extract(year from current_date))::integer,
+  end_month integer default 12
 )
 returns table(
   ano integer,
@@ -47,6 +51,9 @@ returns table(
   quantidade_total bigint
 )
 language plpgsql
+stable
+security definer
+set search_path = public
 as $$
 DECLARE
   start_date date;
