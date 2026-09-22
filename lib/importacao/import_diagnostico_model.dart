@@ -436,6 +436,11 @@ class ImportDiagnostico {
   /// Cada item: {'linha', 'numeroAnimal', 'nome', 'detalhe'}.
   final List<Map<String, dynamic>> registrosAtualizados;
 
+  /// O que exatamente muda em cada registro sobrescrito. Vazio quando o
+  /// diagnostico rodou sem contexto do banco, ou quando a entidade ainda nao
+  /// calcula diff.
+  final List<ImportAlteracaoRegistro> alteracoes;
+
   const ImportDiagnostico({
     required this.entidade,
     required this.arquivo,
@@ -444,6 +449,7 @@ class ImportDiagnostico {
     required this.contagemPorCodigo,
     required this.acaoPorLinha,
     this.registrosAtualizados = const [],
+    this.alteracoes = const [],
   });
 
   int _contaAcao(ImportAcaoLinha acao) =>
@@ -455,6 +461,14 @@ class ImportDiagnostico {
 
   /// Linhas que serao efetivamente gravadas se o usuario importar so as validas.
   int get totalImportavel => totalCriar + totalAtualizar;
+
+  /// Quantos campos, no total, serao sobrescritos.
+  int get totalCamposAlterados =>
+      alteracoes.fold(0, (soma, a) => soma + a.campos.length);
+
+  /// Quantos campos serao APAGADOS porque a planilha veio em branco.
+  int get totalCamposApagados =>
+      alteracoes.fold(0, (soma, a) => soma + a.totalApagados);
 
   List<int> get linhasBloqueadas => (acaoPorLinha.entries
       .where((e) => e.value == ImportAcaoLinha.bloquear)
@@ -549,6 +563,58 @@ class ImportDiagnostico {
 /// planilha que o usuario tem aberta.
 const kCampoLinhaArquivo = '_linhaArquivo';
 
+/// Mudanca de um campo num registro que sera sobrescrito.
+class ImportCampoAlterado {
+  final String coluna;
+
+  /// Valor que esta hoje no banco, ja formatado para leitura.
+  final String? de;
+
+  /// Valor que a planilha traz. Null significa que a coluna veio em branco e o
+  /// dado atual sera APAGADO -- o efeito mais perigoso do upsert de
+  /// importacao, e o que justifica esta estrutura existir.
+  final String? para;
+
+  const ImportCampoAlterado({
+    required this.coluna,
+    required this.de,
+    required this.para,
+  });
+
+  bool get apaga => para == null || para!.isEmpty;
+
+  Map<String, dynamic> toJson() => {'de': de, 'para': para};
+}
+
+/// Um registro que sera sobrescrito, com o que exatamente muda nele.
+class ImportAlteracaoRegistro {
+  /// Linha da planilha, como o usuario a ve.
+  final int linha;
+
+  /// Chave de negocio do registro (idRebanho, por exemplo).
+  final String? chaveNegocio;
+
+  /// Identificacao legivel: "nº 1204 - Estrela".
+  final String identificacao;
+
+  final List<ImportCampoAlterado> campos;
+
+  const ImportAlteracaoRegistro({
+    required this.linha,
+    required this.identificacao,
+    this.chaveNegocio,
+    this.campos = const [],
+  });
+
+  int get totalApagados => campos.where((c) => c.apaga).length;
+
+  bool get temAlteracao => campos.isNotEmpty;
+
+  Map<String, dynamic> camposJson() => {
+        for (final c in campos) c.coluna: c.toJson(),
+      };
+}
+
 /// Saida do parser quando ele reporta o que observou, em vez de engolir.
 ///
 /// [registros] inclui TODAS as linhas de dados, inclusive as que o parser
@@ -593,6 +659,7 @@ class ImportDiagnosticoBuilder {
   final Map<String, int> _contagem = {};
   final Map<int, ImportAcaoLinha> _acao = {};
   final List<Map<String, dynamic>> _atualizados = [];
+  final List<ImportAlteracaoRegistro> _alteracoes = [];
 
   ImportDiagnosticoBuilder({
     required this.entidade,
@@ -624,10 +691,17 @@ class ImportDiagnosticoBuilder {
   }
 
   /// Declara que a linha vai sobrescrever um registro existente.
-  void marcarAtualizar(int linha, {Map<String, dynamic>? resumo}) {
+  void marcarAtualizar(
+    int linha, {
+    Map<String, dynamic>? resumo,
+    ImportAlteracaoRegistro? alteracao,
+  }) {
     if (_acao[linha] == ImportAcaoLinha.bloquear) return;
     _acao[linha] = ImportAcaoLinha.atualizar;
     if (resumo != null) _atualizados.add(resumo);
+    // Registro sem nenhum campo alterado nao entra: a planilha repetiu o que
+    // ja estava gravado, e listar isso so tiraria a atencao do que importa.
+    if (alteracao != null && alteracao.temAlteracao) _alteracoes.add(alteracao);
   }
 
   bool linhaBloqueada(int linha) => _acao[linha] == ImportAcaoLinha.bloquear;
@@ -644,5 +718,6 @@ class ImportDiagnosticoBuilder {
         contagemPorCodigo: Map.unmodifiable(_contagem),
         acaoPorLinha: Map.unmodifiable(_acao),
         registrosAtualizados: List.unmodifiable(_atualizados),
+        alteracoes: List.unmodifiable(_alteracoes),
       );
 }

@@ -310,7 +310,55 @@ class _PpPreConfirmacaoImportacaoWidgetState
             'planilha apagam o que está gravado hoje.',
             style: tema.bodySmall.copyWith(color: tema.primaryText),
           ),
-          if (linhas.isNotEmpty)
+          if (d.totalCamposAlterados > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                '${d.totalCamposAlterados} campo(s) serão alterados'
+                '${d.totalCamposApagados > 0 ? ', sendo ${d.totalCamposApagados} apagado(s)' : ''}.',
+                style: tema.bodySmall.copyWith(
+                  color:
+                      d.totalCamposApagados > 0 ? tema.error : tema.primaryText,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          if (d.alteracoes.isNotEmpty)
+            Theme(
+              data:
+                  Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: EdgeInsets.zero,
+                title: Text(
+                  'Ver o que muda em cada registro',
+                  style: tema.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+                ),
+                children: [
+                  _TabelaPaginada(
+                    colunas: const [
+                      'Linha',
+                      'Registro',
+                      'Campo',
+                      'De',
+                      'Para',
+                    ],
+                    linhas: [
+                      for (final a in d.alteracoes)
+                        for (final c in a.campos)
+                          [
+                            '${a.linha}',
+                            a.identificacao,
+                            labelColunaImportacao(c.coluna.toLowerCase()),
+                            c.de ?? '(vazio)',
+                            c.apaga ? '(será apagado)' : (c.para ?? ''),
+                          ],
+                    ],
+                  ),
+                ],
+              ),
+            )
+          else if (linhas.isNotEmpty)
             Theme(
               data:
                   Theme.of(context).copyWith(dividerColor: Colors.transparent),

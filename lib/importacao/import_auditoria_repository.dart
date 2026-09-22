@@ -24,6 +24,13 @@ const kMaxItensPorCodigo = 50;
 /// Teto de itens detalhados por importacao.
 const kMaxItensPorAuditoria = 1000;
 
+/// Teto de registros sobrescritos detalhados por importacao.
+///
+/// Mais folgado que o dos itens porque aqui e 1 linha por REGISTRO (nao por
+/// campo) e porque este e o dado que responde "o que foi apagado": truncar
+/// cedo demais tiraria justamente a informacao que motivou a tabela.
+const kMaxAlteracoesPorAuditoria = 5000;
+
 String _severidadeSql(ImportSeveridade s) => s.name;
 String _escopoSql(ImportEscopo e) => e.name;
 String _acaoSql(ImportAcaoLinha a) => a.name;
@@ -125,6 +132,8 @@ class ImportAuditoriaRepository {
         'previstos_bloquear': diagnostico.totalBloquear,
         'status': 'aguardando_confirmacao',
         'itens_truncados': diagnostico.amostraTruncada,
+        'alteracoes_truncadas':
+            diagnostico.alteracoes.length > kMaxAlteracoesPorAuditoria,
         'duracao_parse_ms': duracaoParseMs,
         'duracao_diagnostico_ms': duracaoDiagnosticoMs,
         'app_version': kAppVersionImportacao,
@@ -196,8 +205,24 @@ class ImportAuditoriaHandle {
       }
     }
 
+    // O diff dos registros sobrescritos: uma linha por registro, com apenas os
+    // campos que mudaram. E o que permite saber depois o que foi apagado.
+    final alteracoes = <Map<String, dynamic>>[];
+    for (final a in d.alteracoes.take(kMaxAlteracoesPorAuditoria)) {
+      alteracoes.add({
+        'auditoria_id': id,
+        'linha': a.linha,
+        'chave_negocio': a.chaveNegocio,
+        'identificacao': a.identificacao,
+        'campos': a.camposJson(),
+        'total_campos': a.campos.length,
+        'total_apagados': a.totalApagados,
+      });
+    }
+
     await _inserirEmLote('import_auditoria_resumo', resumos);
     await _inserirEmLote('import_auditoria_item', itens);
+    await _inserirEmLote('import_auditoria_alteracao', alteracoes);
   }
 
   Future<void> _inserirEmLote(
@@ -298,6 +323,7 @@ ImportDiagnostico remontarDiagnosticoDaAuditoria({
   required Map<String, dynamic> auditoria,
   required List<Map<String, dynamic>> resumos,
   required List<Map<String, dynamic>> itens,
+  List<Map<String, dynamic>> alteracoes = const [],
 }) {
   final entidade = entidadeDoTexto(auditoria['entidade']?.toString());
   final builder = ImportDiagnosticoBuilder(entidade: entidade);
@@ -345,6 +371,45 @@ ImportDiagnostico remontarDiagnosticoDaAuditoria({
   preencher(auditoria['previstos_atualizar'], ImportAcaoLinha.atualizar);
   preencher(auditoria['previstos_bloquear'], ImportAcaoLinha.bloquear);
 
+  // Reconstroi o diff gravado, para a tela mostrar o que foi sobrescrito.
+  final alteracoesReconstruidas = <ImportAlteracaoRegistro>[];
+  final resumoParaLista = <Map<String, dynamic>>[];
+  for (final a in alteracoes) {
+    final camposBrutos = a['campos'];
+    final campos = <ImportCampoAlterado>[];
+    if (camposBrutos is Map) {
+      camposBrutos.forEach((coluna, valores) {
+        if (valores is! Map) return;
+        campos.add(ImportCampoAlterado(
+          coluna: coluna.toString(),
+          de: valores['de']?.toString(),
+          para: valores['para']?.toString(),
+        ));
+      });
+    }
+
+    final linha = a['linha'] is int
+        ? a['linha'] as int
+        : int.tryParse(a['linha']?.toString() ?? '') ?? 0;
+
+    alteracoesReconstruidas.add(ImportAlteracaoRegistro(
+      linha: linha,
+      chaveNegocio: a['chave_negocio']?.toString(),
+      identificacao: a['identificacao']?.toString() ?? 'linha $linha',
+      campos: campos,
+    ));
+
+    final apagados = (a['total_apagados'] as num?)?.toInt() ?? 0;
+    resumoParaLista.add({
+      'linha': linha,
+      'numeroAnimal': a['identificacao']?.toString() ?? '',
+      'nome': '',
+      'detalhe': '${(a['total_campos'] as num?)?.toInt() ?? campos.length} '
+          'campo(s) alterado(s)'
+          '${apagados > 0 ? ', $apagados apagado(s)' : ''}',
+    });
+  }
+
   return ImportDiagnostico(
     entidade: base.entidade,
     arquivo: base.arquivo,
@@ -356,5 +421,7 @@ ImportDiagnostico remontarDiagnosticoDaAuditoria({
             (r['quantidade'] as num?)?.toInt() ?? 0,
     },
     acaoPorLinha: acoes,
+    registrosAtualizados: resumoParaLista,
+    alteracoes: alteracoesReconstruidas,
   );
 }

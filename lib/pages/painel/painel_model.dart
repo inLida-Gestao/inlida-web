@@ -123,7 +123,6 @@ class PainelModel extends FlutterFlowModel<PainelWidget> {
     tabBarController?.dispose();
     emptyModel.dispose();
     loadingModel.dispose();
-    
   }
 
   /// Additional helper methods.

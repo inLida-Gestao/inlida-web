@@ -7,7 +7,9 @@
 
 import 'diagnostico_pesagem.dart';
 import 'diagnostico_rebanho.dart';
+import 'import_data_analise.dart';
 import 'import_diagnostico_model.dart';
+import 'import_dominios.dart';
 import 'import_erro_amigavel.dart';
 import 'import_lookups.dart';
 
@@ -19,6 +21,11 @@ class ImportContexto {
   /// Chaves de pesagens ja existentes. Carregado apenas no fluxo de pesagem.
   final Set<String> chavesPesagemExistentes;
 
+  /// Campos completos dos registros que serao SOBRESCRITOS, indexados pela
+  /// chave de negocio. Carregado so para eles: trazer 35 colunas dos 15 mil
+  /// animais da maior propriedade seria desperdicio.
+  final Map<String, Map<String, dynamic>> animaisCompletos;
+
   /// Quanto tempo a leitura levou, para a auditoria medir o custo.
   final int duracaoMs;
 
@@ -26,17 +33,51 @@ class ImportContexto {
     required this.idPropriedade,
     required this.lookup,
     this.chavesPesagemExistentes = const {},
+    this.animaisCompletos = const {},
     this.duracaoMs = 0,
   });
 }
 
 /// Carrega o contexto para uma importacao de Rebanho.
-Future<ImportContexto> carregarContextoRebanho(String idPropriedade) async {
+///
+/// Duas etapas de proposito: primeiro o lookup leve, que resolve quem ja
+/// existe; depois uma busca dirigida dos campos completos apenas dos registros
+/// que serao sobrescritos, para calcular o diff. Numa importacao tipica so uma
+/// fracao das linhas e atualizacao, entao carregar tudo de todos seria
+/// desperdicio de banda e de memoria no navegador.
+Future<ImportContexto> carregarContextoRebanho(
+  String idPropriedade, [
+  List<dynamic> registros = const [],
+]) async {
   final inicio = DateTime.now();
   final lookup = await fetchRebanhoDbLookup(idPropriedade);
+
+  final idsParaSobrescrever = <String>{};
+  for (final bruto in registros) {
+    if (bruto is! Map) continue;
+    final res = lookup.resolver(
+      numeroAnimal: bruto['numeroAnimal']?.toString(),
+      nome: bruto['nome']?.toString(),
+      dataNascimento: analisarDataImport(bruto['dataNascimento']).iso,
+      sexo: sexoCanonicoImport(bruto['sexo']?.toString()),
+      raca: bruto['raca']?.toString(),
+    );
+    // Só a identidade completa sobrescreve; as demais criam registro novo.
+    if (res.forca == ForcaResolucao.identidadeCompleta &&
+        res.idRebanho != null) {
+      idsParaSobrescrever.add(res.idRebanho!);
+    }
+  }
+
+  final completos = await fetchAnimaisCompletos(
+    idPropriedade: idPropriedade,
+    idsRebanho: idsParaSobrescrever,
+  );
+
   return ImportContexto(
     idPropriedade: idPropriedade,
     lookup: lookup,
+    animaisCompletos: completos,
     duracaoMs: DateTime.now().difference(inicio).inMilliseconds,
   );
 }
@@ -111,6 +152,7 @@ ImportDiagnostico diagnosticarImportacao({
           registros: parse.registros,
           idPropriedade: contexto.idPropriedade,
           lookup: contexto.lookup,
+          animaisCompletos: contexto.animaisCompletos,
         );
       }
     case ImportEntidade.pesagem:

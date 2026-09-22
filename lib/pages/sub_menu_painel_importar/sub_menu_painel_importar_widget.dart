@@ -75,7 +75,7 @@ class _SubMenuPainelImportarWidgetState
     final inicioDiagnostico = DateTime.now();
     ImportContexto? contexto;
     try {
-      contexto = await carregarContextoRebanho(idPropriedade);
+      contexto = await carregarContextoRebanho(idPropriedade, parse.registros);
     } catch (e) {
       // Sem contexto o diagnostico perde o confronto com o banco, mas as
       // checagens de arquivo e de conteudo continuam valendo.

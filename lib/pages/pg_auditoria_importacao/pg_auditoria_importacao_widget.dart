@@ -120,12 +120,21 @@ class _PgAuditoriaImportacaoWidgetState
           .eq('auditoria_id', id)
           .order('linha');
 
+      final alteracoes = await SupaFlow.client
+          .from('import_auditoria_alteracao')
+          .select()
+          .eq('auditoria_id', id)
+          .order('linha');
+
       final diagnostico = remontarDiagnosticoDaAuditoria(
         auditoria: auditoria,
         resumos: (resumos as List)
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList(),
         itens: (itens as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList(),
+        alteracoes: (alteracoes as List)
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList(),
       );

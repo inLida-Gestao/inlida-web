@@ -503,3 +503,85 @@ String composePesagemChaveImport({
 
   return (atualizar: atualizar, criar: criar);
 }
+
+/// Colunas de `rebanho` que a importacao de planilha pode sobrescrever, na
+/// ordem em que fazem sentido para o usuario.
+///
+/// Espelha o templateMap de parse_csv_to_json_rebanho2.dart. Ao acrescentar
+/// uma coluna la, acrescente aqui -- do contrario a sobrescrita daquela coluna
+/// passa despercebida na auditoria.
+const colunasComparaveisRebanho = <String>[
+  'numeroAnimal',
+  'chip',
+  'codRegistro',
+  'nome',
+  'sexo',
+  'dataNascimento',
+  'raca',
+  'categoria',
+  'porte',
+  'status',
+  'origem',
+  'pesoNascimento',
+  'dataDesmama',
+  'pesoDesmama',
+  'dataUltimaPesagem',
+  'pesoAtual',
+  'loteNome',
+  'dataAcao',
+  'valorCompra',
+  'dataVenda',
+  'valorVenda',
+  'data_morte',
+  'motivo_morte',
+  'movimentacao_entrada',
+  'movimentacao_saida',
+  'anotacoes',
+  'numeroMatriz',
+  'nomeMatriz',
+  'dataNascMatriz',
+  'racaMatriz',
+  'categoria_matriz',
+  'numeroReprodutor',
+  'nomeReprodutor',
+  'dataNascReprodutor',
+  'racaReprodutor',
+];
+
+/// Le os campos completos apenas dos animais que a importacao vai sobrescrever.
+///
+/// E de proposito uma segunda consulta, dirigida, em vez de engordar o lookup
+/// geral: a maior propriedade tem ~15 mil animais, e trazer 35 colunas de
+/// todos eles so para comparar algumas dezenas seria desperdicio de banda e
+/// memoria no browser. Numa importacao tipica so uma fracao e atualizacao.
+Future<Map<String, Map<String, dynamic>>> fetchAnimaisCompletos({
+  required String idPropriedade,
+  required Set<String> idsRebanho,
+}) async {
+  final porIdRebanho = <String, Map<String, dynamic>>{};
+  if (idsRebanho.isEmpty) return porIdRebanho;
+
+  final colunas =
+      ['idRebanho', ...colunasComparaveisRebanho].map((c) => '"$c"').join(',');
+
+  const lote = 300;
+  final lista = idsRebanho.toList();
+
+  for (var i = 0; i < lista.length; i += lote) {
+    final fatia =
+        lista.sublist(i, i + lote > lista.length ? lista.length : i + lote);
+    final res = await SupaFlow.client
+        .from('rebanho')
+        .select(colunas)
+        .eq('idPropriedade', idPropriedade)
+        .inFilter('idRebanho', fatia);
+
+    for (final rowAny in (res as List)) {
+      final row = Map<String, dynamic>.from(rowAny as Map);
+      final id = asNonEmptyStringImport(row['idRebanho']);
+      if (id != null) porIdRebanho[id] = row;
+    }
+  }
+
+  return porIdRebanho;
+}

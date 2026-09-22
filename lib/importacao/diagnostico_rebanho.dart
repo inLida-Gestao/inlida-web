@@ -13,6 +13,7 @@
 import 'import_data_analise.dart';
 import 'import_diagnostico_model.dart';
 import 'import_dominios.dart';
+import 'import_diff.dart';
 import 'import_lookups.dart';
 import 'import_erro_amigavel.dart';
 import 'import_texto_utils.dart';
@@ -487,6 +488,7 @@ void diagnosticarRebanhoConsistencia({
   required List<dynamic> registros,
   required String idPropriedade,
   required RebanhoDbLookup lookup,
+  Map<String, Map<String, dynamic>> animaisCompletos = const {},
 }) {
   for (final bruto in registros) {
     if (bruto is! Map) continue;
@@ -551,24 +553,78 @@ void diagnosticarRebanhoConsistencia({
 
     if (resolucao.forca == ForcaResolucao.identidadeCompleta) {
       final animal = resolucao.animal;
+      final gravadoParaMensagem = resolucao.idRebanho == null
+          ? null
+          : animaisCompletos[resolucao.idRebanho];
+      final mudancas = gravadoParaMensagem == null
+          ? const <ImportCampoAlterado>[]
+          : compararRegistro(
+              gravado: gravadoParaMensagem,
+              daPlanilha: r,
+              colunas: colunasComparaveisRebanho,
+            );
+      final vaiApagar = mudancas.where((c) => c.apaga).length;
+
       add(
         ImportCodigo.rebSobrescritaDeAnimalExistente,
         ImportSeveridade.aviso,
-        'o animal nº ${numeroAnimal ?? '-'} já existe e será SOBRESCRITO. '
-        'Colunas em branco na planilha apagam o que está gravado hoje.',
+        // Com o diff em maos, dizemos exatamente quantos campos mudam. Sem
+        // ele (quando o contexto do banco nao foi carregado) fica o aviso
+        // generico -- que nao pode sumir: e ele que alerta sobre o
+        // apagamento silencioso de coluna em branco.
+        mudancas.isEmpty
+            ? 'o animal nº ${numeroAnimal ?? '-'} já existe e será '
+                'SOBRESCRITO. Colunas em branco na planilha apagam o que está '
+                'gravado hoje.'
+            : 'o animal nº ${numeroAnimal ?? '-'} já existe e será '
+                'SOBRESCRITO em ${mudancas.length} campo(s)'
+                '${vaiApagar > 0 ? ', sendo $vaiApagar que será(ão) APAGADO(S)' : ''}.',
         coluna: 'numeroAnimal',
         valor: numeroAnimal,
         sugestao: 'Se quer apenas complementar, preencha só as linhas e '
             'colunas que deseja mudar.',
       );
-      builder.marcarAtualizar(linha, resumo: {
-        'linha': linha,
-        'numeroAnimal': numeroAnimal ?? '',
-        'nome': nome ?? animal?.nome ?? '',
-        'detalhe': animal?.loteNome == null
-            ? (animal?.status ?? '')
-            : 'Lote ${animal!.loteNome}',
-      });
+      // Diff campo a campo do que sera sobrescrito. Sem isso a auditoria diz
+      // que o animal foi atualizado, mas nao o que ele era antes -- e coluna
+      // em branco na planilha APAGA o valor gravado.
+      final gravado = resolucao.idRebanho == null
+          ? null
+          : animaisCompletos[resolucao.idRebanho];
+      final camposAlterados = gravado == null
+          ? const <ImportCampoAlterado>[]
+          : compararRegistro(
+              gravado: gravado,
+              daPlanilha: r,
+              colunas: colunasComparaveisRebanho,
+            );
+
+      final identificacao = [
+        if (numeroAnimal != null) 'nº $numeroAnimal',
+        if ((nome ?? animal?.nome) != null) (nome ?? animal!.nome)!,
+      ].join(' - ');
+
+      final apagados = camposAlterados.where((c) => c.apaga).length;
+
+      builder.marcarAtualizar(
+        linha,
+        resumo: {
+          'linha': linha,
+          'numeroAnimal': numeroAnimal ?? '',
+          'nome': nome ?? animal?.nome ?? '',
+          'detalhe': camposAlterados.isEmpty
+              ? (animal?.loteNome == null
+                  ? (animal?.status ?? '')
+                  : 'Lote ${animal!.loteNome}')
+              : '${camposAlterados.length} campo(s) alterado(s)'
+                  '${apagados > 0 ? ', $apagados apagado(s)' : ''}',
+        },
+        alteracao: ImportAlteracaoRegistro(
+          linha: linha,
+          chaveNegocio: resolucao.idRebanho,
+          identificacao: identificacao.isEmpty ? 'linha $linha' : identificacao,
+          campos: camposAlterados,
+        ),
+      );
     } else if (numeroAnimal != null && resolucao.encontrado) {
       // O numero existe, mas a identidade de 5 campos nao casou: a gravacao
       // vai criar um animal NOVO em vez de atualizar o que existe.

@@ -172,19 +172,18 @@ class _PpInstrucoesImportacaoWidgetState
                     iconPadding: const EdgeInsetsDirectional.fromSTEB(
                         0.0, 0.0, 8.0, 0.0),
                     color: FlutterFlowTheme.of(context).customColor2,
-                    textStyle:
-                        FlutterFlowTheme.of(context).titleSmall.override(
-                              font: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w600,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .fontStyle,
-                              ),
-                              color: FlutterFlowTheme.of(context).secondary,
-                              fontSize: 16.0,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w600,
-                            ),
+                    textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                          font: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontStyle: FlutterFlowTheme.of(context)
+                                .titleSmall
+                                .fontStyle,
+                          ),
+                          color: FlutterFlowTheme.of(context).secondary,
+                          fontSize: 16.0,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w600,
+                        ),
                     elevation: 0.0,
                     borderRadius: BorderRadius.circular(8.0),
                   ),
@@ -203,8 +202,8 @@ class _PpInstrucoesImportacaoWidgetState
                         height: 56.0,
                         padding: const EdgeInsetsDirectional.fromSTEB(
                             16.0, 0.0, 16.0, 0.0),
-                        iconPadding:
-                            const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                        iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 0.0, 0.0, 0.0),
                         color: FlutterFlowTheme.of(context).primary,
                         textStyle:
                             FlutterFlowTheme.of(context).titleSmall.override(
