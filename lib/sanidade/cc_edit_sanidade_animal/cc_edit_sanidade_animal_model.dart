@@ -44,6 +44,12 @@ class CcEditSanidadeAnimalModel
 	// State field(s) for protocoloDropdown widget.
 	List<String>? protocoloDropdownValue;
 	FormListFieldController<String>? protocoloDropdownValueController;
+	// State field(s) for protocoloD0Dropdown widget.
+	String? protocoloD0DropdownValue;
+	FormFieldController<String>? protocoloD0DropdownValueController;
+	// State field(s) for protocoloRetiradaDropdown widget.
+	String? protocoloRetiradaDropdownValue;
+	FormFieldController<String>? protocoloRetiradaDropdownValueController;
 	// State field(s) for protocoloOutros widget.
 	FocusNode? protocoloOutrosFocusNode;
 	TextEditingController? protocoloOutrosTextController;

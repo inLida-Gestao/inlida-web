@@ -1,6 +1,8 @@
+import '/sanidade/sanidade_protocolo_options.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/popup_rebanhos_widget.dart';
+import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -145,6 +147,17 @@ class _CcEditSanidadeAnimalWidgetState
     _model.protocoloDropdownValueController =
         FormListFieldController<String>(_model.protocoloDropdownValue);
 
+    // D0 e Retirada: o protocolo avança com o tempo (D0, D7/D9, inseminação),
+    // então precisam abrir já com o que foi lançado, para o usuário corrigir.
+    _model.protocoloD0DropdownValue = sanidadeProtocoloValorSalvo(
+        widget.sanidade.protocoloD0, kSanidadeProtocoloD0Options);
+    _model.protocoloD0DropdownValueController =
+        FormFieldController<String>(_model.protocoloD0DropdownValue);
+    _model.protocoloRetiradaDropdownValue = sanidadeProtocoloValorSalvo(
+        widget.sanidade.protocoloRetirada, kSanidadeProtocoloRetiradaOptions);
+    _model.protocoloRetiradaDropdownValueController =
+        FormFieldController<String>(_model.protocoloRetiradaDropdownValue);
+
     // Textos
     _model.vacinaOutrosTextController?.text = widget.sanidade.vacinacaoOutros;
     _model.vacinaObsTextController?.text = widget.sanidade.vacinacaoObs;
@@ -159,6 +172,124 @@ class _CcEditSanidadeAnimalWidgetState
         widget.sanidade.protocoloReprodutivoOutros;
     _model.protocoloObsTextController?.text =
         widget.sanidade.protocoloReprodutivoObs;
+  }
+
+  Widget _buildLegendaTooltip() {
+    return Tooltip(
+      message: kSanidadeProtocoloLegenda,
+      waitDuration: const Duration(milliseconds: 200),
+      showDuration: const Duration(seconds: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Legenda',
+            style: FlutterFlowTheme.of(context).bodySmall.override(
+                  fontFamily: 'Poppins',
+                  color: FlutterFlowTheme.of(context).primary,
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.info_outline,
+            size: 16,
+            color: FlutterFlowTheme.of(context).primary,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Dropdown de etapa do protocolo (D0 e Retirada), igual ao do lançamento.
+  Widget _buildEtapaProtocolo({
+    required String label,
+    required List<String> opcoes,
+    required String? valor,
+    required FormFieldController<String>? controller,
+    required void Function(String?) onChanged,
+    bool comLegenda = false,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: 'Poppins',
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                    fontSize: 16,
+                    letterSpacing: 0.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            if (comLegenda) ...[
+              const SizedBox(width: 6),
+              _buildLegendaTooltip(),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: FlutterFlowDropDown<String>(
+                controller: controller,
+                options: opcoes,
+                onChanged: (val) {
+                  if (widget.readOnly) return;
+                  setState(() => onChanged(val));
+                },
+                hidesUnderline: true,
+                width: double.infinity,
+                height: 56,
+                textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w600,
+                    ),
+                hintText: 'Selecionar',
+                icon: Icon(
+                  Icons.expand_more,
+                  color: FlutterFlowTheme.of(context).secondaryText,
+                  size: 24,
+                ),
+                fillColor: FlutterFlowTheme.of(context).secondaryBackground,
+                elevation: 0,
+                borderColor: Colors.transparent,
+                borderWidth: 0,
+                borderRadius: 6,
+                margin: const EdgeInsetsDirectional.fromSTEB(16, 16, 10, 16),
+                disabled: widget.readOnly,
+              ),
+            ),
+            if (!widget.readOnly && (valor ?? '').trim().isNotEmpty) ...[
+              const SizedBox(width: 8),
+              FlutterFlowIconButton(
+                borderColor: Colors.transparent,
+                borderRadius: 6,
+                buttonSize: 44,
+                icon: Icon(
+                  Icons.close,
+                  color: FlutterFlowTheme.of(context).secondaryText,
+                  size: 24,
+                ),
+                onPressed: () {
+                  controller?.reset();
+                  setState(() => onChanged(null));
+                },
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
   }
 
   @override
@@ -1084,6 +1215,25 @@ class _CcEditSanidadeAnimalWidgetState
           ],
         ),
         const SizedBox(height: 32),
+        _buildEtapaProtocolo(
+          label: 'D0',
+          opcoes: sanidadeProtocoloOpcoes(
+              widget.sanidade.protocoloD0, kSanidadeProtocoloD0Options),
+          valor: _model.protocoloD0DropdownValue,
+          controller: _model.protocoloD0DropdownValueController,
+          onChanged: (val) => _model.protocoloD0DropdownValue = val,
+        ),
+        const SizedBox(height: 32),
+        _buildEtapaProtocolo(
+          label: 'Retirada',
+          opcoes: sanidadeProtocoloOpcoes(widget.sanidade.protocoloRetirada,
+              kSanidadeProtocoloRetiradaOptions),
+          valor: _model.protocoloRetiradaDropdownValue,
+          controller: _model.protocoloRetiradaDropdownValueController,
+          onChanged: (val) => _model.protocoloRetiradaDropdownValue = val,
+          comLegenda: true,
+        ),
+        const SizedBox(height: 32),
         _buildTextField(
           label: 'Protocolos (outros)',
           hint: 'Protocolos',
@@ -1309,6 +1459,13 @@ class _CcEditSanidadeAnimalWidgetState
         'protocolo_reprodutivo_outros':
             _model.tiposSelecionados.contains('Protocolo reprodutivo')
                 ? (protocoloOutros.isNotEmpty ? protocoloOutros : null)
+                : null,
+        'protocolo_d0': _model.tiposSelecionados.contains('Protocolo reprodutivo')
+            ? _model.protocoloD0DropdownValue
+            : null,
+        'protocolo_retirada':
+            _model.tiposSelecionados.contains('Protocolo reprodutivo')
+                ? _model.protocoloRetiradaDropdownValue
                 : null,
         'protocolo_reprodutivo_obs':
             _model.tiposSelecionados.contains('Protocolo reprodutivo')

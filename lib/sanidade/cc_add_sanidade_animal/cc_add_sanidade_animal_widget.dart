@@ -1,3 +1,4 @@
+import '/sanidade/sanidade_protocolo_options.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/popup_rebanhos_widget.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
@@ -27,24 +28,11 @@ class CcAddSanidadeAnimalWidget extends StatefulWidget {
 class _CcAddSanidadeAnimalWidgetState extends State<CcAddSanidadeAnimalWidget> {
   late CcAddSanidadeAnimalModel _model;
 
-  static const List<String> _kProtocoloD0Options = <String>[
-    'BE + Implante novo',
-    'BE + Implante novo + PGF',
-    'BE + Implante reuso',
-    'BE + Implante reuso + PGF',
-  ];
-
-  static const List<String> _kProtocoloRetiradaOptions = <String>[
-    'eCG + PGF + CE',
-    'eCG + PGR + CE + BE',
-  ];
-  static const String _kProtocoloLegenda =
-      'BE - Benzoato de Estradiol\n'
-      'Implante - Implante intravaginal de Progesterona (P4)\n'
-      'PGF - Prostaglandina\n'
-      'eCG - Gonadotrofina Coriônica Equina\n'
-      'CE - Cipionato de Estradiol\n'
-      'GnRH - Hormônio Liberador de Gonadotrofinas';
+  static const List<String> _kProtocoloD0Options =
+      kSanidadeProtocoloD0Options;
+  static const List<String> _kProtocoloRetiradaOptions =
+      kSanidadeProtocoloRetiradaOptions;
+  static const String _kProtocoloLegenda = kSanidadeProtocoloLegenda;
 
   Widget _buildLegendaTooltip() {
     final legendaColor = FlutterFlowTheme.of(context).primary;
