@@ -476,7 +476,7 @@ async function genFazenda(ctx: ExportContext): Promise<string> {
     faz_avalia: "True ",
     faz_data_inclusao: formatDate(ctx.faz["created_at"]),
     faz_data_alteracao: formatDate(ctx.faz["updated_at"] ?? ctx.faz["created_at"]),
-    faz_hora_alteracao: ctx.generationTime,
+    faz_hora_alteracao: horaAlteracao(ctx, ctx.faz["updated_at"] ?? ctx.faz["created_at"]),
     faz_enviar: "True ",
     faz_recno: 1,
   };
@@ -610,7 +610,7 @@ async function genAnimal(ctx: ExportContext): Promise<string> {
       ani_local: "",
       ani_data_inclusao: formatDate(r.created_at ?? r.dataAcao ?? ctx.generationDateTime),
       ani_data_alteracao: formatDate(r.updated_at ?? r.dataAcao ?? ctx.generationDateTime),
-      ani_hora_alteracao: ctx.generationTime,
+      ani_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.dataAcao ?? ctx.generationDateTime),
       ani_enviar: "True ",
       ani_baixa: baixaByA12.get(a12.trim()) ?? "",
       ani_atuprog: "False",
@@ -663,7 +663,7 @@ async function genComposicaoRacial(ctx: ExportContext): Promise<string> {
         cpr_fazenda: ctx.config.codigo_fazenda,
         cpr_data_inclusao: formatDate(r.created_at),
         cpr_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-        cpr_hora_alteracao: ctx.generationTime,
+        cpr_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
         cpr_enviar: "True ",
         cpr_recno: recno,
       }));
@@ -802,7 +802,7 @@ async function genCobertura(ctx: ExportContext): Promise<string> {
       cob_grpmanejo_id: grpMatriz,
       cob_data_inclusao: formatDate(r.created_at),
       cob_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-      cob_hora_alteracao: ctx.generationTime,
+      cob_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
       cob_enviar: "True ",
       cob_recno: recno,
     }));
@@ -949,7 +949,7 @@ async function genNascimento(ctx: ExportContext): Promise<string> {
       nas_local: "",
       nas_data_inclusao: formatDate(r.created_at),
       nas_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-      nas_hora_alteracao: ctx.generationTime,
+      nas_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
       nas_prematuro: "False",
       nas_roubada: paiA12 ? "False" : "True ",
       nas_enviar: "True ",
@@ -1068,6 +1068,24 @@ async function paintTableGenerator<T extends Record<string, unknown>>(
   return joinLines(lines);
 }
 
+// Hora da alteração do PRÓPRIO registro.
+//
+// Antes isto era `ctx.generationTime` em todos os arquivos, ou seja, o instante
+// da exportação. O ULTIMA_TRANSMISSAO.TXT carimba (utr_data, utr_hora) com esse
+// mesmo instante, e o PAINT só importa registro cuja alteração seja ANTERIOR ao
+// marco da transmissão. Resultado: todo registro alterado NO MESMO DIA da
+// geração saía com carimbo idêntico ao da transmissão, empatava e era
+// descartado em silêncio.
+//
+// Foi o que aconteceu em 23/09/2026 na Cachoeira: as 30 desmamas reimportadas
+// naquele dia saíram no DESMAMA.TXT e não entraram no PAINT. Reimportar
+// piorava, porque recarimbava updated_at para o mesmo dia e garantia o empate
+// de novo. Todas as outras 6.651 linhas passavam só porque a data era anterior.
+function horaAlteracao(ctx: ExportContext, valor: unknown): string {
+  const h = formatTime(valor);
+  return h.trim() === "" ? ctx.generationTime : h;
+}
+
 async function genAvaliador(ctx: ExportContext): Promise<string> {
   return paintTableGenerator(ctx, "AVALIADOR", "paint_avaliador", (r, recno) => ({
     ava_parceiro: ctx.config.codigo_transmissao,
@@ -1077,7 +1095,7 @@ async function genAvaliador(ctx: ExportContext): Promise<string> {
     ava_fazenda: ctx.config.codigo_fazenda,
     ava_data_inclusao: formatDate(r.created_at),
     ava_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    ava_hora_alteracao: ctx.generationTime,
+    ava_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     ava_enviar: "True ",
     ava_recno: recno,
   }));
@@ -1097,7 +1115,7 @@ async function genBaixa(ctx: ExportContext): Promise<string> {
     bai_data_inclusao: formatDate(r.created_at),
     bai_obs: (r.obs ?? "").toString().slice(0, 40),
     bai_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    bai_hora_alteracao: ctx.generationTime,
+    bai_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     bai_enviar: "True ",
     bai_recno: recno,
     bai_reserva: "",
@@ -1130,7 +1148,7 @@ async function genDesmama(ctx: ExportContext): Promise<string> {
     dsm_obs: (r.obs ?? "").toString().slice(0, 40),
     dsm_data_inclusao: formatDate(r.created_at),
     dsm_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    dsm_hora_alteracao: ctx.generationTime,
+    dsm_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     dsm_enviar: "True ",
     dsm_recno: recno,
   }), undefined, true);
@@ -1160,7 +1178,7 @@ async function genAnoSobreano(ctx: ExportContext): Promise<string> {
     sbr_obs: (r.obs ?? "").toString().slice(0, 40),
     sbr_data_inclusao: formatDate(r.created_at),
     sbr_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    sbr_hora_alteracao: ctx.generationTime,
+    sbr_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     sbr_enviar: "True ",
     sbr_recno: recno,
   }), undefined, true);
@@ -1183,7 +1201,7 @@ async function genRah(ctx: ExportContext): Promise<string> {
     rah_situacao_desclassifica: r.situacao_desclass ?? "",
     rah_data_inclusao: formatDate(r.created_at),
     rah_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    rah_hora_alteracao: ctx.generationTime,
+    rah_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     rah_enviar: "True ",
     rah_recno: recno,
   }));
@@ -1202,7 +1220,7 @@ async function genDiagnostico(ctx: ExportContext): Promise<string> {
     dgn_obs: (r.obs ?? "").toString().slice(0, 40),
     dgn_data_inclusao: formatDate(r.created_at),
     dgn_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    dgn_hora_alteracao: ctx.generationTime,
+    dgn_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     dgn_enviar: "True ",
     dgn_recno: recno,
   }), "safra_codigo,animal_a12,data,local_codigo,grupo_manejo_codigo,resultado,obs,created_at,updated_at");
@@ -1216,7 +1234,7 @@ async function genGrupoManejo(ctx: ExportContext): Promise<string> {
     grm_fazenda: ctx.config.codigo_fazenda,
     grm_data_inclusao: formatDate(r.created_at),
     grm_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    grm_hora_alteracao: ctx.generationTime,
+    grm_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     grm_enviar: "True ",
     grm_recno: recno,
   }));
@@ -1231,7 +1249,7 @@ async function genInseminador(ctx: ExportContext): Promise<string> {
     ins_situacao: r.situacao ?? "ATIVO",
     ins_data_inclusao: formatDate(r.created_at),
     ins_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    ins_hora_alteracao: ctx.generationTime,
+    ins_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     ins_enviar: "True ",
     ins_recno: recno,
     ins_tipo: "I",
@@ -1250,7 +1268,7 @@ async function genLocalidade(ctx: ExportContext): Promise<string> {
     lde_obs: localidadeObs(r),
     lde_data_inclusao: formatDate(r.created_at),
     lde_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    lde_hora_alteracao: ctx.generationTime,
+    lde_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     lde_enviar: "True ",
     lde_recno: recno,
   }));
@@ -1274,7 +1292,7 @@ async function genRegimeAlimentar(ctx: ExportContext): Promise<string> {
     rga_fazenda: ctx.config.codigo_fazenda,
     rga_data_inclusao: formatDate(r.created_at),
     rga_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    rga_hora_alteracao: ctx.generationTime,
+    rga_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     rga_enviar: "True ",
     rga_recno: recno,
   }));
@@ -1340,7 +1358,7 @@ async function genSafra(ctx: ExportContext): Promise<string> {
     sfr_obs: (r.obs ?? "").toString().slice(0, 40),
     sfr_data_inclusao: formatDate(r.created_at),
     sfr_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    sfr_hora_alteracao: ctx.generationTime,
+    sfr_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     sfr_enviar: "True ",
     sfr_recno: recno,
   }));
@@ -1356,7 +1374,7 @@ async function genSafraXAnimal(ctx: ExportContext): Promise<string> {
     sfa_grpmanejo_id: r.grupo_manejo_codigo ?? "",
     sfa_data_inclusao: formatDate(r.created_at),
     sfa_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    sfa_hora_alteracao: ctx.generationTime,
+    sfa_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     sfa_concluida: r.concluida ? "True " : "False",
     sfa_incluso: "False",
     sfa_enviar: "True ",
@@ -1372,7 +1390,7 @@ async function genTouroMultiplo(ctx: ExportContext): Promise<string> {
     trm_fazenda: ctx.config.codigo_fazenda,
     trm_data_inclusao: formatDate(r.created_at),
     trm_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-    trm_hora_alteracao: ctx.generationTime,
+    trm_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
     trm_enviar: "True ",
     trm_recno: recno,
   }));
@@ -1398,18 +1416,25 @@ async function genPesagem(ctx: ExportContext): Promise<string> {
         "historico_pesagens",
         (q) => q.eq("id_propriedade", ctx.config.id_propriedade),
         {
-          columns: "id,id_rebanho,data_pesagem,peso,created_at,updated_at",
+          // ATENÇÃO: historico_pesagens usa camelCase ("idRebanho",
+          // "dataPesagem"), não snake_case. Com os nomes errados o PostgREST
+          // devolvia erro, o catch abaixo engolia e o PESAGEM.TXT saía SEMPRE
+          // vazio — 0 linhas para 15.522 pesagens, sem ninguém perceber.
+          columns: "id,idRebanho,dataPesagem,peso,created_at,updated_at",
           orderColumn: "id",
         },
       );
-    } catch (_e) {
-      rows = [];
+    } catch (e) {
+      // Não silenciar: era este catch que escondia o nome de coluna errado e
+      // deixava o PESAGEM.TXT vazio por tempo indeterminado.
+      console.error("[paint-export] PESAGEM: falha ao ler historico_pesagens", e);
+      throw e;
     }
     ctx.pesagemRows = rows;
   }
   let foraDoTxt = 0;
   for (const r of rows) {
-    const a12 = ctx.a12ByRebanhoId.get(String(r.id_rebanho)) ?? "";
+    const a12 = ctx.a12ByRebanhoId.get(String(r.idRebanho)) ?? "";
     if (!a12) continue;
     // Mesma regra da COBERTURA: pesagem de animal que não está no ANIMAL.TXT
     // (raça fora do PAINT, sêmen, fora da propriedade) faria o PAINT exibir um
@@ -1423,18 +1448,18 @@ async function genPesagem(ctx: ExportContext): Promise<string> {
       pes_parceiro: ctx.config.codigo_transmissao,
       pes_animal_id: a12,
       pes_fazenda: ctx.config.codigo_fazenda,
-      pes_data: formatDate(r.data_pesagem ?? r.data),
+      pes_data: formatDate(r.dataPesagem ?? r.data),
       pes_peso: formatNumeric(r.peso, 8, 2),
       pes_racial: "",
       pes_situacao_desclassifica: "",
       pes_grupo_manejo: "",
       pes_local: "",
-      pes_data_inclusao: formatDate(r.created_at ?? r.data_pesagem),
+      pes_data_inclusao: formatDate(r.created_at ?? r.dataPesagem),
       pes_data_alteracao: formatDate(r.updated_at ?? r.created_at),
-      pes_hora_alteracao: ctx.generationTime,
+      pes_hora_alteracao: horaAlteracao(ctx, r.updated_at ?? r.created_at),
       pes_enviar: "True ",
       pes_recno: recno,
-      pes_safra_id: safraPorData(ctx, r.data_pesagem ?? r.data),
+      pes_safra_id: safraPorData(ctx, r.dataPesagem ?? r.data),
       pes_frame: "",
     }));
   }
@@ -1497,8 +1522,13 @@ async function genUltimaTransmissao(
   const layout = LAYOUTS.ULTIMA_TRANSMISSAO;
   const row: Record<string, unknown> = {
     utr_parceiro: ctx.config.codigo_transmissao,
-    utr_data: ctx.generationDate,
-    utr_hora: ctx.generationTime,
+    // Um segundo À FRENTE do instante da geração, de propósito. O PAINT só
+    // importa registro cuja alteração seja ANTERIOR a este marco, e alguns
+    // registros nascem no próprio instante da exportação (as linhas sintéticas
+    // de composição racial, por exemplo). Sem essa folga eles empatam com o
+    // marco e são descartados em silêncio.
+    utr_data: formatDate(new Date(ctx.generationDateTime.getTime() + 1000)),
+    utr_hora: formatTime(new Date(ctx.generationDateTime.getTime() + 1000)),
     utr_fazenda: ctx.config.codigo_fazenda,
     utr_ani: counts.ANIMAL ?? 0,
     utr_sbr: counts.ANO_SOBREANO ?? 0,
