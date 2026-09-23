@@ -6,4 +6,4 @@
 ///
 /// Concentrar a decisão em um arquivo só deixa o merge entre as branches com
 /// um único ponto de conflito: aqui vale false, na lucas-paint vale true.
-const bool kPaintHabilitado = false;
+const bool kPaintHabilitado = true;
