@@ -9,6 +9,7 @@ import {
   type EstrategiaA12,
   formatDate,
   formatNumeric,
+  formatTime,
   joinLines,
 } from "./fixed-width.ts";
 import { selectAll } from "./sql.ts";
