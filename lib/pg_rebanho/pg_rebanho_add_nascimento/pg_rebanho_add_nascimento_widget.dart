@@ -4707,6 +4707,16 @@ class _PgRebanhoAddNascimentoWidgetState
                                                 }
                                                 _model.isSaving = true;
                                                 safeSetState(() {});
+                                                // O locale e lido antes do primeiro await: depois dele o
+                                                // context nao pode mais ser usado com seguranca.
+                                                final idiomaNomeConcat =
+                                                    FFLocalizations.of(context)
+                                                        .languageCode;
+                                                // Cobre o caso em que matriz e data ja vieram prontas e nenhum dos
+                                                // gatilhos da tela chegou a rodar. Precisa vir antes do insert, que le
+                                                // o reprodutor que esta revalidacao pode preencher.
+                                                await _autoVincularReproducao(
+                                                    silencioso: true);
                                                 _model.idRebanho = null;
                                                 safeSetState(() {});
                                                 _model.idRebanho =
@@ -4788,9 +4798,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                                       '${_model.numAnimalTextController.text} - ${_model.nomeAnimalTextController.text} - ${dateTimeFormat(
                                                     "d/M/y",
                                                     _model.datePicked1,
-                                                    locale: FFLocalizations.of(
-                                                            context)
-                                                        .languageCode,
+                                                    locale: idiomaNomeConcat,
                                                   )}',
                                                   'dataVenda':
                                                       supaSerialize<DateTime>(
@@ -4878,6 +4886,29 @@ class _PgRebanhoAddNascimentoWidgetState
                                                         pesoPesoNascimentoHist,
                                                     'deletado': 'NAO',
                                                   });
+                                                }
+                                                // O parto so e confirmado depois do bezerro gravado, e uma falha aqui
+                                                // nunca bloqueia o cadastro do nascimento.
+                                                final idReproducaoParaConfirmar =
+                                                    _model
+                                                        .idReproducaoVinculada;
+                                                if (idReproducaoParaConfirmar !=
+                                                        null &&
+                                                    idReproducaoParaConfirmar
+                                                        .isNotEmpty &&
+                                                    _model.datePicked1 !=
+                                                        null) {
+                                                  try {
+                                                    await confirmarPartoAutomatico(
+                                                      idReproducao:
+                                                          idReproducaoParaConfirmar,
+                                                      dataNascimento:
+                                                          _model.datePicked1!,
+                                                    );
+                                                  } catch (_) {
+                                                    // Falha ao confirmar o parto automaticamente nunca deve
+                                                    // bloquear o cadastro do nascimento.
+                                                  }
                                                 }
                                                 safeSetState(() {
                                                   _model
