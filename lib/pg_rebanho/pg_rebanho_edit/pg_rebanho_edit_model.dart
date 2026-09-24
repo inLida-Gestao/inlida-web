@@ -25,6 +25,18 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
 
   double? valorVendaEditado;
 
+  // Auto-vínculo com a reprodução que originou este animal (regra em
+  // lib/reproducao/reproducao_parto_utils.dart). Só vale para Bezerro e
+  // Bezerra. `idReproducaoVinculada` é o registro cujo parto será confirmado
+  // ao salvar; a flag abaixo evita sobrescrever um reprodutor escolhido à mão.
+  String? idReproducaoVinculada;
+  bool reprodutorPreenchidoAutomaticamente = false;
+
+  // Escolha feita no popup da janela estendida, guardada junto da combinação
+  // matriz + data de nascimento, para não reabrir o popup à toa.
+  bool vinculoEscolhidoManualmente = false;
+  String? chaveEscolhaManual;
+
   /// Evita ressincronizar `FFAppState` a cada rebuild do FutureBuilder (preserva escolhas via popup).
   int? progenySyncedForRebanhoPk;
 
