@@ -335,6 +335,16 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
     super.dispose();
   }
 
+  /// Data de nascimento que vale para o animal editado: a escolhida na tela
+  /// ou, se o usuário não mexeu no campo, a já gravada. `null` quando ele
+  /// limpou a data explicitamente.
+  ///
+  /// A linha vem do FutureBuilder, por isso entra por parâmetro.
+  DateTime? _dataNascimentoEfetivaEdit(RebanhoRow? row) =>
+      _model.dataNascimentoCleared
+          ? null
+          : (_model.datePicked1 ?? row?.dataNascimento);
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -2009,17 +2019,14 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                           final tipo =
                                                                               ajustarTipoRegistroAoTrocarRaca(
                                                                             val,
-                                                                            _model
-                                                                                .dropDownTipoRegistroValue,
+                                                                            _model.dropDownTipoRegistroValue,
                                                                           );
                                                                           if (tipo !=
-                                                                              _model
-                                                                                  .dropDownTipoRegistroValue) {
+                                                                              _model.dropDownTipoRegistroValue) {
                                                                             _model.dropDownTipoRegistroValue =
                                                                                 tipo;
-                                                                            _model
-                                                                                .dropDownTipoRegistroValueController
-                                                                                ?.value = tipo;
+                                                                            _model.dropDownTipoRegistroValueController?.value =
+                                                                                tipo;
                                                                           }
                                                                         }),
                                                                         height:
@@ -2104,8 +2111,9 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             ?.tipoRegistro,
                                                                       ),
                                                                     ),
-                                                                    onChanged: (val) =>
-                                                                        safeSetState(
+                                                                    onChanged:
+                                                                        (val) =>
+                                                                            safeSetState(
                                                                       () => _model
                                                                               .dropDownTipoRegistroValue =
                                                                           val,
@@ -6636,12 +6644,9 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         return;
                                                       }
                                                     }
-                                                    final effectiveDataNascimentoForSave = _model
-                                                            .dataNascimentoCleared
-                                                        ? null
-                                                        : (_model.datePicked1 ??
-                                                            pgRebanhoEditRebanhoRow
-                                                                ?.dataNascimento);
+                                                    final effectiveDataNascimentoForSave =
+                                                        _dataNascimentoEfetivaEdit(
+                                                            pgRebanhoEditRebanhoRow);
                                                     final double?
                                                         pesoNascimentoParsedEdit =
                                                         double.tryParse(_model
@@ -6776,10 +6781,10 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                 .datePicked9 ??
                                                             pgRebanhoEditRebanhoRow
                                                                 ?.dataVenda),
-                                                        'valorVenda':
-                                                            _model.valorVendaEditado ??
-                                                                pgRebanhoEditRebanhoRow
-                                                                    ?.valorVenda,
+                                                        'valorVenda': _model
+                                                                .valorVendaEditado ??
+                                                            pgRebanhoEditRebanhoRow
+                                                                ?.valorVenda,
                                                         'numeroMatriz':
                                                             FFAppState()
                                                                 .matrizSelecionada
@@ -6860,19 +6865,21 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                     // para Vendido/Morto. Sem efeito se a propriedade não tem
                                                     // paint_fazenda_config (módulo PAINT desativado para a fazenda).
                                                     {
-                                                      final statusValue =
-                                                          _model.dropDownStatusValue;
+                                                      final statusValue = _model
+                                                          .dropDownStatusValue;
                                                       String? motivoBaixa;
                                                       DateTime? dataMorteBaixa;
                                                       double? precoBaixa;
-                                                      if (statusValue == 'Vendido') {
+                                                      if (statusValue ==
+                                                          'Vendido') {
                                                         motivoBaixa = 'VENDA';
                                                         dataMorteBaixa = _model
                                                                 .datePicked9 ??
                                                             pgRebanhoEditRebanhoRow
                                                                 ?.dataVenda;
-                                                        precoBaixa = FFAppState()
-                                                            .valueDouble2;
+                                                        precoBaixa =
+                                                            FFAppState()
+                                                                .valueDouble2;
                                                       } else if (statusValue ==
                                                           'Morto') {
                                                         motivoBaixa = 'MORTE';
@@ -6882,9 +6889,10 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                 ?.dataMorte;
                                                       }
                                                       if (motivoBaixa != null) {
-                                                        final dtNasc = effectiveDataNascimentoForSave ??
-                                                            pgRebanhoEditRebanhoRow
-                                                                ?.dataNascimento;
+                                                        final dtNasc =
+                                                            effectiveDataNascimentoForSave ??
+                                                                pgRebanhoEditRebanhoRow
+                                                                    ?.dataNascimento;
                                                         final numeroAnimal = _model
                                                                 .numAnimalTextController
                                                                 .text

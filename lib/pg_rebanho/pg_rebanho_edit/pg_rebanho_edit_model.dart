@@ -76,6 +76,7 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
   String? Function(BuildContext, String?)?
       dataNascimentoTextControllerValidator;
   DateTime? datePicked1;
+
   /// Quando true, salva `dataNascimento` como null (campo limpo pelo usuário).
   bool dataNascimentoCleared = false;
   // State field(s) for pesoNascimento widget.
@@ -112,6 +113,7 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
   TextEditingController? dataDesmamaTextController;
   String? Function(BuildContext, String?)? dataDesmamaTextControllerValidator;
   DateTime? datePicked3;
+
   /// Quando true, salva `dataDesmama` como null (campo limpo pelo usuário).
   bool dataDesmamaCleared = false;
   // State field(s) for pesoDesmama widget.
@@ -171,8 +173,10 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
   FocusNode? dataPesagemFocusNode;
   TextEditingController? dataPesagemTextController;
   String? Function(BuildContext, String?)? dataPesagemTextControllerValidator;
+
   /// Data da venda (status Vendido). Separado de dataPesagem para não conflitar com pesagens.
   DateTime? datePicked9;
+
   /// Data ao adicionar nova pesagem na ficha.
   DateTime? datePicked10;
   // State field(s) for pesoAdd widget.
