@@ -25,6 +25,18 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
 
   double? valorVendaEditado;
 
+  // Auto-vínculo com a reprodução que originou este animal (regra em
+  // lib/reproducao/reproducao_parto_utils.dart). Só vale para Bezerro e
+  // Bezerra. `idReproducaoVinculada` é o registro cujo parto será confirmado
+  // ao salvar; a flag abaixo evita sobrescrever um reprodutor escolhido à mão.
+  String? idReproducaoVinculada;
+  bool reprodutorPreenchidoAutomaticamente = false;
+
+  // Escolha feita no popup da janela estendida, guardada junto da combinação
+  // matriz + data de nascimento, para não reabrir o popup à toa.
+  bool vinculoEscolhidoManualmente = false;
+  String? chaveEscolhaManual;
+
   /// Evita ressincronizar `FFAppState` a cada rebuild do FutureBuilder (preserva escolhas via popup).
   int? progenySyncedForRebanhoPk;
 
@@ -76,6 +88,7 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
   String? Function(BuildContext, String?)?
       dataNascimentoTextControllerValidator;
   DateTime? datePicked1;
+
   /// Quando true, salva `dataNascimento` como null (campo limpo pelo usuário).
   bool dataNascimentoCleared = false;
   // State field(s) for pesoNascimento widget.
@@ -112,6 +125,7 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
   TextEditingController? dataDesmamaTextController;
   String? Function(BuildContext, String?)? dataDesmamaTextControllerValidator;
   DateTime? datePicked3;
+
   /// Quando true, salva `dataDesmama` como null (campo limpo pelo usuário).
   bool dataDesmamaCleared = false;
   // State field(s) for pesoDesmama widget.
@@ -171,8 +185,10 @@ class PgRebanhoEditModel extends FlutterFlowModel<PgRebanhoEditWidget> {
   FocusNode? dataPesagemFocusNode;
   TextEditingController? dataPesagemTextController;
   String? Function(BuildContext, String?)? dataPesagemTextControllerValidator;
+
   /// Data da venda (status Vendido). Separado de dataPesagem para não conflitar com pesagens.
   DateTime? datePicked9;
+
   /// Data ao adicionar nova pesagem na ficha.
   DateTime? datePicked10;
   // State field(s) for pesoAdd widget.

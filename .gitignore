@@ -74,3 +74,4 @@ app.*.map.json
 /android/app/release
 .mcp.json
 .sala-anexos/
+.hml_seed/

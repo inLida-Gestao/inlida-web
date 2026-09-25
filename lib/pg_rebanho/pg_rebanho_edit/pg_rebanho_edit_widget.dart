@@ -20,6 +20,9 @@ import '/pg_rebanho/categoria_rebanho_utils.dart';
 import '/pg_rebanho/origem_compra_utils.dart';
 import '/pg_rebanho/pesagem_rebanho_sync.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
+import '/reproducao/popup_selecionar_reproducao/popup_selecionar_reproducao_widget.dart';
+import '/reproducao/reproducao_parto_service.dart';
+import '/reproducao/reproducao_parto_utils.dart';
 import '/index.dart';
 import 'dart:async';
 import 'package:aligned_dialog/aligned_dialog.dart';
@@ -334,6 +337,196 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
 
     super.dispose();
   }
+
+  /// Só animais de nascimento participam do auto-vínculo com a reprodução:
+  /// trocar a matriz de um touro adulto não diz nada sobre um parto.
+  bool _categoriaElegivelParaAutoVinculo(RebanhoRow? row) {
+    final categoria = categoriaRebanhoSelecionada(
+          sexo: _model.dropDownSexoValueController?.value ??
+              _model.dropDownSexoValue,
+          categoriaFemea: _model.dDCatRebanhoFemeaValueController?.value ??
+              _model.dDCatRebanhoFemeaValue,
+          categoriaMacho: _model.dDCatRebanhoMachoValueController?.value ??
+              _model.dDCatRebanhoMachoValue,
+        ) ??
+        row?.categoria;
+    final normalizada = categoria?.trim().toLowerCase();
+    return normalizada == 'bezerro' || normalizada == 'bezerra';
+  }
+
+  /// Descarta o vínculo com a reprodução e, se o reprodutor tiver sido
+  /// preenchido por esta automação, limpa-o também.
+  void _limparVinculoReproducaoEdit() {
+    _model.idReproducaoVinculada = null;
+    _model.vinculoEscolhidoManualmente = false;
+    _model.chaveEscolhaManual = null;
+    if (_model.reprodutorPreenchidoAutomaticamente) {
+      FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct();
+      _model.reprodutorPreenchidoAutomaticamente = false;
+    }
+  }
+
+  /// Aplica o reprodutor de [candidato] ao animal editado, se o campo ainda
+  /// estiver vazio ou se já tiver sido preenchido por esta mesma automação.
+  Future<bool> _preencherReprodutorDoCandidatoEdit(
+      CandidatoReproducao candidato) async {
+    final reprodutorVazio =
+        !idAnimalValido(FFAppState().reprodutorSelecionado.idAnimal);
+    if (!(reprodutorVazio || _model.reprodutorPreenchidoAutomaticamente) ||
+        !idAnimalValido(candidato.idRebanhoReprodutor)) {
+      return false;
+    }
+
+    var numAnimal = candidato.numReprodutor;
+    var nomeAnimal = candidato.nomeReprodutor;
+    var dataNascAnimal = candidato.nascimentoReprodutor;
+    var racaAnimal = candidato.racaReprodutor;
+
+    // `id_rebanho_reprodutor` casa com `rebanho.idRebanho` (chave de
+    // negócio), nunca com o `id` numérico.
+    final cadastro = await RebanhoTable().querySingleRow(
+      queryFn: (q) => q.eqOrNull('idRebanho', candidato.idRebanhoReprodutor),
+    );
+    final reprodutor = cadastro.firstOrNull;
+    if (reprodutor != null) {
+      numAnimal = reprodutor.numeroAnimal ?? numAnimal;
+      nomeAnimal = reprodutor.nome ?? nomeAnimal;
+      dataNascAnimal = reprodutor.dataNascimento ?? dataNascAnimal;
+      racaAnimal = reprodutor.raca ?? racaAnimal;
+    }
+
+    FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct(
+      numAnimal: numAnimal,
+      nomeAnimal: nomeAnimal,
+      dataNascAnimal: dataNascAnimal?.toString(),
+      racaAnimal: racaAnimal,
+      idAnimal: candidato.idRebanhoReprodutor,
+    );
+    _model.reprodutorPreenchidoAutomaticamente = true;
+    return true;
+  }
+
+  /// Localiza a reprodução que originou este animal ao trocar a matriz e
+  /// guarda o vínculo para confirmar o parto ao salvar, pré-preenchendo o
+  /// reprodutor.
+  ///
+  /// Só roda para Bezerro/Bezerra. Nunca lança: qualquer falha apenas deixa o
+  /// vínculo vazio e a edição segue normalmente.
+  ///
+  /// Só pode ser chamado a partir de um `onTap` — a tela vive dentro de um
+  /// FutureBuilder, e disparar isto no build causaria um laço de consultas.
+  Future<void> _autoVincularReproducaoEdit(RebanhoRow? row) async {
+    if (!_categoriaElegivelParaAutoVinculo(row)) {
+      _limparVinculoReproducaoEdit();
+      return;
+    }
+
+    try {
+      final idRebanhoMatriz = FFAppState().matrizSelecionada.idAnimal;
+      final dataNascimento = _dataNascimentoEfetivaEdit(row);
+      final chaveAtual =
+          chaveVinculoReproducao(idRebanhoMatriz, dataNascimento);
+
+      if (!idAnimalValido(idRebanhoMatriz) || dataNascimento == null) {
+        _model.idReproducaoVinculada = null;
+        _model.vinculoEscolhidoManualmente = false;
+        _model.chaveEscolhaManual = null;
+        return;
+      }
+
+      // A fazenda do próprio animal tem prioridade; a selecionada é o último
+      // recurso, para o caso de a linha não trazer a propriedade.
+      final idPropriedadeDoAnimal = row?.idPropriedade?.trim();
+      final idPropriedade =
+          (idPropriedadeDoAnimal != null && idPropriedadeDoAnimal.isNotEmpty)
+              ? idPropriedadeDoAnimal
+              : FFAppState().propriedadeSelecionada.idPropriedade;
+
+      final resultado = await localizarReproducaoDaMatriz(
+        idPropriedade: idPropriedade,
+        idRebanhoMatriz: idRebanhoMatriz,
+        dataNascimento: dataNascimento,
+      );
+
+      final candidato = resultado.automatica;
+      if (candidato != null) {
+        _model.idReproducaoVinculada = candidato.idReproducao;
+        _model.vinculoEscolhidoManualmente = false;
+        _model.chaveEscolhaManual = null;
+
+        final aplicado = await _preencherReprodutorDoCandidatoEdit(candidato);
+        if (mounted && aplicado) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Reprodução encontrada: reprodutor vinculado automaticamente e o parto será confirmado ao salvar.',
+                style: TextStyle(
+                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                ),
+              ),
+              duration: const Duration(milliseconds: 4000),
+              backgroundColor: FlutterFlowTheme.of(context).secondary,
+            ),
+          );
+        }
+        return;
+      }
+
+      _model.idReproducaoVinculada = null;
+
+      if (resultado.candidatosManuais.isEmpty || !mounted) {
+        return;
+      }
+
+      final escolhido = await showDialog<CandidatoReproducao>(
+        context: context,
+        builder: (dialogContext) => Dialog(
+          elevation: 0,
+          insetPadding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+          alignment: const AlignmentDirectional(0.0, 0.0)
+              .resolve(Directionality.of(context)),
+          child: PopupSelecionarReproducaoWidget(
+            candidatos: resultado.candidatosManuais,
+            dataNascimento: dataNascimento,
+          ),
+        ),
+      );
+
+      _model.vinculoEscolhidoManualmente = true;
+      _model.chaveEscolhaManual = chaveAtual;
+
+      if (escolhido == null) {
+        // Usuário fechou o popup ou escolheu "Não vincular".
+        return;
+      }
+
+      _model.idReproducaoVinculada = escolhido.idReproducao;
+      if (idAnimalValido(escolhido.idRebanhoReprodutor)) {
+        await _preencherReprodutorDoCandidatoEdit(escolhido);
+      } else {
+        // Reprodução escolhida sem reprodutor vinculado: limpa o campo.
+        FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct();
+        _model.reprodutorPreenchidoAutomaticamente = false;
+      }
+    } catch (_) {
+      // Falha na automação nunca deve bloquear a edição do animal.
+    } finally {
+      if (mounted) {
+        safeSetState(() {});
+      }
+    }
+  }
+
+  /// Data de nascimento que vale para o animal editado: a escolhida na tela
+  /// ou, se o usuário não mexeu no campo, a já gravada. `null` quando ele
+  /// limpou a data explicitamente.
+  ///
+  /// A linha vem do FutureBuilder, por isso entra por parâmetro.
+  DateTime? _dataNascimentoEfetivaEdit(RebanhoRow? row) =>
+      _model.dataNascimentoCleared
+          ? null
+          : (_model.datePicked1 ?? row?.dataNascimento);
 
   @override
   Widget build(BuildContext context) {
@@ -2009,17 +2202,14 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                           final tipo =
                                                                               ajustarTipoRegistroAoTrocarRaca(
                                                                             val,
-                                                                            _model
-                                                                                .dropDownTipoRegistroValue,
+                                                                            _model.dropDownTipoRegistroValue,
                                                                           );
                                                                           if (tipo !=
-                                                                              _model
-                                                                                  .dropDownTipoRegistroValue) {
+                                                                              _model.dropDownTipoRegistroValue) {
                                                                             _model.dropDownTipoRegistroValue =
                                                                                 tipo;
-                                                                            _model
-                                                                                .dropDownTipoRegistroValueController
-                                                                                ?.value = tipo;
+                                                                            _model.dropDownTipoRegistroValueController?.value =
+                                                                                tipo;
                                                                           }
                                                                         }),
                                                                         height:
@@ -2104,8 +2294,9 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                             ?.tipoRegistro,
                                                                       ),
                                                                     ),
-                                                                    onChanged: (val) =>
-                                                                        safeSetState(
+                                                                    onChanged:
+                                                                        (val) =>
+                                                                            safeSetState(
                                                                       () => _model
                                                                               .dropDownTipoRegistroValue =
                                                                           val,
@@ -2564,6 +2755,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                                   );
                                                                                 },
                                                                               );
+                                                                              await _autoVincularReproducaoEdit(pgRebanhoEditRebanhoRow);
                                                                             },
                                                                             child:
                                                                                 Container(
@@ -2650,6 +2842,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               () async {
                                                                             FFAppState().matrizSelecionada =
                                                                                 AnimalSelecionadoStruct();
+                                                                            _limparVinculoReproducaoEdit();
                                                                             safeSetState(() {});
                                                                           },
                                                                           child:
@@ -2744,6 +2937,7 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                                   );
                                                                                 },
                                                                               );
+                                                                              _model.reprodutorPreenchidoAutomaticamente = false;
                                                                             },
                                                                             child:
                                                                                 Container(
@@ -2830,6 +3024,8 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                               () async {
                                                                             FFAppState().reprodutorSelecionado =
                                                                                 AnimalSelecionadoStruct();
+                                                                            _model.reprodutorPreenchidoAutomaticamente =
+                                                                                false;
                                                                             safeSetState(() {});
                                                                           },
                                                                           child:
@@ -6636,12 +6832,9 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         return;
                                                       }
                                                     }
-                                                    final effectiveDataNascimentoForSave = _model
-                                                            .dataNascimentoCleared
-                                                        ? null
-                                                        : (_model.datePicked1 ??
-                                                            pgRebanhoEditRebanhoRow
-                                                                ?.dataNascimento);
+                                                    final effectiveDataNascimentoForSave =
+                                                        _dataNascimentoEfetivaEdit(
+                                                            pgRebanhoEditRebanhoRow);
                                                     final double?
                                                         pesoNascimentoParsedEdit =
                                                         double.tryParse(_model
@@ -6776,10 +6969,10 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                 .datePicked9 ??
                                                             pgRebanhoEditRebanhoRow
                                                                 ?.dataVenda),
-                                                        'valorVenda':
-                                                            _model.valorVendaEditado ??
-                                                                pgRebanhoEditRebanhoRow
-                                                                    ?.valorVenda,
+                                                        'valorVenda': _model
+                                                                .valorVendaEditado ??
+                                                            pgRebanhoEditRebanhoRow
+                                                                ?.valorVenda,
                                                         'numeroMatriz':
                                                             FFAppState()
                                                                 .matrizSelecionada
@@ -6856,23 +7049,49 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                         widget.rebanhoId,
                                                       ),
                                                     );
+                                                    // So Bezerro/Bezerra participam, e o parto so e confirmado depois do
+                                                    // animal gravado. Uma falha aqui nunca bloqueia a edicao.
+                                                    final idReproducaoParaConfirmarEdit =
+                                                        _model
+                                                            .idReproducaoVinculada;
+                                                    if (idReproducaoParaConfirmarEdit != null &&
+                                                        idReproducaoParaConfirmarEdit
+                                                            .isNotEmpty &&
+                                                        effectiveDataNascimentoForSave !=
+                                                            null &&
+                                                        _categoriaElegivelParaAutoVinculo(
+                                                            pgRebanhoEditRebanhoRow)) {
+                                                      try {
+                                                        await confirmarPartoAutomatico(
+                                                          idReproducao:
+                                                              idReproducaoParaConfirmarEdit,
+                                                          dataNascimento:
+                                                              effectiveDataNascimentoForSave,
+                                                        );
+                                                      } catch (_) {
+                                                        // Falha ao confirmar o parto automaticamente nunca deve
+                                                        // bloquear a edicao do animal.
+                                                      }
+                                                    }
                                                     // PAINT — registra baixa em paint_baixa quando status muda
                                                     // para Vendido/Morto. Sem efeito se a propriedade não tem
                                                     // paint_fazenda_config (módulo PAINT desativado para a fazenda).
                                                     {
-                                                      final statusValue =
-                                                          _model.dropDownStatusValue;
+                                                      final statusValue = _model
+                                                          .dropDownStatusValue;
                                                       String? motivoBaixa;
                                                       DateTime? dataMorteBaixa;
                                                       double? precoBaixa;
-                                                      if (statusValue == 'Vendido') {
+                                                      if (statusValue ==
+                                                          'Vendido') {
                                                         motivoBaixa = 'VENDA';
                                                         dataMorteBaixa = _model
                                                                 .datePicked9 ??
                                                             pgRebanhoEditRebanhoRow
                                                                 ?.dataVenda;
-                                                        precoBaixa = FFAppState()
-                                                            .valueDouble2;
+                                                        precoBaixa =
+                                                            FFAppState()
+                                                                .valueDouble2;
                                                       } else if (statusValue ==
                                                           'Morto') {
                                                         motivoBaixa = 'MORTE';
@@ -6882,9 +7101,10 @@ class _PgRebanhoEditWidgetState extends State<PgRebanhoEditWidget>
                                                                 ?.dataMorte;
                                                       }
                                                       if (motivoBaixa != null) {
-                                                        final dtNasc = effectiveDataNascimentoForSave ??
-                                                            pgRebanhoEditRebanhoRow
-                                                                ?.dataNascimento;
+                                                        final dtNasc =
+                                                            effectiveDataNascimentoForSave ??
+                                                                pgRebanhoEditRebanhoRow
+                                                                    ?.dataNascimento;
                                                         final numeroAnimal = _model
                                                                 .numAnimalTextController
                                                                 .text

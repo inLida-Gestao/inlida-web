@@ -36,6 +36,22 @@ class PgRebanhoAddNascimentoModel
 
   bool isSaving = false;
 
+  // Auto-vínculo com a reprodução que originou este nascimento (regra em
+  // lib/reproducao/reproducao_parto_utils.dart). `idReproducaoVinculada` é o
+  // registro cujo parto será confirmado ao salvar; a flag abaixo evita
+  // sobrescrever um reprodutor escolhido à mão pelo usuário.
+  String? idReproducaoVinculada;
+  bool reprodutorPreenchidoAutomaticamente = false;
+
+  // Quando nada é encontrado na janela automática (275-305 dias) mas há
+  // candidatas na estendida (306-350 dias), o usuário escolhe via popup.
+  // `vinculoEscolhidoManualmente` marca que a escolha (vincular ou não
+  // vincular) já foi feita para `chaveEscolhaManual` (matriz + data), o que
+  // evita reabrir o popup à toa e evita que a revalidação silenciosa do
+  // Salvar apague a decisão do usuário.
+  bool vinculoEscolhidoManualmente = false;
+  String? chaveEscolhaManual;
+
   ///  State fields for stateful widgets in this page.
 
   // Model for header component.

@@ -16,6 +16,9 @@ import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/index.dart';
 import '/pg_rebanho/peso_decimal_formatter.dart';
+import '/reproducao/popup_selecionar_reproducao/popup_selecionar_reproducao_widget.dart';
+import '/reproducao/reproducao_parto_service.dart';
+import '/reproducao/reproducao_parto_utils.dart';
 import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -115,6 +118,170 @@ class _PgRebanhoAddNascimentoWidgetState
     _model.dispose();
 
     super.dispose();
+  }
+
+  /// Descarta o vínculo com a reprodução e, se o reprodutor tiver sido
+  /// preenchido por esta automação, limpa-o também. Um reprodutor escolhido à
+  /// mão pelo usuário nunca é apagado.
+  void _limparVinculoReproducao() {
+    _model.idReproducaoVinculada = null;
+    _model.vinculoEscolhidoManualmente = false;
+    _model.chaveEscolhaManual = null;
+    if (_model.reprodutorPreenchidoAutomaticamente) {
+      FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct();
+      _model.reprodutorPreenchidoAutomaticamente = false;
+    }
+  }
+
+  /// Aplica o reprodutor de [candidato] ao bezerro, se o campo ainda estiver
+  /// vazio ou se já tiver sido preenchido por esta mesma automação. Os dados
+  /// do cadastro do rebanho têm prioridade sobre o texto gravado na
+  /// reprodução. Retorna `true` se o reprodutor foi de fato aplicado.
+  Future<bool> _preencherReprodutorDoCandidato(
+      CandidatoReproducao candidato) async {
+    final reprodutorVazio =
+        !idAnimalValido(FFAppState().reprodutorSelecionado.idAnimal);
+    if (!(reprodutorVazio || _model.reprodutorPreenchidoAutomaticamente) ||
+        !idAnimalValido(candidato.idRebanhoReprodutor)) {
+      return false;
+    }
+
+    var numAnimal = candidato.numReprodutor;
+    var nomeAnimal = candidato.nomeReprodutor;
+    var dataNascAnimal = candidato.nascimentoReprodutor;
+    var racaAnimal = candidato.racaReprodutor;
+
+    // `id_rebanho_reprodutor` casa com `rebanho.idRebanho` (chave de
+    // negócio), nunca com o `id` numérico.
+    final cadastro = await RebanhoTable().querySingleRow(
+      queryFn: (q) => q.eqOrNull('idRebanho', candidato.idRebanhoReprodutor),
+    );
+    final reprodutor = cadastro.firstOrNull;
+    if (reprodutor != null) {
+      numAnimal = reprodutor.numeroAnimal ?? numAnimal;
+      nomeAnimal = reprodutor.nome ?? nomeAnimal;
+      dataNascAnimal = reprodutor.dataNascimento ?? dataNascAnimal;
+      racaAnimal = reprodutor.raca ?? racaAnimal;
+    }
+
+    FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct(
+      numAnimal: numAnimal,
+      nomeAnimal: nomeAnimal,
+      dataNascAnimal: dataNascAnimal?.toString(),
+      racaAnimal: racaAnimal,
+      idAnimal: candidato.idRebanhoReprodutor,
+    );
+    _model.reprodutorPreenchidoAutomaticamente = true;
+    return true;
+  }
+
+  /// Localiza a reprodução que originou este nascimento, guarda o vínculo para
+  /// confirmar o parto ao salvar e pré-preenche o reprodutor do bezerro.
+  ///
+  /// Quando nada é encontrado na janela automática (275-305 dias, só
+  /// Inseminação) mas há candidatas na estendida (306-350 dias, Inseminação e
+  /// Monta Natural), abre o popup de escolha manual. Em [silencioso] — a
+  /// revalidação feita no Salvar — não exibe mensagem nem popup, e preserva
+  /// uma escolha manual já feita para a mesma matriz e data.
+  ///
+  /// Nunca lança: qualquer falha apenas deixa o vínculo vazio e o cadastro
+  /// segue normalmente.
+  Future<void> _autoVincularReproducao({bool silencioso = false}) async {
+    try {
+      final idRebanhoMatriz = FFAppState().matrizSelecionada.idAnimal;
+      final dataNascimento = _model.datePicked1;
+      final chaveAtual =
+          chaveVinculoReproducao(idRebanhoMatriz, dataNascimento);
+
+      if (!idAnimalValido(idRebanhoMatriz) || dataNascimento == null) {
+        _model.idReproducaoVinculada = null;
+        _model.vinculoEscolhidoManualmente = false;
+        _model.chaveEscolhaManual = null;
+        return;
+      }
+
+      // No Salvar, se o usuário já escolheu (ou optou por não vincular) para
+      // esta mesma matriz e data, não recalcular: preserva a decisão dele.
+      if (silencioso &&
+          _model.vinculoEscolhidoManualmente &&
+          _model.chaveEscolhaManual == chaveAtual) {
+        return;
+      }
+
+      final resultado = await localizarReproducaoDaMatriz(
+        idPropriedade: FFAppState().propriedadeSelecionada.idPropriedade,
+        idRebanhoMatriz: idRebanhoMatriz,
+        dataNascimento: dataNascimento,
+      );
+
+      final candidato = resultado.automatica;
+      if (candidato != null) {
+        _model.idReproducaoVinculada = candidato.idReproducao;
+        _model.vinculoEscolhidoManualmente = false;
+        _model.chaveEscolhaManual = null;
+
+        final aplicado = await _preencherReprodutorDoCandidato(candidato);
+        if (mounted && !silencioso && aplicado) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Reprodução encontrada: reprodutor vinculado automaticamente e o parto será confirmado ao salvar.',
+                style: TextStyle(
+                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                ),
+              ),
+              duration: const Duration(milliseconds: 4000),
+              backgroundColor: FlutterFlowTheme.of(context).secondary,
+            ),
+          );
+        }
+        return;
+      }
+
+      _model.idReproducaoVinculada = null;
+
+      if (silencioso || resultado.candidatosManuais.isEmpty || !mounted) {
+        return;
+      }
+
+      final escolhido = await showDialog<CandidatoReproducao>(
+        context: context,
+        builder: (dialogContext) => Dialog(
+          elevation: 0,
+          insetPadding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+          alignment: const AlignmentDirectional(0.0, 0.0)
+              .resolve(Directionality.of(context)),
+          child: PopupSelecionarReproducaoWidget(
+            candidatos: resultado.candidatosManuais,
+            dataNascimento: dataNascimento,
+          ),
+        ),
+      );
+
+      _model.vinculoEscolhidoManualmente = true;
+      _model.chaveEscolhaManual = chaveAtual;
+
+      if (escolhido == null) {
+        // Usuário fechou o popup ou escolheu "Não vincular".
+        return;
+      }
+
+      _model.idReproducaoVinculada = escolhido.idReproducao;
+      if (idAnimalValido(escolhido.idRebanhoReprodutor)) {
+        await _preencherReprodutorDoCandidato(escolhido);
+      } else {
+        // Reprodução escolhida sem reprodutor vinculado: limpa o campo.
+        FFAppState().reprodutorSelecionado = AnimalSelecionadoStruct();
+        _model.reprodutorPreenchidoAutomaticamente = false;
+      }
+    } catch (_) {
+      // Falha na automação nunca deve bloquear o cadastro do nascimento.
+    } finally {
+      if (mounted) {
+        safeSetState(() {});
+      }
+    }
   }
 
   @override
@@ -1514,6 +1681,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                               FFLocalizations.of(context).languageCode,
                                                                         );
                                                                       });
+                                                                      await _autoVincularReproducao();
                                                                     },
                                                                     child:
                                                                         Container(
@@ -2247,9 +2415,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                               null,
                                                             ),
                                                             onChanged: (val) =>
-                                                                safeSetState(
-                                                                    () => _model
-                                                                            .dropDownTipoRegistroValue =
+                                                                safeSetState(() =>
+                                                                    _model.dropDownTipoRegistroValue =
                                                                         val),
                                                           ),
                                                         ),
@@ -2780,6 +2947,29 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       );
                                                                       safeSetState(
                                                                           () {});
+                                                                      if (!context
+                                                                          .mounted) {
+                                                                        return;
+                                                                      }
+                                                                      // Com a matriz escolhida, a data de hoje serve de ponto de partida
+                                                                      // quando o usuario ainda nao informou o nascimento, para que a busca
+                                                                      // da reproducao possa rodar.
+                                                                      if (_model
+                                                                              .datePicked1 ==
+                                                                          null) {
+                                                                        _model.datePicked1 =
+                                                                            somenteData(getCurrentTimestamp);
+                                                                        _model
+                                                                            .dataNascimentoTextController
+                                                                            ?.text = dateTimeFormat(
+                                                                          "d/M/y",
+                                                                          _model
+                                                                              .datePicked1,
+                                                                          locale:
+                                                                              FFLocalizations.of(context).languageCode,
+                                                                        );
+                                                                      }
+                                                                      await _autoVincularReproducao();
                                                                     },
                                                                     child:
                                                                         Container(
@@ -2869,6 +3059,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     FFAppState()
                                                                             .matrizSelecionada =
                                                                         AnimalSelecionadoStruct();
+                                                                    _limparVinculoReproducao();
                                                                     safeSetState(
                                                                         () {});
                                                                   },
@@ -2987,6 +3178,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                       );
                                                                       safeSetState(
                                                                           () {});
+                                                                      _model.reprodutorPreenchidoAutomaticamente =
+                                                                          false;
                                                                     },
                                                                     child:
                                                                         Container(
@@ -3076,6 +3269,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                     FFAppState()
                                                                             .reprodutorSelecionado =
                                                                         AnimalSelecionadoStruct();
+                                                                    _model.reprodutorPreenchidoAutomaticamente =
+                                                                        false;
                                                                     safeSetState(
                                                                         () {});
                                                                   },
@@ -3156,8 +3351,9 @@ class _PgRebanhoAddNascimentoWidgetState
                                                                 controller: _model
                                                                         .dropDownStatusValueController ??=
                                                                     FormFieldController<
-                                                                            String>(
-                                                                        _model.dropDownStatusValue ??= statusRebanhoPadrao),
+                                                                        String>(_model
+                                                                            .dropDownStatusValue ??=
+                                                                        statusRebanhoPadrao),
                                                                 options:
                                                                     FFAppState()
                                                                         .statusRebanho,
@@ -4332,7 +4528,8 @@ class _PgRebanhoAddNascimentoWidgetState
                                             _model.dropDownLotesValue = null;
                                             _model.dropDownStatusValueController
                                                 ?.reset();
-                                            _model.dropDownStatusValue = statusRebanhoPadrao;
+                                            _model.dropDownStatusValue =
+                                                statusRebanhoPadrao;
                                           });
                                           safeSetState(() {
                                             _model.numAnimalTextController
@@ -4510,6 +4707,16 @@ class _PgRebanhoAddNascimentoWidgetState
                                                 }
                                                 _model.isSaving = true;
                                                 safeSetState(() {});
+                                                // O locale e lido antes do primeiro await: depois dele o
+                                                // context nao pode mais ser usado com seguranca.
+                                                final idiomaNomeConcat =
+                                                    FFLocalizations.of(context)
+                                                        .languageCode;
+                                                // Cobre o caso em que matriz e data ja vieram prontas e nenhum dos
+                                                // gatilhos da tela chegou a rodar. Precisa vir antes do insert, que le
+                                                // o reprodutor que esta revalidacao pode preencher.
+                                                await _autoVincularReproducao(
+                                                    silencioso: true);
                                                 _model.idRebanho = null;
                                                 safeSetState(() {});
                                                 _model.idRebanho =
@@ -4591,9 +4798,7 @@ class _PgRebanhoAddNascimentoWidgetState
                                                       '${_model.numAnimalTextController.text} - ${_model.nomeAnimalTextController.text} - ${dateTimeFormat(
                                                     "d/M/y",
                                                     _model.datePicked1,
-                                                    locale: FFLocalizations.of(
-                                                            context)
-                                                        .languageCode,
+                                                    locale: idiomaNomeConcat,
                                                   )}',
                                                   'dataVenda':
                                                       supaSerialize<DateTime>(
@@ -4681,6 +4886,29 @@ class _PgRebanhoAddNascimentoWidgetState
                                                         pesoPesoNascimentoHist,
                                                     'deletado': 'NAO',
                                                   });
+                                                }
+                                                // O parto so e confirmado depois do bezerro gravado, e uma falha aqui
+                                                // nunca bloqueia o cadastro do nascimento.
+                                                final idReproducaoParaConfirmar =
+                                                    _model
+                                                        .idReproducaoVinculada;
+                                                if (idReproducaoParaConfirmar !=
+                                                        null &&
+                                                    idReproducaoParaConfirmar
+                                                        .isNotEmpty &&
+                                                    _model.datePicked1 !=
+                                                        null) {
+                                                  try {
+                                                    await confirmarPartoAutomatico(
+                                                      idReproducao:
+                                                          idReproducaoParaConfirmar,
+                                                      dataNascimento:
+                                                          _model.datePicked1!,
+                                                    );
+                                                  } catch (_) {
+                                                    // Falha ao confirmar o parto automaticamente nunca deve
+                                                    // bloquear o cadastro do nascimento.
+                                                  }
                                                 }
                                                 safeSetState(() {
                                                   _model
