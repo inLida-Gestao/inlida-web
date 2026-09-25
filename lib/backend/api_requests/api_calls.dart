@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
 import '/backend/supabase/supabase_config.dart';
+import '/auth/supabase_auth/auth_util.dart';
 import 'api_manager.dart';
 
 export 'api_manager.dart' show ApiCallResponse;
@@ -11,14 +12,26 @@ export 'api_manager.dart' show ApiCallResponse;
 // ignore: unused_element
 const _kPrivateApiFunctionName = 'ffPrivateApiCall';
 
+/// Token do header Authorization.
+///
+/// O do usuario logado, para que as RPCs SECURITY INVOKER (lista do rebanho,
+/// lotes, sanidade, piquetes...) respeitem a RLS de quem chama. A anon key so
+/// quando nao ha sessao -- telas anteriores ao login.
+///
+/// Antes as chamadas mandavam a anon key de producao escrita no codigo: num
+/// build apontado para outro projeto (homologacao) o gateway recusava a chave,
+/// e, com a RLS fechada, mesmo a chave certa como anon devolvia listas vazias.
+String get _bearerToken =>
+    currentJwtToken.isNotEmpty ? currentJwtToken : SupabaseConfig.anonKey;
+
 /// Start Functions Supabase Rebanho Group Code
 
 class FunctionsSupabaseRebanhoGroup {
   static String getBaseUrl() => SupabaseConfig.baseRpcUrl;
-  static Map<String, String> headers = {
-    'apikey': SupabaseConfig.anonKey,
-    'Authorization': 'Bearer ${SupabaseConfig.anonKey}',
-  };
+  static Map<String, String> get headers => {
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
+      };
   static QTDRebanhoPropriedadesCall qTDRebanhoPropriedadesCall =
       QTDRebanhoPropriedadesCall();
   static QTDRebanhoForaPropriedadeCall qTDRebanhoForaPropriedadeCall =
@@ -89,10 +102,8 @@ class QTDRebanhoPropriedadesCall {
       apiUrl: '$baseUrl/contar_rebanho_ativo',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -122,10 +133,8 @@ class QTDRebanhoForaPropriedadeCall {
       apiUrl: '$baseUrl/contar_rebanho_fora',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -155,10 +164,8 @@ class QTDRebanhoPropriedadeCall {
       apiUrl: '$baseUrl/contar_rebanho_prop',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -192,10 +199,8 @@ class RebanhoPropriedadeCall {
       apiUrl: '$baseUrl/obter_rebanho_ativo_por_propriedade',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -247,10 +252,8 @@ class CountRebanhoFiltrosCall {
       apiUrl: '$baseUrl/contar_rebanho_propriedade_filtros',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -310,10 +313,8 @@ class BuscarRebanhoFiltrosCall {
       apiUrl: '$baseUrl/rebanho_propriedade_filtros',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -365,10 +366,8 @@ class BuscarRebanhoExportCall {
       apiUrl: '$baseUrl/rebanho_propriedade_filtros',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -434,10 +433,8 @@ ${pCategoria?.trim().isNotEmpty == true ? '  "p_categoria": "${escapeStringForJs
       apiUrl: '$baseUrl/reproducao_filtros',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -494,10 +491,8 @@ ${pStatusReproducao?.trim().isNotEmpty == true ? '  "p_status_reproducao": "${es
       apiUrl: '$baseUrl/contar_reproducao_filtros',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -539,10 +534,8 @@ class BuscarLotesFiltrosCall {
       apiUrl: '$baseUrl/lotes_filtros',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -580,10 +573,8 @@ class CountLotesFiltrosCall {
       apiUrl: '$baseUrl/count_lotes_filtros',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -647,10 +638,8 @@ class BuscarSanidadeFiltrosCall {
       apiUrl: '$baseUrl/sanidade_filtros',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -707,10 +696,8 @@ class CountSanidadeVacinacaoCall {
       apiUrl: '$baseUrl/count_sanidade_vacinacao',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -767,10 +754,8 @@ class CountSanidadeAntiparasitarioCall {
       apiUrl: '$baseUrl/count_sanidade_antiparasitario',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -827,10 +812,8 @@ class CountSanidadeTratamentoCall {
       apiUrl: '$baseUrl/count_sanidade_tratamento',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -887,10 +870,8 @@ class CountSanidadeProtocoloReprodutivoCall {
       apiUrl: '$baseUrl/count_sanidade_protocolo_reprodutivo',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -947,10 +928,8 @@ class CountSanidadeFiltrosCall {
       apiUrl: '$baseUrl/count_sanidade_filtros',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -980,10 +959,8 @@ class ListaRebanhosPropriedadeCall {
       apiUrl: '$baseUrl/get_rebanho_stats_by_categoria',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -1021,10 +998,8 @@ class GraficoQtdRebanhoPeriodoCall {
       apiUrl: '$baseUrl/get_rebanho_stats_by_gender_monthly',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -1118,10 +1093,8 @@ class AnosComRebanhoCall {
       apiUrl: '$baseUrl/get_rebanho_available_years',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -1169,10 +1142,8 @@ class QtdAnimaisMortalidadeCall {
       apiUrl: '$baseUrl/calculate_mortality_rate',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -1215,10 +1186,8 @@ class QtdAnimaisDesmamaCall {
       apiUrl: '$baseUrl/calculate_weaning_percentage',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -1261,10 +1230,8 @@ class CountInseminacaoCall {
       apiUrl: '$baseUrl/contar_reproducao_inseminacao',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -1294,10 +1261,8 @@ class CountMontaNaturalCall {
       apiUrl: '$baseUrl/contar_reproducao_monta',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -1327,10 +1292,8 @@ class BuscarPropriedadesDoUsuarioCall {
       apiUrl: '$baseUrl/propriedades_by_user',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -1360,10 +1323,8 @@ class ValidarAcessoUserCall {
       apiUrl: '$baseUrl/user_acesso',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -1398,10 +1359,8 @@ class CountRebanhosComLoteCall {
       apiUrl: '$baseUrl/count_rebanhos_com_lote',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -2080,15 +2039,12 @@ class ProjecaoDesmamasCall {
 /// Start Supa Edge Group Code
 
 class SupaEdgeGroup {
-  static String getBaseUrl() =>
-      'https://eqrtgsqnxxnfjjzlxpuj.supabase.co/functions/v1/';
-  static Map<String, String> headers = {
-    'Authorization':
-        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-    'Content-Type': 'application/json',
-    'apikey':
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-  };
+  static String getBaseUrl() => '${SupabaseConfig.url}/functions/v1/';
+  static Map<String, String> get headers => {
+        'Authorization': 'Bearer $_bearerToken',
+        'Content-Type': 'application/json',
+        'apikey': SupabaseConfig.anonKey,
+      };
   static ReproducaoPartosCategoriaCall reproducaoPartosCategoriaCall =
       ReproducaoPartosCategoriaCall();
   static ReproducaoProjecaoPartosCall reproducaoProjecaoPartosCall =
@@ -2119,11 +2075,9 @@ class ReproducaoPartosCategoriaCall {
       apiUrl: '${baseUrl}reproducao-partos-categoria',
       callType: ApiCallType.GET,
       headers: {
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization': 'Bearer $_bearerToken',
         'Content-Type': 'application/json',
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
       },
       params: {
         'idPropriedade': idPropriedade,
@@ -2184,11 +2138,9 @@ class ReproducaoProjecaoPartosCall {
       apiUrl: '${baseUrl}reproducao-projecao-partos',
       callType: ApiCallType.GET,
       headers: {
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization': 'Bearer $_bearerToken',
         'Content-Type': 'application/json',
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
       },
       params: {
         'idPropriedade': idPropriedade,
@@ -2268,11 +2220,9 @@ class ReproducaoAnosCall {
       apiUrl: '${baseUrl}get-reproducao-years',
       callType: ApiCallType.GET,
       headers: {
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization': 'Bearer $_bearerToken',
         'Content-Type': 'application/json',
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
       },
       params: {
         'property_id': propertyId,
@@ -2310,11 +2260,9 @@ class ReproducaoIdadeMediaPrimeraCriaCall {
       apiUrl: '${baseUrl}media-primeira-cria',
       callType: ApiCallType.GET,
       headers: {
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization': 'Bearer $_bearerToken',
         'Content-Type': 'application/json',
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
       },
       params: {
         'id_propriedade': idPropriedade,
@@ -2362,11 +2310,9 @@ class IntervaloEntrePartosMesesCall {
       apiUrl: '${baseUrl}media-intervalo-partos',
       callType: ApiCallType.GET,
       headers: {
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization': 'Bearer $_bearerToken',
         'Content-Type': 'application/json',
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
       },
       params: {
         'id_propriedade': idPropriedade,
@@ -2427,12 +2373,10 @@ class ExclusaoDeContaCall {
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Exclusao de conta',
-      apiUrl:
-          'https://eqrtgsqnxxnfjjzlxpuj.supabase.co/rest/v1/rpc/excluir_usuario_completo',
+      apiUrl: '${SupabaseConfig.url}/rest/v1/rpc/excluir_usuario_completo',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
         'Authorization': 'Bearer $jwt',
       },
       params: {},
@@ -2456,12 +2400,10 @@ class ImportRebanhosCall {
 
     return ApiManager.instance.makeApiCall(
       callName: 'Import Rebanhos',
-      apiUrl:
-          'https://eqrtgsqnxxnfjjzlxpuj.supabase.co/functions/v1/import-rebanho',
+      apiUrl: '${SupabaseConfig.url}/functions/v1/import-rebanho',
       callType: ApiCallType.POST,
       headers: {
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {
         'rebanhoData': jsonRebanho,
@@ -2491,14 +2433,11 @@ class ImportAnimaisCall {
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Import Animais',
-      apiUrl:
-          'https://eqrtgsqnxxnfjjzlxpuj.supabase.co/functions/v1/rebanho-import',
+      apiUrl: '${SupabaseConfig.url}/functions/v1/rebanho-import',
       callType: ApiCallType.POST,
       headers: {
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization': 'Bearer $_bearerToken',
+        'apikey': SupabaseConfig.anonKey,
       },
       params: {},
       body: ffApiRequestBody,
@@ -2600,11 +2539,9 @@ class ReproducaoDiagnosticosCategoriaCall {
       apiUrl: '${baseUrl}reproducao-diagnosticos-categoria',
       callType: ApiCallType.GET,
       headers: {
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization': 'Bearer $_bearerToken',
         'Content-Type': 'application/json',
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
       },
       params: {
         'idPropriedade': idPropriedade,
@@ -2667,11 +2604,9 @@ class ReproducaoDiagnosticosPeriodoCall {
       apiUrl: '${baseUrl}reproducao-diagnosticos-periodo',
       callType: ApiCallType.GET,
       headers: {
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'Authorization': 'Bearer $_bearerToken',
         'Content-Type': 'application/json',
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
       },
       params: {
         'idPropriedade': idPropriedade,
@@ -2733,10 +2668,8 @@ class BuscarPiquetesFiltrosCall {
       apiUrl: '$baseUrl/buscar_piquetes_filtros',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
@@ -2774,10 +2707,8 @@ class ContarPiquetesFiltrosCall {
       apiUrl: '$baseUrl/contar_piquetes_filtros',
       callType: ApiCallType.POST,
       headers: {
-        'apikey':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
-        'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcnRnc3FueHhuZmpqemx4cHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMjkwNjgsImV4cCI6MjA2MjgwNTA2OH0.OIpsBOdszJWSjFeeZeNTu4WQySocdJIygMWpYRYc-tM',
+        'apikey': SupabaseConfig.anonKey,
+        'Authorization': 'Bearer $_bearerToken',
       },
       params: {},
       body: ffApiRequestBody,
