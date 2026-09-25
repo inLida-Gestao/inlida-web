@@ -114,6 +114,50 @@ lista_sql() {
   echo "$saida"
 }
 
+# Os usuarios nao tem coluna de propriedade. Entram os que tem vinculo em
+# users_propriedades e tambem o dono (`propriedades.userID`): o dono costuma
+# nao ter vinculo, e sem ele nenhuma conta enxerga todas as propriedades do
+# recorte -- a tela de propriedades filtra por userID/usersID.
+sql_ids_usuarios() {
+  local props="$1"
+  cat <<SQL
+select user_id from users_propriedades where "idPropriedade" in (${props})
+union
+select "userID" from propriedades where "idPropriedade" in (${props})
+SQL
+}
+
+# id (texto), nome e email anonimos de cada usuario do recorte.
+#
+# Quem tem vinculo vira usuarioN, com N de `dense_rank` sobre o id em texto
+# -- a mesma expressao usada em `users_propriedades`, para que o email do
+# login bata com o que a tela mostra. Os donos sem vinculo ganham numeracao
+# propria (donoN): entrar na mesma contagem renumeraria os usuarioN que ja
+# existem num ambiente carregado antes.
+sql_usuarios_anonimos() {
+  local props="$1"
+  cat <<SQL
+with vinculados as (
+  select distinct user_id as id from users_propriedades
+   where "idPropriedade" in (${props})
+), donos as (
+  select distinct "userID" as id from propriedades
+   where "idPropriedade" in (${props})
+     and "userID" is not null
+     and "userID" not in (select id from vinculados)
+)
+select id,
+       'Usuario HML ' || dense_rank() over (order by id) as nome,
+       'usuario' || dense_rank() over (order by id) || '@hml.inlida.com.br' as email
+  from vinculados
+union all
+select id,
+       'Dono HML ' || dense_rank() over (order by id),
+       'dono' || dense_rank() over (order by id) || '@hml.inlida.com.br'
+  from donos
+SQL
+}
+
 select_da_tabela() {
   local tabela="$1"
   local props="$2"
@@ -122,26 +166,20 @@ select_da_tabela() {
 
   case "$tabela" in
     users)
-      # Os usuarios nao tem coluna de propriedade: chegam pelo vinculo.
       if [[ "$ANONIMIZAR" == "1" ]]; then
         cat <<SQL
-select u."userID", u.created_at,
-       'Usuario HML ' || dense_rank() over (order by u."userID"::text) as nome,
-       'usuario' || dense_rank() over (order by u."userID"::text) || '@hml.inlida.com.br' as email,
+with anonimos as ($(sql_usuarios_anonimos "$props"))
+select u."userID", u.created_at, a.nome, a.email,
        u.termos, null::text as foto, null::text as telefone, u.excluido,
        u.permissao, u.funcao, u.acesso, null::text as cpf_cnpj,
        u.valor_assinatura, u.ciclo_assinatura, u.piquete
   from users u
- where u."userID"::text in (
-         select user_id from users_propriedades where "idPropriedade" in (${props})
-       )
+  join anonimos a on a.id = u."userID"::text
 SQL
       else
         cat <<SQL
 select * from users
- where "userID"::text in (
-         select user_id from users_propriedades where "idPropriedade" in (${props})
-       )
+ where "userID"::text in ($(sql_ids_usuarios "$props"))
 SQL
       fi
       ;;
@@ -167,29 +205,15 @@ SQL
 
 # Par (id, email) de cada usuario, para criar as contas em auth.users.
 # `public.users` tem FK para `auth.users`: sem essas contas a carga falha.
-#
-# A numeracao do email anonimo sai de `dense_rank` sobre o id em texto, a
-# mesma expressao usada em `users` e `users_propriedades`. Ordenar por
-# created_at aqui e por user_id la daria emails diferentes para o mesmo
-# usuario, e o login nao bateria com o que a tela mostra.
 select_auth_users() {
   local props="$1"
   if [[ "$ANONIMIZAR" == "1" ]]; then
-    cat <<SQL
-select u."userID",
-       'usuario' || dense_rank() over (order by u."userID"::text) || '@hml.inlida.com.br'
-  from users u
- where u."userID"::text in (
-         select user_id from users_propriedades where "idPropriedade" in (${props})
-       )
-SQL
+    echo "select id::uuid, email from ($(sql_usuarios_anonimos "$props")) a"
   else
     cat <<SQL
 select u."userID", u.email
   from users u
- where u."userID"::text in (
-         select user_id from users_propriedades where "idPropriedade" in (${props})
-       )
+ where u."userID"::text in ($(sql_ids_usuarios "$props"))
    and u.email is not null
 SQL
   fi
