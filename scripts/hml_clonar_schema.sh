@@ -66,10 +66,24 @@ restore() {
     printf '  %s\n' "$extensao"
   done
 
+  # O --schema-only traz a tabela de historico vazia. Sem as linhas, um
+  # `supabase db push` futuro tentaria reaplicar as 126 migrations que este
+  # schema ja contem. Copiamos so version e name: `statements` guarda o SQL
+  # inteiro de cada migration e nao e consultado na hora de decidir o que
+  # aplicar.
+  echo "Copiando historico de migrations..."
+  psql "${PROD_DB_URL:?defina tambem PROD_DB_URL para copiar o historico}" \
+    --quiet --no-psqlrc \
+    -c "\\copy (select version, name from supabase_migrations.schema_migrations order by version) TO '${DESTINO}/schema_migrations.csv' WITH (FORMAT csv)"
+
   echo "Restaurando schema..."
   # Sem ON_ERROR_STOP: o dump repete objetos que o Supabase ja criou
   # (o schema `public`, por exemplo), e esses erros sao esperados.
   psql "$HML_DB_URL" --no-psqlrc --quiet -f "$ARQUIVO"
+
+  psql "$HML_DB_URL" --no-psqlrc --quiet -v ON_ERROR_STOP=1 <<SQL
+\copy supabase_migrations.schema_migrations (version, name) FROM '${DESTINO}/schema_migrations.csv' WITH (FORMAT csv)
+SQL
 
   echo
   echo "Schema restaurado. Confira a contagem de tabelas:"
