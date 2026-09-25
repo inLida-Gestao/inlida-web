@@ -66,6 +66,23 @@ if { [[ -n "${SUPABASE_URL:-}" ]] && [[ -z "${SUPABASE_ANON_KEY:-}" ]]; } ||
   exit 1
 fi
 
+# Trava do ambiente de homologacao. Sem as variaveis, o build cai nos
+# defaults de supabase_config.dart -- que sao os de producao -- e o site de
+# homologacao passaria a ler e gravar no banco real sem nenhum aviso. Melhor
+# o deploy falhar. A Vercel preenche VERCEL_GIT_COMMIT_REF com a branch.
+PROD_SUPABASE_REF="eqrtgsqnxxnfjjzlxpuj"
+if [[ "${VERCEL_GIT_COMMIT_REF:-}" == "hml" ]]; then
+  if [[ -z "${SUPABASE_URL:-}" ]]; then
+    echo "Branch hml exige SUPABASE_URL e SUPABASE_ANON_KEY do projeto de homologacao." >&2
+    echo "Defina-as em Settings > Environment Variables do projeto na Vercel." >&2
+    exit 1
+  fi
+  if [[ "$SUPABASE_URL" == *"$PROD_SUPABASE_REF"* ]]; then
+    echo "Branch hml nao pode apontar para o Supabase de producao (${PROD_SUPABASE_REF})." >&2
+    exit 1
+  fi
+fi
+
 if [[ -n "${SUPABASE_URL:-}" ]]; then
   BUILD_ARGS+=(--dart-define="SUPABASE_URL=${SUPABASE_URL}")
   BUILD_ARGS+=(--dart-define="SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}")
