@@ -50,6 +50,30 @@ else
   echo "MAPBOX_ACCESS_TOKEN is not set; map will use fallback tile provider."
 fi
 
+# SUPABASE_URL e SUPABASE_ANON_KEY sao `String.fromEnvironment` em
+# lib/backend/supabase/supabase_config.dart, ou seja, resolvidos em tempo de
+# build. Sem repassar como --dart-define, definir a variavel no painel da
+# Vercel nao surte efeito algum: o bundle sai com os defaults do arquivo, que
+# apontam para producao. Foi assim que o ambiente de homologacao acabou
+# gravando no banco de producao.
+#
+# As duas andam juntas: uma URL de um projeto com a anon key de outro so
+# falha em runtime, e de forma dificil de diagnosticar. Por isso o build para
+# aqui quando vem so uma das duas.
+if { [[ -n "${SUPABASE_URL:-}" ]] && [[ -z "${SUPABASE_ANON_KEY:-}" ]]; } ||
+   { [[ -z "${SUPABASE_URL:-}" ]] && [[ -n "${SUPABASE_ANON_KEY:-}" ]]; }; then
+  echo "SUPABASE_URL and SUPABASE_ANON_KEY must be set together (or neither)." >&2
+  exit 1
+fi
+
+if [[ -n "${SUPABASE_URL:-}" ]]; then
+  BUILD_ARGS+=(--dart-define="SUPABASE_URL=${SUPABASE_URL}")
+  BUILD_ARGS+=(--dart-define="SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}")
+  echo "Using Supabase project from env: ${SUPABASE_URL}"
+else
+  echo "SUPABASE_URL is not set; using the default project from supabase_config.dart."
+fi
+
 flutter build "${BUILD_ARGS[@]}"
 
 # Criar AssetManifest.json para compatibilidade com google_fonts
