@@ -251,15 +251,21 @@ criar_contas_auth() {
 create temp table tmp_auth (id uuid, email text);
 \copy tmp_auth from '${DESTINO}/auth_users.csv' with (format csv)
 
+-- As quatro colunas de token precisam ser '' e nao NULL. O servico de auth
+-- le essas colunas como string e, com NULL, todo login falha com
+-- "Database error querying schema" -- as demais colunas de token ja tem ''
+-- como default, estas nao.
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, created_at, updated_at,
-  raw_app_meta_data, raw_user_meta_data
+  raw_app_meta_data, raw_user_meta_data,
+  confirmation_token, recovery_token, email_change, email_change_token_new
 )
 select '00000000-0000-0000-0000-000000000000', t.id, 'authenticated', 'authenticated',
        t.email, extensions.crypt('${SENHA_PADRAO}', extensions.gen_salt('bf')),
        now(), now(), now(),
-       '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb
+       '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb,
+       '', '', '', ''
   from tmp_auth t
 on conflict (id) do nothing;
 
